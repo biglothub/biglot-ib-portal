@@ -3,9 +3,70 @@
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
 	let { account, latestStats, openPositions, recentTrades } = $derived(data);
+
+	// Edit state
+	let editing = $state(false);
+	let saving = $state(false);
+	let editError = $state('');
+	let editSuccess = $state('');
+	let editName = $state('');
+	let editEmail = $state('');
+	let editPhone = $state('');
+	let editNickname = $state('');
+	let editMt5AccountId = $state('');
+	let editMt5Server = $state('');
+
+	function openEdit() {
+		editName = account.client_name || '';
+		editEmail = account.client_email || '';
+		editPhone = account.client_phone || '';
+		editNickname = account.nickname || '';
+		editMt5AccountId = account.mt5_account_id || '';
+		editMt5Server = account.mt5_server || '';
+		editError = '';
+		editSuccess = '';
+		editing = true;
+	}
+
+	async function handleSave() {
+		saving = true;
+		editError = '';
+		editSuccess = '';
+
+		try {
+			const res = await fetch('/api/admin/clients/edit', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					client_account_id: account.id,
+					client_name: editName,
+					client_email: editEmail,
+					client_phone: editPhone,
+					nickname: editNickname,
+					mt5_account_id: editMt5AccountId,
+					mt5_server: editMt5Server
+				})
+			});
+
+			if (!res.ok) {
+				const err = await res.json();
+				editError = err.message || 'เกิดข้อผิดพลาด';
+				return;
+			}
+
+			editSuccess = 'บันทึกสำเร็จ';
+			editing = false;
+			await invalidateAll();
+		} catch {
+			editError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+		} finally {
+			saving = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -15,24 +76,35 @@
 <div class="space-y-6">
 	<a href="/admin/approvals" class="text-sm text-gray-500 hover:text-brand-400">&larr; กลับ</a>
 
-	<div class="flex items-center gap-4">
-		<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
-			{account.client_name.charAt(0)}
-		</div>
-		<div>
-			<div class="flex items-center gap-2">
-				<h1 class="text-lg font-bold">{account.client_name}</h1>
-				<StatusBadge status={account.status} />
+	<div class="flex items-center justify-between">
+		<div class="flex items-center gap-4">
+			<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
+				{account.client_name.charAt(0)}
 			</div>
-			<p class="text-xs text-gray-500">
-				MT5: {account.mt5_account_id} @ {account.mt5_server}
-				| IB: {account.master_ibs?.profiles?.full_name} ({account.master_ibs?.ib_code})
-				{#if account.last_synced_at}
-					| Sync: {timeAgo(account.last_synced_at)}
-				{/if}
-			</p>
+			<div>
+				<div class="flex items-center gap-2">
+					<h1 class="text-lg font-bold">{account.client_name}</h1>
+					<StatusBadge status={account.status} />
+				</div>
+				<p class="text-xs text-gray-500">
+					MT5: {account.mt5_account_id} @ {account.mt5_server}
+					| IB: {account.master_ibs?.profiles?.full_name} ({account.master_ibs?.ib_code})
+					{#if account.last_synced_at}
+						| Sync: {timeAgo(account.last_synced_at)}
+					{/if}
+				</p>
+			</div>
 		</div>
+		<button class="btn-secondary text-sm" onclick={openEdit}>
+			แก้ไขข้อมูล
+		</button>
 	</div>
+
+	{#if editSuccess}
+		<div class="bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-lg">
+			{editSuccess}
+		</div>
+	{/if}
 
 	{#if latestStats}
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -117,3 +189,49 @@
 		{/if}
 	</div>
 </div>
+
+<!-- Edit Modal -->
+{#if editing}
+	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div class="card max-w-lg w-full max-h-[90vh] overflow-y-auto">
+			<h3 class="text-lg font-medium mb-4">แก้ไขข้อมูลลูกค้า</h3>
+			<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-4">
+				<div>
+					<label class="label" for="edit_name">ชื่อลูกค้า *</label>
+					<input id="edit_name" type="text" class="input" bind:value={editName} required minlength="2" />
+				</div>
+				<div>
+					<label class="label" for="edit_email">อีเมล</label>
+					<input id="edit_email" type="email" class="input" bind:value={editEmail} />
+				</div>
+				<div>
+					<label class="label" for="edit_phone">เบอร์โทร</label>
+					<input id="edit_phone" type="text" class="input" bind:value={editPhone} />
+				</div>
+				<div>
+					<label class="label" for="edit_nickname">ชื่อเล่น</label>
+					<input id="edit_nickname" type="text" class="input" bind:value={editNickname} />
+				</div>
+				<div>
+					<label class="label" for="edit_mt5">MT5 Account ID *</label>
+					<input id="edit_mt5" type="text" class="input" bind:value={editMt5AccountId} required pattern="\d+" />
+				</div>
+				<div>
+					<label class="label" for="edit_server">MT5 Server *</label>
+					<input id="edit_server" type="text" class="input" bind:value={editMt5Server} required minlength="3" />
+				</div>
+
+				{#if editError}
+					<p class="text-sm text-red-400">{editError}</p>
+				{/if}
+
+				<div class="flex gap-2 justify-end">
+					<button type="button" class="btn-secondary text-sm" onclick={() => editing = false}>ยกเลิก</button>
+					<button type="submit" class="btn-primary text-sm" disabled={saving}>
+						{saving ? 'กำลังบันทึก...' : 'บันทึก'}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import MetricCard from '$lib/components/shared/MetricCard.svelte';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
@@ -26,6 +26,21 @@
 	let submitError = $state('');
 	let syncedAccountId = $state('');
 
+	// Edit state
+	let editing = $state(false);
+	let saving = $state(false);
+	let editError = $state('');
+	let editSuccess = $state('');
+	let editName = $state('');
+	let editEmail = $state('');
+	let editPhone = $state('');
+	let editNickname = $state('');
+
+	// Cancel state
+	let showCancelConfirm = $state(false);
+	let cancelling = $state(false);
+	let cancelError = $state('');
+
 	$effect(() => {
 		if (!account?.id || syncedAccountId === account.id) return;
 		syncedAccountId = account.id;
@@ -33,6 +48,74 @@
 		mt5Password = '';
 		mt5Server = account.mt5_server || '';
 	});
+
+	function openEdit() {
+		editName = account.client_name || '';
+		editEmail = account.client_email || '';
+		editPhone = account.client_phone || '';
+		editNickname = account.nickname || '';
+		editError = '';
+		editSuccess = '';
+		editing = true;
+	}
+
+	async function handleEdit() {
+		saving = true;
+		editError = '';
+
+		try {
+			const res = await fetch('/api/ib/clients/edit', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					client_account_id: account.id,
+					client_name: editName,
+					client_email: editEmail,
+					client_phone: editPhone,
+					nickname: editNickname
+				})
+			});
+
+			if (!res.ok) {
+				const err = await res.json();
+				editError = err.message || 'เกิดข้อผิดพลาด';
+				return;
+			}
+
+			editSuccess = 'บันทึกสำเร็จ';
+			editing = false;
+			await invalidateAll();
+		} catch {
+			editError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+		} finally {
+			saving = false;
+		}
+	}
+
+	async function handleCancel() {
+		cancelling = true;
+		cancelError = '';
+
+		try {
+			const res = await fetch('/api/ib/clients/cancel', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ client_account_id: account.id })
+			});
+
+			if (!res.ok) {
+				const err = await res.json();
+				cancelError = err.message || 'เกิดข้อผิดพลาด';
+				return;
+			}
+
+			goto('/ib/clients');
+		} catch {
+			cancelError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+		} finally {
+			cancelling = false;
+		}
+	}
 
 	async function handleResubmit() {
 		submitting = true;
@@ -63,6 +146,9 @@
 			submitting = false;
 		}
 	}
+
+	const canEdit = $derived(account.status !== 'suspended');
+	const canCancel = $derived(account.status === 'pending' || account.status === 'rejected');
 </script>
 
 <svelte:head>
@@ -73,23 +159,43 @@
 	<a href="/ib/clients" class="text-sm text-gray-500 hover:text-brand-400">&larr; กลับ</a>
 
 	<!-- Header -->
-	<div class="flex items-center gap-4">
-		<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
-			{account.client_name.charAt(0)}
-		</div>
-		<div>
-			<div class="flex items-center gap-2">
-				<h1 class="text-lg font-bold">{account.client_name}</h1>
-				<StatusBadge status={account.status} />
+	<div class="flex items-center justify-between">
+		<div class="flex items-center gap-4">
+			<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
+				{account.client_name.charAt(0)}
 			</div>
-			<p class="text-xs text-gray-500">
-				MT5: {account.mt5_account_id} @ {account.mt5_server}
-				{#if account.last_synced_at}
-					 | Sync: {timeAgo(account.last_synced_at)}
-				{/if}
-			</p>
+			<div>
+				<div class="flex items-center gap-2">
+					<h1 class="text-lg font-bold">{account.client_name}</h1>
+					<StatusBadge status={account.status} />
+				</div>
+				<p class="text-xs text-gray-500">
+					MT5: {account.mt5_account_id} @ {account.mt5_server}
+					{#if account.last_synced_at}
+						 | Sync: {timeAgo(account.last_synced_at)}
+					{/if}
+				</p>
+			</div>
+		</div>
+		<div class="flex gap-2">
+			{#if canEdit}
+				<button class="btn-secondary text-sm" onclick={openEdit}>
+					แก้ไข
+				</button>
+			{/if}
+			{#if canCancel}
+				<button class="btn-danger text-sm" onclick={() => { showCancelConfirm = true; cancelError = ''; }}>
+					ยกเลิก
+				</button>
+			{/if}
 		</div>
 	</div>
+
+	{#if editSuccess}
+		<div class="bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-lg">
+			{editSuccess}
+		</div>
+	{/if}
 
 	{#if account.status === 'rejected'}
 		<!-- Rejection Info -->
@@ -109,7 +215,7 @@
 
 		<!-- Resubmit Form -->
 		<div class="card">
-			<h2 class="text-sm font-medium text-gray-400 mb-4">แก้ไขและส่งใหม่</h2>
+			<h2 class="text-sm font-medium text-gray-400 mb-4">แก้ไข MT5 และส่งใหม่</h2>
 			<form onsubmit={(e) => { e.preventDefault(); handleResubmit(); }} class="space-y-4">
 				<div>
 					<label class="label" for="mt5_account_id">MT5 Account ID</label>
@@ -279,3 +385,69 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Edit Modal -->
+{#if editing}
+	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div class="card max-w-lg w-full">
+			<h3 class="text-lg font-medium mb-4">แก้ไขข้อมูลลูกค้า</h3>
+			<form onsubmit={(e) => { e.preventDefault(); handleEdit(); }} class="space-y-4">
+				<div>
+					<label class="label" for="edit_name">ชื่อลูกค้า *</label>
+					<input id="edit_name" type="text" class="input" bind:value={editName} required minlength="2" />
+				</div>
+				<div>
+					<label class="label" for="edit_email">อีเมล</label>
+					<input id="edit_email" type="email" class="input" bind:value={editEmail} />
+				</div>
+				<div>
+					<label class="label" for="edit_phone">เบอร์โทร</label>
+					<input id="edit_phone" type="text" class="input" bind:value={editPhone} />
+				</div>
+				<div>
+					<label class="label" for="edit_nickname">ชื่อเล่น</label>
+					<input id="edit_nickname" type="text" class="input" bind:value={editNickname} />
+				</div>
+
+				{#if editError}
+					<p class="text-sm text-red-400">{editError}</p>
+				{/if}
+
+				<div class="flex gap-2 justify-end">
+					<button type="button" class="btn-secondary text-sm" onclick={() => editing = false}>ยกเลิก</button>
+					<button type="submit" class="btn-primary text-sm" disabled={saving}>
+						{saving ? 'กำลังบันทึก...' : 'บันทึก'}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- Cancel Confirm Modal -->
+{#if showCancelConfirm}
+	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div class="card max-w-md w-full">
+			<h3 class="text-lg font-medium mb-2">ยืนยันการยกเลิก</h3>
+			<p class="text-sm text-gray-400 mb-4">
+				ต้องการยกเลิกลูกค้า <span class="text-white font-medium">{account.client_name}</span> หรือไม่?
+				ข้อมูลจะถูกลบออกจากระบบ
+			</p>
+
+			{#if cancelError}
+				<p class="text-sm text-red-400 mb-4">{cancelError}</p>
+			{/if}
+
+			<div class="flex gap-2 justify-end">
+				<button class="btn-secondary text-sm" onclick={() => showCancelConfirm = false}>ไม่ยกเลิก</button>
+				<button
+					class="btn-danger text-sm"
+					disabled={cancelling}
+					onclick={handleCancel}
+				>
+					{cancelling ? 'กำลังยกเลิก...' : 'ยืนยันยกเลิก'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}

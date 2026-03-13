@@ -57,9 +57,9 @@
 				{#each filteredClients as client}
 					{@const stats = statsMap[client.id]}
 					<a
-						href={['approved', 'rejected'].includes(client.status) ? `/ib/clients/${client.id}` : '#'}
+						href={client.status !== 'suspended' ? `/ib/clients/${client.id}` : '#'}
 						class="flex items-center gap-4 p-3 rounded-lg hover:bg-dark-hover transition-colors
-							{!['approved', 'rejected'].includes(client.status) ? 'opacity-60 cursor-default' : ''}"
+							{client.status === 'suspended' ? 'opacity-60 cursor-default' : ''}"
 					>
 						<div class="w-9 h-9 rounded-full bg-dark-border flex items-center justify-center text-sm font-medium text-gray-300">
 							{client.client_name.charAt(0)}
