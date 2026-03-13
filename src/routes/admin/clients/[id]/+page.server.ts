@@ -1,15 +1,14 @@
 import { createSupabaseServiceClient } from '$lib/server/supabase';
+import { CLIENT_ACCOUNT_PUBLIC_COLUMNS } from '$lib/server/clientAccounts';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const supabase = createSupabaseServiceClient();
-	const thirtyDaysAgo = new Date();
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	const [accountRes, statsRes, positionsRes, tradesRes] = await Promise.allSettled([
 		supabase.from('client_accounts')
-			.select('*, master_ibs(ib_code, profiles:user_id(full_name))')
+			.select(`${CLIENT_ACCOUNT_PUBLIC_COLUMNS}, master_ibs(ib_code, profiles:user_id(full_name))`)
 			.eq('id', params.id)
 			.single(),
 

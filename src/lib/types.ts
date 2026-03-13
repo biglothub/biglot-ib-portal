@@ -35,7 +35,6 @@ export interface ClientAccount {
 	client_phone: string | null;
 	nickname: string | null;
 	mt5_account_id: string;
-	mt5_investor_password: string;
 	mt5_server: string;
 	status: 'pending' | 'approved' | 'rejected' | 'suspended';
 	submitted_at: string;
@@ -49,6 +48,7 @@ export interface ClientAccount {
 	sync_error: string | null;
 	sync_count: number;
 	created_at: string;
+	updated_at: string;
 	// Joined
 	master_ibs?: MasterIB;
 }
@@ -134,7 +134,7 @@ export interface EquitySnapshot {
 export interface ApprovalLog {
 	id: string;
 	client_account_id: string;
-	action: 'submitted' | 'approved' | 'rejected' | 'suspended' | 'reactivated' | 'resubmitted';
+	action: 'submitted' | 'approved' | 'rejected' | 'suspended' | 'reactivated' | 'resubmitted' | 'auto_unlinked';
 	performed_by: string;
 	previous_status: string | null;
 	new_status: string | null;

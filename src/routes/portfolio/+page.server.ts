@@ -1,4 +1,3 @@
-import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -7,12 +6,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
 	// Client sees only their own account(s) via RLS
-	const { data: accounts } = await supabase
+	const { data: account } = await supabase
 		.from('client_accounts')
 		.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
-		.eq('status', 'approved');
+		.eq('status', 'approved')
+		.maybeSingle();
 
-	const account = accounts?.[0];
 	if (!account) {
 		return { account: null, latestStats: null, equityData: [], openPositions: [], recentTrades: [] };
 	}
