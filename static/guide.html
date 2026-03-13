@@ -290,7 +290,7 @@
 <!-- ════════════════════════════════════════════════════════ -->
 <section class="hero" id="overview">
   <h1>คู่มือการใช้งาน <span>IB Portal</span></h1>
-  <p>คู่มือแนะนำการใช้งานระบบ IB Portal อย่างละเอียด สำหรับทุกบทบาท ตั้งแต่ Admin, Master IB ไปจนถึง Client</p>
+  <p>คู่มือแนะนำการใช้งานระบบ IB Portal อย่างละเอียด สำหรับทุกบทบาท ตั้งแต่ Admin, Master IB ไปจนถึง Client พร้อม Trading Analytics</p>
 
   <div class="role-grid">
     <!-- Admin -->
@@ -325,8 +325,10 @@
       <ul class="role-features">
         <li>ดูยอดเงิน, Equity, P/L</li>
         <li>กราฟ Equity Curve 30 วัน</li>
-        <li>ตาราง Open Positions</li>
-        <li>ประวัติการเทรดย้อนหลัง</li>
+        <li>Score Breakdown & Session Analysis</li>
+        <li>Trading Calendar — ปฏิทินผลเทรดรายวัน</li>
+        <li>Analytics Dashboard (Sharpe, Sortino, Calmar)</li>
+        <li>ตาราง Open Positions & ประวัติเทรด</li>
       </ul>
     </a>
   </div>
@@ -1148,11 +1150,11 @@
   <div class="step">
     <div class="step-line">
       <div class="step-num" style="background:var(--green-dim); color:var(--green);">4</div>
-      <div class="step-connector" style="background:transparent;"></div>
+      <div class="step-connector" style="background:var(--green-dim);"></div>
     </div>
     <div class="step-content">
       <div class="step-title">ดูพอร์ตการเทรด</div>
-      <div class="step-desc">เมื่อมีบัญชีที่ approved แล้ว จะเห็นพอร์ตเต็มรูปแบบ ประกอบด้วย KPI, Equity Curve, Open Positions, และ Recent Trades</div>
+      <div class="step-desc">เมื่อมีบัญชีที่ approved แล้ว จะเห็นพอร์ตเต็มรูปแบบ ประกอบด้วย KPI, Equity Curve, Score Breakdown, Trading Calendar, Analytics Dashboard, Open Positions, และ Recent Trades</div>
       <div class="mockup">
         <div class="mockup-bar">
           <div class="mockup-dot" style="background:#ef4444;"></div>
@@ -1239,6 +1241,376 @@
       <div class="tip">
         <div class="tip-icon">&#128161;</div>
         <div>ข้อมูลจะอัปเดตอัตโนมัติผ่าน Bridge Service ที่เชื่อมต่อกับ MT5 — ดูเวลา Sync ล่าสุดได้ที่ด้านบน</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Score Breakdown & Recent Rhythm -->
+  <div class="step">
+    <div class="step-line">
+      <div class="step-num" style="background:var(--green-dim); color:var(--green);">5</div>
+      <div class="step-connector" style="background:var(--green-dim);"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-title">Score Breakdown & Recent Rhythm</div>
+      <div class="step-desc">ใต้กราฟ Equity จะเห็นการ์ด 2 อันเรียงข้างกัน: Score Breakdown วิเคราะห์กำไรตาม Session (Asian, London, New York) และ Recent Rhythm แสดงจังหวะการเทรดรายวัน</div>
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#ef4444;"></div>
+          <div class="mockup-dot" style="background:#eab308;"></div>
+          <div class="mockup-dot" style="background:#22c55e;"></div>
+          <div class="mockup-url">/portfolio — Score Breakdown</div>
+        </div>
+        <div class="mockup-body">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <!-- Score Breakdown -->
+            <div class="mock-card">
+              <div style="font-size:13px; font-weight:700; margin-bottom:14px;">Score Breakdown</div>
+              <div style="font-size:12px; color:var(--text2); margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                  <span>Total Profit</span>
+                  <span style="color:var(--green); font-weight:600;">+$1,250</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                  <span>Total Trades</span>
+                  <span style="font-weight:600; color:var(--text);">156</span>
+                </div>
+              </div>
+              <div style="font-size:11px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; font-weight:600;">Session Profitability</div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+                  <span style="width:60px; color:var(--text3);">Asian</span>
+                  <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;">
+                    <div style="width:35%; height:100%; background:var(--brand); border-radius:4px;"></div>
+                  </div>
+                  <span style="color:var(--green); font-weight:600; width:60px; text-align:right;">+$420</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+                  <span style="width:60px; color:var(--text3);">London</span>
+                  <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;">
+                    <div style="width:50%; height:100%; background:var(--green); border-radius:4px;"></div>
+                  </div>
+                  <span style="color:var(--green); font-weight:600; width:60px; text-align:right;">+$580</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+                  <span style="width:60px; color:var(--text3);">New York</span>
+                  <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;">
+                    <div style="width:25%; height:100%; background:var(--purple); border-radius:4px;"></div>
+                  </div>
+                  <span style="color:var(--green); font-weight:600; width:60px; text-align:right;">+$250</span>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:12px;">
+                <div style="flex:1; background:var(--green-dim); border-radius:8px; padding:8px; text-align:center;">
+                  <div style="font-size:10px; color:var(--text3);">Best Trade</div>
+                  <div style="font-size:13px; font-weight:700; color:var(--green);">+$520</div>
+                </div>
+                <div style="flex:1; background:var(--red-dim); border-radius:8px; padding:8px; text-align:center;">
+                  <div style="font-size:10px; color:var(--text3);">Worst Trade</div>
+                  <div style="font-size:13px; font-weight:700; color:var(--red);">-$180</div>
+                </div>
+              </div>
+            </div>
+            <!-- Recent Rhythm -->
+            <div class="mock-card">
+              <div style="font-size:13px; font-weight:700; margin-bottom:14px;">Recent Rhythm</div>
+              <div style="font-size:11px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; font-weight:600;">Daily P/L (7 วันล่าสุด)</div>
+              <div style="display:flex; align-items:end; gap:4px; height:60px; margin-bottom:12px;">
+                <div style="flex:1; height:70%; background:var(--green); border-radius:3px; opacity:0.7;"></div>
+                <div style="flex:1; height:30%; background:var(--red); border-radius:3px; opacity:0.7;"></div>
+                <div style="flex:1; height:50%; background:var(--green); border-radius:3px; opacity:0.7;"></div>
+                <div style="flex:1; height:85%; background:var(--green); border-radius:3px; opacity:0.8;"></div>
+                <div style="flex:1; height:20%; background:var(--red); border-radius:3px; opacity:0.7;"></div>
+                <div style="flex:1; height:60%; background:var(--green); border-radius:3px; opacity:0.8;"></div>
+                <div style="flex:1; height:45%; background:var(--green); border-radius:3px; opacity:0.8;"></div>
+              </div>
+              <div style="font-size:11px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; font-weight:600;">Closed Trades ล่าสุด</div>
+              <div style="display:flex; flex-direction:column; gap:4px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>EURUSD <span style="color:var(--green); font-size:10px;">BUY</span></span>
+                  <span style="color:var(--green);">+$320</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>XAUUSD <span style="color:var(--red); font-size:10px;">SELL</span></span>
+                  <span style="color:var(--red);">-$85</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>USDJPY <span style="color:var(--green); font-size:10px;">BUY</span></span>
+                  <span style="color:var(--green);">+$210</span>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:12px;">
+                <div style="flex:1; background:var(--green-dim); border-radius:8px; padding:6px; text-align:center;">
+                  <div style="font-size:10px; color:var(--text3);">Win</div>
+                  <div style="font-size:14px; font-weight:700; color:var(--green);">5</div>
+                </div>
+                <div style="flex:1; background:var(--red-dim); border-radius:8px; padding:6px; text-align:center;">
+                  <div style="font-size:10px; color:var(--text3);">Loss</div>
+                  <div style="font-size:14px; font-weight:700; color:var(--red);">2</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">&#128161;</div>
+        <div>Score Breakdown วิเคราะห์กำไรตาม Session เวลาตลาด (Asian 00:00-08:00, London 08:00-16:00, New York 16:00-24:00 UTC) เพื่อดูว่าเทรดช่วงเวลาไหนทำกำไรได้ดีที่สุด</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6: Trading Calendar -->
+  <div class="step">
+    <div class="step-line">
+      <div class="step-num" style="background:var(--green-dim); color:var(--green);">6</div>
+      <div class="step-connector" style="background:var(--green-dim);"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-title">Trading Calendar — ปฏิทินผลเทรดรายวัน</div>
+      <div class="step-desc">ปฏิทินแสดงผลการเทรดรายวันในรูปแบบ Heatmap สีเขียว = วันที่กำไร, สีแดง = วันที่ขาดทุน กดที่วันใดก็ได้เพื่อดูรายละเอียด</div>
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#ef4444;"></div>
+          <div class="mockup-dot" style="background:#eab308;"></div>
+          <div class="mockup-dot" style="background:#22c55e;"></div>
+          <div class="mockup-url">/portfolio — Trading Calendar</div>
+        </div>
+        <div class="mockup-body">
+          <div style="font-size:14px; font-weight:700; margin-bottom:16px;">Trading Calendar</div>
+          <!-- Month header -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div class="mock-btn mock-btn-outline" style="font-size:11px; padding:4px 10px;">&#8592;</div>
+            <div style="font-size:13px; font-weight:600;">March 2026</div>
+            <div class="mock-btn mock-btn-outline" style="font-size:11px; padding:4px 10px;">&#8594;</div>
+          </div>
+          <!-- Day headers -->
+          <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; margin-bottom:8px;">
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">จ</div>
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">อ</div>
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">พ</div>
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">พฤ</div>
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">ศ</div>
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">ส</div>
+            <div style="font-size:10px; color:var(--text3); font-weight:600;">อา</div>
+          </div>
+          <!-- Calendar grid -->
+          <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;">
+            <!-- Week 1 (starts on Sunday col7, so empty Mon-Sat) -->
+            <div style="aspect-ratio:1; border-radius:6px;"></div>
+            <div style="aspect-ratio:1; border-radius:6px;"></div>
+            <div style="aspect-ratio:1; border-radius:6px;"></div>
+            <div style="aspect-ratio:1; border-radius:6px;"></div>
+            <div style="aspect-ratio:1; border-radius:6px;"></div>
+            <div style="aspect-ratio:1; border-radius:6px;"></div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="font-size:11px; color:var(--text3);">1</div>
+            </div>
+            <!-- Week 2 -->
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">2</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$120</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--red-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">3</div>
+              <div style="font-size:8px; color:var(--red); font-weight:700;">-$45</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">4</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$230</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">5</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$85</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--red-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">6</div>
+              <div style="font-size:8px; color:var(--red); font-weight:700;">-$160</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="font-size:11px; color:var(--text3);">7</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="font-size:11px; color:var(--text3);">8</div>
+            </div>
+            <!-- Week 3 (partial) -->
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">9</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$310</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">10</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$95</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--red-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">11</div>
+              <div style="font-size:8px; color:var(--red); font-weight:700;">-$75</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+              <div style="font-size:11px; color:var(--text);">12</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$180</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--green-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--green);">
+              <div style="font-size:11px; color:var(--text);">13</div>
+              <div style="font-size:8px; color:var(--green); font-weight:700;">+$420</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="font-size:11px; color:var(--text3);">14</div>
+            </div>
+            <div style="aspect-ratio:1; border-radius:6px; background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div style="font-size:11px; color:var(--text3);">15</div>
+            </div>
+          </div>
+          <!-- Month summary -->
+          <div style="display:flex; gap:12px; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+            <div style="flex:1; text-align:center;">
+              <div style="font-size:10px; color:var(--text3);">P/L เดือนนี้</div>
+              <div style="font-size:14px; font-weight:700; color:var(--green);">+$1,160</div>
+            </div>
+            <div style="flex:1; text-align:center;">
+              <div style="font-size:10px; color:var(--text3);">วันที่เทรด</div>
+              <div style="font-size:14px; font-weight:700;">10</div>
+            </div>
+            <div style="flex:1; text-align:center;">
+              <div style="font-size:10px; color:var(--text3);">Win Rate</div>
+              <div style="font-size:14px; font-weight:700; color:var(--green);">70%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">&#128161;</div>
+        <div>คลิกที่วันใดก็ได้เพื่อดูรายละเอียด — จำนวน trades, P/L, Win Rate ของวันนั้น ปฏิทินจะแสดงสรุปรายสัปดาห์และรายเดือนด้วย</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7: Analytics Dashboard -->
+  <div class="step">
+    <div class="step-line">
+      <div class="step-num" style="background:var(--green-dim); color:var(--green);">7</div>
+      <div class="step-connector" style="background:transparent;"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-title">Analytics Dashboard — ตัวชี้วัดเชิงลึก</div>
+      <div class="step-desc">ส่วน Analytics แสดงตัวชี้วัดประสิทธิภาพเชิงลึก รวมถึง Risk-Adjusted Ratios, การวิเคราะห์ตามวันในสัปดาห์, Lot Size Distribution, และ Holding Time Analysis</div>
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot" style="background:#ef4444;"></div>
+          <div class="mockup-dot" style="background:#eab308;"></div>
+          <div class="mockup-dot" style="background:#22c55e;"></div>
+          <div class="mockup-url">/portfolio — Analytics Dashboard</div>
+        </div>
+        <div class="mockup-body">
+          <div style="font-size:14px; font-weight:700; margin-bottom:16px;">Analytics Dashboard</div>
+          <!-- Risk-Adjusted Ratios -->
+          <div style="font-size:12px; font-weight:600; color:var(--text3); text-transform:uppercase; margin-bottom:10px;">Risk-Adjusted Performance</div>
+          <div class="mock-kpi-grid" style="margin-bottom:20px; grid-template-columns:repeat(3,1fr);">
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Sharpe Ratio</div>
+              <div class="mock-kpi-value" style="color:var(--green);">1.42</div>
+              <div style="font-size:10px; color:var(--text3); margin-top:2px;">Risk-adjusted return</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Sortino Ratio</div>
+              <div class="mock-kpi-value" style="color:var(--green);">1.85</div>
+              <div style="font-size:10px; color:var(--text3); margin-top:2px;">Downside risk focus</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Calmar Ratio</div>
+              <div class="mock-kpi-value" style="color:var(--brand);">0.96</div>
+              <div style="font-size:10px; color:var(--text3); margin-top:2px;">Return / Max DD</div>
+            </div>
+          </div>
+          <div class="mock-kpi-grid" style="margin-bottom:20px; grid-template-columns:repeat(3,1fr);">
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Avg Daily Return</div>
+              <div class="mock-kpi-value" style="color:var(--green);">+0.32%</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Daily Volatility</div>
+              <div class="mock-kpi-value">0.85%</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Total Pips</div>
+              <div class="mock-kpi-value" style="color:var(--green);">+1,240</div>
+            </div>
+          </div>
+          <!-- Day of Week -->
+          <div style="font-size:12px; font-weight:600; color:var(--text3); text-transform:uppercase; margin-bottom:10px;">Performance by Day of Week</div>
+          <div style="display:flex; gap:6px; margin-bottom:20px;">
+            <div style="flex:1; text-align:center; background:var(--green-dim); border-radius:8px; padding:8px 4px;">
+              <div style="font-size:10px; color:var(--text3);">จ</div>
+              <div style="font-size:12px; font-weight:700; color:var(--green);">+$320</div>
+              <div style="font-size:9px; color:var(--text3);">12 trades</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--red-dim); border-radius:8px; padding:8px 4px;">
+              <div style="font-size:10px; color:var(--text3);">อ</div>
+              <div style="font-size:12px; font-weight:700; color:var(--red);">-$85</div>
+              <div style="font-size:9px; color:var(--text3);">8 trades</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--green-dim); border-radius:8px; padding:8px 4px;">
+              <div style="font-size:10px; color:var(--text3);">พ</div>
+              <div style="font-size:12px; font-weight:700; color:var(--green);">+$510</div>
+              <div style="font-size:9px; color:var(--text3);">15 trades</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--green-dim); border-radius:8px; padding:8px 4px;">
+              <div style="font-size:10px; color:var(--text3);">พฤ</div>
+              <div style="font-size:12px; font-weight:700; color:var(--green);">+$280</div>
+              <div style="font-size:9px; color:var(--text3);">10 trades</div>
+            </div>
+            <div style="flex:1; text-align:center; background:var(--green-dim); border-radius:8px; padding:8px 4px;">
+              <div style="font-size:10px; color:var(--text3);">ศ</div>
+              <div style="font-size:12px; font-weight:700; color:var(--green);">+$225</div>
+              <div style="font-size:9px; color:var(--text3);">9 trades</div>
+            </div>
+          </div>
+          <!-- Lot Size & Holding Time -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="mock-card">
+              <div style="font-size:12px; font-weight:600; color:var(--text3); text-transform:uppercase; margin-bottom:8px;">Lot Size Distribution</div>
+              <div style="display:flex; flex-direction:column; gap:4px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>0.01 - 0.10</span><span style="color:var(--text);">42 trades</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>0.10 - 0.50</span><span style="color:var(--text);">68 trades</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>0.50 - 1.00</span><span style="color:var(--text);">35 trades</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>1.00+</span><span style="color:var(--text);">11 trades</span>
+                </div>
+              </div>
+            </div>
+            <div class="mock-card">
+              <div style="font-size:12px; font-weight:600; color:var(--text3); text-transform:uppercase; margin-bottom:8px;">Holding Time Analysis</div>
+              <div style="display:flex; flex-direction:column; gap:4px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>&lt; 1 ชม.</span><span style="color:var(--green);">+$8.50/trade</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>1-4 ชม.</span><span style="color:var(--green);">+$12.30/trade</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>4-24 ชม.</span><span style="color:var(--green);">+$5.20/trade</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:var(--text2);">
+                  <span>&gt; 24 ชม.</span><span style="color:var(--red);">-$3.10/trade</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-icon">&#128161;</div>
+        <div><strong>Sharpe Ratio</strong> วัดผลตอบแทนเทียบกับความเสี่ยง (ค่ายิ่งสูงยิ่งดี, &gt;1 = ดี), <strong>Sortino</strong> เน้นเฉพาะความเสี่ยงขาลง, <strong>Calmar</strong> เปรียบเทียบผลตอบแทนกับ Max Drawdown</div>
+      </div>
+      <div class="warn">
+        <div class="tip-icon">&#9888;&#65039;</div>
+        <div>ต้องมีข้อมูลเทรดอย่างน้อย 5 วัน ระบบถึงจะคำนวณ Analytics ได้ หากมีข้อมูลน้อยเกินไปจะยังไม่แสดงส่วนนี้</div>
       </div>
     </div>
   </div>
@@ -1344,6 +1716,7 @@
           <tr><td>ดูพอร์ตลูกค้าทุกคน</td><td style="text-align:center; color:var(--green);">&#10003;</td><td style="text-align:center; color:var(--red);">&#10007;</td><td style="text-align:center; color:var(--red);">&#10007;</td></tr>
           <tr><td>ดูพอร์ตลูกค้าตัวเอง</td><td style="text-align:center;">—</td><td style="text-align:center; color:var(--green);">&#10003;</td><td style="text-align:center; color:var(--red);">&#10007;</td></tr>
           <tr><td>ดูพอร์ตของตัวเอง</td><td style="text-align:center;">—</td><td style="text-align:center;">—</td><td style="text-align:center; color:var(--green);">&#10003;</td></tr>
+          <tr><td>Trading Analytics & Calendar</td><td style="text-align:center; color:var(--red);">&#10007;</td><td style="text-align:center; color:var(--red);">&#10007;</td><td style="text-align:center; color:var(--green);">&#10003;</td></tr>
           <tr><td>ส่งข้อมูลใหม่ (Resubmit)</td><td style="text-align:center; color:var(--red);">&#10007;</td><td style="text-align:center; color:var(--green);">&#10003;</td><td style="text-align:center; color:var(--red);">&#10007;</td></tr>
           <tr><td>Login ด้วย Google</td><td style="text-align:center; color:var(--red);">&#10007;</td><td style="text-align:center; color:var(--red);">&#10007;</td><td style="text-align:center; color:var(--green);">&#10003;</td></tr>
           <tr><td>Login ด้วย Email/Password</td><td style="text-align:center; color:var(--green);">&#10003;</td><td style="text-align:center; color:var(--green);">&#10003;</td><td style="text-align:center; color:var(--red);">&#10007;</td></tr>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	let { profile } = $props();
+	let { profile, collapsed = $bindable(false) } = $props();
 
 	let mobileOpen = $state(false);
 
@@ -57,15 +57,29 @@
 <!-- Sidebar -->
 <aside class="
 	fixed md:static z-40
-	h-screen w-64 bg-dark-surface border-r border-dark-border
+	h-screen bg-dark-surface border-r border-dark-border
 	flex flex-col
-	transition-transform duration-200
+	transition-all duration-200
+	{collapsed ? 'w-16' : 'w-64'}
 	{mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
 ">
-	<!-- Logo -->
-	<div class="p-4 border-b border-dark-border">
-		<h1 class="text-lg font-bold text-white">IB Portal</h1>
-		<p class="text-xs text-gray-500 mt-0.5">{roleLabel}</p>
+	<!-- Logo + Collapse toggle -->
+	<div class="p-4 border-b border-dark-border flex items-center justify-between">
+		{#if !collapsed}
+			<div>
+				<h1 class="text-lg font-bold text-white">IB Portal</h1>
+				<p class="text-xs text-gray-500 mt-0.5">{roleLabel}</p>
+			</div>
+		{/if}
+		<button
+			aria-label={collapsed ? 'ขยาย Sidebar' : 'หุบ Sidebar'}
+			class="hidden md:flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-white hover:bg-dark-hover transition-colors {collapsed ? 'mx-auto' : ''}"
+			onclick={() => collapsed = !collapsed}
+		>
+			<svg class="w-4 h-4 transition-transform duration-200 {collapsed ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+			</svg>
+		</button>
 	</div>
 
 	<!-- Navigation -->
@@ -73,33 +87,45 @@
 		{#each links as link}
 			<a
 				href={link.href}
+				title={collapsed ? link.label : ''}
 				class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
+					{collapsed ? 'justify-center' : ''}
 					{(link.exact ? $page.url.pathname === link.href : $page.url.pathname === link.href || $page.url.pathname.startsWith(link.href + '/'))
 						? 'bg-brand-600/10 text-brand-400 font-medium'
 						: 'text-gray-400 hover:text-white hover:bg-dark-hover'}"
 				onclick={() => mobileOpen = false}
 			>
 				<span class="text-base">{link.icon}</span>
-				{link.label}
+				{#if !collapsed}
+					{link.label}
+				{/if}
 			</a>
 		{/each}
 	</nav>
 
 	<!-- User info -->
 	<div class="p-4 border-t border-dark-border">
-		<div class="flex items-center gap-3">
-			<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
-				{profile?.full_name?.charAt(0) || '?'}
+		{#if collapsed}
+			<div class="flex justify-center" title={profile?.full_name}>
+				<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
+					{profile?.full_name?.charAt(0) || '?'}
+				</div>
 			</div>
-			<div class="flex-1 min-w-0">
-				<p class="text-sm font-medium text-white truncate">{profile?.full_name}</p>
-				<p class="text-xs text-gray-500 truncate">{profile?.email}</p>
+		{:else}
+			<div class="flex items-center gap-3">
+				<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
+					{profile?.full_name?.charAt(0) || '?'}
+				</div>
+				<div class="flex-1 min-w-0">
+					<p class="text-sm font-medium text-white truncate">{profile?.full_name}</p>
+					<p class="text-xs text-gray-500 truncate">{profile?.email}</p>
+				</div>
 			</div>
-		</div>
-		<form method="POST" action="/auth/logout" class="mt-3">
-			<button type="submit" class="w-full text-left text-xs text-gray-500 hover:text-red-400 transition-colors">
-				ออกจากระบบ
-			</button>
-		</form>
+			<form method="POST" action="/auth/logout" class="mt-3">
+				<button type="submit" class="w-full text-left text-xs text-gray-500 hover:text-red-400 transition-colors">
+					ออกจากระบบ
+				</button>
+			</form>
+		{/if}
 	</div>
 </aside>

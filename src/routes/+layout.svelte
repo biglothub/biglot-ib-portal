@@ -5,6 +5,7 @@
 
 	let { data, children } = $props();
 	const profile = $derived(data.profile);
+	let sidebarCollapsed = $state(false);
 
 	const isAuthPage = $derived(!profile);
 </script>
@@ -13,7 +14,7 @@
 	{@render children()}
 {:else}
 	<div class="flex h-screen bg-dark-bg text-white">
-		<Sidebar {profile} />
+		<Sidebar {profile} bind:collapsed={sidebarCollapsed} />
 
 		<div class="flex-1 flex flex-col overflow-hidden">
 			<header class="h-12 shrink-0 flex items-center justify-end px-4 border-b border-dark-border">
