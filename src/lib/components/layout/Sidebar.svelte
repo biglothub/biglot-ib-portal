@@ -107,15 +107,23 @@
 	<div class="p-4 border-t border-dark-border">
 		{#if collapsed}
 			<div class="flex justify-center" title={profile?.full_name}>
-				<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
-					{profile?.full_name?.charAt(0) || '?'}
-				</div>
+				{#if profile?.avatar_url}
+					<img src={profile.avatar_url} alt={profile.full_name} class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
+				{:else}
+					<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
+						{profile?.full_name?.charAt(0) || '?'}
+					</div>
+				{/if}
 			</div>
 		{:else}
 			<div class="flex items-center gap-3">
-				<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
-					{profile?.full_name?.charAt(0) || '?'}
-				</div>
+				{#if profile?.avatar_url}
+					<img src={profile.avatar_url} alt={profile.full_name} class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
+				{:else}
+					<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
+						{profile?.full_name?.charAt(0) || '?'}
+					</div>
+				{/if}
 				<div class="flex-1 min-w-0">
 					<p class="text-sm font-medium text-white truncate">{profile?.full_name}</p>
 					<p class="text-xs text-gray-500 truncate">{profile?.email}</p>
