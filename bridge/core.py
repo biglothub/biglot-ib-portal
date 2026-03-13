@@ -4,11 +4,15 @@ Adapted from TSP-Competition bridge/core.py
 """
 
 import os
+import base64
 import MetaTrader5 as mt5
 from supabase import create_client
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from dotenv import load_dotenv
 
 load_dotenv()
+
+MT5_ENCRYPTION_KEY = os.getenv('MT5_ENCRYPTION_KEY', '')
 
 # Supabase (service role - bypasses RLS)
 supabase = create_client(
@@ -34,6 +38,24 @@ def init_mt5():
 
     print(f"MT5 initialized: {mt5.terminal_info()}")
     return True
+
+
+def decrypt_password(encoded: str) -> str:
+    """Decrypt AES-256-GCM encrypted password. Falls back to plain text during migration."""
+    if not MT5_ENCRYPTION_KEY:
+        return encoded
+    try:
+        combined = base64.b64decode(encoded)
+        if len(combined) < 29:  # 12 IV + 16 tag + 1 min ciphertext
+            return encoded
+        iv = combined[:12]
+        tag = combined[12:28]
+        ciphertext = combined[28:]
+        aesgcm = AESGCM(bytes.fromhex(MT5_ENCRYPTION_KEY))
+        plaintext = aesgcm.decrypt(iv, ciphertext + tag, None)
+        return plaintext.decode('utf-8')
+    except Exception:
+        return encoded  # Plain text (pre-migration)
 
 
 def send_telegram_message(chat_id, message):
