@@ -1,0 +1,128 @@
+<script lang="ts">
+	import { supabase } from '$lib/supabase';
+	import { timeAgo } from '$lib/utils';
+	import type { Notification } from '$lib/types';
+
+	let { userId }: { userId: string } = $props();
+
+	let notifications = $state<Notification[]>([]);
+	let open = $state(false);
+
+	let unreadCount = $derived(notifications.filter(n => !n.is_read).length);
+
+	$effect(() => {
+		// Initial fetch
+		supabase
+			.from('notifications')
+			.select('*')
+			.eq('user_id', userId)
+			.order('created_at', { ascending: false })
+			.limit(20)
+			.then(({ data }) => {
+				if (data) notifications = data;
+			});
+
+		// Realtime subscription
+		const channel = supabase
+			.channel('user-notifications')
+			.on(
+				'postgres_changes',
+				{
+					event: 'INSERT',
+					schema: 'public',
+					table: 'notifications',
+					filter: `user_id=eq.${userId}`
+				},
+				(payload) => {
+					notifications = [payload.new as Notification, ...notifications];
+				}
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	});
+
+	async function markAsRead(id: string) {
+		await supabase
+			.from('notifications')
+			.update({ is_read: true })
+			.eq('id', id);
+		notifications = notifications.map(n => n.id === id ? { ...n, is_read: true } : n);
+	}
+
+	async function markAllAsRead() {
+		await supabase
+			.from('notifications')
+			.update({ is_read: true })
+			.eq('user_id', userId)
+			.eq('is_read', false);
+		notifications = notifications.map(n => ({ ...n, is_read: true }));
+	}
+
+	function handleClickOutside(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+		if (!target.closest('.notification-bell')) {
+			open = false;
+		}
+	}
+</script>
+
+<svelte:window onclick={open ? handleClickOutside : undefined} />
+
+<div class="notification-bell relative">
+	<button
+		class="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-hover transition-colors"
+		onclick={(e) => { e.stopPropagation(); open = !open; }}
+	>
+		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+				d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+		</svg>
+		{#if unreadCount > 0}
+			<span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-medium">
+				{unreadCount > 9 ? '9+' : unreadCount}
+			</span>
+		{/if}
+	</button>
+
+	{#if open}
+		<div class="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-dark-surface border border-dark-border rounded-lg shadow-xl z-50">
+			<div class="flex items-center justify-between p-3 border-b border-dark-border">
+				<span class="text-sm font-medium text-white">การแจ้งเตือน</span>
+				{#if unreadCount > 0}
+					<button class="text-xs text-brand-400 hover:text-brand-300" onclick={markAllAsRead}>
+						อ่านทั้งหมด
+					</button>
+				{/if}
+			</div>
+			{#if notifications.length === 0}
+				<div class="p-6 text-center text-gray-500 text-sm">ไม่มีการแจ้งเตือน</div>
+			{:else}
+				{#each notifications as notif}
+					<button
+						class="w-full text-left p-3 border-b border-dark-border/50 hover:bg-dark-hover transition-colors
+							{!notif.is_read ? 'bg-brand-600/5' : ''}"
+						onclick={() => { if (!notif.is_read) markAsRead(notif.id); }}
+					>
+						<div class="flex items-start gap-2">
+							{#if !notif.is_read}
+								<span class="w-2 h-2 rounded-full bg-brand-400 mt-1.5 shrink-0"></span>
+							{:else}
+								<span class="w-2 h-2 shrink-0"></span>
+							{/if}
+							<div class="flex-1 min-w-0">
+								<p class="text-sm text-white">{notif.title}</p>
+								{#if notif.body}
+									<p class="text-xs text-gray-500 mt-0.5 truncate">{notif.body}</p>
+								{/if}
+								<p class="text-xs text-gray-600 mt-1">{timeAgo(notif.created_at)}</p>
+							</div>
+						</div>
+					</button>
+				{/each}
+			{/if}
+		</div>
+	{/if}
+</div>

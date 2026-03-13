@@ -6,19 +6,19 @@
 	let mobileOpen = $state(false);
 
 	const adminLinks = [
-		{ href: '/admin', label: 'Dashboard', icon: '📊' },
-		{ href: '/admin/approvals', label: 'อนุมัติลูกค้า', icon: '✅' },
-		{ href: '/admin/ibs', label: 'Master IBs', icon: '👥' },
+		{ href: '/admin', label: 'Dashboard', icon: '📊', exact: true },
+		{ href: '/admin/approvals', label: 'อนุมัติลูกค้า', icon: '✅', exact: false },
+		{ href: '/admin/ibs', label: 'Master IBs', icon: '👥', exact: false },
 	];
 
 	const ibLinks = [
-		{ href: '/ib', label: 'Dashboard', icon: '📊' },
-		{ href: '/ib/clients', label: 'ลูกค้าของฉัน', icon: '👤' },
-		{ href: '/ib/clients/add', label: 'เพิ่มลูกค้า', icon: '➕' },
+		{ href: '/ib', label: 'Dashboard', icon: '📊', exact: true },
+		{ href: '/ib/clients', label: 'ลูกค้าของฉัน', icon: '👤', exact: false },
+		{ href: '/ib/clients/add', label: 'เพิ่มลูกค้า', icon: '➕', exact: false },
 	];
 
 	const clientLinks = [
-		{ href: '/portfolio', label: 'พอร์ตของฉัน', icon: '📈' },
+		{ href: '/portfolio', label: 'พอร์ตของฉัน', icon: '📈', exact: true },
 	];
 
 	const links = $derived(
@@ -36,6 +36,7 @@
 
 <!-- Mobile toggle -->
 <button
+	aria-label="Toggle navigation"
 	class="md:hidden fixed top-4 left-4 z-50 p-2 bg-dark-surface border border-dark-border rounded-lg"
 	onclick={() => mobileOpen = !mobileOpen}
 >
@@ -46,7 +47,11 @@
 
 <!-- Backdrop -->
 {#if mobileOpen}
-	<button class="md:hidden fixed inset-0 bg-black/50 z-30" onclick={() => mobileOpen = false}></button>
+	<button
+		aria-label="Close navigation"
+		class="md:hidden fixed inset-0 bg-black/50 z-30"
+		onclick={() => mobileOpen = false}
+	></button>
 {/if}
 
 <!-- Sidebar -->
@@ -69,7 +74,7 @@
 			<a
 				href={link.href}
 				class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
-					{$page.url.pathname === link.href
+					{(link.exact ? $page.url.pathname === link.href : $page.url.pathname === link.href || $page.url.pathname.startsWith(link.href + '/'))
 						? 'bg-brand-600/10 text-brand-400 font-medium'
 						: 'text-gray-400 hover:text-white hover:bg-dark-hover'}"
 				onclick={() => mobileOpen = false}

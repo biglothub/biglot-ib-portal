@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const [accountRes, statsRes, historyRes, equityRes, positionsRes, tradesRes] = await Promise.allSettled([
 		supabase.from('client_accounts')
-			.select('id, client_name, nickname, mt5_account_id, mt5_server, status, last_synced_at')
+			.select('id, client_name, nickname, mt5_account_id, mt5_server, status, last_synced_at, rejection_reason, mt5_validation_error, sync_error')
 			.eq('id', params.id)
 			.single(),
 

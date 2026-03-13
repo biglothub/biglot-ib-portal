@@ -5,8 +5,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const supabase = locals.supabase;
 	const profile = locals.profile!;
 
-	// IB: explicit filter by master_ib_id (defense-in-depth alongside RLS)
-	// Admin: no filter needed (ca_admin_all RLS policy grants full access)
 	let ibFilter: string | null = null;
 	if (profile.role === 'master_ib') {
 		const { data: ib } = await supabase
@@ -20,7 +18,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	let query = supabase
 		.from('client_accounts')
-		.select('id, client_name, nickname, status, mt5_account_id, last_synced_at, sync_error')
+		.select('id, client_name, nickname, status, mt5_account_id, last_synced_at, sync_error, rejection_reason')
 		.order('created_at', { ascending: false });
 	if (ibFilter) query = query.eq('master_ib_id', ibFilter);
 
@@ -46,17 +44,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	}
 
-	const totalBalance = Object.values(statsMap).reduce((sum: number, s: any) => sum + (s.balance || 0), 0);
-	const totalProfit = Object.values(statsMap).reduce((sum: number, s: any) => sum + (s.profit || 0), 0);
-
 	return {
 		clients: clients || [],
-		statsMap,
-		kpis: {
-			totalClients: approvedClients.length,
-			pendingClients: (clients || []).filter(c => c.status === 'pending').length,
-			totalBalance,
-			totalProfit
-		}
+		statsMap
 	};
 };

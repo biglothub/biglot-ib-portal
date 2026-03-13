@@ -44,9 +44,9 @@
 				{#each clients as client}
 					{@const stats = statsMap[client.id]}
 					<a
-						href={client.status === 'approved' ? `/ib/clients/${client.id}` : '#'}
+						href={['approved', 'rejected'].includes(client.status) ? `/ib/clients/${client.id}` : '#'}
 						class="flex items-center gap-4 p-3 rounded-lg hover:bg-dark-hover transition-colors
-							{client.status !== 'approved' ? 'opacity-60 cursor-default' : ''}"
+							{!['approved', 'rejected'].includes(client.status) ? 'opacity-60 cursor-default' : ''}"
 					>
 						<div class="w-9 h-9 rounded-full bg-dark-border flex items-center justify-center text-sm font-medium text-gray-300">
 							{client.client_name.charAt(0)}

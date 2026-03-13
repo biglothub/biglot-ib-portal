@@ -25,8 +25,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const previousStatus = account.status;
 
+	// Map action to valid client_accounts.status
+	// 'reactivated' means re-approving a suspended account
+	const statusMap: Record<string, string> = {
+		approved: 'approved',
+		rejected: 'rejected',
+		suspended: 'suspended',
+		reactivated: 'approved'
+	};
+	const newStatus = statusMap[action];
+
 	const updateData: Record<string, unknown> = {
-		status: action,
+		status: newStatus,
 		reviewed_at: new Date().toISOString(),
 		reviewed_by: profile.id
 	};
@@ -48,12 +58,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		action,
 		performed_by: profile.id,
 		previous_status: previousStatus,
-		new_status: action,
+		new_status: newStatus,
 		reason: reason || null
 	});
 
 	// If approved + has email + no user_id yet → create client login
-	if (action === 'approved' && account.client_email && !account.user_id) {
+	if (newStatus === 'approved' && account.client_email && !account.user_id) {
 		try {
 			const { tempPassword } = await createClientUser({
 				email: account.client_email,
@@ -61,12 +71,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				client_account_id
 			});
 
-			// Notify admin about generated password
+			// Notify admin that client login was created
 			await supabase.from('notifications').insert({
 				user_id: profile.id,
 				type: 'client_approved',
 				title: `Client login created: ${account.client_name}`,
-				body: `Email: ${account.client_email} | Temp password: ${tempPassword}`
+				body: `Email: ${account.client_email} | กรุณาแจ้งลูกค้าให้ตั้งรหัสผ่านผ่านหน้า Forgot Password`,
+				metadata: { client_account_id, client_email: account.client_email }
 			});
 		} catch (e: any) {
 			console.error('Failed to create client user:', e);
@@ -76,12 +87,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	// Notify Master IB
 	const ibUserId = account.master_ibs?.user_id;
 	if (ibUserId) {
+		const notifType = newStatus === 'approved' ? 'client_approved'
+			: action === 'suspended' ? 'client_suspended'
+			: 'client_rejected';
+		const notifTitle = action === 'reactivated'
+			? `ลูกค้า ${account.client_name} ถูกเปิดใช้งานอีกครั้ง`
+			: newStatus === 'approved'
+			? `ลูกค้า ${account.client_name} ได้รับอนุมัติแล้ว`
+			: action === 'suspended'
+			? `ลูกค้า ${account.client_name} ถูกระงับ`
+			: `ลูกค้า ${account.client_name} ถูกปฏิเสธ`;
+
 		await supabase.from('notifications').insert({
 			user_id: ibUserId,
-			type: action === 'approved' ? 'client_approved' : 'client_rejected',
-			title: action === 'approved'
-				? `ลูกค้า ${account.client_name} ได้รับอนุมัติแล้ว`
-				: `ลูกค้า ${account.client_name} ถูกปฏิเสธ`,
+			type: notifType,
+			title: notifTitle,
 			body: reason || null,
 			metadata: { client_account_id }
 		});
