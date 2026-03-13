@@ -9,7 +9,7 @@ RESTART_DELAY=5
 
 while true; do
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting bridge..."
-    python main.py
+    uv run main.py
     EXIT_CODE=$?
 
     # Exit code 0 means intentional stop (Ctrl+C forwarded) — do not restart
