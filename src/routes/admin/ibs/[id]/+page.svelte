@@ -4,6 +4,39 @@
 
 	let { data } = $props();
 	let { ib, clients } = $derived(data);
+
+	let resetting = $state(false);
+	let tempPassword = $state('');
+	let resetError = $state('');
+
+	async function handleResetPassword() {
+		if (!confirm('ต้องการรีเซ็ตรหัสผ่านของ Master IB นี้?')) return;
+
+		resetting = true;
+		resetError = '';
+		tempPassword = '';
+
+		try {
+			const res = await fetch('/api/admin/reset-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ user_id: ib.user_id })
+			});
+
+			const result = await res.json();
+
+			if (!res.ok) {
+				resetError = result.message || 'เกิดข้อผิดพลาด';
+				return;
+			}
+
+			tempPassword = result.tempPassword;
+		} catch {
+			resetError = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
+		} finally {
+			resetting = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -15,15 +48,38 @@
 
 	<!-- IB Profile -->
 	<div class="card">
-		<div class="flex items-center gap-4">
-			<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
-				{ib.profiles?.full_name?.charAt(0) || '?'}
+		<div class="flex items-center justify-between">
+			<div class="flex items-center gap-4">
+				<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
+					{ib.profiles?.full_name?.charAt(0) || '?'}
+				</div>
+				<div>
+					<h1 class="text-lg font-bold">{ib.profiles?.full_name}</h1>
+					<p class="text-sm text-gray-500">IB Code: {ib.ib_code} | {ib.profiles?.email}</p>
+				</div>
 			</div>
-			<div>
-				<h1 class="text-lg font-bold">{ib.profiles?.full_name}</h1>
-				<p class="text-sm text-gray-500">IB Code: {ib.ib_code} | {ib.profiles?.email}</p>
-			</div>
+			<button
+				onclick={handleResetPassword}
+				disabled={resetting}
+				class="px-3 py-1.5 text-xs bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30 rounded-lg transition-colors disabled:opacity-50"
+			>
+				{resetting ? 'กำลังรีเซ็ต...' : 'รีเซ็ตรหัสผ่าน'}
+			</button>
 		</div>
+
+		{#if tempPassword}
+			<div class="mt-4 bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-lg">
+				<p class="font-medium mb-1">รหัสผ่านใหม่ (ชั่วคราว):</p>
+				<code class="text-base font-mono bg-dark-bg px-2 py-1 rounded select-all">{tempPassword}</code>
+				<p class="text-xs text-green-500/70 mt-2">กรุณาคัดลอกและส่งให้ Master IB - รหัสนี้จะไม่แสดงอีก</p>
+			</div>
+		{/if}
+
+		{#if resetError}
+			<div class="mt-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg">
+				{resetError}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Client List -->
