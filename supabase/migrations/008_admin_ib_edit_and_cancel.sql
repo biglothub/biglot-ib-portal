@@ -2,7 +2,7 @@
 -- Admin Edit + IB Edit + IB Cancel Client Account
 -- ============================================
 
--- 1. Admin can edit client account fields (any status)
+-- 1. Admin can edit client account fields (any status), including investor password
 CREATE OR REPLACE FUNCTION public.admin_edit_client_account(
   p_account_id uuid,
   p_client_name text,
@@ -11,6 +11,7 @@ CREATE OR REPLACE FUNCTION public.admin_edit_client_account(
   p_nickname text,
   p_mt5_account_id text,
   p_mt5_server text,
+  p_mt5_investor_password text,  -- encrypted, NULL = no change
   p_actor_id uuid
 )
 RETURNS jsonb
@@ -108,7 +109,8 @@ BEGIN
       'client_phone', account_row.client_phone,
       'nickname', account_row.nickname,
       'mt5_account_id', account_row.mt5_account_id,
-      'mt5_server', account_row.mt5_server
+      'mt5_server', account_row.mt5_server,
+      'password_changed', p_mt5_investor_password IS NOT NULL
     ),
     'updated', jsonb_build_object(
       'client_name', trimmed_name,
@@ -116,7 +118,8 @@ BEGIN
       'client_phone', trimmed_phone,
       'nickname', trimmed_nickname,
       'mt5_account_id', trimmed_mt5,
-      'mt5_server', trimmed_server
+      'mt5_server', trimmed_server,
+      'password_changed', p_mt5_investor_password IS NOT NULL
     )
   );
 
@@ -128,6 +131,10 @@ BEGIN
       nickname = trimmed_nickname,
       mt5_account_id = trimmed_mt5,
       mt5_server = trimmed_server,
+      mt5_investor_password = COALESCE(p_mt5_investor_password, mt5_investor_password),
+      mt5_validated = CASE WHEN p_mt5_investor_password IS NOT NULL THEN FALSE ELSE mt5_validated END,
+      mt5_validation_error = CASE WHEN p_mt5_investor_password IS NOT NULL THEN NULL ELSE mt5_validation_error END,
+      last_validated_at = CASE WHEN p_mt5_investor_password IS NOT NULL THEN NULL ELSE last_validated_at END,
       updated_at = now()
   WHERE id = account_row.id
   RETURNING * INTO account_row;
@@ -349,8 +356,70 @@ BEGIN
 END;
 $$;
 
--- 4. Add 'edited' and 'cancelled' to approval_log action check
+-- 4. Admin can delete any client account (any status)
+CREATE OR REPLACE FUNCTION public.admin_delete_client_account(
+  p_account_id uuid,
+  p_reason text,
+  p_actor_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  actor_role text;
+  account_row public.client_accounts%ROWTYPE;
+  trimmed_reason text := NULLIF(btrim(COALESCE(p_reason, '')), '');
+BEGIN
+  -- Auth check
+  IF auth.uid() IS NULL OR auth.uid() <> p_actor_id THEN
+    RAISE EXCEPTION 'Actor mismatch'
+      USING ERRCODE = '42501';
+  END IF;
+
+  SELECT role INTO actor_role FROM public.profiles WHERE id = p_actor_id;
+
+  IF actor_role <> 'admin' THEN
+    RAISE EXCEPTION 'Forbidden'
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- Lock the row
+  SELECT * INTO account_row
+  FROM public.client_accounts
+  WHERE id = p_account_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Account not found'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Log before delete
+  INSERT INTO public.approval_log (
+    client_account_id, action, performed_by,
+    previous_status, new_status, reason, metadata
+  ) VALUES (
+    account_row.id, 'deleted', p_actor_id,
+    account_row.status, 'deleted',
+    COALESCE(trimmed_reason, 'Admin deleted client account'),
+    jsonb_build_object(
+      'client_name', account_row.client_name,
+      'mt5_account_id', account_row.mt5_account_id,
+      'mt5_server', account_row.mt5_server
+    )
+  );
+
+  -- Delete the account (cascades to stats, trades, positions, etc.)
+  DELETE FROM public.client_accounts WHERE id = account_row.id;
+
+  RETURN public.sanitized_client_account_json(account_row);
+END;
+$$;
+
+-- 5. Add 'edited', 'cancelled', 'deleted' to approval_log action check
 ALTER TABLE public.approval_log DROP CONSTRAINT IF EXISTS approval_log_action_check;
 ALTER TABLE public.approval_log
   ADD CONSTRAINT approval_log_action_check
-  CHECK (action IN ('submitted', 'approved', 'rejected', 'suspended', 'reactivated', 'resubmitted', 'auto_unlinked', 'edited', 'cancelled'));
+  CHECK (action IN ('submitted', 'approved', 'rejected', 'suspended', 'reactivated', 'resubmitted', 'auto_unlinked', 'edited', 'cancelled', 'deleted'));

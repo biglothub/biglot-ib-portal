@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { encrypt } from '$lib/server/crypto';
 import { getDatabaseErrorStatus } from '$lib/server/clientAccounts';
 import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
@@ -15,10 +16,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const body = await request.json();
-	const { client_account_id, client_name, client_email, client_phone, nickname, mt5_account_id, mt5_server } = body;
+	const { client_account_id, client_name, client_email, client_phone, nickname, mt5_account_id, mt5_server, mt5_investor_password } = body;
 
 	if (!client_account_id || !client_name || !mt5_account_id || !mt5_server) {
 		return json({ message: 'Missing required fields' }, { status: 400 });
+	}
+
+	// Validate investor password if provided
+	let encryptedPassword: string | null = null;
+	if (mt5_investor_password) {
+		if (mt5_investor_password.length < 4 || mt5_investor_password.length > 64) {
+			return json({ message: 'Investor Password ต้องมี 4-64 ตัวอักษร' }, { status: 400 });
+		}
+		encryptedPassword = encrypt(mt5_investor_password);
 	}
 
 	const { data, error: rpcError } = await locals.supabase.rpc('admin_edit_client_account', {
@@ -29,6 +39,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		p_nickname: nickname || null,
 		p_mt5_account_id: mt5_account_id,
 		p_mt5_server: mt5_server,
+		p_mt5_investor_password: encryptedPassword,
 		p_actor_id: profile.id
 	});
 

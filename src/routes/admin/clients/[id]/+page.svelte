@@ -3,7 +3,7 @@
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
 	let { account, latestStats, openPositions, recentTrades } = $derived(data);
@@ -19,6 +19,13 @@
 	let editNickname = $state('');
 	let editMt5AccountId = $state('');
 	let editMt5Server = $state('');
+	let editMt5Password = $state('');
+
+	// Delete state
+	let showDeleteConfirm = $state(false);
+	let deleting = $state(false);
+	let deleteError = $state('');
+	let deleteReason = $state('');
 
 	function openEdit() {
 		editName = account.client_name || '';
@@ -27,6 +34,7 @@
 		editNickname = account.nickname || '';
 		editMt5AccountId = account.mt5_account_id || '';
 		editMt5Server = account.mt5_server || '';
+		editMt5Password = '';
 		editError = '';
 		editSuccess = '';
 		editing = true;
@@ -38,18 +46,23 @@
 		editSuccess = '';
 
 		try {
+			const payload: Record<string, string> = {
+				client_account_id: account.id,
+				client_name: editName,
+				client_email: editEmail,
+				client_phone: editPhone,
+				nickname: editNickname,
+				mt5_account_id: editMt5AccountId,
+				mt5_server: editMt5Server
+			};
+			if (editMt5Password) {
+				payload.mt5_investor_password = editMt5Password;
+			}
+
 			const res = await fetch('/api/admin/clients/edit', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					client_account_id: account.id,
-					client_name: editName,
-					client_email: editEmail,
-					client_phone: editPhone,
-					nickname: editNickname,
-					mt5_account_id: editMt5AccountId,
-					mt5_server: editMt5Server
-				})
+				body: JSON.stringify(payload)
 			});
 
 			if (!res.ok) {
@@ -65,6 +78,34 @@
 			editError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
 		} finally {
 			saving = false;
+		}
+	}
+
+	async function handleDelete() {
+		deleting = true;
+		deleteError = '';
+
+		try {
+			const res = await fetch('/api/admin/clients/delete', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					client_account_id: account.id,
+					reason: deleteReason
+				})
+			});
+
+			if (!res.ok) {
+				const err = await res.json();
+				deleteError = err.message || 'เกิดข้อผิดพลาด';
+				return;
+			}
+
+			goto('/admin/approvals');
+		} catch {
+			deleteError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+		} finally {
+			deleting = false;
 		}
 	}
 </script>
@@ -95,9 +136,14 @@
 				</p>
 			</div>
 		</div>
-		<button class="btn-secondary text-sm" onclick={openEdit}>
-			แก้ไขข้อมูล
-		</button>
+		<div class="flex gap-2">
+			<button class="btn-secondary text-sm" onclick={openEdit}>
+				แก้ไขข้อมูล
+			</button>
+			<button class="btn-danger text-sm" onclick={() => { showDeleteConfirm = true; deleteError = ''; deleteReason = ''; }}>
+				ลบลูกค้า
+			</button>
+		</div>
 	</div>
 
 	{#if editSuccess}
@@ -190,6 +236,44 @@
 	</div>
 </div>
 
+<!-- Delete Confirm Modal -->
+{#if showDeleteConfirm}
+	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div class="card max-w-md w-full">
+			<h3 class="text-lg font-medium text-red-400 mb-2">ยืนยันการลบลูกค้า</h3>
+			<p class="text-sm text-gray-400 mb-4">
+				ต้องการลบ <span class="text-white font-medium">{account.client_name}</span> (MT5: {account.mt5_account_id}) หรือไม่?
+				ข้อมูลทั้งหมดรวมถึง stats, trades, positions จะถูกลบออกจากระบบ
+			</p>
+			<div class="mb-4">
+				<label for="delete_reason" class="label">เหตุผล (ไม่บังคับ)</label>
+				<textarea
+					id="delete_reason"
+					bind:value={deleteReason}
+					class="input"
+					rows="2"
+					placeholder="ระบุเหตุผลที่ลบ..."
+				></textarea>
+			</div>
+
+			{#if deleteError}
+				<p class="text-sm text-red-400 mb-4">{deleteError}</p>
+			{/if}
+
+			<div class="flex gap-2 justify-end">
+				<button class="btn-secondary text-sm" onclick={() => showDeleteConfirm = false}>ยกเลิก</button>
+				<button
+					class="btn-danger text-sm"
+					disabled={deleting}
+					onclick={handleDelete}
+				>
+					{deleting ? 'กำลังลบ...' : 'ยืนยันลบ'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
 <!-- Edit Modal -->
 {#if editing}
 	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -219,6 +303,11 @@
 				<div>
 					<label class="label" for="edit_server">MT5 Server *</label>
 					<input id="edit_server" type="text" class="input" bind:value={editMt5Server} required minlength="3" />
+				</div>
+				<div>
+					<label class="label" for="edit_password">Investor Password</label>
+					<input id="edit_password" type="password" class="input" bind:value={editMt5Password} placeholder="เว้นว่างถ้าไม่ต้องการเปลี่ยน" minlength="4" maxlength="64" />
+					<p class="text-xs text-gray-500 mt-1">เว้นว่างถ้าไม่ต้องการเปลี่ยนรหัสผ่าน</p>
 				</div>
 
 				{#if editError}
