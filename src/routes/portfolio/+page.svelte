@@ -1,10 +1,18 @@
 <script lang="ts">
 	import MetricCard from '$lib/components/shared/MetricCard.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import EquityChart from '$lib/components/charts/EquityChart.svelte';
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	const { account, latestStats, openPositions, recentTrades } = data;
+	const { account, latestStats, equityData, openPositions, recentTrades } = data;
+
+	const chartData = $derived(
+		(equityData || []).map((d: any) => ({
+			time: Math.floor(new Date(d.timestamp).getTime() / 1000),
+			value: d.equity
+		}))
+	);
 </script>
 
 <svelte:head>
@@ -54,6 +62,14 @@
 		{:else}
 			<div class="card text-center py-8">
 				<p class="text-gray-500">กำลังรอข้อมูลจาก MT5...</p>
+			</div>
+		{/if}
+
+		<!-- Equity Curve -->
+		{#if chartData.length > 1}
+			<div class="card">
+				<h2 class="text-sm font-medium text-gray-400 mb-4">Equity Curve (30 วัน)</h2>
+				<EquityChart data={chartData} />
 			</div>
 		{/if}
 

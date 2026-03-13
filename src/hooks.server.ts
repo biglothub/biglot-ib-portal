@@ -56,8 +56,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (path.startsWith('/ib') && role !== 'master_ib' && role !== 'admin') {
 		throw redirect(303, role === 'client' ? '/portfolio' : '/auth/login');
 	}
-	if (path.startsWith('/portfolio') && !role) {
-		throw redirect(303, '/auth/login');
+	if (path.startsWith('/portfolio') && role !== 'client') {
+		throw redirect(303, role === 'admin' ? '/admin' : role === 'master_ib' ? '/ib' : '/auth/login');
 	}
 
 	// Redirect root based on role

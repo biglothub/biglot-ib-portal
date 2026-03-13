@@ -14,16 +14,22 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const account = accounts?.[0];
 	if (!account) {
-		return { account: null, latestStats: null, openPositions: [], recentTrades: [] };
+		return { account: null, latestStats: null, equityData: [], openPositions: [], recentTrades: [] };
 	}
 
-	const [statsRes, positionsRes, tradesRes] = await Promise.allSettled([
+	const [statsRes, equityRes, positionsRes, tradesRes] = await Promise.allSettled([
 		supabase.from('daily_stats')
 			.select('*')
 			.eq('client_account_id', account.id)
 			.order('date', { ascending: false })
 			.limit(1)
 			.single(),
+
+		supabase.from('equity_snapshots')
+			.select('timestamp, balance, equity, floating_pl')
+			.eq('client_account_id', account.id)
+			.gte('timestamp', thirtyDaysAgo.toISOString())
+			.order('timestamp', { ascending: true }),
 
 		supabase.from('open_positions')
 			.select('*')
@@ -43,6 +49,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		account,
 		latestStats: getValue(statsRes),
+		equityData: getValue(equityRes) || [],
 		openPositions: getValue(positionsRes) || [],
 		recentTrades: getValue(tradesRes) || []
 	};
