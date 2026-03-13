@@ -12,10 +12,11 @@ Key changes from TSP:
 import MetaTrader5 as mt5
 import time
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from collections import defaultdict
 from dotenv import load_dotenv
 from core import supabase, init_mt5, send_telegram_message, decrypt_password, TELEGRAM_ADMIN_CHAT_ID
+from stats import close_trade_dates_from_rows, recompute_daily_stats_for_account
 
 load_dotenv()
 
@@ -197,6 +198,7 @@ def sync_client_account(account):
                 supabase.table('open_positions').insert(rows).execute()
 
         # 3. Closed trades
+        trades_to_upsert = []
         deals = mt5.history_deals_get(TRADE_START, datetime.now())
         if deals:
             position_deals = defaultdict(list)
@@ -204,7 +206,6 @@ def sync_client_account(account):
                 if deal.entry in [0, 1]:
                     position_deals[deal.position_id].append(deal)
 
-            trades_to_upsert = []
             for pos_id, pos_deals in position_deals.items():
                 entry = next((d for d in pos_deals if d.entry == 0), None)
                 exit_deal = next((d for d in pos_deals if d.entry == 1), None)
@@ -241,181 +242,21 @@ def sync_client_account(account):
                     on_conflict='client_account_id,position_id'
                 ).execute()
 
-        # 4. Daily stats
-        today = now.strftime('%Y-%m-%d')
-        all_trades_resp = supabase.table('trades') \
-            .select('profit, type, symbol, lot_size, open_time, close_time') \
-            .eq('client_account_id', account_id).execute()
-        all_trades = all_trades_resp.data or []
-
-        total = len(all_trades)
-        wins = [t for t in all_trades if t['profit'] > 0]
-        losses = [t for t in all_trades if t['profit'] < 0]
-
-        win_rate = (len(wins) / total * 100) if total > 0 else 0
-        gross_profit = sum(t['profit'] for t in wins) if wins else 0
-        gross_loss = abs(sum(t['profit'] for t in losses)) if losses else 0
-        profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
-        avg_win = (gross_profit / len(wins)) if wins else 0
-        avg_loss = (gross_loss / len(losses)) if losses else 0
-        rr_ratio = (avg_win / avg_loss) if avg_loss > 0 else 0
-
-        # best/worst trade
-        best_trade = max((t['profit'] for t in all_trades), default=0)
-        worst_trade = min((t['profit'] for t in all_trades), default=0)
-
-        # win rate by type
-        buy_trades = [t for t in all_trades if t['type'] == 'BUY']
-        sell_trades = [t for t in all_trades if t['type'] == 'SELL']
-        win_rate_buy = (sum(1 for t in buy_trades if t['profit'] > 0) / len(buy_trades) * 100) if buy_trades else 0
-        win_rate_sell = (sum(1 for t in sell_trades if t['profit'] > 0) / len(sell_trades) * 100) if sell_trades else 0
-
-        # consecutive wins/losses
-        max_consec_wins = 0
-        max_consec_losses = 0
-        cur_wins = 0
-        cur_losses = 0
-        for t in sorted(all_trades, key=lambda x: x['close_time']):
-            if t['profit'] > 0:
-                cur_wins += 1
-                cur_losses = 0
-                max_consec_wins = max(max_consec_wins, cur_wins)
-            elif t['profit'] < 0:
-                cur_losses += 1
-                cur_wins = 0
-                max_consec_losses = max(max_consec_losses, cur_losses)
-            else:
-                cur_wins = 0
-                cur_losses = 0
-
-        # total lots
-        total_lots = sum(t['lot_size'] for t in all_trades)
-
-        # favorite pair
-        symbol_counts = defaultdict(int)
-        for t in all_trades:
-            symbol_counts[t['symbol']] += 1
-        favorite_pair = max(symbol_counts, key=symbol_counts.get) if symbol_counts else None
-
-        # avg holding time
-        holding_secs = []
-        for t in all_trades:
-            try:
-                open_dt = datetime.fromisoformat(t['open_time'].replace('Z', '+00:00'))
-                close_dt = datetime.fromisoformat(t['close_time'].replace('Z', '+00:00'))
-                holding_secs.append((close_dt - open_dt).total_seconds())
-            except (ValueError, TypeError):
-                pass
-        avg_hold = (sum(holding_secs) / len(holding_secs)) if holding_secs else 0
-
-        if avg_hold > 0:
-            if avg_hold < 60:
-                avg_holding_time = f"{int(avg_hold)}s"
-            elif avg_hold < 3600:
-                avg_holding_time = f"{int(avg_hold / 60)}m"
-            elif avg_hold < 86400:
-                avg_holding_time = f"{int(avg_hold / 3600)}h {int((avg_hold % 3600) / 60)}m"
-            else:
-                avg_holding_time = f"{int(avg_hold / 86400)}d {int((avg_hold % 86400) / 3600)}h"
-        else:
-            avg_holding_time = None
-
-        # trading style
-        if avg_hold > 0:
-            if avg_hold < 300:
-                trading_style = "Scalper"
-            elif avg_hold < 14400:
-                trading_style = "Day Trader"
-            elif avg_hold < 604800:
-                trading_style = "Swing Trader"
-            else:
-                trading_style = "Position Trader"
-        else:
-            trading_style = None
-
-        # session stats (Asian 00-08, London 08-16, NY 13-21 UTC)
-        session_trades = {'asian': [], 'london': [], 'newyork': []}
-        for t in all_trades:
-            try:
-                hour = datetime.fromisoformat(t['close_time'].replace('Z', '+00:00')).hour
-                if 0 <= hour < 8:
-                    session_trades['asian'].append(t)
-                if 8 <= hour < 16:
-                    session_trades['london'].append(t)
-                if 13 <= hour < 21:
-                    session_trades['newyork'].append(t)
-            except (ValueError, TypeError):
-                pass
-
-        def calc_session(trades_list):
-            if not trades_list:
-                return 0, 0
-            p = sum(t['profit'] for t in trades_list)
-            w = sum(1 for t in trades_list if t['profit'] > 0)
-            return round(p, 2), round(w / len(trades_list) * 100, 1)
-
-        asian_profit, asian_wr = calc_session(session_trades['asian'])
-        london_profit, london_wr = calc_session(session_trades['london'])
-        ny_profit, ny_wr = calc_session(session_trades['newyork'])
-
-        # max drawdown from equity snapshots
-        snap_resp = supabase.table('equity_snapshots') \
-            .select('equity') \
-            .eq('client_account_id', account_id) \
-            .order('timestamp', desc=False) \
-            .execute()
-        equities = [s['equity'] for s in (snap_resp.data or [])]
-
-        max_drawdown = 0
-        if equities:
-            peak = equities[0]
-            for eq in equities:
-                if eq > peak:
-                    peak = eq
-                if peak > 0:
-                    dd = ((peak - eq) / peak) * 100
-                    if dd > max_drawdown:
-                        max_drawdown = dd
-
-        # equity growth percent
-        equity_growth = 0
-        if equities and equities[0] > 0:
-            equity_growth = ((info.equity - equities[0]) / equities[0]) * 100
-
-        supabase.table('daily_stats').upsert({
-            'client_account_id': account_id,
-            'date': today,
-            'balance': info.balance,
-            'equity': info.equity,
-            'profit': info.profit,
-            'floating_pl': info.equity - info.balance,
-            'margin_level': info.margin_level if info.margin_level else None,
-            'win_rate': round(win_rate, 1),
-            'total_trades': total,
-            'profit_factor': round(profit_factor, 2),
-            'rr_ratio': round(rr_ratio, 2),
-            'avg_win': round(avg_win, 2),
-            'avg_loss': round(avg_loss, 2),
-            'peak_equity': max(info.equity, info.balance),
-            'best_trade': round(best_trade, 2),
-            'worst_trade': round(worst_trade, 2),
-            'win_rate_buy': round(win_rate_buy, 1),
-            'win_rate_sell': round(win_rate_sell, 1),
-            'max_consecutive_wins': max_consec_wins,
-            'max_consecutive_losses': max_consec_losses,
-            'max_drawdown': round(max_drawdown, 2),
-            'total_lots': round(total_lots, 2),
-            'favorite_pair': favorite_pair,
-            'avg_holding_time': avg_holding_time,
-            'trading_style': trading_style,
-            'session_asian_profit': asian_profit,
-            'session_asian_win_rate': asian_wr,
-            'session_london_profit': london_profit,
-            'session_london_win_rate': london_wr,
-            'session_newyork_profit': ny_profit,
-            'session_newyork_win_rate': ny_wr,
-            'equity_growth_percent': round(equity_growth, 2),
-        }, on_conflict='client_account_id,date').execute()
+        # 4. Daily stats (per UTC day, not lifetime summary)
+        touched_dates = close_trade_dates_from_rows(trades_to_upsert)
+        touched_dates.add(now.date())
+        recompute_daily_stats_for_account(
+            supabase=supabase,
+            account_id=account_id,
+            touched_dates=touched_dates,
+            current_state={
+                'timestamp': now.isoformat(),
+                'balance': info.balance,
+                'equity': info.equity,
+                'floating_pl': info.equity - info.balance,
+                'margin_level': info.margin_level if info.margin_level else None
+            }
+        )
 
         # 5. Update sync status
         supabase.table('client_accounts').update({
