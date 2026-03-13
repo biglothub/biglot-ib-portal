@@ -9,10 +9,12 @@
 	let { data } = $props();
 	let { account, latestStats, equityData, openPositions, recentTrades } = $derived(data);
 
-	const chartData = $derived(
+	const chartSnapshots = $derived(
 		(equityData || []).map((d: any) => ({
 			time: Math.floor(new Date(d.timestamp).getTime() / 1000),
-			value: d.equity
+			balance: d.balance || d.equity,
+			equity: d.equity,
+			floatingPL: d.floating_pl || 0
 		}))
 	);
 
@@ -182,10 +184,9 @@
 		{/if}
 
 		<!-- Equity Curve -->
-		{#if chartData.length > 1}
+		{#if chartSnapshots.length > 1}
 			<div class="card">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Equity Curve (30 วัน)</h2>
-				<EquityChart data={chartData} />
+				<EquityChart equitySnapshots={chartSnapshots} />
 			</div>
 		{/if}
 

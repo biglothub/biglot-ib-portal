@@ -2,15 +2,21 @@
 	import MetricCard from '$lib/components/shared/MetricCard.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import EquityChart from '$lib/components/charts/EquityChart.svelte';
+	import ScoreBreakdown from '$lib/components/portfolio/ScoreBreakdown.svelte';
+	import AnalyticsDashboard from '$lib/components/portfolio/AnalyticsDashboard.svelte';
+	import RecentRhythmCard from '$lib/components/portfolio/RecentRhythmCard.svelte';
+	import TradingCalendar from '$lib/components/portfolio/TradingCalendar.svelte';
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	let { account, latestStats, equityData, openPositions, recentTrades } = $derived(data);
+	let { account, latestStats, openPositions, recentTrades, analytics, dailyHistory, equityCurve, equitySnapshots } = $derived(data);
 
-	const chartData = $derived(
-		(equityData || []).map((d: any) => ({
-			time: Math.floor(new Date(d.timestamp).getTime() / 1000),
-			value: d.equity
+	// Build trade history for RecentRhythmCard
+	const tradeHistory = $derived(
+		(recentTrades || []).map((t: any) => ({
+			symbol: t.symbol,
+			profit: t.profit,
+			closeTime: t.close_time
 		}))
 	);
 </script>
@@ -38,6 +44,7 @@
 		</div>
 
 		{#if latestStats}
+			<!-- Metric Cards -->
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 				<MetricCard label="Balance" value={formatCurrency(latestStats.balance)} />
 				<MetricCard label="Equity" value={formatCurrency(latestStats.equity)} />
@@ -65,12 +72,40 @@
 			</div>
 		{/if}
 
-		<!-- Equity Curve -->
-		{#if chartData.length > 1}
+		<!-- Equity Chart -->
+		{#if (equitySnapshots && equitySnapshots.length > 1) || (equityCurve && equityCurve.length > 1)}
 			<div class="card">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Equity Curve (30 วัน)</h2>
-				<EquityChart data={chartData} />
+				<EquityChart {equitySnapshots} {equityCurve} />
 			</div>
+		{/if}
+
+		<!-- Score Breakdown + Recent Rhythm -->
+		{#if latestStats}
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<ScoreBreakdown
+					totalProfit={latestStats.profit || 0}
+					totalTrades={latestStats.total_trades || 0}
+					sessionAsianProfit={latestStats.session_asian_profit || 0}
+					sessionLondonProfit={latestStats.session_london_profit || 0}
+					sessionNewYorkProfit={latestStats.session_newyork_profit || 0}
+					bestTrade={latestStats.best_trade || 0}
+					worstTrade={latestStats.worst_trade || 0}
+				/>
+				<RecentRhythmCard
+					{dailyHistory}
+					history={tradeHistory}
+				/>
+			</div>
+		{/if}
+
+		<!-- Trading Calendar -->
+		{#if dailyHistory && dailyHistory.length > 0}
+			<TradingCalendar dailyData={dailyHistory} />
+		{/if}
+
+		<!-- Analytics Dashboard -->
+		{#if analytics}
+			<AnalyticsDashboard {analytics} />
 		{/if}
 
 		<!-- Open Positions -->
@@ -127,6 +162,8 @@
 								<th class="text-left py-2">Symbol</th>
 								<th class="text-left py-2">Type</th>
 								<th class="text-right py-2">Lots</th>
+								<th class="text-right py-2">Open</th>
+								<th class="text-right py-2">Close</th>
 								<th class="text-right py-2">P/L</th>
 								<th class="text-right py-2">Time</th>
 							</tr>
@@ -141,6 +178,8 @@
 										</span>
 									</td>
 									<td class="py-2 text-right text-gray-300">{trade.lot_size}</td>
+									<td class="py-2 text-right text-gray-300">{formatNumber(trade.open_price, 5)}</td>
+									<td class="py-2 text-right text-gray-300">{formatNumber(trade.close_price, 5)}</td>
 									<td class="py-2 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 										{formatCurrency(trade.profit)}
 									</td>
