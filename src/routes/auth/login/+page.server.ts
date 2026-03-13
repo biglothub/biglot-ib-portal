@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.session) {
 		const role = locals.profile?.role;
 		const redirectMap: Record<string, string> = {
@@ -11,5 +11,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		};
 		throw redirect(303, redirectMap[role || ''] || '/');
 	}
-	return {};
+
+	return {
+		error: url.searchParams.get('error')
+	};
 };

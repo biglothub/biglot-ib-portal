@@ -1,6 +1,5 @@
 import { json, error } from '@sveltejs/kit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
-import { createClientUser } from '$lib/server/auth';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
@@ -62,26 +61,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		reason: reason || null
 	});
 
-	// If approved + has email + no user_id yet → create client login
-	if (newStatus === 'approved' && account.client_email && !account.user_id) {
-		try {
-			const { tempPassword } = await createClientUser({
-				email: account.client_email,
-				full_name: account.client_name,
-				client_account_id
-			});
-
-			// Notify admin that client login was created
-			await supabase.from('notifications').insert({
-				user_id: profile.id,
-				type: 'client_approved',
-				title: `Client login created: ${account.client_name}`,
-				body: `Email: ${account.client_email} | กรุณาแจ้งลูกค้าให้ตั้งรหัสผ่านผ่านหน้า Forgot Password`,
-				metadata: { client_account_id, client_email: account.client_email }
-			});
-		} catch (e: any) {
-			console.error('Failed to create client user:', e);
-		}
+	// Notify admin that client can log in with Google
+	if (newStatus === 'approved' && account.client_email) {
+		await supabase.from('notifications').insert({
+			user_id: profile.id,
+			type: 'client_approved',
+			title: `ลูกค้า ${account.client_name} ได้รับอนุมัติแล้ว`,
+			body: `ลูกค้าสามารถล็อกอินด้วย Google (${account.client_email})`,
+			metadata: { client_account_id, client_email: account.client_email }
+		});
 	}
 
 	// Notify Master IB
