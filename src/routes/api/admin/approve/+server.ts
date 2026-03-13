@@ -1,10 +1,16 @@
 import { json, error } from '@sveltejs/kit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
+import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'admin') throw error(403, 'Forbidden');
+
+	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+	if (!rateLimit(`admin:approve:${ip}`, 30, 60_000)) {
+		throw error(429, 'Too many requests');
+	}
 
 	const { client_account_id, action, reason } = await request.json();
 

@@ -41,21 +41,18 @@ def init_mt5():
 
 
 def decrypt_password(encoded: str) -> str:
-    """Decrypt AES-256-GCM encrypted password. Falls back to plain text during migration."""
+    """Decrypt AES-256-GCM encrypted password."""
     if not MT5_ENCRYPTION_KEY:
         return encoded
-    try:
-        combined = base64.b64decode(encoded)
-        if len(combined) < 29:  # 12 IV + 16 tag + 1 min ciphertext
-            return encoded
-        iv = combined[:12]
-        tag = combined[12:28]
-        ciphertext = combined[28:]
-        aesgcm = AESGCM(bytes.fromhex(MT5_ENCRYPTION_KEY))
-        plaintext = aesgcm.decrypt(iv, ciphertext + tag, None)
-        return plaintext.decode('utf-8')
-    except Exception:
-        return encoded  # Plain text (pre-migration)
+    combined = base64.b64decode(encoded)
+    if len(combined) < 29:  # 12 IV + 16 tag + 1 min ciphertext — treat as pre-migration plaintext
+        return encoded
+    iv = combined[:12]
+    tag = combined[12:28]
+    ciphertext = combined[28:]
+    aesgcm = AESGCM(bytes.fromhex(MT5_ENCRYPTION_KEY))
+    plaintext = aesgcm.decrypt(iv, ciphertext + tag, None)
+    return plaintext.decode('utf-8')
 
 
 def send_telegram_message(chat_id, message):

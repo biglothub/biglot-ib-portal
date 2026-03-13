@@ -1,9 +1,15 @@
 import { json, error } from '@sveltejs/kit';
 import { createMasterIBUser } from '$lib/server/auth';
+import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (locals.profile?.role !== 'admin') throw error(403, 'Forbidden');
+
+	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+	if (!rateLimit(`admin:ibs:${ip}`, 10, 60_000)) {
+		throw error(429, 'Too many requests');
+	}
 
 	const { email, full_name, ib_code, company_name } = await request.json();
 
