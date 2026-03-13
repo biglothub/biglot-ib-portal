@@ -10,9 +10,20 @@
 	let processing = $state<string | null>(null);
 	let rejectingId = $state<string | null>(null);
 	let rejectReason = $state('');
+	let actionError = $state('');
+
+	async function readErrorMessage(res: Response) {
+		try {
+			const payload = await res.json();
+			return payload.message || 'เกิดข้อผิดพลาด';
+		} catch {
+			return 'เกิดข้อผิดพลาด';
+		}
+	}
 
 	async function handleApprove(accountId: string) {
 		processing = accountId;
+		actionError = '';
 		const res = await fetch('/api/admin/approve', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -20,6 +31,8 @@
 		});
 		if (res.ok) {
 			await invalidateAll();
+		} else {
+			actionError = await readErrorMessage(res);
 		}
 		processing = null;
 	}
@@ -27,6 +40,7 @@
 	async function handleReject() {
 		if (!rejectingId) return;
 		processing = rejectingId;
+		actionError = '';
 		const res = await fetch('/api/admin/approve', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -40,11 +54,14 @@
 			rejectingId = null;
 			rejectReason = '';
 			await invalidateAll();
+		} else {
+			actionError = await readErrorMessage(res);
 		}
 		processing = null;
 	}
 
 	function setFilter(status: string) {
+		actionError = '';
 		goto(`/admin/approvals?status=${status}`, { replaceState: true });
 	}
 </script>
@@ -55,6 +72,12 @@
 
 <div class="space-y-6">
 	<h1 class="text-xl font-bold">อนุมัติลูกค้า</h1>
+
+	{#if actionError}
+		<div class="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg">
+			{actionError}
+		</div>
+	{/if}
 
 	<!-- Filter tabs -->
 	<div class="flex gap-2">

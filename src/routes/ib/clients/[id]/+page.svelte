@@ -7,7 +7,7 @@
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	const { account, latestStats, equityData, openPositions, recentTrades } = data;
+	let { account, latestStats, equityData, openPositions, recentTrades } = $derived(data);
 
 	const chartData = $derived(
 		(equityData || []).map((d: any) => ({
@@ -17,11 +17,20 @@
 	);
 
 	// Resubmit form state
-	let mt5AccountId = $state(account.mt5_account_id || '');
+	let mt5AccountId = $state('');
 	let mt5Password = $state('');
-	let mt5Server = $state(account.mt5_server || '');
+	let mt5Server = $state('');
 	let submitting = $state(false);
 	let submitError = $state('');
+	let syncedAccountId = $state('');
+
+	$effect(() => {
+		if (!account?.id || syncedAccountId === account.id) return;
+		syncedAccountId = account.id;
+		mt5AccountId = account.mt5_account_id || '';
+		mt5Password = '';
+		mt5Server = account.mt5_server || '';
+	});
 
 	async function handleResubmit() {
 		submitting = true;

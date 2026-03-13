@@ -5,7 +5,7 @@
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	const { account, latestStats, equityData, openPositions, recentTrades } = data;
+	let { account, latestStats, equityData, openPositions, recentTrades } = $derived(data);
 
 	const chartData = $derived(
 		(equityData || []).map((d: any) => ({

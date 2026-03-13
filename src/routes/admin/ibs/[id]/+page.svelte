@@ -3,7 +3,7 @@
 	import { formatDateTime } from '$lib/utils';
 
 	let { data } = $props();
-	const { ib, clients } = data;
+	let { ib, clients } = $derived(data);
 </script>
 
 <svelte:head>

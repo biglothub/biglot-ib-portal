@@ -5,7 +5,7 @@
 	import { formatCurrency, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	const { clients, statsMap, kpis } = data;
+	let { clients, statsMap, kpis } = $derived(data);
 </script>
 
 <svelte:head>

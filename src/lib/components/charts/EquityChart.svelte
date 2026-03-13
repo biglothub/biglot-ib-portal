@@ -10,13 +10,18 @@
 	} = $props();
 
 	let container: HTMLDivElement;
-	let cleanup: (() => void) | undefined;
+	let chart: import('lightweight-charts').IChartApi | undefined;
+	let areaSeries: import('lightweight-charts').ISeriesApi<'Area'> | undefined;
 
 	onMount(() => {
-		if (!data || data.length === 0) return;
+		let observer: ResizeObserver | undefined;
+		let destroyed = false;
 
 		import('lightweight-charts').then(({ createChart, ColorType }) => {
-			const chart = createChart(container, {
+			if (destroyed) return;
+
+			chart = createChart(container, {
+				width: container.clientWidth,
 				height,
 				layout: {
 					background: { type: ColorType.Solid, color: 'transparent' },
@@ -42,7 +47,7 @@
 				},
 			});
 
-			const areaSeries = chart.addAreaSeries({
+			areaSeries = chart.addAreaSeries({
 				topColor: 'rgba(37, 99, 235, 0.4)',
 				bottomColor: 'rgba(37, 99, 235, 0.0)',
 				lineColor: '#2563eb',
@@ -52,18 +57,26 @@
 			areaSeries.setData(data as any);
 			chart.timeScale().fitContent();
 
-			const observer = new ResizeObserver(() => {
-				chart.applyOptions({ width: container.clientWidth });
+			observer = new ResizeObserver(() => {
+				chart?.applyOptions({ width: container.clientWidth });
 			});
 			observer.observe(container);
-
-			cleanup = () => {
-				observer.disconnect();
-				chart.remove();
-			};
 		});
 
-		return () => cleanup?.();
+		return () => {
+			destroyed = true;
+			observer?.disconnect();
+			chart?.remove();
+			chart = undefined;
+			areaSeries = undefined;
+		};
+	});
+
+	$effect(() => {
+		if (!chart || !areaSeries) return;
+		chart.applyOptions({ height });
+		areaSeries.setData(data as any);
+		chart.timeScale().fitContent();
 	});
 </script>
 

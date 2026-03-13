@@ -5,7 +5,7 @@
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	const { account, latestStats, openPositions, recentTrades } = data;
+	let { account, latestStats, openPositions, recentTrades } = $derived(data);
 </script>
 
 <svelte:head>

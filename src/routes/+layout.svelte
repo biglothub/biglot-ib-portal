@@ -4,7 +4,7 @@
 	import NotificationBell from '$lib/components/layout/NotificationBell.svelte';
 
 	let { data, children } = $props();
-	const { profile } = data;
+	const profile = $derived(data.profile);
 
 	const isAuthPage = $derived(!profile);
 </script>

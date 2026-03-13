@@ -4,7 +4,7 @@
 	import { formatCurrency, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	const { clients, statsMap } = data;
+	let { clients, statsMap } = $derived(data);
 
 	let filter = $state('all');
 
