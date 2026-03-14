@@ -10,7 +10,8 @@
 			colorBorder: 'border-pink-500/30',
 			colorText: 'text-pink-400',
 			colorBg: 'bg-pink-500/10',
-			youtube: '@goldwithping'
+			youtube: '@goldwithping',
+			avatar: '/coaches/ping.png'
 		},
 		{
 			name: 'COACH BALL',
@@ -22,7 +23,8 @@
 			colorBorder: 'border-orange-500/30',
 			colorText: 'text-orange-400',
 			colorBg: 'bg-orange-500/10',
-			youtube: '@trader10x'
+			youtube: '@trader10-x',
+			avatar: '/coaches/ball.png'
 		},
 		{
 			name: 'COACH PU',
@@ -34,7 +36,8 @@
 			colorBorder: 'border-yellow-500/30',
 			colorText: 'text-yellow-400',
 			colorBg: 'bg-yellow-500/10',
-			youtube: '@pumoneymind'
+			youtube: '@PuMoneyMind',
+			avatar: '/coaches/pu.png'
 		},
 		{
 			name: 'COACH CZECH',
@@ -46,7 +49,8 @@
 			colorBorder: 'border-green-500/30',
 			colorText: 'text-green-400',
 			colorBg: 'bg-green-500/10',
-			youtube: '@alltimehigh'
+			youtube: '@alltimehigh.official',
+			avatar: '/coaches/czech.png'
 		},
 		{
 			name: 'COACH FUTURE',
@@ -58,7 +62,8 @@
 			colorBorder: 'border-teal-500/30',
 			colorText: 'text-teal-400',
 			colorBg: 'bg-teal-500/10',
-			youtube: '@tradethefuture'
+			youtube: '@tradethefuturebyfuture',
+			avatar: '/coaches/future.png'
 		},
 		{
 			name: 'COACH JHEE',
@@ -70,7 +75,8 @@
 			colorBorder: 'border-blue-500/30',
 			colorText: 'text-blue-400',
 			colorBg: 'bg-blue-500/10',
-			youtube: '@jheearoonwan'
+			youtube: '@jheearoonwan',
+			avatar: '/coaches/jhee.png'
 		},
 		{
 			name: 'COACH ICZ',
@@ -82,7 +88,8 @@
 			colorBorder: 'border-purple-500/30',
 			colorText: 'text-purple-400',
 			colorBg: 'bg-purple-500/10',
-			youtube: '@coachicz'
+			youtube: '@portgoldtrader',
+			avatar: '/coaches/icz.png'
 		},
 		{
 			name: 'COACH DUK',
@@ -94,7 +101,8 @@
 			colorBorder: 'border-pink-500/30',
 			colorText: 'text-pink-400',
 			colorBg: 'bg-pink-500/10',
-			youtube: '@pidfah'
+			youtube: '@Pidfah',
+			avatar: '/coaches/duk.png'
 		},
 		{
 			name: 'COACH MAY',
@@ -106,7 +114,8 @@
 			colorBorder: 'border-red-500/30',
 			colorText: 'text-red-400',
 			colorBg: 'bg-red-500/10',
-			youtube: '@maydaychannel'
+			youtube: '@MC.Maydaychannel',
+			avatar: '/coaches/may.png'
 		}
 	];
 
@@ -190,12 +199,29 @@
 						</div>
 					</div>
 
+					<!-- Avatar -->
+					<div class="flex-shrink-0">
+						<img
+							src={coach.avatar}
+							alt={coach.name}
+							class="w-11 h-11 rounded-full object-cover border-2 {live ? coach.colorBorder : 'border-dark-border'}"
+						/>
+					</div>
+
 					<!-- Channel info -->
 					<div class="flex-1 min-w-0">
 						<h3 class="text-sm font-semibold text-white truncate">{coach.channel}</h3>
-						<div class="flex items-center gap-2 mt-1">
-							<span class="text-[11px] text-gray-500">{coach.youtube}</span>
-						</div>
+						<a
+							href="https://www.youtube.com/{coach.youtube}"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="inline-flex items-center gap-1.5 mt-1.5 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[11px] text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+						>
+							<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+								<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+							</svg>
+							{coach.youtube}
+						</a>
 					</div>
 
 					<!-- Time display -->
