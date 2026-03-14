@@ -302,7 +302,11 @@
 				</div>
 				<div>
 					<label class="label" for="edit_server">MT5 Server *</label>
-					<input id="edit_server" type="text" class="input" bind:value={editMt5Server} required minlength="3" />
+					<select id="edit_server" class="input" bind:value={editMt5Server} required>
+						<option value="" disabled>เลือก MT5 Server</option>
+						<option value="Connext-Real">Connext-Real</option>
+						<option value="Connext-Demo">Connext-Demo</option>
+					</select>
 				</div>
 				<div>
 					<label class="label" for="edit_password">Investor Password</label>

@@ -240,13 +240,11 @@
 				</div>
 				<div>
 					<label class="label" for="mt5_server">MT5 Server</label>
-					<input
-						id="mt5_server"
-						type="text"
-						class="input"
-						bind:value={mt5Server}
-						required
-					/>
+					<select id="mt5_server" class="input" bind:value={mt5Server} required>
+						<option value="" disabled>เลือก MT5 Server</option>
+						<option value="Connext-Real">Connext-Real</option>
+						<option value="Connext-Demo">Connext-Demo</option>
+					</select>
 				</div>
 
 				{#if submitError}
