@@ -26,6 +26,7 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.5.2",
 		"@supabase/supabase-js": "^2.86.0",
+		"fast-xml-parser": "^5.5.5",
 		"lightweight-charts": "^4.1.1",
 		"openai": "^6.29.0",
 		"sharp": "^0.34.5",
