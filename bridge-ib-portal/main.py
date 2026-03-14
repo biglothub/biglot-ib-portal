@@ -221,6 +221,10 @@ def sync_client_account(account):
                 pips = ((exit_deal.price - entry.price) / point_size) if trade_type == 'BUY' \
                     else ((entry.price - exit_deal.price) / point_size)
 
+                # Sum commission and swap from all deals for this position
+                total_commission = sum(getattr(d, 'commission', 0) or 0 for d in pos_deals)
+                total_swap = sum(getattr(d, 'swap', 0) or 0 for d in pos_deals)
+
                 trades_to_upsert.append({
                     'client_account_id': account_id,
                     'symbol': symbol,
@@ -231,6 +235,8 @@ def sync_client_account(account):
                     'open_time': datetime.fromtimestamp(entry.time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
                     'close_time': datetime.fromtimestamp(exit_deal.time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
                     'profit': exit_deal.profit,
+                    'commission': round(total_commission, 2),
+                    'swap': round(total_swap, 2),
                     'sl': None, 'tp': None,
                     'position_id': pos_id,
                     'pips': round(pips, 1)

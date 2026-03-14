@@ -18,7 +18,7 @@
 	];
 
 	const clientLinks = [
-		{ href: '/portfolio', label: 'พอร์ตของฉัน', icon: '📈', exact: true },
+		{ href: '/portfolio', label: 'พอร์ตของฉัน', icon: '📈', exact: false },
 	];
 
 	const links = $derived(

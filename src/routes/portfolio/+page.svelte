@@ -6,12 +6,11 @@
 	import AnalyticsDashboard from '$lib/components/portfolio/AnalyticsDashboard.svelte';
 	import RecentRhythmCard from '$lib/components/portfolio/RecentRhythmCard.svelte';
 	import TradingCalendar from '$lib/components/portfolio/TradingCalendar.svelte';
-	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
+	import { formatCurrency, formatNumber, formatPercent, formatDateTime } from '$lib/utils';
 
 	let { data } = $props();
 	let { account, latestStats, openPositions, recentTrades, analytics, dailyHistory, equityCurve, equitySnapshots } = $derived(data);
 
-	// Build trade history for RecentRhythmCard
 	const tradeHistory = $derived(
 		(recentTrades || []).map((t: any) => ({
 			symbol: t.symbol,
@@ -21,56 +20,36 @@
 	);
 </script>
 
-<svelte:head>
-	<title>พอร์ตของฉัน - IB Portal</title>
-</svelte:head>
-
-<div class="space-y-6">
-	<h1 class="text-xl font-bold">พอร์ตของฉัน</h1>
-
-	{#if !account}
-		<div class="card text-center py-12">
-			<span class="text-4xl mb-4 block">📋</span>
-			<h2 class="text-lg font-medium text-white mb-2">ยังไม่มีบัญชีที่อนุมัติ</h2>
-			<p class="text-sm text-gray-400">กรุณาติดต่อ Master IB ของคุณ</p>
+{#if !account}
+	<div class="card text-center py-12">
+		<span class="text-4xl mb-4 block">📋</span>
+		<h2 class="text-lg font-medium text-white mb-2">ยังไม่มีบัญชีที่อนุมัติ</h2>
+		<p class="text-sm text-gray-400">กรุณาติดต่อ Master IB ของคุณ</p>
+	</div>
+{:else if latestStats}
+	<div class="space-y-6">
+		<!-- Metric Cards -->
+		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<MetricCard label="Balance" value={formatCurrency(latestStats.balance)} />
+			<MetricCard label="Equity" value={formatCurrency(latestStats.equity)} />
+			<MetricCard
+				label="Floating P/L"
+				value={formatCurrency(latestStats.floating_pl)}
+				color={latestStats.floating_pl >= 0 ? 'text-green-400' : 'text-red-400'}
+			/>
+			<MetricCard
+				label="Profit"
+				value={formatCurrency(latestStats.profit)}
+				color={latestStats.profit >= 0 ? 'text-green-400' : 'text-red-400'}
+			/>
 		</div>
-	{:else}
-		<!-- Account info -->
-		<div class="flex items-center gap-3 text-sm text-gray-500">
-			<span>MT5: {account.mt5_account_id} @ {account.mt5_server}</span>
-			{#if account.last_synced_at}
-				<span>| อัพเดท: {timeAgo(account.last_synced_at)}</span>
-			{/if}
+
+		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<MetricCard label="Win Rate" value={formatPercent(latestStats.win_rate).replace('+', '')} />
+			<MetricCard label="Profit Factor" value={formatNumber(latestStats.profit_factor)} />
+			<MetricCard label="Max Drawdown" value={formatPercent(latestStats.max_drawdown)} color="text-red-400" />
+			<MetricCard label="Total Trades" value={String(latestStats.total_trades || 0)} />
 		</div>
-
-		{#if latestStats}
-			<!-- Metric Cards -->
-			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<MetricCard label="Balance" value={formatCurrency(latestStats.balance)} />
-				<MetricCard label="Equity" value={formatCurrency(latestStats.equity)} />
-				<MetricCard
-					label="Floating P/L"
-					value={formatCurrency(latestStats.floating_pl)}
-					color={latestStats.floating_pl >= 0 ? 'text-green-400' : 'text-red-400'}
-				/>
-				<MetricCard
-					label="Profit"
-					value={formatCurrency(latestStats.profit)}
-					color={latestStats.profit >= 0 ? 'text-green-400' : 'text-red-400'}
-				/>
-			</div>
-
-			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<MetricCard label="Win Rate" value={formatPercent(latestStats.win_rate).replace('+', '')} />
-				<MetricCard label="Profit Factor" value={formatNumber(latestStats.profit_factor)} />
-				<MetricCard label="Max Drawdown" value={formatPercent(latestStats.max_drawdown)} color="text-red-400" />
-				<MetricCard label="Total Trades" value={String(latestStats.total_trades || 0)} />
-			</div>
-		{:else}
-			<div class="card text-center py-8">
-				<p class="text-gray-500">กำลังรอข้อมูลจาก MT5...</p>
-			</div>
-		{/if}
 
 		<!-- Equity Chart -->
 		{#if (equitySnapshots && equitySnapshots.length > 1) || (equityCurve && equityCurve.length > 1)}
@@ -80,23 +59,21 @@
 		{/if}
 
 		<!-- Score Breakdown + Recent Rhythm -->
-		{#if latestStats}
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<ScoreBreakdown
-					totalProfit={latestStats.profit || 0}
-					totalTrades={latestStats.total_trades || 0}
-					sessionAsianProfit={latestStats.session_asian_profit || 0}
-					sessionLondonProfit={latestStats.session_london_profit || 0}
-					sessionNewYorkProfit={latestStats.session_newyork_profit || 0}
-					bestTrade={latestStats.best_trade || 0}
-					worstTrade={latestStats.worst_trade || 0}
-				/>
-				<RecentRhythmCard
-					{dailyHistory}
-					history={tradeHistory}
-				/>
-			</div>
-		{/if}
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<ScoreBreakdown
+				totalProfit={latestStats.profit || 0}
+				totalTrades={latestStats.total_trades || 0}
+				sessionAsianProfit={latestStats.session_asian_profit || 0}
+				sessionLondonProfit={latestStats.session_london_profit || 0}
+				sessionNewYorkProfit={latestStats.session_newyork_profit || 0}
+				bestTrade={latestStats.best_trade || 0}
+				worstTrade={latestStats.worst_trade || 0}
+			/>
+			<RecentRhythmCard
+				{dailyHistory}
+				history={tradeHistory}
+			/>
+		</div>
 
 		<!-- Trading Calendar -->
 		{#if dailyHistory && dailyHistory.length > 0}
@@ -191,5 +168,9 @@
 				</div>
 			{/if}
 		</div>
-	{/if}
-</div>
+	</div>
+{:else}
+	<div class="card text-center py-8">
+		<p class="text-gray-500">กำลังรอข้อมูลจาก MT5...</p>
+	</div>
+{/if}

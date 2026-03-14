@@ -102,7 +102,54 @@ export interface Trade {
 	tp: number | null;
 	position_id: number;
 	pips: number | null;
+	commission: number;
+	swap: number;
 	created_at: string;
+	// Joined
+	trade_tag_assignments?: TradeTagAssignment[];
+	trade_notes?: TradeNote[];
+}
+
+export type TagCategory = 'setup' | 'emotion' | 'mistake' | 'custom';
+
+export interface TradeTag {
+	id: string;
+	user_id: string;
+	name: string;
+	category: TagCategory;
+	color: string;
+	created_at: string;
+}
+
+export interface TradeTagAssignment {
+	id: string;
+	trade_id: string;
+	tag_id: string;
+	created_at: string;
+	// Joined
+	trade_tags?: TradeTag;
+}
+
+export interface TradeNote {
+	id: string;
+	trade_id: string;
+	user_id: string;
+	content: string;
+	rating: number | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface DailyJournal {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	date: string;
+	pre_market_notes: string;
+	post_market_notes: string;
+	mood: number | null;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface OpenPosition {
