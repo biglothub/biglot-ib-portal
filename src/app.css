@@ -34,11 +34,40 @@ body {
     @apply bg-dark-surface border border-dark-border rounded-xl p-4;
   }
 
+  .gold-glow {
+    box-shadow: 0 0 20px rgba(201, 168, 76, 0.08);
+  }
+
   .input {
     @apply bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors w-full;
   }
 
   .label {
     @apply block text-sm font-medium text-gray-400 mb-1;
+  }
+}
+
+/* PWA standalone mode - iOS safe areas */
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      overscroll-behavior: none;
+    }
+
+    /* Fixed sidebar needs to account for status bar */
+    aside.fixed {
+      padding-top: env(safe-area-inset-top);
+    }
+
+    /* Mobile hamburger button below status bar */
+    .pwa-safe-top {
+      top: calc(1rem + env(safe-area-inset-top));
+    }
+
+    /* Bottom safe area for home indicator */
+    .pwa-safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   }
 }

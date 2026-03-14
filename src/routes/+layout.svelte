@@ -2,6 +2,9 @@
 	import '../app.css';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import NotificationBell from '$lib/components/layout/NotificationBell.svelte';
+	import UpdateNotification from '$lib/components/layout/UpdateNotification.svelte';
+	import InstallPrompt from '$lib/components/layout/InstallPrompt.svelte';
+	import PushPermission from '$lib/components/layout/PushPermission.svelte';
 
 	let { data, children } = $props();
 	const profile = $derived(data.profile);
@@ -9,6 +12,8 @@
 
 	const isAuthPage = $derived(!profile);
 </script>
+
+<UpdateNotification />
 
 {#if isAuthPage}
 	{@render children()}
@@ -27,4 +32,9 @@
 			</main>
 		</div>
 	</div>
+
+	<InstallPrompt />
+	{#if data.vapidPublicKey}
+		<PushPermission userId={profile!.id} vapidPublicKey={data.vapidPublicKey} />
+	{/if}
 {/if}

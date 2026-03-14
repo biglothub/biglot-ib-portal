@@ -7,21 +7,13 @@
 		onremove?: (e: MouseEvent) => void;
 	} = $props();
 
-	const categoryIcon: Record<string, string> = {
-		setup: '🎯',
-		emotion: '😤',
-		mistake: '⚠️',
-		custom: '🏷️'
-	};
+
 </script>
 
 <span
 	class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
 	style="background-color: {color}20; color: {color}; border: 1px solid {color}40;"
 >
-	{#if category && categoryIcon[category]}
-		<span class="text-[10px]">{categoryIcon[category]}</span>
-	{/if}
 	{name}
 	{#if removable}
 		<button

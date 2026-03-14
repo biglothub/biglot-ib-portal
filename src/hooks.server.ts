@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from '$lib/server/supabase';
 import { redirect, type Handle } from '@sveltejs/kit';
 
-const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback'];
+const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline'];
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient(event);
