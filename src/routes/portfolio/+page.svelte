@@ -35,7 +35,6 @@
 
 {#if !latestStats && (!commandCenter || !data.account)}
 	<div class="card text-center py-12">
-		<span class="text-4xl mb-4 block">📋</span>
 		<h2 class="text-lg font-medium text-white mb-2">ยังไม่มีบัญชีที่อนุมัติ</h2>
 		<p class="text-sm text-gray-400">กรุณาติดต่อ Master IB ของคุณ</p>
 	</div>

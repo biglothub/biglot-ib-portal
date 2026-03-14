@@ -78,7 +78,7 @@
 		</div>
 		<div class="card">
 			<div class="text-xs text-gray-500">Missing Notes</div>
-			<div class="mt-1 text-2xl font-semibold text-blue-300">
+			<div class="mt-1 text-2xl font-semibold text-brand-300">
 				{trades.filter((trade: any) => (trade.trade_notes || []).length === 0).length}
 			</div>
 		</div>
