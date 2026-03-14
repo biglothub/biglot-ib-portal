@@ -22,7 +22,7 @@
 		{ href: '/portfolio/analytics', label: 'Analytics' },
 		{ href: '/portfolio/playbook', label: 'Playbook' },
 		{ href: '/portfolio/progress', label: 'Progress' },
-		{ href: '/portfolio/analysis', label: 'Analysis' },
+		{ href: '/portfolio/analysis', label: 'Gold Analysis' },
 	];
 
 	const isActive = (href: string) => {

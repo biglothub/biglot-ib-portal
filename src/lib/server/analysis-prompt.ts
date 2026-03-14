@@ -1,10 +1,13 @@
+import { getBangkokToday } from '$lib/utils';
+
 interface AnalysisContext {
 	news: { title_th: string; summary_th: string; category: string; published_at: string }[];
 	trades: { symbol: string; type: string; profit: number; open_time: string; close_time: string; lot_size: number }[];
 	openPositions: { symbol: string; type: string; lot_size: number; open_price: number; current_price: number; current_profit: number; sl: number; tp: number }[];
-	journal: { market_bias: string; key_levels: string; session_plan: string; pre_market_notes: string } | null;
+	journal: { date: string; market_bias: string; key_levels: string; session_plan: string; pre_market_notes: string } | null;
 	playbooks: { name: string; entry_criteria: string; exit_criteria: string; risk_rules: string }[];
 	dailyStats: { date: string; balance: number; equity: number; profit: number; win_rate: number; profit_factor: number; max_drawdown: number }[];
+	currentPrice?: { price: number; source: string; updatedAt: string } | null;
 }
 
 export function buildAnalysisPrompt(context: AnalysisContext): string {
@@ -25,10 +28,15 @@ export function buildAnalysisPrompt(context: AnalysisContext): string {
 		: 'ไม่มี position ที่เปิดอยู่';
 
 	const journalContext = context.journal
-		? `- Market Bias ที่บันทึก: ${context.journal.market_bias || 'ไม่ได้ระบุ'}
+		? (() => {
+			const isToday = context.journal.date === getBangkokToday();
+			const dateLabel = isToday ? 'วันนี้' : `จากวันที่ ${context.journal.date}`;
+			return `(${dateLabel})
+- Market Bias ที่บันทึก: ${context.journal.market_bias || 'ไม่ได้ระบุ'}
 - Key Levels ที่บันทึก: ${context.journal.key_levels || 'ไม่ได้ระบุ'}
 - Session Plan: ${context.journal.session_plan || 'ไม่ได้ระบุ'}
-- Pre-market Notes: ${context.journal.pre_market_notes || 'ไม่ได้ระบุ'}`
+- Pre-market Notes: ${context.journal.pre_market_notes || 'ไม่ได้ระบุ'}`;
+		})()
 		: 'ไม่มี journal วันนี้';
 
 	const playbooksContext = context.playbooks.length > 0
@@ -44,10 +52,17 @@ export function buildAnalysisPrompt(context: AnalysisContext): string {
 		})()
 		: 'ไม่มีข้อมูลสถิติ';
 
+	const priceContext = context.currentPrice
+		? `ราคาปัจจุบัน: $${context.currentPrice.price.toFixed(2)} (${context.currentPrice.source}, ${new Date(context.currentPrice.updatedAt).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })})`
+		: 'ไม่มีข้อมูลราคาปัจจุบัน';
+
 	return `คุณเป็นนักวิเคราะห์ตลาดทองคำ (XAUUSD) มืออาชีพ เชี่ยวชาญ ICT/Smart Money Concepts
 ตอบเป็นภาษาไทยเสมอ วิเคราะห์สำหรับ intraday/daily timeframe
 
 === ข้อมูลบริบท ===
+
+💰 XAUUSD:
+${priceContext}
 
 📰 ข่าวตลาดล่าสุด (24 ชม.):
 ${newsContext}
@@ -125,5 +140,6 @@ Pivot points, structural levels, psychological levels
 - วิเคราะห์ตามหลัก ICT/Smart Money Concepts
 - เปรียบเทียบกับ market_bias และ key_levels ที่ผู้ใช้บันทึกไว้ใน journal
 - ใช้ข้อมูลข่าวประกอบการวิเคราะห์
+- ใช้ราคาปัจจุบันที่ให้มาเป็นฐานในการวิเคราะห์ ห้ามเดาราคาเอง
 - กระชับแต่ครอบคลุม ใช้ตัวเลขประกอบ`;
 }

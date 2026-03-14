@@ -1,7 +1,9 @@
 import { env } from '$env/dynamic/private';
 import { buildAnalysisPrompt } from '$lib/server/analysis-prompt';
+import { getXauusdPrice } from '$lib/server/gold-price';
 import { refreshNews } from '$lib/server/news';
 import { rateLimit } from '$lib/server/rate-limit';
+import { getBangkokToday, THAILAND_OFFSET_MS } from '$lib/utils';
 import OpenAI from 'openai';
 import type { RequestHandler } from './$types';
 
@@ -47,9 +49,10 @@ export const POST: RequestHandler = async ({ locals }) => {
 			// Market news (24h, gold-related)
 			supabase
 				.from('market_news')
-				.select('title_th, summary_th, category, published_at')
+				.select('title_th, summary_th, category, symbols, published_at')
 				.eq('ai_processed', true)
 				.gte('published_at', since24h.toISOString())
+				.or('symbols.cs.{XAUUSD},symbols.cs.{DXY},category.eq.commodities,category.eq.central_bank,category.eq.economic_data')
 				.order('relevance_score', { ascending: false })
 				.limit(10),
 
@@ -73,7 +76,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 			// Latest journal entry
 			supabase
 				.from('daily_journal')
-				.select('market_bias, key_levels, session_plan, pre_market_notes')
+				.select('date, market_bias, key_levels, session_plan, pre_market_notes')
 				.eq('client_account_id', account.id)
 				.eq('user_id', profile.id)
 				.order('date', { ascending: false })
@@ -94,12 +97,15 @@ export const POST: RequestHandler = async ({ locals }) => {
 				.from('daily_stats')
 				.select('date, balance, equity, profit, win_rate, profit_factor, max_drawdown')
 				.eq('client_account_id', account.id)
-				.gte('date', since7d.toISOString().split('T')[0])
+				.gte('date', new Date(since7d.getTime() + THAILAND_OFFSET_MS).toISOString().split('T')[0])
 				.order('date', { ascending: false })
 		]);
 
 	const getValue = (res: PromiseSettledResult<any>) =>
 		res.status === 'fulfilled' ? res.value.data : null;
+
+	// Fetch current gold price (independent, can run after DB queries)
+	const currentPrice = await getXauusdPrice();
 
 	const context = {
 		news: getValue(newsRes) || [],
@@ -107,7 +113,8 @@ export const POST: RequestHandler = async ({ locals }) => {
 		openPositions: getValue(positionsRes) || [],
 		journal: getValue(journalRes) || null,
 		playbooks: getValue(playbooksRes) || [],
-		dailyStats: getValue(statsRes) || []
+		dailyStats: getValue(statsRes) || [],
+		currentPrice
 	};
 
 	const systemPrompt = buildAnalysisPrompt(context);
@@ -188,7 +195,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 				}
 
 				// Save analysis to database
-				const today = new Date().toISOString().split('T')[0];
+				const today = getBangkokToday();
 				await supabase
 					.from('market_analyses')
 					.upsert(

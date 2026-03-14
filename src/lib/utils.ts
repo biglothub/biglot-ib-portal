@@ -1,6 +1,11 @@
 /** UTC+7 offset in milliseconds (Thailand timezone) */
 export const THAILAND_OFFSET_MS = 7 * 60 * 60 * 1000;
 
+/** Get today's date as YYYY-MM-DD in Bangkok timezone (UTC+7) */
+export function getBangkokToday(): string {
+	return new Date(Date.now() + THAILAND_OFFSET_MS).toISOString().split('T')[0];
+}
+
 /** Convert a UTC date string to a Thai-local YYYY-MM-DD string */
 export function toThaiDateString(utcDateStr: string): string {
 	return new Date(new Date(utcDateStr).getTime() + THAILAND_OFFSET_MS)

@@ -1,3 +1,4 @@
+import { getBangkokToday } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
@@ -9,7 +10,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		return { cachedAnalysis: null };
 	}
 
-	const today = new Date().toISOString().split('T')[0];
+	const today = getBangkokToday();
 
 	const { data: cachedAnalysis } = await locals.supabase
 		.from('market_analyses')

@@ -52,6 +52,10 @@ interface RawArticle {
 	image_url: string | null;
 }
 
+interface RawArticleNullable extends Omit<RawArticle, 'published_at'> {
+	published_at: string | null;
+}
+
 // Module-level TTL tracking
 let lastRefreshAt = 0;
 const REFRESH_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
@@ -118,10 +122,19 @@ async function fetchAllFeeds(): Promise<RawArticle[]> {
 	);
 
 	const articles: RawArticle[] = [];
-	for (const result of results) {
+	let failedCount = 0;
+	for (let i = 0; i < results.length; i++) {
+		const result = results[i];
 		if (result.status === 'fulfilled') {
 			articles.push(...result.value);
+		} else {
+			failedCount++;
+			console.error(`[news] Feed ${RSS_FEEDS[i].source} rejected:`, result.reason);
 		}
+	}
+
+	if (failedCount > 0) {
+		console.error(`[news] ${failedCount}/${RSS_FEEDS.length} feeds failed`);
 	}
 
 	return articles;
@@ -140,7 +153,10 @@ async function fetchSingleFeed(feed: (typeof RSS_FEEDS)[0]): Promise<RawArticle[
 			}
 		});
 
-		if (!response.ok) return [];
+		if (!response.ok) {
+			console.error(`[news] RSS feed ${feed.source} returned HTTP ${response.status}`);
+			return [];
+		}
 
 		const xml = await response.text();
 		const parsed = xmlParser.parse(xml);
@@ -187,21 +203,22 @@ async function fetchSingleFeed(feed: (typeof RSS_FEEDS)[0]): Promise<RawArticle[
 					image_url: typeof imageUrl === 'string' ? imageUrl : null
 				};
 			})
-			.filter((a: RawArticle | null): a is RawArticle => a !== null);
-	} catch {
+			.filter((a: RawArticleNullable | null): a is RawArticle => a !== null && a.published_at !== null);
+	} catch (err) {
+		console.error(`[news] RSS fetch failed for ${feed.source}:`, err instanceof Error ? err.message : err);
 		return [];
 	} finally {
 		clearTimeout(timeout);
 	}
 }
 
-function parseDate(dateStr: string): string {
-	if (!dateStr) return new Date().toISOString();
+function parseDate(dateStr: string): string | null {
+	if (!dateStr) return null;
 	try {
 		const d = new Date(dateStr);
-		return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+		return isNaN(d.getTime()) ? null : d.toISOString();
 	} catch {
-		return new Date().toISOString();
+		return null;
 	}
 }
 
