@@ -346,3 +346,27 @@ export interface Notification {
 	metadata: Record<string, unknown> | null;
 	created_at: string;
 }
+
+export type NewsCategory =
+	| 'forex'
+	| 'commodities'
+	| 'central_bank'
+	| 'economic_data'
+	| 'geopolitical'
+	| 'general';
+
+export interface MarketNewsArticle {
+	id: string;
+	source: string;
+	source_url: string;
+	title_original: string;
+	title_th: string;
+	summary_original: string;
+	summary_th: string;
+	category: NewsCategory;
+	symbols: string[];
+	relevance_score: number;
+	published_at: string;
+	fetched_at: string;
+	image_url: string | null;
+}
