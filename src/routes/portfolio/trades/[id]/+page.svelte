@@ -44,8 +44,17 @@
 	let savingAttachment = $state(false);
 	let actionError = $state('');
 
+	// Optimistic tag state
+	let optimisticAddedTags = $state<any[]>([]);
+	let optimisticRemovedTagIds = $state<Set<string>>(new Set());
+
+	const effectiveAssignments = $derived((() => {
+		const real = (trade?.trade_tag_assignments || [])
+			.filter((a: any) => !optimisticRemovedTagIds.has(a.tag_id));
+		return [...real, ...optimisticAddedTags];
+	})());
 	const assignedTagIds = $derived(
-		new Set((trade?.trade_tag_assignments || []).map((assignment: any) => assignment.tag_id))
+		new Set(effectiveAssignments.map((a: any) => a.tag_id))
 	);
 	const availableTags = $derived(tags.filter((tag: any) => !assignedTagIds.has(tag.id)));
 	const review = $derived(trade?.trade_reviews?.[0] || null);
@@ -72,6 +81,9 @@
 		followedPlan = review?.followed_plan == null ? '' : review.followed_plan ? 'yes' : 'no';
 		brokenRules = review?.broken_rules || [];
 		attachments = trade?.trade_attachments || [];
+		// Reset optimistic state when server data arrives
+		optimisticAddedTags = [];
+		optimisticRemovedTagIds = new Set();
 	});
 
 	function getDuration(openTime: string, closeTime: string): string {
@@ -87,7 +99,7 @@
 	async function saveNote() {
 		if (!trade) return;
 		savingNote = true;
-		noteSaved = false;
+		noteSaved = true;
 		actionError = '';
 
 		try {
@@ -97,16 +109,16 @@
 				body: JSON.stringify({ content: noteContent, rating: noteRating })
 			});
 
-			if (res.ok) {
-				noteSaved = true;
-				setTimeout(() => (noteSaved = false), 2000);
-			} else {
+			if (!res.ok) {
+				noteSaved = false;
 				actionError = 'ไม่สามารถบันทึก Note ได้';
 			}
 		} catch {
+			noteSaved = false;
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			savingNote = false;
+			if (noteSaved) setTimeout(() => (noteSaved = false), 2000);
 		}
 	}
 
@@ -155,8 +167,18 @@
 
 	async function assignTag(tagId: string) {
 		if (!trade) return;
-		assigningTag = true;
 		actionError = '';
+
+		// Optimistic: show tag immediately
+		const tag = tags.find((t: any) => t.id === tagId);
+		if (tag) {
+			optimisticAddedTags = [...optimisticAddedTags, {
+				id: `optimistic-${tagId}`,
+				tag_id: tagId,
+				trade_tags: { id: tag.id, name: tag.name, color: tag.color, category: tag.category }
+			}];
+		}
+		showTagDropdown = false;
 
 		try {
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/tags`, {
@@ -165,21 +187,24 @@
 				body: JSON.stringify({ tag_id: tagId })
 			});
 			if (!res.ok) {
+				optimisticAddedTags = optimisticAddedTags.filter(a => a.tag_id !== tagId);
 				actionError = 'ไม่สามารถเพิ่ม Tag ได้';
 				return;
 			}
-			showTagDropdown = false;
 			invalidate('portfolio:baseData');
 		} catch {
+			optimisticAddedTags = optimisticAddedTags.filter(a => a.tag_id !== tagId);
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
-		} finally {
-			assigningTag = false;
 		}
 	}
 
 	async function removeTag(tagId: string) {
 		if (!trade) return;
 		actionError = '';
+
+		// Optimistic: hide tag immediately
+		optimisticRemovedTagIds = new Set([...optimisticRemovedTagIds, tagId]);
+		optimisticAddedTags = optimisticAddedTags.filter(a => a.tag_id !== tagId);
 
 		try {
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/tags`, {
@@ -188,11 +213,13 @@
 				body: JSON.stringify({ tag_id: tagId })
 			});
 			if (!res.ok) {
+				optimisticRemovedTagIds = new Set([...optimisticRemovedTagIds].filter(id => id !== tagId));
 				actionError = 'ไม่สามารถลบ Tag ได้';
 				return;
 			}
 			invalidate('portfolio:baseData');
 		} catch {
+			optimisticRemovedTagIds = new Set([...optimisticRemovedTagIds].filter(id => id !== tagId));
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		}
 	}
@@ -399,7 +426,7 @@
 			</div>
 
 			<div class="flex flex-wrap gap-1.5">
-				{#each (trade.trade_tag_assignments || []) as assignment}
+				{#each effectiveAssignments as assignment}
 					{#if assignment.trade_tags}
 						<TagPill
 							name={assignment.trade_tags.name}
@@ -542,6 +569,8 @@
 						<button
 							type="button"
 							onclick={() => (noteRating = noteRating === star ? null : star)}
+							aria-label={`ให้คะแนน ${star} ดาว`}
+							title={`ให้คะแนน ${star} ดาว`}
 							class="w-5 h-5 rounded-full border-2 transition-all
 							{noteRating && noteRating >= star
 								? 'bg-brand-primary border-brand-primary'

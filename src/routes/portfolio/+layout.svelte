@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page, navigating } from '$app/stores';
 	import { timeAgo } from '$lib/utils';
 	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
 	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
+	import PortfolioSkeleton from '$lib/components/portfolio/PortfolioSkeleton.svelte';
 	import { marketNewsStore } from '$lib/stores/newsStore';
 
 	let { data, children } = $props();
@@ -61,6 +62,7 @@
 			{#each tabs as tab}
 				<a
 					href={tab.href}
+					data-sveltekit-preload-data="tap"
 					class="px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors
 						{isActive(tab.href)
 							? 'text-brand-primary border-b-2 border-brand-primary'
@@ -72,7 +74,11 @@
 		</div>
 	{/if}
 
-	{@render children()}
+	{#if $navigating && $navigating.to?.url.pathname.startsWith('/portfolio')}
+		<PortfolioSkeleton />
+	{:else}
+		{@render children()}
+	{/if}
 </div>
 
 {#if account}

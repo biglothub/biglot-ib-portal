@@ -1,5 +1,7 @@
 <script lang="ts">
 	import '../app.css';
+	import { navigating } from '$app/stores';
+	import { onNavigate } from '$app/navigation';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import NotificationBell from '$lib/components/layout/NotificationBell.svelte';
 	import UpdateNotification from '$lib/components/layout/UpdateNotification.svelte';
@@ -11,7 +13,24 @@
 	let sidebarCollapsed = $state(false);
 
 	const isAuthPage = $derived(!profile);
+
+	// View Transitions — smooth page swap
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	});
 </script>
+
+{#if $navigating}
+	<div class="fixed top-0 left-0 right-0 z-[9999] h-[2px] bg-brand-primary/20 overflow-hidden">
+		<div class="h-full bg-gradient-to-r from-brand-primary to-brand-300 animate-progress-bar rounded-r"></div>
+	</div>
+{/if}
 
 <UpdateNotification />
 

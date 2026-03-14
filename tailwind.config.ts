@@ -17,6 +17,17 @@ export default {
           'sans-serif',
         ],
       },
+      keyframes: {
+        'progress-bar': {
+          '0%': { width: '0%', opacity: '1' },
+          '50%': { width: '70%', opacity: '1' },
+          '90%': { width: '95%', opacity: '1' },
+          '100%': { width: '95%', opacity: '1' }
+        }
+      },
+      animation: {
+        'progress-bar': 'progress-bar 2s ease-in-out infinite'
+      },
       colors: {
         dark: {
           bg: '#0a0a0a',
