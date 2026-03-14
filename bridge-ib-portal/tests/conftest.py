@@ -136,8 +136,10 @@ def _create_mt5_mock():
     mock.account_info.return_value = SimpleNamespace(
         balance=10000.0, equity=10050.0, margin_level=500.0
     )
+    mock.TIMEFRAME_M5 = 'TIMEFRAME_M5'
     mock.positions_get.return_value = []
     mock.history_deals_get.return_value = []
+    mock.copy_rates_range.return_value = []
     return mock
 
 

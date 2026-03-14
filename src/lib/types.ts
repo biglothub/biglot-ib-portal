@@ -108,9 +108,17 @@ export interface Trade {
 	// Joined
 	trade_tag_assignments?: TradeTagAssignment[];
 	trade_notes?: TradeNote[];
+	trade_reviews?: TradeReview[];
+	trade_attachments?: TradeAttachment[];
 }
 
-export type TagCategory = 'setup' | 'emotion' | 'mistake' | 'custom';
+export type TagCategory =
+	| 'setup'
+	| 'execution'
+	| 'emotion'
+	| 'mistake'
+	| 'market_condition'
+	| 'custom';
 
 export interface TradeTag {
 	id: string;
@@ -140,6 +148,84 @@ export interface TradeNote {
 	updated_at: string;
 }
 
+export type ReviewStatus = 'unreviewed' | 'in_progress' | 'reviewed';
+
+export interface TradeReview {
+	id: string;
+	trade_id: string;
+	user_id: string;
+	playbook_id: string | null;
+	review_status: ReviewStatus;
+	entry_reason: string;
+	exit_reason: string;
+	execution_notes: string;
+	risk_notes: string;
+	mistake_summary: string;
+	lesson_summary: string;
+	next_action: string;
+	setup_quality_score: number | null;
+	discipline_score: number | null;
+	execution_score: number | null;
+	confidence_at_entry: number | null;
+	followed_plan: boolean | null;
+	broken_rules: string[];
+	reviewed_at: string | null;
+	created_at: string;
+	updated_at: string;
+	// Joined
+	playbooks?: Playbook | null;
+}
+
+export type TradeAttachmentKind = 'link' | 'image_url';
+
+export interface TradeAttachment {
+	id: string;
+	trade_id: string;
+	user_id: string;
+	kind: TradeAttachmentKind;
+	storage_path: string;
+	caption: string;
+	sort_order: number;
+	created_at: string;
+}
+
+export interface Playbook {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	name: string;
+	description: string;
+	setup_tag_id: string | null;
+	entry_criteria: string[];
+	exit_criteria: string[];
+	risk_rules: string[];
+	mistakes_to_avoid: string[];
+	example_trade_ids: string[];
+	is_active: boolean;
+	sort_order: number;
+	created_at: string;
+	updated_at: string;
+	// Joined
+	trade_tags?: TradeTag | null;
+}
+
+export interface ProgressGoal {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	goal_type:
+		| 'review_completion'
+		| 'journal_streak'
+		| 'max_rule_breaks'
+		| 'profit_factor'
+		| 'win_rate';
+	target_value: number;
+	period_days: number;
+	is_active: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
 export interface DailyJournal {
 	id: string;
 	user_id: string;
@@ -147,9 +233,66 @@ export interface DailyJournal {
 	date: string;
 	pre_market_notes: string;
 	post_market_notes: string;
+	session_plan: string;
+	market_bias: string;
+	key_levels: string;
+	checklist: string[];
 	mood: number | null;
+	energy_score: number | null;
+	discipline_score: number | null;
+	confidence_score: number | null;
+	lessons: string;
+	tomorrow_focus: string;
+	completion_status: 'not_started' | 'in_progress' | 'complete';
 	created_at: string;
 	updated_at: string;
+}
+
+export interface PortfolioSavedView {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	page: 'trades' | 'analytics';
+	name: string;
+	filters: PortfolioFilterState;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface TradeChartBar {
+	time: number;
+	open: number;
+	high: number;
+	low: number;
+	close: number;
+}
+
+export interface TradeChartContext {
+	id: string;
+	trade_id: string;
+	symbol: string;
+	timeframe: string;
+	window_start: string;
+	window_end: string;
+	bars: TradeChartBar[];
+	created_at: string;
+	updated_at: string;
+}
+
+export interface PortfolioFilterState {
+	q: string;
+	from: string;
+	to: string;
+	symbols: string[];
+	sessions: string[];
+	directions: string[];
+	tagIds: string[];
+	playbookIds: string[];
+	reviewStatus: ReviewStatus[];
+	outcome: '' | 'win' | 'loss' | 'breakeven';
+	hasNotes: boolean | null;
+	hasAttachments: boolean | null;
+	durationBucket: '' | 'scalp' | 'intraday' | 'swing' | 'position';
 }
 
 export interface OpenPosition {

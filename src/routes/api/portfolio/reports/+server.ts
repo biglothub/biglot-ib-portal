@@ -1,0 +1,27 @@
+import { parsePortfolioFilters } from '$lib/portfolio';
+import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { buildReportExplorer, fetchPortfolioBaseData } from '$lib/server/portfolio';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+
+export const GET: RequestHandler = async ({ locals, url }) => {
+	const profile = locals.profile;
+	if (!profile || profile.role !== 'client') {
+		return json({ message: 'Forbidden' }, { status: 403 });
+	}
+
+	const account = await getApprovedPortfolioAccount(locals.supabase);
+	if (!account) {
+		return json({ analytics: null, filteredTrades: [] });
+	}
+
+	const filters = parsePortfolioFilters(url.searchParams);
+	const { trades, dailyStats, journals } = await fetchPortfolioBaseData(
+		locals.supabase,
+		account.id,
+		profile.id
+	);
+
+	const report = buildReportExplorer(trades, dailyStats, journals, filters);
+	return json(report);
+};

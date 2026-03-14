@@ -13,6 +13,8 @@
 		{ href: '/portfolio/trades', label: 'Trades', icon: '📋' },
 		{ href: '/portfolio/journal', label: 'Journal', icon: '📝' },
 		{ href: '/portfolio/analytics', label: 'Analytics', icon: '📈' },
+		{ href: '/portfolio/playbook', label: 'Playbook', icon: '🎯' },
+		{ href: '/portfolio/progress', label: 'Progress', icon: '🏁' },
 	];
 
 	const isActive = (href: string) => {

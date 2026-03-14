@@ -13,8 +13,10 @@
 
 	const categories: { value: TagCategory; label: string }[] = [
 		{ value: 'setup', label: '🎯 Setup' },
+		{ value: 'execution', label: '🧠 Execution' },
 		{ value: 'emotion', label: '😤 Emotion' },
 		{ value: 'mistake', label: '⚠️ Mistake' },
+		{ value: 'market_condition', label: '🌦 Market' },
 		{ value: 'custom', label: '🏷️ Custom' },
 	];
 

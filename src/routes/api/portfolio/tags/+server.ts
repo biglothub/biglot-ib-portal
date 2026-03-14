@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Missing required fields' }, { status: 400 });
 	}
 
-	const validCategories = ['setup', 'emotion', 'mistake', 'custom'];
+	const validCategories = ['setup', 'execution', 'emotion', 'mistake', 'market_condition', 'custom'];
 	if (!validCategories.includes(category)) {
 		return json({ message: 'Invalid category' }, { status: 400 });
 	}

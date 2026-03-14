@@ -12,7 +12,7 @@ Key changes from TSP:
 import MetaTrader5 as mt5
 import time
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
 from core import supabase, init_mt5, send_telegram_message, decrypt_password, TELEGRAM_ADMIN_CHAT_ID
@@ -24,6 +24,8 @@ SYNC_INTERVAL = int(os.getenv('SYNC_INTERVAL', '60'))
 SERVER_OFFSET = 10800  # 3 hours (MT5 server time offset)
 TRADE_START = datetime(2024, 1, 1, tzinfo=timezone.utc)
 EQUITY_INTERVAL_MINUTES = 5
+CHART_CONTEXT_TIMEFRAME = 'M5'
+CHART_CONTEXT_PADDING_MINUTES = 60
 
 
 def get_approved_accounts():
@@ -127,6 +129,82 @@ def check_validation_queue():
     return validated, failed
 
 
+def normalize_symbol(symbol):
+    if any(g in symbol.upper() for g in ['GOLD', 'XAUUSD']):
+        return 'XAUUSD'
+    return symbol
+
+
+def _parse_iso_datetime(value):
+    return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
+
+
+def _format_chart_bars(rates):
+    bars = []
+    for rate in rates or []:
+        if isinstance(rate, dict):
+            raw = rate
+        elif hasattr(rate, 'dtype') and getattr(rate.dtype, 'names', None):
+            raw = {name: rate[name] for name in rate.dtype.names}
+        else:
+            raw = {
+                'time': getattr(rate, 'time', None),
+                'open': getattr(rate, 'open', None),
+                'high': getattr(rate, 'high', None),
+                'low': getattr(rate, 'low', None),
+                'close': getattr(rate, 'close', None),
+            }
+
+        if raw.get('time') is None:
+            continue
+        bars.append({
+            'time': int(raw['time']),
+            'open': float(raw['open']),
+            'high': float(raw['high']),
+            'low': float(raw['low']),
+            'close': float(raw['close'])
+        })
+    return bars
+
+
+def build_trade_chart_context_rows(mt5_module, trade_rows):
+    timeframe = getattr(mt5_module, 'TIMEFRAME_M5', None)
+    copy_rates_range = getattr(mt5_module, 'copy_rates_range', None)
+    if timeframe is None or copy_rates_range is None:
+        return []
+
+    rows = []
+    for trade in trade_rows:
+        open_time = _parse_iso_datetime(trade['open_time'])
+        close_time = _parse_iso_datetime(trade['close_time'])
+        window_start = open_time - timedelta(minutes=CHART_CONTEXT_PADDING_MINUTES)
+        window_end = close_time + timedelta(minutes=CHART_CONTEXT_PADDING_MINUTES)
+
+        server_window_start = window_start + timedelta(seconds=SERVER_OFFSET)
+        server_window_end = window_end + timedelta(seconds=SERVER_OFFSET)
+        rates = copy_rates_range(
+            normalize_symbol(trade['symbol']),
+            timeframe,
+            server_window_start,
+            server_window_end
+        )
+        bars = _format_chart_bars(rates)
+        if not bars:
+            continue
+
+        rows.append({
+            'trade_id': trade['id'],
+            'symbol': normalize_symbol(trade['symbol']),
+            'timeframe': CHART_CONTEXT_TIMEFRAME,
+            'window_start': window_start.isoformat(),
+            'window_end': window_end.isoformat(),
+            'bars': bars,
+            'updated_at': datetime.now(timezone.utc).isoformat()
+        })
+
+    return rows
+
+
 def sync_client_account(account):
     """Sync a single client account (adapted from TSP sync_participant)"""
     account_id = account['id']
@@ -177,9 +255,7 @@ def sync_client_account(account):
         if positions:
             rows = []
             for pos in positions:
-                symbol = pos.symbol
-                if any(g in symbol.upper() for g in ['GOLD', 'XAUUSD']):
-                    symbol = 'XAUUSD'
+                symbol = normalize_symbol(pos.symbol)
                 rows.append({
                     'client_account_id': account_id,
                     'position_id': pos.ticket,
@@ -212,9 +288,7 @@ def sync_client_account(account):
                 if not entry or not exit_deal:
                     continue
 
-                symbol = entry.symbol
-                if any(g in symbol.upper() for g in ['GOLD', 'XAUUSD']):
-                    symbol = 'XAUUSD'
+                symbol = normalize_symbol(entry.symbol)
 
                 trade_type = 'BUY' if entry.type == 0 else 'SELL'
                 point_size = 0.01 if ('JPY' in symbol or symbol == 'XAUUSD') else 0.0001
@@ -247,6 +321,24 @@ def sync_client_account(account):
                     trades_to_upsert,
                     on_conflict='client_account_id,position_id'
                 ).execute()
+
+                synced_positions = {trade['position_id'] for trade in trades_to_upsert}
+                existing_trades = supabase.table('trades') \
+                    .select('id, position_id, symbol, open_time, close_time') \
+                    .eq('client_account_id', account_id) \
+                    .execute()
+                chart_context_rows = build_trade_chart_context_rows(
+                    mt5,
+                    [
+                        trade for trade in (existing_trades.data or [])
+                        if trade.get('position_id') in synced_positions
+                    ]
+                )
+                if chart_context_rows:
+                    supabase.table('trade_chart_context').upsert(
+                        chart_context_rows,
+                        on_conflict='trade_id,timeframe'
+                    ).execute()
 
         # 4. Daily stats (per UTC day, not lifetime summary)
         touched_dates = close_trade_dates_from_rows(trades_to_upsert)

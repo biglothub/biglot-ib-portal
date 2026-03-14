@@ -530,6 +530,52 @@ class TestSyncClientAccount:
         result = main_mod.sync_client_account(self._make_account())
         assert result is False
 
+
+# ===================================================================
+# Trade chart context
+# ===================================================================
+
+class TestTradeChartContext:
+    def _make_account(self):
+        return {
+            'id': 'acc-1', 'client_name': 'Test',
+            'mt5_account_id': '12345', 'mt5_investor_password': 'pass',
+            'mt5_server': 'Demo', 'master_ib_id': 'ib-1', 'sync_count': 0,
+        }
+
+    def test_build_chart_context_rows(self, main_module):
+        main_mod, mt5_mock, _ = main_module
+        mt5_mock.copy_rates_range.return_value = [
+            {'time': 1705312800, 'open': 1.1, 'high': 1.11, 'low': 1.09, 'close': 1.105},
+            {'time': 1705313100, 'open': 1.105, 'high': 1.12, 'low': 1.1, 'close': 1.115},
+        ]
+
+        rows = main_mod.build_trade_chart_context_rows(mt5_mock, [{
+            'id': 'trade-1',
+            'symbol': 'EURUSD',
+            'open_time': '2025-01-15T10:00:00Z',
+            'close_time': '2025-01-15T10:30:00Z',
+        }])
+
+        assert len(rows) == 1
+        assert rows[0]['trade_id'] == 'trade-1'
+        assert rows[0]['timeframe'] == 'M5'
+        assert len(rows[0]['bars']) == 2
+        assert rows[0]['bars'][0]['open'] == 1.1
+
+    def test_chart_context_skips_empty_rates(self, main_module):
+        main_mod, mt5_mock, _ = main_module
+        mt5_mock.copy_rates_range.return_value = []
+
+        rows = main_mod.build_trade_chart_context_rows(mt5_mock, [{
+            'id': 'trade-1',
+            'symbol': 'EURUSD',
+            'open_time': '2025-01-15T10:00:00Z',
+            'close_time': '2025-01-15T10:30:00Z',
+        }])
+
+        assert rows == []
+
     def test_account_info_none(self, main_module):
         main_mod, mt5_mock, mock_sb = main_module
         mt5_mock.login.return_value = True

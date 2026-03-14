@@ -57,12 +57,37 @@ export const aiTools: ChatCompletionTool[] = [
 		type: 'function',
 		function: {
 			name: 'get_journal_entries',
-			description: 'ดึง daily journal entries ของลูกค้า (pre/post-market notes, mood 1-5)',
+			description: 'ดึง daily journal entries ของลูกค้า (pre/post-market notes, checklist, lessons, completion status)',
 			parameters: {
 				type: 'object',
 				properties: {
 					days: { type: 'number', description: 'Number of days to look back (default 30)' }
 				}
+			}
+		}
+	},
+	{
+		type: 'function',
+		function: {
+			name: 'get_review_context',
+			description: 'ดึง structured trade reviews, broken rules, playbook bindings และ attachment coverage ของเทรด',
+			parameters: {
+				type: 'object',
+				properties: {
+					days: { type: 'number', description: 'Number of days to look back (default 30)' },
+					limit: { type: 'number', description: 'Max trades to return (default 25)' }
+				}
+			}
+		}
+	},
+	{
+		type: 'function',
+		function: {
+			name: 'get_playbooks',
+			description: 'ดึง playbooks พร้อมกฎ entry/exit/risk และจำนวน trades ที่ผูกอยู่กับแต่ละ playbook',
+			parameters: {
+				type: 'object',
+				properties: {}
 			}
 		}
 	},
@@ -101,6 +126,10 @@ export async function executeTool(
 			return getAnalytics(supabase, clientAccountId);
 		case 'get_journal_entries':
 			return getJournalEntries(supabase, clientAccountId, userId, params);
+		case 'get_review_context':
+			return getReviewContext(supabase, clientAccountId, params);
+		case 'get_playbooks':
+			return getPlaybooks(supabase, clientAccountId, userId);
 		case 'get_equity_snapshots':
 			return getEquitySnapshots(supabase, clientAccountId, params);
 		default:
@@ -116,7 +145,7 @@ async function getTradeHistory(supabase: SupabaseClient, accountId: string, para
 
 	let query = supabase
 		.from('trades')
-		.select('symbol, type, lot_size, open_price, close_price, open_time, close_time, profit, sl, tp, pips, commission, swap, trade_tag_assignments(tag_id, trade_tags(name, category)), trade_notes(content, rating)')
+		.select('symbol, type, lot_size, open_price, close_price, open_time, close_time, profit, sl, tp, pips, commission, swap, trade_tag_assignments(tag_id, trade_tags(name, category)), trade_notes(content, rating), trade_reviews(review_status, playbook_id, mistake_summary, lesson_summary, broken_rules, followed_plan), trade_attachments(id, kind)')
 		.eq('client_account_id', accountId)
 		.gte('close_time', since.toISOString())
 		.order('close_time', { ascending: false })
@@ -148,7 +177,12 @@ async function getTradeHistory(supabase: SupabaseClient, accountId: string, para
 			category: a.trade_tags?.category
 		})),
 		note: t.trade_notes?.[0]?.content || null,
-		rating: t.trade_notes?.[0]?.rating || null
+		rating: t.trade_notes?.[0]?.rating || null,
+		reviewStatus: t.trade_reviews?.[0]?.review_status || 'unreviewed',
+		playbookId: t.trade_reviews?.[0]?.playbook_id || null,
+		brokenRules: t.trade_reviews?.[0]?.broken_rules || [],
+		followedPlan: t.trade_reviews?.[0]?.followed_plan ?? null,
+		attachments: (t.trade_attachments || []).length
 	}));
 
 	return JSON.stringify({ totalTrades: trades.length, days, trades });
@@ -274,7 +308,7 @@ async function getJournalEntries(supabase: SupabaseClient, accountId: string, us
 
 	const { data, error } = await supabase
 		.from('daily_journal')
-		.select('date, pre_market_notes, post_market_notes, mood')
+		.select('date, pre_market_notes, post_market_notes, session_plan, market_bias, checklist, mood, energy_score, discipline_score, confidence_score, lessons, tomorrow_focus, completion_status')
 		.eq('client_account_id', accountId)
 		.eq('user_id', userId)
 		.gte('date', since.toISOString().split('T')[0])
@@ -283,6 +317,80 @@ async function getJournalEntries(supabase: SupabaseClient, accountId: string, us
 	if (error) return JSON.stringify({ error: error.message });
 
 	return JSON.stringify({ totalEntries: (data || []).length, days, entries: data || [] });
+}
+
+async function getReviewContext(supabase: SupabaseClient, accountId: string, params: ToolParams): Promise<string> {
+	const days = (params.days as number) || 30;
+	const limit = (params.limit as number) || 25;
+	const since = new Date();
+	since.setDate(since.getDate() - days);
+
+	const { data, error } = await supabase
+		.from('trades')
+		.select('symbol, type, profit, close_time, trade_reviews(review_status, playbook_id, entry_reason, mistake_summary, lesson_summary, next_action, broken_rules, followed_plan), trade_attachments(id), trade_notes(id), trade_tag_assignments(tag_id, trade_tags(name, category))')
+		.eq('client_account_id', accountId)
+		.gte('close_time', since.toISOString())
+		.order('close_time', { ascending: false })
+		.limit(limit);
+
+	if (error) return JSON.stringify({ error: error.message });
+
+	const reviews = (data || []).map((trade: any) => ({
+		symbol: trade.symbol,
+		type: trade.type,
+		profit: trade.profit,
+		closeTime: trade.close_time,
+		reviewStatus: trade.trade_reviews?.[0]?.review_status || 'unreviewed',
+		playbookId: trade.trade_reviews?.[0]?.playbook_id || null,
+		mistakeSummary: trade.trade_reviews?.[0]?.mistake_summary || null,
+		lessonSummary: trade.trade_reviews?.[0]?.lesson_summary || null,
+		nextAction: trade.trade_reviews?.[0]?.next_action || null,
+		brokenRules: trade.trade_reviews?.[0]?.broken_rules || [],
+		followedPlan: trade.trade_reviews?.[0]?.followed_plan ?? null,
+		attachments: (trade.trade_attachments || []).length,
+		notes: (trade.trade_notes || []).length,
+		tags: (trade.trade_tag_assignments || []).map((assignment: any) => ({
+			name: assignment.trade_tags?.name,
+			category: assignment.trade_tags?.category
+		}))
+	}));
+
+	return JSON.stringify({ totalReviews: reviews.length, days, reviews });
+}
+
+async function getPlaybooks(supabase: SupabaseClient, accountId: string, userId: string): Promise<string> {
+	const [playbooksRes, reviewsRes] = await Promise.allSettled([
+		supabase
+			.from('playbooks')
+			.select('id, name, description, entry_criteria, exit_criteria, risk_rules, mistakes_to_avoid, is_active')
+			.eq('client_account_id', accountId)
+			.eq('user_id', userId)
+			.order('sort_order', { ascending: true }),
+		supabase
+			.from('trade_reviews')
+			.select('playbook_id, review_status')
+			.eq('user_id', userId)
+	]);
+
+	const playbooks = playbooksRes.status === 'fulfilled' ? playbooksRes.value.data || [] : [];
+	const reviews = reviewsRes.status === 'fulfilled' ? reviewsRes.value.data || [] : [];
+
+	const playbookUsage = new Map<string, { totalTrades: number; reviewedTrades: number }>();
+	for (const review of reviews) {
+		if (!review.playbook_id) continue;
+		const current = playbookUsage.get(review.playbook_id) || { totalTrades: 0, reviewedTrades: 0 };
+		current.totalTrades += 1;
+		if (review.review_status === 'reviewed') current.reviewedTrades += 1;
+		playbookUsage.set(review.playbook_id, current);
+	}
+
+	return JSON.stringify({
+		totalPlaybooks: playbooks.length,
+		playbooks: playbooks.map((playbook: any) => ({
+			...playbook,
+			usage: playbookUsage.get(playbook.id) || { totalTrades: 0, reviewedTrades: 0 }
+		}))
+	});
 }
 
 async function getEquitySnapshots(supabase: SupabaseClient, accountId: string, params: ToolParams): Promise<string> {
