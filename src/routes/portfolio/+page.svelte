@@ -2,6 +2,9 @@
 	import MetricCard from '$lib/components/shared/MetricCard.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import EquityChart from '$lib/components/charts/EquityChart.svelte';
+	import DailyPnlChart from '$lib/components/charts/DailyPnlChart.svelte';
+	import TradingScoreRadar from '$lib/components/charts/TradingScoreRadar.svelte';
+	import MiniCalendar from '$lib/components/portfolio/MiniCalendar.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
@@ -11,6 +14,7 @@
 		latestStats,
 		openPositions,
 		recentTrades,
+		dailyHistory,
 		equityCurve,
 		equitySnapshots,
 		commandCenter,
@@ -30,6 +34,11 @@
 	});
 	let safeRuleBreakMetrics = $derived(ruleBreakMetrics || { totalRuleBreaks: 0, ruleBreakLoss: 0, topRules: [] });
 	let safeSetupPerformance = $derived(setupPerformance || []);
+
+	// Enhanced metric card calculations
+	let totalTrades = $derived(latestStats?.total_trades || 0);
+	let winCount = $derived(Math.round((latestStats?.win_rate || 0) * totalTrades / 100));
+	let lossCount = $derived(totalTrades - winCount);
 </script>
 
 {#if !latestStats && (!commandCenter || !data.account)}
@@ -47,18 +56,32 @@
 			pageKey="overview"
 		/>
 
-		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-			<MetricCard label="Balance" value={formatCurrency(latestStats?.balance || 0)} />
-			<MetricCard label="Equity" value={formatCurrency(latestStats?.equity || 0)} />
+		<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+			<MetricCard
+				label="Balance"
+				value={formatCurrency(latestStats?.balance || 0)}
+				subValue={totalTrades > 0 ? `${totalTrades} trades` : ''}
+			/>
+			<MetricCard
+				label="Equity"
+				value={formatCurrency(latestStats?.equity || 0)}
+			/>
 			<MetricCard
 				label="Win Rate"
 				value={formatPercent(latestStats?.win_rate || 0).replace('+', '')}
 				color={(latestStats?.win_rate || 0) >= 50 ? 'text-green-400' : 'text-amber-400'}
+				donutPercent={latestStats?.win_rate || 0}
+				tradeCount={totalTrades > 0 ? { wins: winCount, losses: lossCount } : undefined}
 			/>
 			<MetricCard
 				label="Profit Factor"
 				value={formatNumber(latestStats?.profit_factor || 0)}
 				color={(latestStats?.profit_factor || 0) >= 1 ? 'text-green-400' : 'text-red-400'}
+			/>
+			<MetricCard
+				label="Expectancy"
+				value={formatCurrency(totalTrades > 0 ? (latestStats?.balance || 0) / totalTrades : 0)}
+				color={(latestStats?.balance || 0) >= 0 ? 'text-green-400' : 'text-red-400'}
 			/>
 		</div>
 
@@ -68,7 +91,21 @@
 			</div>
 		{/if}
 
-		<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+		{#if dailyHistory && dailyHistory.length > 0}
+			<div class="card">
+				<DailyPnlChart {dailyHistory} />
+			</div>
+		{/if}
+
+		<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+			<div class="card xl:col-span-1">
+				<TradingScoreRadar
+					winRate={latestStats?.win_rate || 0}
+					profitFactor={latestStats?.profit_factor || 0}
+					avgWin={latestStats?.avg_win || 0}
+					avgLoss={latestStats?.avg_loss || 0}
+				/>
+			</div>
 			<div class="card xl:col-span-1 space-y-4">
 				<div>
 					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Today</p>
@@ -191,7 +228,7 @@
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+		<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 			<div class="card">
 				<div class="flex items-center justify-between">
 					<div>
@@ -252,6 +289,14 @@
 						{/each}
 					</div>
 				{/if}
+			</div>
+
+			<div class="card">
+				<div>
+					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Trading Calendar</p>
+					<h2 class="mt-1 text-lg font-semibold text-white mb-3">Monthly activity</h2>
+				</div>
+				<MiniCalendar {dailyHistory} />
 			</div>
 		</div>
 

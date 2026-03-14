@@ -4,6 +4,7 @@
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import TradeContextChart from '$lib/components/portfolio/TradeContextChart.svelte';
+	import TradeReplayChart from '$lib/components/portfolio/TradeReplayChart.svelte';
 	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
 
 	let { data } = $props();
@@ -38,6 +39,7 @@
 	let reviewSaved = $state(false);
 
 	let attachments = $state<any[]>([]);
+	let showReplay = $state(false);
 	let attachmentKind = $state<'link' | 'image_url'>('link');
 	let attachmentPath = $state('');
 	let attachmentCaption = $state('');
@@ -343,7 +345,21 @@
 
 			<div class="mt-5 grid grid-cols-1 xl:grid-cols-3 gap-6">
 				<div class="xl:col-span-2">
-					<TradeContextChart contexts={chartContexts} {trade} />
+					{#if showReplay && chartContexts?.length > 0}
+						<TradeReplayChart contexts={chartContexts} {trade} onclose={() => showReplay = false} />
+					{:else}
+						<TradeContextChart contexts={chartContexts} {trade} />
+						{#if chartContexts?.length > 0}
+							<button
+								type="button"
+								onclick={() => showReplay = true}
+								class="mt-2 text-xs text-brand-primary hover:text-brand-primary/80 flex items-center gap-1.5 transition-colors"
+							>
+								<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+								Replay Trade
+							</button>
+						{/if}
+					{/if}
 				</div>
 				<div class="space-y-4">
 					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
