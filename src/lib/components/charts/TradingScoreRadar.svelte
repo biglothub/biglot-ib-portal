@@ -11,9 +11,9 @@
 		avgLoss?: number;
 	} = $props();
 
-	const CX = 100;
-	const CY = 85;
-	const R = 65;
+	const CX = 130;
+	const CY = 95;
+	const R = 60;
 
 	// Angles: top (-90°), bottom-right (30°), bottom-left (150°)
 	const axes = [
@@ -57,7 +57,7 @@
 		<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Trading Score</p>
 	</div>
 
-	<svg viewBox="0 0 200 170" class="w-full max-w-[280px] mx-auto">
+	<svg viewBox="0 0 260 190" class="w-full max-w-[300px] mx-auto">
 		<!-- Grid rings -->
 		{#each [25, 50, 75, 100] as pct}
 			<polygon
@@ -93,18 +93,18 @@
 		<circle cx={px(axes[2].angle, nRatio)} cy={py(axes[2].angle, nRatio)} r="3.5" fill="#C9A84C" />
 
 		<!-- Axis labels -->
-		<text x={px(axes[0].angle, 115)} y={py(axes[0].angle, 115)} text-anchor="middle" class="fill-gray-400 text-[9px]">
+		<text x={CX} y={py(axes[0].angle, 100) - 12} text-anchor="middle" class="fill-gray-400" style="font-size: 10px">
 			Win %
 		</text>
-		<text x={px(axes[1].angle, 120)} y={py(axes[1].angle, 120)} text-anchor="start" class="fill-gray-400 text-[9px]">
+		<text x={px(axes[1].angle, 100) + 10} y={py(axes[1].angle, 100) + 14} text-anchor="start" class="fill-gray-400" style="font-size: 10px">
 			Profit Factor
 		</text>
-		<text x={px(axes[2].angle, 120)} y={py(axes[2].angle, 120)} text-anchor="end" class="fill-gray-400 text-[9px]">
+		<text x={px(axes[2].angle, 100) - 10} y={py(axes[2].angle, 100) + 14} text-anchor="end" class="fill-gray-400" style="font-size: 10px">
 			Avg Win/Loss
 		</text>
 	</svg>
 
-	<div class="text-center -mt-1">
+	<div class="text-center -mt-2">
 		<span class="text-sm text-gray-400">Your Score:</span>
 		<span class="text-2xl font-bold ml-1.5 {scoreColor}">{score}</span>
 	</div>
