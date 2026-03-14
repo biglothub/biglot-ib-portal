@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	const coaches = [
 		{
 			name: 'COACH PING',
@@ -11,7 +13,8 @@
 			colorText: 'text-pink-400',
 			colorBg: 'bg-pink-500/10',
 			youtube: '@goldwithping',
-			avatar: '/coaches/ping.png'
+			avatar: '/coaches/ping.png',
+			glow: '236,72,153'
 		},
 		{
 			name: 'COACH BALL',
@@ -24,7 +27,8 @@
 			colorText: 'text-orange-400',
 			colorBg: 'bg-orange-500/10',
 			youtube: '@trader10-x',
-			avatar: '/coaches/ball.png'
+			avatar: '/coaches/ball.png',
+			glow: '249,115,22'
 		},
 		{
 			name: 'COACH PU',
@@ -37,7 +41,8 @@
 			colorText: 'text-yellow-400',
 			colorBg: 'bg-yellow-500/10',
 			youtube: '@PuMoneyMind',
-			avatar: '/coaches/pu.png'
+			avatar: '/coaches/pu.png',
+			glow: '234,179,8'
 		},
 		{
 			name: 'COACH CZECH',
@@ -50,7 +55,8 @@
 			colorText: 'text-green-400',
 			colorBg: 'bg-green-500/10',
 			youtube: '@alltimehigh.official',
-			avatar: '/coaches/czech.png'
+			avatar: '/coaches/czech.png',
+			glow: '34,197,94'
 		},
 		{
 			name: 'COACH FUTURE',
@@ -63,7 +69,8 @@
 			colorText: 'text-teal-400',
 			colorBg: 'bg-teal-500/10',
 			youtube: '@tradethefuturebyfuture',
-			avatar: '/coaches/future.png'
+			avatar: '/coaches/future.png',
+			glow: '20,184,166'
 		},
 		{
 			name: 'COACH JHEE',
@@ -76,7 +83,8 @@
 			colorText: 'text-blue-400',
 			colorBg: 'bg-blue-500/10',
 			youtube: '@jheearoonwan',
-			avatar: '/coaches/jhee.png'
+			avatar: '/coaches/jhee.png',
+			glow: '59,130,246'
 		},
 		{
 			name: 'COACH ICZ',
@@ -89,7 +97,8 @@
 			colorText: 'text-purple-400',
 			colorBg: 'bg-purple-500/10',
 			youtube: '@portgoldtrader',
-			avatar: '/coaches/icz.png'
+			avatar: '/coaches/icz.png',
+			glow: '168,85,247'
 		},
 		{
 			name: 'COACH DUK',
@@ -102,81 +111,99 @@
 			colorText: 'text-pink-400',
 			colorBg: 'bg-pink-500/10',
 			youtube: '@Pidfah',
-			avatar: '/coaches/duk.png'
+			avatar: '/coaches/duk.png',
+			glow: '217,70,239'
 		},
 		{
 			name: 'COACH MAY',
 			time: '23:00-02:00',
 			startHour: 23,
-			endHour: 26, // 2:00 next day = 26 for comparison
+			endHour: 26,
 			channel: 'Mayday Channel',
 			color: 'from-red-500 to-rose-400',
 			colorBorder: 'border-red-500/30',
 			colorText: 'text-red-400',
 			colorBg: 'bg-red-500/10',
 			youtube: '@MC.Maydaychannel',
-			avatar: '/coaches/may.png'
+			avatar: '/coaches/may.png',
+			glow: '239,68,68'
 		}
 	];
 
 	function getBangkokHour(): number {
 		const now = new Date();
-		const utcHour = now.getUTCHours();
-		const utcMinute = now.getUTCMinutes();
-		return ((utcHour + 7) % 24) + utcMinute / 60;
+		return ((now.getUTCHours() + 7) % 24) + now.getUTCMinutes() / 60;
+	}
+
+	function getBangkokTimeString(): string {
+		const now = new Date();
+		const h = Math.floor(((now.getUTCHours() + 7) % 24));
+		const m = now.getUTCMinutes().toString().padStart(2, '0');
+		return `${h.toString().padStart(2, '0')}:${m}`;
 	}
 
 	function isLive(startHour: number, endHour: number): boolean {
 		const now = getBangkokHour();
 		if (endHour > 24) {
-			// Wraps past midnight (e.g. 23:00-02:00)
 			return now >= startHour || now < endHour - 24;
 		}
 		return now >= startHour && now < endHour;
 	}
 
-	// Re-check every minute
 	let tick = $state(0);
-	let tickInterval: ReturnType<typeof setInterval> | undefined;
-
-	import { onMount } from 'svelte';
 
 	onMount(() => {
-		tickInterval = setInterval(() => tick++, 60000);
-		return () => clearInterval(tickInterval);
+		const id = setInterval(() => tick++, 30000);
+		return () => clearInterval(id);
+	});
+
+	let currentTime = $derived.by(() => {
+		void tick;
+		return getBangkokTimeString();
 	});
 
 	let liveCoachIndex = $derived.by(() => {
-		void tick; // reactivity trigger
+		void tick;
 		return coaches.findIndex((c) => isLive(c.startHour, c.endHour));
 	});
 </script>
 
 <div class="space-y-6">
+	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
 			<h2 class="text-lg font-bold text-white">ELITE GOLD LIVE TRADE</h2>
 			<p class="text-xs text-gray-500 mt-1">ตาราง Live Trade Master ประจำวัน</p>
 		</div>
-		{#if liveCoachIndex >= 0}
-			<div class="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-1.5">
-				<span class="relative flex h-2.5 w-2.5">
-					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-					<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-				</span>
-				<span class="text-xs text-green-400 font-medium">LIVE NOW</span>
+		<div class="flex items-center gap-3">
+			{#if liveCoachIndex >= 0}
+				<div class="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-1.5">
+					<span class="relative flex h-2.5 w-2.5">
+						<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+						<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+					</span>
+					<span class="text-xs text-green-400 font-medium">LIVE</span>
+				</div>
+			{/if}
+			<!-- Current time -->
+			<div class="rounded-lg bg-dark-surface border border-dark-border px-3 py-1.5 text-center">
+				<div class="text-lg font-mono font-bold text-white tracking-wider">{currentTime}</div>
+				<div class="text-[9px] text-gray-500 -mt-0.5">Bangkok Time</div>
 			</div>
-		{/if}
+		</div>
 	</div>
 
+	<!-- Coach list -->
 	<div class="space-y-3">
 		{#each coaches as coach, i}
 			{@const live = i === liveCoachIndex}
 			<div
-				class="relative rounded-2xl border transition-all duration-300
+				class="live-card relative rounded-2xl border transition-all duration-500
 					{live
-						? `${coach.colorBorder} ${coach.colorBg} shadow-lg`
+						? `${coach.colorBorder} ${coach.colorBg}`
 						: 'border-dark-border bg-dark-surface hover:bg-dark-hover'}"
+				style={live ? `--glow-rgb: ${coach.glow}` : ''}
+				class:is-live={live}
 			>
 				{#if live}
 					<div class="absolute -top-2.5 right-4">
@@ -200,17 +227,21 @@
 					</div>
 
 					<!-- Avatar -->
-					<div class="flex-shrink-0">
+					<div class="flex-shrink-0 relative">
+						{#if live}
+							<div class="absolute -inset-1 rounded-full animate-pulse-ring" style="background: rgba({coach.glow}, 0.25)"></div>
+						{/if}
 						<img
 							src={coach.avatar}
 							alt={coach.name}
-							class="w-11 h-11 rounded-full object-cover border-2 {live ? coach.colorBorder : 'border-dark-border'}"
+							class="relative w-11 h-11 rounded-full object-cover border-2 transition-all duration-500
+								{live ? coach.colorBorder : 'border-dark-border'}"
 						/>
 					</div>
 
 					<!-- Channel info -->
 					<div class="flex-1 min-w-0">
-						<h3 class="text-sm font-semibold text-white truncate">{coach.channel}</h3>
+						<h3 class="text-sm font-semibold truncate transition-colors duration-500 {live ? 'text-white' : 'text-gray-300'}">{coach.channel}</h3>
 						<a
 							href="https://www.youtube.com/{coach.youtube}"
 							target="_blank"
@@ -226,11 +257,11 @@
 
 					<!-- Time display -->
 					<div class="flex-shrink-0 text-right hidden sm:block">
-						<div class="text-sm font-mono {live ? coach.colorText : 'text-gray-400'}">
+						<div class="text-sm font-mono transition-colors duration-500 {live ? coach.colorText : 'text-gray-500'}">
 							{coach.time}
 						</div>
 						{#if live}
-							<div class="text-[10px] {coach.colorText} mt-0.5">กำลัง Live</div>
+							<div class="text-[10px] {coach.colorText} mt-0.5 font-medium">กำลัง Live</div>
 						{/if}
 					</div>
 				</div>
@@ -238,3 +269,33 @@
 		{/each}
 	</div>
 </div>
+
+<style>
+	/* Glow pulse on the live card border */
+	.live-card.is-live {
+		animation: card-glow 2.5s ease-in-out infinite;
+	}
+
+	@keyframes card-glow {
+		0%, 100% {
+			box-shadow:
+				0 0 8px 0 rgba(var(--glow-rgb), 0.15),
+				0 0 20px -4px rgba(var(--glow-rgb), 0.1);
+		}
+		50% {
+			box-shadow:
+				0 0 16px 2px rgba(var(--glow-rgb), 0.3),
+				0 0 40px -4px rgba(var(--glow-rgb), 0.2);
+		}
+	}
+
+	/* Pulse ring around the live avatar */
+	.animate-pulse-ring {
+		animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	@keyframes pulse-ring {
+		0%, 100% { opacity: 0.5; transform: scale(1); }
+		50%      { opacity: 0;   transform: scale(1.35); }
+	}
+</style>
