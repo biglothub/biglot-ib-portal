@@ -13,22 +13,57 @@ export function toThaiDateString(utcDateStr: string): string {
 		.split('T')[0];
 }
 
+// Module-level formatter caches — avoid creating Intl objects on every call
+const currencyFormatters = new Map<number, Intl.NumberFormat>();
+const numberFormatters = new Map<number, Intl.NumberFormat>();
+
+function getCurrencyFormatter(decimals: number): Intl.NumberFormat {
+	let fmt = currencyFormatters.get(decimals);
+	if (!fmt) {
+		fmt = new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			minimumFractionDigits: decimals,
+			maximumFractionDigits: decimals
+		});
+		currencyFormatters.set(decimals, fmt);
+	}
+	return fmt;
+}
+
+function getNumberFormatter(decimals: number): Intl.NumberFormat {
+	let fmt = numberFormatters.get(decimals);
+	if (!fmt) {
+		fmt = new Intl.NumberFormat('en-US', {
+			minimumFractionDigits: decimals,
+			maximumFractionDigits: decimals
+		});
+		numberFormatters.set(decimals, fmt);
+	}
+	return fmt;
+}
+
+const dateFormatter = new Intl.DateTimeFormat('th-TH', {
+	day: 'numeric',
+	month: 'short',
+	year: '2-digit'
+});
+
+const dateTimeFormatter = new Intl.DateTimeFormat('th-TH', {
+	day: 'numeric',
+	month: 'short',
+	hour: '2-digit',
+	minute: '2-digit'
+});
+
 export function formatCurrency(value: number | null | undefined, decimals = 2): string {
 	if (value == null) return '-';
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: decimals,
-		maximumFractionDigits: decimals
-	}).format(value);
+	return getCurrencyFormatter(decimals).format(value);
 }
 
 export function formatNumber(value: number | null | undefined, decimals = 2): string {
 	if (value == null) return '-';
-	return new Intl.NumberFormat('en-US', {
-		minimumFractionDigits: decimals,
-		maximumFractionDigits: decimals
-	}).format(value);
+	return getNumberFormatter(decimals).format(value);
 }
 
 export function formatPercent(value: number | null | undefined, decimals = 1): string {
@@ -38,21 +73,12 @@ export function formatPercent(value: number | null | undefined, decimals = 1): s
 
 export function formatDate(dateStr: string | null | undefined): string {
 	if (!dateStr) return '-';
-	return new Date(dateStr).toLocaleDateString('th-TH', {
-		day: 'numeric',
-		month: 'short',
-		year: '2-digit'
-	});
+	return dateFormatter.format(new Date(dateStr));
 }
 
 export function formatDateTime(dateStr: string | null | undefined): string {
 	if (!dateStr) return '-';
-	return new Date(dateStr).toLocaleString('th-TH', {
-		day: 'numeric',
-		month: 'short',
-		hour: '2-digit',
-		minute: '2-digit'
-	});
+	return dateTimeFormatter.format(new Date(dateStr));
 }
 
 export function timeAgo(dateStr: string | null | undefined): string {

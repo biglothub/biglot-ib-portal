@@ -18,7 +18,7 @@ export async function getXauusdPrice(): Promise<GoldPrice | null> {
 
 	const price = await fetchFromOpenPositions()
 		?? await fetchFromRecentTrades()
-		?? await fetchFromMetalsApi();
+		?? await fetchFromSwissquote();
 
 	if (price) {
 		cachedPrice = price;
@@ -80,12 +80,12 @@ async function fetchFromRecentTrades(): Promise<GoldPrice | null> {
 	return null;
 }
 
-async function fetchFromMetalsApi(): Promise<GoldPrice | null> {
+async function fetchFromSwissquote(): Promise<GoldPrice | null> {
 	try {
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), 5_000);
 
-		const res = await fetch('https://api.metals.live/v1/spot/gold', {
+		const res = await fetch('https://forex-data-feed.swissquote.com/public-quotes/bboquotes/instrument/XAU/USD', {
 			signal: controller.signal
 		});
 		clearTimeout(timeout);
@@ -93,18 +93,20 @@ async function fetchFromMetalsApi(): Promise<GoldPrice | null> {
 		if (!res.ok) return null;
 
 		const data = await res.json();
-		const spot = Array.isArray(data) ? data[0] : data;
-		const price = spot?.price ?? spot?.gold;
+		const quote = Array.isArray(data) ? data[0] : data;
+		const spread = quote?.spreadProfilePrices?.[0];
+		const bid = spread?.bid;
+		const ask = spread?.ask;
 
-		if (typeof price === 'number' && price > 0) {
+		if (typeof bid === 'number' && typeof ask === 'number' && bid > 0) {
 			return {
-				price,
-				source: 'metals.live',
+				price: (bid + ask) / 2,
+				source: 'Swissquote',
 				updatedAt: new Date().toISOString()
 			};
 		}
 	} catch (err) {
-		console.error('[gold-price] metals.live API failed:', err instanceof Error ? err.message : err);
+		console.error('[gold-price] Swissquote API failed:', err instanceof Error ? err.message : err);
 	}
 	return null;
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency } from '$lib/utils';
@@ -74,7 +74,7 @@
 
 			if (res.ok) {
 				resetForm();
-				invalidateAll();
+				invalidate('portfolio:baseData');
 			} else {
 				actionError = 'ไม่สามารถบันทึก Playbook ได้';
 			}
@@ -100,7 +100,7 @@
 				return;
 			}
 			if (editingId === id) resetForm();
-			invalidateAll();
+			invalidate('portfolio:baseData');
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
@@ -142,7 +142,7 @@
 			if (res.ok) {
 				reviewSaved = true;
 				setTimeout(() => (reviewSaved = false), 2000);
-				invalidateAll();
+				invalidate('portfolio:baseData');
 			} else {
 				actionError = 'ไม่สามารถบันทึก Review ได้';
 			}
@@ -169,7 +169,7 @@
 				return;
 			}
 			showTagDropdown = false;
-			invalidateAll();
+			invalidate('portfolio:baseData');
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
@@ -191,7 +191,7 @@
 				actionError = 'ไม่สามารถลบ Tag ได้';
 				return;
 			}
-			invalidateAll();
+			invalidate('portfolio:baseData');
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		}
@@ -217,7 +217,7 @@
 			if (res.ok) {
 				attachmentPath = '';
 				attachmentCaption = '';
-				invalidateAll();
+				invalidate('portfolio:baseData');
 			} else {
 				actionError = 'ไม่สามารถเพิ่ม Attachment ได้';
 			}
@@ -243,7 +243,7 @@
 				actionError = 'ไม่สามารถลบ Attachment ได้';
 				return;
 			}
-			invalidateAll();
+			invalidate('portfolio:baseData');
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		}

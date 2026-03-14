@@ -1,9 +1,10 @@
+import { getTradeReviewStatus } from '$lib/portfolio';
 import { parsePortfolioFilters } from '$lib/portfolio';
 import {
-	buildCommandCenterData,
 	buildDailyHistory,
 	buildFilterOptions,
-	buildReportExplorer
+	buildReportExplorer,
+	buildReviewSummary
 } from '$lib/server/portfolio';
 import type { PageServerLoad } from './$types';
 
@@ -55,7 +56,30 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);
 	const trades = report.filteredTrades;
 	const dailyHistory = buildDailyHistory(trades);
-	const commandCenter = buildCommandCenterData(trades, baseData.dailyStats, baseData.journals, playbooks);
+	const reviewSummary = buildReviewSummary(trades);
+
+	// Build command center from already-computed data (avoid duplicate computation)
+	const latestDay = dailyHistory[dailyHistory.length - 1] || null;
+	const latestStats = baseData.dailyStats[baseData.dailyStats.length - 1] || null;
+	const recentCompletedJournal = baseData.journals
+		.filter((j: any) => j.completion_status === 'complete')
+		.slice(-1)[0] || null;
+
+	const commandCenter = {
+		today: {
+			date: latestDay?.date || latestStats?.date || null,
+			pnl: latestDay?.profit || 0,
+			trades: latestDay?.totalTrades || 0,
+			reviewedTrades: latestDay?.reviewedTrades || 0,
+			completedJournal: recentCompletedJournal?.date === latestDay?.date
+		},
+		reviewSummary,
+		journalSummary: report.journalSummary,
+		setupPerformance: report.setupPerformance.slice(0, 4),
+		ruleBreakMetrics: report.ruleBreakMetrics,
+		unreviewedTrades: trades.filter((t: any) => getTradeReviewStatus(t) !== 'reviewed').slice(0, 6),
+		activePlaybooks: playbooks.filter((p: any) => p.is_active).length
+	};
 
 	const equitySnapshots = (equityRes.data || []).map((snapshot: any) => ({
 		time: Math.floor(new Date(snapshot.timestamp).getTime() / 1000),
@@ -80,6 +104,6 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		setupPerformance: report.setupPerformance,
 		ruleBreakMetrics: report.ruleBreakMetrics,
 		journalSummary: report.journalSummary,
-		reviewSummary: commandCenter.reviewSummary
+		reviewSummary
 	};
 };

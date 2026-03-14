@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { formatPercent, formatNumber } from '$lib/utils';
 
 	let { data } = $props();
@@ -26,7 +26,7 @@
 				actionError = 'ไม่สามารถบันทึกเป้าหมายได้';
 				return;
 			}
-			invalidateAll();
+			invalidate('portfolio:baseData');
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		}

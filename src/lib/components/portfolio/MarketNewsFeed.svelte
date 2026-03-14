@@ -1,13 +1,15 @@
 <script lang="ts">
 	import type { MarketNewsArticle, NewsCategory } from '$lib/types';
 	import { timeAgo } from '$lib/utils';
-	import { invalidateAll } from '$app/navigation';
+	import { marketNewsStore } from '$lib/stores/newsStore';
 
 	let { articles = [] }: { articles: MarketNewsArticle[] } = $props();
 
 	let selectedCategory = $state<NewsCategory | 'all'>('all');
 	let refreshing = $state(false);
 	let showAll = $state(false);
+	let localArticles = $state<MarketNewsArticle[] | null>(null);
+	let effectiveArticles = $derived(localArticles ?? articles);
 
 	const categories: { value: NewsCategory | 'all'; label: string }[] = [
 		{ value: 'all', label: 'ทั้งหมด' },
@@ -63,8 +65,8 @@
 
 	let filteredArticles = $derived(
 		selectedCategory === 'all'
-			? articles
-			: articles.filter((a) => a.category === selectedCategory)
+			? effectiveArticles
+			: effectiveArticles.filter((a) => a.category === selectedCategory)
 	);
 
 	let displayedArticles = $derived(showAll ? filteredArticles : filteredArticles.slice(0, 5));
@@ -74,30 +76,33 @@
 			categories.map((c) => [
 				c.value,
 				c.value === 'all'
-					? articles.length
-					: articles.filter((a) => a.category === c.value).length
+					? effectiveArticles.length
+					: effectiveArticles.filter((a) => a.category === c.value).length
 			])
 		)
 	);
 
 	let lastUpdated = $derived(
-		articles.length > 0
-			? articles.reduce(
+		effectiveArticles.length > 0
+			? effectiveArticles.reduce(
 					(latest, a) => (a.fetched_at > latest ? a.fetched_at : latest),
-					articles[0].fetched_at
+					effectiveArticles[0].fetched_at
 				)
 			: null
 	);
 
-	// Auto-refresh if news is stale (>30 min)
+	// Auto-refresh if news is stale (>30 min) — only once per mount
+	let hasAutoRefreshed = false;
 	$effect(() => {
+		if (hasAutoRefreshed) return;
 		if (lastUpdated) {
 			const staleMs = Date.now() - new Date(lastUpdated).getTime();
 			if (staleMs > 30 * 60 * 1000) {
+				hasAutoRefreshed = true;
 				handleRefresh();
 			}
 		} else {
-			// No articles at all — try to fetch
+			hasAutoRefreshed = true;
 			handleRefresh();
 		}
 	});
@@ -110,7 +115,13 @@
 			if (res.ok) {
 				const data = await res.json();
 				if (data.newArticles > 0) {
-					await invalidateAll();
+					// Fetch fresh news directly — no invalidateAll() cascade
+					const newsRes = await fetch('/api/portfolio/news');
+					if (newsRes.ok) {
+						const { articles: fresh } = await newsRes.json();
+						localArticles = fresh;
+						marketNewsStore.set(fresh);
+					}
 				}
 			}
 		} catch {
@@ -127,7 +138,7 @@
 			<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">ข่าวตลาด</p>
 			<h2 class="mt-1 text-lg font-semibold text-white">
 				สรุปข่าวประจำวัน
-				<span class="text-xs text-gray-500 font-normal">({articles.length})</span>
+				<span class="text-xs text-gray-500 font-normal">({effectiveArticles.length})</span>
 			</h2>
 		</div>
 		<div class="flex items-center gap-3">

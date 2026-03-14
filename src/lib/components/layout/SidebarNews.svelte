@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { marketNewsStore } from '$lib/stores/newsStore';
 	import { timeAgo } from '$lib/utils';
-	import { invalidateAll } from '$app/navigation';
 	import { slide } from 'svelte/transition';
 
 	let { collapsed = false }: { collapsed?: boolean } = $props();
@@ -49,7 +48,12 @@
 			if (res.ok) {
 				const data = await res.json();
 				if (data.newArticles > 0) {
-					await invalidateAll();
+					// Fetch fresh news directly — no invalidateAll() cascade
+					const newsRes = await fetch('/api/portfolio/news');
+					if (newsRes.ok) {
+						const { articles: fresh } = await newsRes.json();
+						marketNewsStore.set(fresh);
+					}
 				}
 			}
 		} catch {

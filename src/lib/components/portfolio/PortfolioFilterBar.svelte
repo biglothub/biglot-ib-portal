@@ -1,5 +1,5 @@
 <script lang="ts">
-import { goto, invalidateAll } from '$app/navigation';
+import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { buildPortfolioSearchParams, EMPTY_PORTFOLIO_FILTERS } from '$lib/portfolio';
 	import type { PortfolioFilterState } from '$lib/types';
@@ -122,7 +122,7 @@ import { goto, invalidateAll } from '$app/navigation';
 			})
 		});
 
-		await invalidateAll();
+		await invalidate('portfolio:baseData');
 	}
 
 	async function deleteView(id: string) {
@@ -131,7 +131,7 @@ import { goto, invalidateAll } from '$app/navigation';
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id })
 		});
-		await invalidateAll();
+		await invalidate('portfolio:baseData');
 	}
 </script>
 
