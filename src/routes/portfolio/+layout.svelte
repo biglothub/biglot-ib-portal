@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { timeAgo } from '$lib/utils';
+	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
+	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
 
 	let { data, children } = $props();
 	let { account } = $derived(data);
+	let chatOpen = $state(false);
 
 	const tabs = [
 		{ href: '/portfolio', label: 'ภาพรวม', icon: '📊' },
@@ -56,3 +59,13 @@
 
 	{@render children()}
 </div>
+
+{#if account}
+	<AiChatButton onclick={() => chatOpen = true} />
+	<AiChatPanel
+		open={chatOpen}
+		onclose={() => chatOpen = false}
+		accountId={account.id}
+		clientName={account.client_name}
+	/>
+{/if}
