@@ -28,14 +28,15 @@ SvelteKit + Supabase portal for managing Master IB workflows, client account app
 ```text
 src/                   SvelteKit app
 supabase/migrations/   Database schema and policy changes
-bridge/                MT5 sync service + backfill utilities
+bridge-ib-portal/      MT5 sync service + backfill utilities
 scripts/               One-time maintenance scripts
 static/guide.html      End-user guide
+docs/                  Engineering architecture and operations docs
 ```
 
 ## Key Behaviors
 
-- Role-based routing is enforced in [`src/hooks.server.ts`](/Users/iphone/Desktop/📁 Projects/TSP/ib-portal/src/hooks.server.ts).
+- Role-based routing is enforced in [`src/hooks.server.ts`](./src/hooks.server.ts).
 - Client Google login is locked to `one Google user = one client account`.
 - Browser-facing responses no longer expose `mt5_investor_password`.
 - Client account workflow mutations are handled through DB functions for atomicity:
@@ -52,7 +53,7 @@ static/guide.html      End-user guide
 
 ### Bridge
 
-- Python 3.11+
+- Python 3.10+
 - MetaTrader 5 terminal installed on the host machine
 - Access to the same Supabase project used by the web app
 
@@ -60,7 +61,7 @@ static/guide.html      End-user guide
 
 ### Root `.env`
 
-Copy [`.env.example`](/Users/iphone/Desktop/📁 Projects/TSP/ib-portal/.env.example):
+Copy [`.env.example`](./.env.example):
 
 ```bash
 cp .env.example .env
@@ -73,6 +74,10 @@ Required values:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `MT5_ENCRYPTION_KEY`
 
+Feature-specific:
+
+- `OPENAI_API_KEY` for `/api/portfolio/ai-chat`
+
 `MT5_ENCRYPTION_KEY` must be 64 hex chars:
 
 ```bash
@@ -81,10 +86,10 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### Bridge `.env`
 
-Copy [`bridge/.env.example`](/Users/iphone/Desktop/📁 Projects/TSP/ib-portal/bridge/.env.example):
+Copy [`bridge-ib-portal/.env.example`](./bridge-ib-portal/.env.example):
 
 ```bash
-cp bridge/.env.example bridge/.env
+cp bridge-ib-portal/.env.example bridge-ib-portal/.env
 ```
 
 Required bridge values:
@@ -115,7 +120,7 @@ npm install
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r bridge/requirements.txt
+pip install -r bridge-ib-portal/requirements.txt
 ```
 
 ### 3. Apply Supabase migrations
@@ -160,14 +165,14 @@ npm run preview
 Run once:
 
 ```bash
-cd bridge
+cd bridge-ib-portal
 python main.py
 ```
 
 Auto-restart wrapper:
 
 ```bash
-cd bridge
+cd bridge-ib-portal
 bash start.sh
 ```
 
@@ -186,7 +191,7 @@ npx tsx scripts/encrypt-existing-passwords.ts
 After the per-day stats migration or if historical rows need repair:
 
 ```bash
-cd bridge
+cd bridge-ib-portal
 python backfill_daily_stats.py
 ```
 
@@ -219,8 +224,13 @@ Client portfolio now includes:
 
 ## Documentation
 
-- User-facing guide: [`/guide.html`](http://localhost:5173/guide.html) when running locally
-- Source file: [static/guide.html](/Users/iphone/Desktop/📁 Projects/TSP/ib-portal/static/guide.html)
+- Engineering docs index: [docs/index.md](./docs/index.md)
+- Architecture: [docs/architecture.md](./docs/architecture.md)
+- Data model: [docs/data-model.md](./docs/data-model.md)
+- Features and APIs: [docs/features-and-apis.md](./docs/features-and-apis.md)
+- Operations: [docs/operations.md](./docs/operations.md)
+- User-facing guide (local app): `/guide.html`
+- User-facing guide source: [static/guide.html](./static/guide.html)
 
 ## Verification
 
@@ -229,7 +239,7 @@ Recommended before commit/deploy:
 ```bash
 npm run check
 npm run build
-python3 -m py_compile bridge/main.py bridge/core.py bridge/stats.py bridge/backfill_daily_stats.py
+python3 -m py_compile bridge-ib-portal/main.py bridge-ib-portal/core.py bridge-ib-portal/stats.py bridge-ib-portal/backfill_daily_stats.py
 ```
 
 ## Current Caveats
