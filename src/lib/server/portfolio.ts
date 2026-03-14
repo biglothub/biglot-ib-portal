@@ -30,7 +30,7 @@ export async function fetchPortfolioBaseData(
 			supabase
 				.from('trades')
 				.select(
-					'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id, content, rating, updated_at), trade_reviews(*, playbooks(id, name, description)), trade_attachments(*)'
+					'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id), trade_reviews(id, review_status, playbook_id, broken_rules, entry_reason, mistake_summary, lesson_summary, followed_plan, playbooks(id, name)), trade_attachments(id)'
 				)
 				.eq('client_account_id', accountId)
 				.order('close_time', { ascending: false }),

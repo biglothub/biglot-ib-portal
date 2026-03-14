@@ -3,6 +3,10 @@ import { redirect, type Handle } from '@sveltejs/kit';
 
 const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline'];
 
+// In-memory profile cache — avoids DB query on every request
+const profileCache = new Map<string, { profile: any; timestamp: number }>();
+const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient(event);
 
@@ -18,12 +22,23 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = user;
 
 	if (user) {
-		const { data: profile } = await event.locals.supabase
-			.from('profiles')
-			.select('id, email, full_name, role, avatar_url')
-			.eq('id', user.id)
-			.single();
-		event.locals.profile = profile;
+		const now = Date.now();
+		const cached = profileCache.get(user.id);
+
+		if (cached && (now - cached.timestamp) < PROFILE_CACHE_TTL) {
+			event.locals.profile = cached.profile;
+		} else {
+			const { data: profile } = await event.locals.supabase
+				.from('profiles')
+				.select('id, email, full_name, role, avatar_url')
+				.eq('id', user.id)
+				.single();
+			event.locals.profile = profile;
+
+			if (profile) {
+				profileCache.set(user.id, { profile, timestamp: now });
+			}
+		}
 	} else {
 		event.locals.profile = null;
 	}

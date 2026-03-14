@@ -10,8 +10,14 @@
 	let chatOpen = $state(false);
 
 	// Push market news to the store so the sidebar can display it
+	// marketNews may be a streamed promise or already resolved array
 	$effect(() => {
-		marketNewsStore.set(data.marketNews || []);
+		const news = data.marketNews;
+		if (news && typeof (news as any).then === 'function') {
+			(news as any).then((articles: any[]) => marketNewsStore.set(articles || []));
+		} else {
+			marketNewsStore.set((news as any[]) || []);
+		}
 		return () => marketNewsStore.set([]);
 	});
 

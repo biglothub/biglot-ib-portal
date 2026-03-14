@@ -35,16 +35,19 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 	const oneDayAgo = new Date();
 	oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-	// Phase 2: Run ALL remaining queries in parallel (no waterfall)
-	const [marketNewsRes, tagsRes, baseData] = await Promise.all([
-		supabase
-			.from('market_news')
-			.select('*')
-			.eq('ai_processed', true)
-			.gte('published_at', oneDayAgo.toISOString())
-			.order('relevance_score', { ascending: false })
-			.order('published_at', { ascending: false })
-			.limit(20),
+	// Stream market news separately — don't block critical data
+	const marketNewsPromise = supabase
+		.from('market_news')
+		.select('*')
+		.eq('ai_processed', true)
+		.gte('published_at', oneDayAgo.toISOString())
+		.order('relevance_score', { ascending: false })
+		.order('published_at', { ascending: false })
+		.limit(20)
+		.then((res) => res.data || []);
+
+	// Critical data loads in parallel (not blocked by news)
+	const [tagsRes, baseData] = await Promise.all([
 		supabase
 			.from('trade_tags')
 			.select('*')
@@ -60,6 +63,6 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 		playbooks: baseData?.playbooks ?? [],
 		savedViews: baseData?.savedViews ?? [],
 		userId: locals.profile.id,
-		marketNews: marketNewsRes.data || []
+		marketNews: marketNewsPromise
 	};
 };
