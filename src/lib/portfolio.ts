@@ -24,7 +24,7 @@ export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
 
 export const REVIEW_STATUS_STYLES: Record<ReviewStatus, string> = {
 	unreviewed: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
-	in_progress: 'bg-blue-500/10 text-blue-300 border-blue-500/20',
+	in_progress: 'bg-brand-primary/10 text-brand-300 border-brand-primary/20',
 	reviewed: 'bg-green-500/10 text-green-300 border-green-500/20'
 };
 

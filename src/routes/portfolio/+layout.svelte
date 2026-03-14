@@ -9,12 +9,12 @@
 	let chatOpen = $state(false);
 
 	const tabs = [
-		{ href: '/portfolio', label: 'ภาพรวม', icon: '📊' },
-		{ href: '/portfolio/trades', label: 'Trades', icon: '📋' },
-		{ href: '/portfolio/journal', label: 'Journal', icon: '📝' },
-		{ href: '/portfolio/analytics', label: 'Analytics', icon: '📈' },
-		{ href: '/portfolio/playbook', label: 'Playbook', icon: '🎯' },
-		{ href: '/portfolio/progress', label: 'Progress', icon: '🏁' },
+		{ href: '/portfolio', label: 'Overview' },
+		{ href: '/portfolio/trades', label: 'Trades' },
+		{ href: '/portfolio/journal', label: 'Journal' },
+		{ href: '/portfolio/analytics', label: 'Analytics' },
+		{ href: '/portfolio/playbook', label: 'Playbook' },
+		{ href: '/portfolio/progress', label: 'Progress' },
 	];
 
 	const isActive = (href: string) => {
@@ -47,12 +47,11 @@
 			{#each tabs as tab}
 				<a
 					href={tab.href}
-					class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors
+					class="px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors
 						{isActive(tab.href)
 							? 'text-brand-primary border-b-2 border-brand-primary'
 							: 'text-gray-500 hover:text-gray-300'}"
 				>
-					<span class="text-xs">{tab.icon}</span>
 					{tab.label}
 				</a>
 			{/each}
