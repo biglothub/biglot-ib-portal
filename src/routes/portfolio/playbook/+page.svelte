@@ -21,6 +21,7 @@
 	let exampleTradeIds = $state<string[]>([]);
 	let isActive = $state(true);
 	let saving = $state(false);
+	let actionError = $state('');
 
 	function editPlaybook(playbook: any) {
 		editingId = playbook.id;
@@ -51,6 +52,7 @@
 	async function savePlaybook() {
 		if (!name.trim()) return;
 		saving = true;
+		actionError = '';
 
 		try {
 			const res = await fetch('/api/portfolio/playbooks', {
@@ -73,24 +75,46 @@
 			if (res.ok) {
 				resetForm();
 				invalidateAll();
+			} else {
+				actionError = 'ไม่สามารถบันทึก Playbook ได้';
 			}
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			saving = false;
 		}
 	}
 
 	async function deletePlaybook(id: string) {
-		await fetch('/api/portfolio/playbooks', {
-			method: 'DELETE',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id })
-		});
-		if (editingId === id) resetForm();
-		invalidateAll();
+		if (!confirm('ต้องการลบ playbook นี้ใช่ไหม? ข้อมูลจะหายถาวร')) return;
+		actionError = '';
+
+		try {
+			const res = await fetch('/api/portfolio/playbooks', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+			});
+			if (!res.ok) {
+				actionError = 'ไม่สามารถลบ Playbook ได้';
+				return;
+			}
+			if (editingId === id) resetForm();
+			invalidateAll();
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+		}
 	}
 </script>
 
 <div class="space-y-6">
+	{#if actionError}
+		<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+			<span>{actionError}</span>
+			<button type="button" onclick={() => actionError = ''} class="text-red-300 hover:text-red-200 text-xs">ปิด</button>
+		</div>
+	{/if}
+
 	<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 		<div class="card space-y-4">
 			<div>

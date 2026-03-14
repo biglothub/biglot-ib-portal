@@ -1,0 +1,180 @@
+<script lang="ts">
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import type { MarketNewsArticle, NewsCategory } from '$lib/types';
+	import { timeAgo } from '$lib/utils';
+	import { invalidateAll } from '$app/navigation';
+
+	let { articles = [] }: { articles: MarketNewsArticle[] } = $props();
+
+	let selectedCategory = $state<NewsCategory | 'all'>('all');
+	let refreshing = $state(false);
+	let showAll = $state(false);
+
+	const categories: { value: NewsCategory | 'all'; label: string }[] = [
+		{ value: 'all', label: 'ทั้งหมด' },
+		{ value: 'forex', label: 'Forex' },
+		{ value: 'commodities', label: 'Commodities' },
+		{ value: 'central_bank', label: 'ธนาคารกลาง' },
+		{ value: 'economic_data', label: 'เศรษฐกิจ' },
+		{ value: 'geopolitical', label: 'ภูมิรัฐศาสตร์' }
+	];
+
+	const sourceLabels: Record<string, string> = {
+		forexlive: 'ForexLive',
+		dailyfx: 'DailyFX',
+		investing_com: 'Investing.com',
+		fxstreet: 'FXStreet'
+	};
+
+	const categoryColors: Record<string, string> = {
+		forex: 'bg-blue-500/20 text-blue-300',
+		commodities: 'bg-amber-500/20 text-amber-300',
+		central_bank: 'bg-purple-500/20 text-purple-300',
+		economic_data: 'bg-emerald-500/20 text-emerald-300',
+		geopolitical: 'bg-red-500/20 text-red-300',
+		general: 'bg-gray-500/20 text-gray-300'
+	};
+
+	let filteredArticles = $derived(
+		selectedCategory === 'all'
+			? articles
+			: articles.filter((a) => a.category === selectedCategory)
+	);
+
+	let displayedArticles = $derived(showAll ? filteredArticles : filteredArticles.slice(0, 5));
+
+	let lastUpdated = $derived(
+		articles.length > 0
+			? articles.reduce((latest, a) =>
+					a.fetched_at > latest ? a.fetched_at : latest, articles[0].fetched_at)
+			: null
+	);
+
+	// Auto-refresh if news is stale (>30 min)
+	$effect(() => {
+		if (lastUpdated) {
+			const staleMs = Date.now() - new Date(lastUpdated).getTime();
+			if (staleMs > 30 * 60 * 1000) {
+				handleRefresh();
+			}
+		} else {
+			// No articles at all — try to fetch
+			handleRefresh();
+		}
+	});
+
+	async function handleRefresh() {
+		if (refreshing) return;
+		refreshing = true;
+		try {
+			const res = await fetch('/api/portfolio/news/refresh', { method: 'POST' });
+			if (res.ok) {
+				const data = await res.json();
+				if (data.newArticles > 0) {
+					await invalidateAll();
+				}
+			}
+		} catch {
+			// Silently fail
+		} finally {
+			refreshing = false;
+		}
+	}
+</script>
+
+<div class="card">
+	<div class="flex items-start justify-between gap-3">
+		<div>
+			<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Market Pulse</p>
+			<h2 class="mt-1 text-lg font-semibold text-white">ข่าวตลาดวันนี้</h2>
+		</div>
+		<div class="flex items-center gap-3">
+			{#if lastUpdated}
+				<span class="text-[11px] text-gray-500">{timeAgo(lastUpdated)}</span>
+			{/if}
+			<button
+				onclick={handleRefresh}
+				disabled={refreshing}
+				class="rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+			>
+				{#if refreshing}
+					<svg class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+					</svg>
+				{:else}
+					<svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M1 4v6h6M23 20v-6h-6" stroke-linecap="round" stroke-linejoin="round" />
+						<path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				{/if}
+			</button>
+		</div>
+	</div>
+
+	<!-- Category filter pills -->
+	<div class="mt-4 flex flex-wrap gap-2">
+		{#each categories as cat}
+			<button
+				onclick={() => { selectedCategory = cat.value; showAll = false; }}
+				class="rounded-full px-3 py-1 text-[11px] font-medium transition-colors {selectedCategory === cat.value
+					? 'bg-brand-primary/20 text-brand-primary border border-brand-primary/40'
+					: 'bg-dark-bg/30 text-gray-400 border border-dark-border hover:text-white hover:border-gray-600'}"
+			>
+				{cat.label}
+			</button>
+		{/each}
+	</div>
+
+	<!-- News list -->
+	<div class="mt-4 space-y-2">
+		{#if filteredArticles.length === 0}
+			<EmptyState message={refreshing ? 'กำลังดึงข่าว...' : 'ยังไม่มีข่าวตลาด'} />
+		{:else}
+			{#each displayedArticles as article}
+				<a
+					href={article.source_url}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="block rounded-xl bg-dark-bg/30 px-4 py-3 hover:bg-dark-bg/50 transition-colors
+						{article.relevance_score > 75 ? 'border-l-2 border-brand-primary' : ''}"
+				>
+					<div class="flex items-start justify-between gap-3">
+						<div class="min-w-0 flex-1">
+							<h3 class="text-sm font-medium text-white leading-snug line-clamp-2">
+								{article.title_th || article.title_original}
+							</h3>
+							{#if article.summary_th}
+								<p class="mt-1 text-[12px] text-gray-400 leading-relaxed line-clamp-2">
+									{article.summary_th}
+								</p>
+							{/if}
+							<div class="mt-2 flex flex-wrap items-center gap-2">
+								<span class="text-[10px] text-gray-500">{sourceLabels[article.source] || article.source}</span>
+								<span class="text-[10px] text-gray-600">|</span>
+								<span class="text-[10px] text-gray-500">{timeAgo(article.published_at)}</span>
+								<span class="rounded-full px-2 py-0.5 text-[10px] font-medium {categoryColors[article.category] || categoryColors.general}">
+									{categories.find(c => c.value === article.category)?.label || article.category}
+								</span>
+								{#each article.symbols.slice(0, 3) as symbol}
+									<span class="rounded bg-dark-bg/60 px-1.5 py-0.5 text-[10px] font-mono text-gray-300">
+										{symbol}
+									</span>
+								{/each}
+							</div>
+						</div>
+					</div>
+				</a>
+			{/each}
+
+			{#if filteredArticles.length > 5 && !showAll}
+				<button
+					onclick={() => showAll = true}
+					class="w-full rounded-xl border border-dashed border-dark-border px-3 py-3 text-center text-sm text-gray-400 hover:text-white hover:border-gray-600 transition-colors"
+				>
+					ดูเพิ่มเติม ({filteredArticles.length - 5} ข่าว)
+				</button>
+			{/if}
+		{/if}
+	</div>
+</div>

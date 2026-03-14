@@ -1,4 +1,5 @@
 import { fetchTradeChartContext } from '$lib/server/portfolio';
+import { toThaiDateString } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, params, locals }) => {
@@ -41,7 +42,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 			.select('*')
 			.eq('client_account_id', account.id)
 			.eq('user_id', profile.id)
-			.eq('date', new Date(new Date(trade.close_time).getTime() + 7 * 60 * 60 * 1000).toISOString().split('T')[0])
+			.eq('date', toThaiDateString(trade.close_time))
 			.maybeSingle(),
 		supabase
 			.from('trades')

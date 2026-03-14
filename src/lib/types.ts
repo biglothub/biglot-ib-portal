@@ -321,6 +321,17 @@ export interface EquitySnapshot {
 	margin_level: number | null;
 }
 
+// --- Portfolio aggregate types ---
+
+export interface PortfolioBaseData {
+	trades: Trade[];
+	dailyStats: DailyStats[];
+	journals: DailyJournal[];
+	playbooks: Playbook[];
+	savedViews: PortfolioSavedView[];
+	progressGoals: ProgressGoal[];
+}
+
 export interface ApprovalLog {
 	id: string;
 	client_account_id: string;

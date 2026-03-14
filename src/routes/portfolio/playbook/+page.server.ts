@@ -1,16 +1,14 @@
-import { fetchPortfolioBaseData, buildSetupPerformance } from '$lib/server/portfolio';
+import { buildSetupPerformance } from '$lib/server/portfolio';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const parentData = await parent();
-	const { account, tags = [] } = parentData;
+	const { account, baseData, tags = [] } = parentData;
 	const profile = locals.profile;
 
-	if (!account || !profile) {
+	if (!account || !profile || !baseData) {
 		return { playbooks: [], setupPerformance: [], tags: [], trades: [] };
 	}
-
-	const baseData = await fetchPortfolioBaseData(locals.supabase, account.id, profile.id);
 
 	return {
 		playbooks: baseData.playbooks,

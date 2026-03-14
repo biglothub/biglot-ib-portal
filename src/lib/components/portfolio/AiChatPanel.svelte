@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { fly, fade } from 'svelte/transition';
 	import AiChatMessage from './AiChatMessage.svelte';
+	import {
+		getAiChatMessages,
+		addAiChatMessage,
+		removeLastAiChatMessage,
+		clearAiChat
+	} from '$lib/stores/aiChat.svelte';
 
 	let {
 		open,
@@ -14,7 +20,7 @@
 		clientName: string;
 	} = $props();
 
-	let messages = $state<{ role: 'user' | 'assistant'; content: string }[]>([]);
+	let messages = $derived(getAiChatMessages());
 	let input = $state('');
 	let loading = $state(false);
 	let error = $state('');
@@ -42,8 +48,8 @@
 
 		input = '';
 		error = '';
-		messages.push({ role: 'user', content });
-		messages.push({ role: 'assistant', content: '' });
+		addAiChatMessage({ role: 'user', content });
+		addAiChatMessage({ role: 'assistant', content: '' });
 		loading = true;
 		scrollToBottom();
 
@@ -63,7 +69,7 @@
 				} else {
 					error = data.message || 'เกิดข้อผิดพลาด';
 				}
-				messages.pop(); // remove empty assistant message
+				removeLastAiChatMessage(); // remove empty assistant message
 				loading = false;
 				return;
 			}
@@ -71,7 +77,7 @@
 			const reader = res.body?.getReader();
 			if (!reader) {
 				error = 'ไม่สามารถเชื่อมต่อได้';
-				messages.pop();
+				removeLastAiChatMessage();
 				loading = false;
 				return;
 			}
@@ -105,12 +111,12 @@
 
 			// Remove assistant message if empty
 			if (messages[messages.length - 1]?.content === '') {
-				messages.pop();
+				removeLastAiChatMessage();
 			}
 		} catch {
 			error = 'ไม่สามารถเชื่อมต่อได้ ลองอีกครั้ง';
 			if (messages[messages.length - 1]?.content === '') {
-				messages.pop();
+				removeLastAiChatMessage();
 			}
 		} finally {
 			loading = false;
@@ -154,15 +160,30 @@
 					<p class="text-xs text-gray-500">วิเคราะห์ข้อมูลการเทรดของคุณ</p>
 				</div>
 			</div>
-			<button
-				onclick={onclose}
-				class="p-1.5 rounded-lg hover:bg-dark-hover text-gray-400 hover:text-white transition-colors cursor-pointer"
-				aria-label="ปิด"
-			>
-				<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-				</svg>
-			</button>
+			<div class="flex items-center gap-1">
+				{#if messages.length > 0}
+					<button
+						onclick={clearAiChat}
+						class="p-1.5 rounded-lg hover:bg-dark-hover text-gray-400 hover:text-white transition-colors cursor-pointer"
+						aria-label="เริ่มแชทใหม่"
+						title="เริ่มแชทใหม่"
+					>
+						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+						</svg>
+					</button>
+				{/if}
+				<button
+					onclick={onclose}
+					class="p-1.5 rounded-lg hover:bg-dark-hover text-gray-400 hover:text-white transition-colors cursor-pointer"
+					aria-label="ปิด"
+				>
+					<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
 		</div>
 
 		<!-- Messages -->

@@ -4,7 +4,7 @@
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import TradeContextChart from '$lib/components/portfolio/TradeContextChart.svelte';
-	import { formatCurrency, formatNumber, formatDateTime } from '$lib/utils';
+	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
 
 	let { data } = $props();
 	let { trade, relatedTrades, chartContexts, dayJournal, playbooks } = $derived(data);
@@ -42,6 +42,7 @@
 	let attachmentPath = $state('');
 	let attachmentCaption = $state('');
 	let savingAttachment = $state(false);
+	let actionError = $state('');
 
 	const assignedTagIds = $derived(
 		new Set((trade?.trade_tag_assignments || []).map((assignment: any) => assignment.tag_id))
@@ -49,9 +50,7 @@
 	const availableTags = $derived(tags.filter((tag: any) => !assignedTagIds.has(tag.id)));
 	const review = $derived(trade?.trade_reviews?.[0] || null);
 	const journalDate = $derived(
-		trade
-			? new Date(new Date(trade.close_time).getTime() + 7 * 60 * 60 * 1000).toISOString().split('T')[0]
-			: ''
+		trade ? toThaiDateString(trade.close_time) : ''
 	);
 
 	$effect(() => {
@@ -89,6 +88,7 @@
 		if (!trade) return;
 		savingNote = true;
 		noteSaved = false;
+		actionError = '';
 
 		try {
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/notes`, {
@@ -100,7 +100,11 @@
 			if (res.ok) {
 				noteSaved = true;
 				setTimeout(() => (noteSaved = false), 2000);
+			} else {
+				actionError = 'ไม่สามารถบันทึก Note ได้';
 			}
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			savingNote = false;
 		}
@@ -110,6 +114,7 @@
 		if (!trade) return;
 		savingReview = true;
 		reviewSaved = false;
+		actionError = '';
 
 		try {
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/review`, {
@@ -138,7 +143,11 @@
 				reviewSaved = true;
 				setTimeout(() => (reviewSaved = false), 2000);
 				invalidateAll();
+			} else {
+				actionError = 'ไม่สามารถบันทึก Review ได้';
 			}
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			savingReview = false;
 		}
@@ -147,15 +156,22 @@
 	async function assignTag(tagId: string) {
 		if (!trade) return;
 		assigningTag = true;
+		actionError = '';
 
 		try {
-			await fetch(`/api/portfolio/trades/${trade.id}/tags`, {
+			const res = await fetch(`/api/portfolio/trades/${trade.id}/tags`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ tag_id: tagId })
 			});
+			if (!res.ok) {
+				actionError = 'ไม่สามารถเพิ่ม Tag ได้';
+				return;
+			}
 			showTagDropdown = false;
 			invalidateAll();
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			assigningTag = false;
 		}
@@ -163,18 +179,28 @@
 
 	async function removeTag(tagId: string) {
 		if (!trade) return;
+		actionError = '';
 
-		await fetch(`/api/portfolio/trades/${trade.id}/tags`, {
-			method: 'DELETE',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ tag_id: tagId })
-		});
-		invalidateAll();
+		try {
+			const res = await fetch(`/api/portfolio/trades/${trade.id}/tags`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ tag_id: tagId })
+			});
+			if (!res.ok) {
+				actionError = 'ไม่สามารถลบ Tag ได้';
+				return;
+			}
+			invalidateAll();
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+		}
 	}
 
 	async function saveAttachment() {
 		if (!trade || !attachmentPath.trim()) return;
 		savingAttachment = true;
+		actionError = '';
 
 		try {
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/attachments`, {
@@ -192,7 +218,11 @@
 				attachmentPath = '';
 				attachmentCaption = '';
 				invalidateAll();
+			} else {
+				actionError = 'ไม่สามารถเพิ่ม Attachment ได้';
 			}
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			savingAttachment = false;
 		}
@@ -200,12 +230,23 @@
 
 	async function deleteAttachment(id: string) {
 		if (!trade) return;
-		await fetch(`/api/portfolio/trades/${trade.id}/attachments`, {
-			method: 'DELETE',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id })
-		});
-		invalidateAll();
+		if (!confirm('ต้องการลบ attachment นี้ใช่ไหม?')) return;
+		actionError = '';
+
+		try {
+			const res = await fetch(`/api/portfolio/trades/${trade.id}/attachments`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+			});
+			if (!res.ok) {
+				actionError = 'ไม่สามารถลบ Attachment ได้';
+				return;
+			}
+			invalidateAll();
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+		}
 	}
 </script>
 
@@ -217,6 +258,13 @@
 	>
 		← กลับไป Review Inbox
 	</button>
+
+	{#if actionError}
+		<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+			<span>{actionError}</span>
+			<button type="button" onclick={() => actionError = ''} class="text-red-300 hover:text-red-200 text-xs">ปิด</button>
+		</div>
+	{/if}
 
 	{#if !trade}
 		<div class="card text-center py-12">

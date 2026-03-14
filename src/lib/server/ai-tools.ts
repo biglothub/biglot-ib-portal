@@ -103,6 +103,21 @@ export const aiTools: ChatCompletionTool[] = [
 				}
 			}
 		}
+	},
+	{
+		type: 'function',
+		function: {
+			name: 'get_market_news',
+			description: 'ดึงข่าวตลาดล่าสุดที่เกี่ยวข้องกับ forex/commodities พร้อมสรุปภาษาไทย',
+			parameters: {
+				type: 'object',
+				properties: {
+					category: { type: 'string', description: 'Filter by category: forex, commodities, central_bank, economic_data, geopolitical' },
+					symbols: { type: 'string', description: 'Comma-separated symbols to filter e.g. XAUUSD,EURUSD' },
+					limit: { type: 'number', description: 'Max articles to return (default 10)' }
+				}
+			}
+		}
 	}
 ];
 
@@ -132,6 +147,8 @@ export async function executeTool(
 			return getPlaybooks(supabase, clientAccountId, userId);
 		case 'get_equity_snapshots':
 			return getEquitySnapshots(supabase, clientAccountId, params);
+		case 'get_market_news':
+			return getMarketNews(supabase, params);
 		default:
 			return JSON.stringify({ error: `Unknown tool: ${name}` });
 	}
@@ -415,4 +432,43 @@ async function getEquitySnapshots(supabase: SupabaseClient, accountId: string, p
 	}
 
 	return JSON.stringify({ totalSnapshots: snapshots.length, days, snapshots });
+}
+
+async function getMarketNews(supabase: SupabaseClient, params: ToolParams): Promise<string> {
+	const limit = (params.limit as number) || 10;
+	const oneDayAgo = new Date();
+	oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+	let query = supabase
+		.from('market_news')
+		.select('title_th, summary_th, category, symbols, relevance_score, published_at, source')
+		.eq('ai_processed', true)
+		.gte('published_at', oneDayAgo.toISOString())
+		.order('relevance_score', { ascending: false })
+		.order('published_at', { ascending: false })
+		.limit(limit);
+
+	if (params.category) {
+		query = query.eq('category', params.category as string);
+	}
+
+	if (params.symbols) {
+		const symbolList = (params.symbols as string).split(',').map(s => s.trim());
+		query = query.overlaps('symbols', symbolList);
+	}
+
+	const { data, error } = await query;
+	if (error) return JSON.stringify({ error: error.message });
+
+	const articles = (data || []).map((a: any) => ({
+		title: a.title_th || 'N/A',
+		summary: a.summary_th || 'N/A',
+		category: a.category,
+		symbols: a.symbols,
+		relevance: a.relevance_score,
+		publishedAt: a.published_at,
+		source: a.source
+	}));
+
+	return JSON.stringify({ totalArticles: articles.length, articles });
 }

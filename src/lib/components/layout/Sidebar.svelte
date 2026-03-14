@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import SidebarNews from './SidebarNews.svelte';
 
 	let { profile, collapsed = $bindable(false) } = $props();
 
@@ -83,7 +84,7 @@
 	</div>
 
 	<!-- Navigation -->
-	<nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+	<nav class="p-3 space-y-1">
 		{#each links as link}
 			<a
 				href={link.href}
@@ -102,6 +103,11 @@
 			</a>
 		{/each}
 	</nav>
+
+	<!-- Market news -->
+	<div class="flex-1 overflow-hidden">
+		<SidebarNews {collapsed} />
+	</div>
 
 	<!-- User info -->
 	<div class="p-4 border-t border-dark-border">

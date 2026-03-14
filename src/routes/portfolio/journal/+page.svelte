@@ -36,6 +36,7 @@
 	let completionStatus = $state<'not_started' | 'in_progress' | 'complete'>('not_started');
 	let saving = $state(false);
 	let saved = $state(false);
+	let actionError = $state('');
 
 	$effect(() => {
 		preMarketNotes = selectedJournal?.pre_market_notes || '';
@@ -113,6 +114,7 @@
 		if (!data.account || !selectedDate) return;
 		saving = true;
 		saved = false;
+		actionError = '';
 
 		try {
 			const res = await fetch('/api/portfolio/journal', {
@@ -140,7 +142,11 @@
 			if (res.ok) {
 				saved = true;
 				setTimeout(() => (saved = false), 2000);
+			} else {
+				actionError = 'ไม่สามารถบันทึก Notebook ได้';
 			}
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			saving = false;
 		}
@@ -150,6 +156,13 @@
 </script>
 
 <div class="space-y-6">
+	{#if actionError}
+		<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+			<span>{actionError}</span>
+			<button type="button" onclick={() => actionError = ''} class="text-red-300 hover:text-red-200 text-xs">ปิด</button>
+		</div>
+	{/if}
+
 	<PortfolioFilterBar
 		filters={filterState}
 		{filterOptions}

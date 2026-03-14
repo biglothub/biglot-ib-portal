@@ -3,17 +3,16 @@ import {
 	buildCommandCenterData,
 	buildDailyHistory,
 	buildFilterOptions,
-	buildReportExplorer,
-	fetchPortfolioBaseData
+	buildReportExplorer
 } from '$lib/server/portfolio';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, tags = [], playbooks = [] } = parentData;
+	const { account, baseData, tags = [], playbooks = [] } = parentData;
 	const supabase = locals.supabase;
 
-	if (!account || !locals.profile) {
+	if (!account || !locals.profile || !baseData) {
 		return {
 			latestStats: null,
 			openPositions: [],
@@ -32,7 +31,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const thirtyDaysAgo = new Date();
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-	const [latestStatsRes, equityRes, openPositionsRes, baseData] = await Promise.all([
+	const [latestStatsRes, equityRes, openPositionsRes] = await Promise.all([
 		supabase
 			.from('daily_stats')
 			.select('*')
@@ -50,8 +49,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			.from('open_positions')
 			.select('*')
 			.eq('client_account_id', account.id)
-			.order('open_time', { ascending: false }),
-		fetchPortfolioBaseData(supabase, account.id, locals.profile.id)
+			.order('open_time', { ascending: false })
 	]);
 
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);

@@ -3,10 +3,17 @@
 	import { timeAgo } from '$lib/utils';
 	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
 	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
+	import { marketNewsStore } from '$lib/stores/newsStore';
 
 	let { data, children } = $props();
 	let { account } = $derived(data);
 	let chatOpen = $state(false);
+
+	// Push market news to the store so the sidebar can display it
+	$effect(() => {
+		marketNewsStore.set(data.marketNews || []);
+		return () => marketNewsStore.set([]);
+	});
 
 	const tabs = [
 		{ href: '/portfolio', label: 'Overview' },
@@ -15,6 +22,7 @@
 		{ href: '/portfolio/analytics', label: 'Analytics' },
 		{ href: '/portfolio/playbook', label: 'Playbook' },
 		{ href: '/portfolio/progress', label: 'Progress' },
+		{ href: '/portfolio/analysis', label: 'Analysis' },
 	];
 
 	const isActive = (href: string) => {

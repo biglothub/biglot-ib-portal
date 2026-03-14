@@ -6,7 +6,6 @@
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
-
 	let { data } = $props();
 	let {
 		latestStats,
@@ -299,5 +298,6 @@
 				</div>
 			{/if}
 		</div>
+
 	</div>
 {/if}

@@ -8,16 +8,23 @@ import {
 	getTradeReviewStatus,
 	getTradeSession
 } from '$lib/portfolio';
-import type { PortfolioFilterState, ProgressGoal } from '$lib/types';
+import type {
+	DailyJournal,
+	DailyStats,
+	Playbook,
+	PortfolioBaseData,
+	PortfolioFilterState,
+	ProgressGoal,
+	Trade
+} from '$lib/types';
+import { toThaiDateString } from '$lib/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
-
-const THAILAND_OFFSET_MS = 7 * 60 * 60 * 1000;
 
 export async function fetchPortfolioBaseData(
 	supabase: SupabaseClient,
 	accountId: string,
 	userId: string
-) {
+): Promise<PortfolioBaseData> {
 	const [tradesRes, dailyStatsRes, journalsRes, playbooksRes, savedViewsRes, progressGoalsRes] =
 		await Promise.allSettled([
 			supabase
@@ -61,7 +68,8 @@ export async function fetchPortfolioBaseData(
 				.order('goal_type', { ascending: true })
 		]);
 
-	const getData = (result: PromiseSettledResult<any>) =>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const getData = (result: PromiseSettledResult<{ data: any[] | null }>) =>
 		result.status === 'fulfilled' ? result.value.data || [] : [];
 
 	return {
@@ -84,15 +92,13 @@ export async function fetchTradeChartContext(supabase: SupabaseClient, tradeId: 
 	return data || [];
 }
 
-export function buildDailyHistory(trades: any[]) {
+export function buildDailyHistory(trades: Trade[]) {
 	if (!trades || trades.length === 0) return [];
 
 	const dailyMap = new Map<string, { profit: number; trades: number[]; reviewed: number }>();
 
 	for (const trade of trades) {
-		const closeTime = new Date(trade.close_time);
-		const thaiTime = new Date(closeTime.getTime() + THAILAND_OFFSET_MS);
-		const dateKey = thaiTime.toISOString().split('T')[0];
+		const dateKey = toThaiDateString(trade.close_time);
 		const reviewStatus = getTradeReviewStatus(trade);
 
 		if (!dailyMap.has(dateKey)) {
@@ -121,21 +127,21 @@ export function buildDailyHistory(trades: any[]) {
 		.sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export function buildSetupPerformance(trades: any[]) {
-	const buckets: Map<string, { name: string; trades: any[]; playbookId: string | null }> = new Map();
+export function buildSetupPerformance(trades: Trade[]) {
+	const buckets: Map<string, { name: string; trades: Trade[]; playbookId: string | null }> = new Map();
 
 	for (const trade of trades) {
 		const review = getTradeReview(trade);
 		const playbookId = review?.playbook_id || null;
 		const playbookName = review?.playbooks?.name || null;
 		const setupTags = (trade.trade_tag_assignments || [])
-			.filter((assignment: any) => assignment.trade_tags?.category === 'setup')
-			.map((assignment: any) => assignment.trade_tags?.name)
+			.filter((assignment) => assignment.trade_tags?.category === 'setup')
+			.map((assignment) => assignment.trade_tags?.name)
 			.filter(Boolean);
 
 		const key = playbookId || setupTags[0] || '_none';
 		const name = playbookName || setupTags[0] || 'ไม่มี Setup';
-		const bucket = buckets.get(key) || { name, trades: [] as any[], playbookId };
+		const bucket = buckets.get(key) || { name, trades: [] as Trade[], playbookId };
 		bucket.trades.push(trade);
 		buckets.set(key, bucket);
 	}
@@ -161,7 +167,7 @@ export function buildSetupPerformance(trades: any[]) {
 		.sort((a, b) => b.totalProfit - a.totalProfit);
 }
 
-export function buildRuleBreakMetrics(trades: any[]) {
+export function buildRuleBreakMetrics(trades: Trade[]) {
 	const brokenRuleMap = new Map<string, { count: number; loss: number; wins: number }>();
 	let totalRuleBreaks = 0;
 	let ruleBreakLoss = 0;
@@ -193,7 +199,7 @@ export function buildRuleBreakMetrics(trades: any[]) {
 	};
 }
 
-export function buildJournalCompletionSummary(journals: any[], dailyHistory: any[]) {
+export function buildJournalCompletionSummary(journals: DailyJournal[], dailyHistory: { date: string }[]) {
 	const completed = journals.filter((journal) => journal.completion_status === 'complete');
 	const activeDates = new Set(dailyHistory.map((day) => day.date));
 	const daysWithJournal = journals.filter((journal) => activeDates.has(journal.date));
@@ -208,7 +214,7 @@ export function buildJournalCompletionSummary(journals: any[], dailyHistory: any
 	};
 }
 
-export function buildReviewSummary(trades: any[]) {
+export function buildReviewSummary(trades: Trade[]) {
 	const reviewed = trades.filter((trade) => getTradeReviewStatus(trade) === 'reviewed').length;
 	const inProgress = trades.filter((trade) => getTradeReviewStatus(trade) === 'in_progress').length;
 	const unreviewed = trades.length - reviewed - inProgress;
@@ -223,9 +229,9 @@ export function buildReviewSummary(trades: any[]) {
 }
 
 export function buildProgressSnapshot(
-	trades: any[],
-	journals: any[],
-	dailyStats: any[],
+	trades: Trade[],
+	journals: DailyJournal[],
+	dailyStats: DailyStats[],
 	goals: ProgressGoal[]
 ) {
 	const reviewSummary = buildReviewSummary(trades);
@@ -262,9 +268,9 @@ export function buildProgressSnapshot(
 }
 
 export function buildReportExplorer(
-	trades: any[],
-	dailyStats: any[],
-	journals: any[],
+	trades: Trade[],
+	dailyStats: DailyStats[],
+	journals: DailyJournal[],
 	filters: PortfolioFilterState
 ) {
 	const filteredTrades = applyPortfolioFilters(trades, filters);
@@ -318,10 +324,10 @@ export function buildReportExplorer(
 }
 
 export function buildCommandCenterData(
-	trades: any[],
-	dailyStats: any[],
-	journals: any[],
-	playbooks: any[]
+	trades: Trade[],
+	dailyStats: DailyStats[],
+	journals: DailyJournal[],
+	playbooks: Playbook[]
 ) {
 	const dailyHistory = buildDailyHistory(trades);
 	const reviewSummary = buildReviewSummary(trades);
@@ -352,7 +358,7 @@ export function buildCommandCenterData(
 	};
 }
 
-export function buildFilterOptions(trades: any[], playbooks: any[]) {
+export function buildFilterOptions(trades: Trade[], playbooks: Playbook[]) {
 	return {
 		symbols: [...new Set(trades.map((trade) => trade.symbol).filter(Boolean))].sort(),
 		sessions: ['asian', 'london', 'newyork'],
@@ -367,7 +373,7 @@ export function buildFilterOptions(trades: any[], playbooks: any[]) {
 	};
 }
 
-function calculateJournalStreak(journals: any[]) {
+function calculateJournalStreak(journals: DailyJournal[]) {
 	if (journals.length === 0) return 0;
 
 	const completeDates = journals
@@ -387,7 +393,7 @@ function calculateJournalStreak(journals: any[]) {
 	return streak;
 }
 
-function mergeDefaultProgressGoals(goals: any[], accountId: string, userId: string) {
+function mergeDefaultProgressGoals(goals: ProgressGoal[], accountId: string, userId: string) {
 	const defaults: Omit<ProgressGoal, 'id' | 'created_at' | 'updated_at'>[] = [
 		{ user_id: userId, client_account_id: accountId, goal_type: 'review_completion', target_value: 90, period_days: 30, is_active: true },
 		{ user_id: userId, client_account_id: accountId, goal_type: 'journal_streak', target_value: 5, period_days: 30, is_active: true },
@@ -397,7 +403,7 @@ function mergeDefaultProgressGoals(goals: any[], accountId: string, userId: stri
 	];
 
 	return defaults.map((goal) => {
-		const existing = goals.find((item: any) => item.goal_type === goal.goal_type);
+		const existing = goals.find((item) => item.goal_type === goal.goal_type);
 		return (
 			existing || {
 				...goal,
@@ -409,7 +415,7 @@ function mergeDefaultProgressGoals(goals: any[], accountId: string, userId: stri
 	});
 }
 
-function buildDurationBucketStats(trades: any[]) {
+function buildDurationBucketStats(trades: Trade[]) {
 	const buckets = new Map<string, { count: number; profit: number }>();
 	for (const trade of trades) {
 		const bucket = getTradeDurationBucket(trade.open_time, trade.close_time) || 'intraday';
@@ -433,7 +439,7 @@ function buildDurationBucketStats(trades: any[]) {
 	}));
 }
 
-function buildSessionStats(trades: any[]) {
+function buildSessionStats(trades: Trade[]) {
 	const sessions = new Map<string, { trades: number; profit: number; wins: number }>();
 	for (const trade of trades) {
 		const session = getTradeSession(trade.close_time);
@@ -451,11 +457,11 @@ function buildSessionStats(trades: any[]) {
 	}));
 }
 
-function buildMistakeStats(trades: any[]) {
+function buildMistakeStats(trades: Trade[]) {
 	const mistakes = new Map<string, { count: number; cost: number }>();
 	for (const trade of trades) {
 		const mistakeTags = (trade.trade_tag_assignments || []).filter(
-			(assignment: any) => assignment.trade_tags?.category === 'mistake'
+			(assignment) => assignment.trade_tags?.category === 'mistake'
 		);
 		for (const assignment of mistakeTags) {
 			const key = assignment.trade_tags?.name || 'Mistake';

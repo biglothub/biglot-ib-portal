@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { fetchPortfolioBaseData } from '$lib/server/portfolio';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
@@ -8,50 +9,52 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 	const supabase = locals.supabase;
 
-	// Fetch approved account (shared across all portfolio sub-routes)
-	const { data: account } = await supabase
-		.from('client_accounts')
-		.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
-		.eq('status', 'approved')
-		.maybeSingle();
+	const oneDayAgo = new Date();
+	oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-	// Fetch user's tags and playbooks (lightweight, used across routes)
+	// Fetch approved account + market news in parallel
+	const [accountRes, marketNewsRes] = await Promise.all([
+		supabase
+			.from('client_accounts')
+			.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
+			.eq('status', 'approved')
+			.maybeSingle(),
+		supabase
+			.from('market_news')
+			.select('*')
+			.eq('ai_processed', true)
+			.gte('published_at', oneDayAgo.toISOString())
+			.order('relevance_score', { ascending: false })
+			.order('published_at', { ascending: false })
+			.limit(20)
+	]);
+
+	const account = accountRes.data;
+
+	// Fetch user tags (lightweight, not part of baseData)
 	let tags: any[] = [];
-	let playbooks: any[] = [];
-	let savedViews: any[] = [];
 	if (account && locals.profile) {
-		const [tagsRes, playbooksRes, savedViewsRes] = await Promise.allSettled([
-			supabase
-				.from('trade_tags')
-				.select('*')
-				.eq('user_id', locals.profile.id)
-				.order('category', { ascending: true }),
-			supabase
-				.from('playbooks')
-				.select('*')
-				.eq('user_id', locals.profile.id)
-				.eq('client_account_id', account.id)
-				.order('sort_order', { ascending: true })
-				.order('created_at', { ascending: true }),
-			supabase
-				.from('portfolio_saved_views')
-				.select('*')
-				.eq('user_id', locals.profile.id)
-				.eq('client_account_id', account.id)
-				.order('page', { ascending: true })
-				.order('name', { ascending: true })
-		]);
+		const { data } = await supabase
+			.from('trade_tags')
+			.select('*')
+			.eq('user_id', locals.profile.id)
+			.order('category', { ascending: true });
+		tags = data || [];
+	}
 
-		tags = tagsRes.status === 'fulfilled' ? tagsRes.value.data || [] : [];
-		playbooks = playbooksRes.status === 'fulfilled' ? playbooksRes.value.data || [] : [];
-		savedViews = savedViewsRes.status === 'fulfilled' ? savedViewsRes.value.data || [] : [];
+	// Fetch all portfolio base data once (shared across all sub-routes)
+	let baseData = null;
+	if (account && locals.profile) {
+		baseData = await fetchPortfolioBaseData(supabase, account.id, locals.profile.id);
 	}
 
 	return {
 		account,
 		tags,
-		playbooks,
-		savedViews,
-		userId: locals.profile?.id
+		baseData,
+		playbooks: baseData?.playbooks ?? [],
+		savedViews: baseData?.savedViews ?? [],
+		userId: locals.profile?.id,
+		marketNews: marketNewsRes.data || []
 	};
 };

@@ -135,7 +135,7 @@ export function applyPortfolioFilters<T extends Partial<Trade> & Record<string, 
 			if (!playbookId || !filters.playbookIds.includes(playbookId)) return false;
 		}
 		if (filters.tagIds.length > 0) {
-			const assignedTagIds = new Set((trade.trade_tag_assignments || []).map((assignment: any) => assignment.tag_id));
+			const assignedTagIds = new Set((trade.trade_tag_assignments || []).map((assignment) => assignment.tag_id));
 			if (!filters.tagIds.every((tagId) => assignedTagIds.has(tagId))) return false;
 		}
 		if (filters.outcome === 'win' && Number(trade.profit || 0) <= 0) return false;
@@ -166,7 +166,7 @@ export function applyPortfolioFilters<T extends Partial<Trade> & Record<string, 
 				getTradeReview(trade)?.mistake_summary,
 				getTradeReview(trade)?.lesson_summary,
 				getTradeNotes(trade)[0]?.content,
-				...(trade.trade_tag_assignments || []).map((assignment: any) => assignment.trade_tags?.name)
+				...(trade.trade_tag_assignments || []).map((assignment) => assignment.trade_tags?.name)
 			]
 				.filter(Boolean)
 				.join(' ')

@@ -1,3 +1,13 @@
+/** UTC+7 offset in milliseconds (Thailand timezone) */
+export const THAILAND_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** Convert a UTC date string to a Thai-local YYYY-MM-DD string */
+export function toThaiDateString(utcDateStr: string): string {
+	return new Date(new Date(utcDateStr).getTime() + THAILAND_OFFSET_MS)
+		.toISOString()
+		.split('T')[0];
+}
+
 export function formatCurrency(value: number | null | undefined, decimals = 2): string {
 	if (value == null) return '-';
 	return new Intl.NumberFormat('en-US', {

@@ -7,22 +7,40 @@
 	let snapshot = $derived(data.snapshot || []);
 	let journalSummary = $derived(data.journalSummary);
 	let reviewSummary = $derived(data.reviewSummary);
+	let actionError = $state('');
 
 	async function saveGoal(goalType: string, targetValue: number, periodDays: number) {
-		await fetch('/api/portfolio/progress', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				goal_type: goalType,
-				target_value: targetValue,
-				period_days: periodDays
-			})
-		});
-		invalidateAll();
+		actionError = '';
+
+		try {
+			const res = await fetch('/api/portfolio/progress', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					goal_type: goalType,
+					target_value: targetValue,
+					period_days: periodDays
+				})
+			});
+			if (!res.ok) {
+				actionError = 'ไม่สามารถบันทึกเป้าหมายได้';
+				return;
+			}
+			invalidateAll();
+		} catch {
+			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+		}
 	}
 </script>
 
 <div class="space-y-6">
+	{#if actionError}
+		<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+			<span>{actionError}</span>
+			<button type="button" onclick={() => actionError = ''} class="text-red-300 hover:text-red-200 text-xs">ปิด</button>
+		</div>
+	{/if}
+
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
 			<div class="text-xs text-gray-500">Review Rate</div>

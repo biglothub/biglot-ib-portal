@@ -3,6 +3,7 @@ import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { buildPortfolioSearchParams, EMPTY_PORTFOLIO_FILTERS } from '$lib/portfolio';
 	import type { PortfolioFilterState } from '$lib/types';
+	import MultiSelectDropdown from '$lib/components/shared/MultiSelectDropdown.svelte';
 
 	let {
 		filters = EMPTY_PORTFOLIO_FILTERS,
@@ -33,6 +34,23 @@ import { goto, invalidateAll } from '$app/navigation';
 	let hasNotes = $state('');
 	let hasAttachments = $state('');
 	let durationBucket = $state('');
+	let expanded = $state(false);
+
+	let activeCount = $derived(
+		(q ? 1 : 0) +
+		(from ? 1 : 0) +
+		(to ? 1 : 0) +
+		(outcome ? 1 : 0) +
+		symbols.length +
+		sessions.length +
+		directions.length +
+		tagIds.length +
+		playbookIds.length +
+		reviewStatus.length +
+		(hasNotes !== '' ? 1 : 0) +
+		(hasAttachments !== '' ? 1 : 0) +
+		(durationBucket ? 1 : 0)
+	);
 
 	$effect(() => {
 		q = filters.q || '';
@@ -117,25 +135,39 @@ import { goto, invalidateAll } from '$app/navigation';
 	}
 </script>
 
-<div class="card space-y-4">
-	<div class="flex items-center justify-between gap-3">
-		<div>
-			<h3 class="text-sm font-medium text-white">Filters</h3>
-			<p class="text-xs text-gray-500">Shared review filters across portfolio pages.</p>
-		</div>
+<div class="card">
+	<button
+		type="button"
+		onclick={() => (expanded = !expanded)}
+		class="w-full flex items-center justify-between gap-3"
+	>
 		<div class="flex items-center gap-2">
-			{#if pageKey === 'trades' || pageKey === 'analytics'}
-				<button type="button" onclick={saveView} class="text-xs text-brand-primary hover:text-brand-primary/80">
-					Save View
-				</button>
+			<h3 class="text-sm font-medium text-white">Filters</h3>
+			{#if activeCount > 0 && !expanded}
+				<span class="inline-flex items-center justify-center rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-semibold px-1.5 py-0.5 min-w-[18px]">
+					{activeCount}
+				</span>
 			{/if}
-			<button type="button" onclick={clearFilters} class="text-xs text-gray-400 hover:text-white">
-				Clear
-			</button>
-			<button type="button" onclick={() => applyFilters()} class="btn-primary text-sm px-3 py-2">
-				Apply
-			</button>
 		</div>
+		<svg class="w-4 h-4 text-gray-500 transition-transform {expanded ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path d="M19 9l-7 7-7-7" />
+		</svg>
+	</button>
+
+	{#if expanded}
+	<div class="mt-4 space-y-4">
+	<div class="flex items-center justify-end gap-2">
+		{#if pageKey === 'trades' || pageKey === 'analytics'}
+			<button type="button" onclick={saveView} class="text-xs text-brand-primary hover:text-brand-primary/80">
+				Save View
+			</button>
+		{/if}
+		<button type="button" onclick={clearFilters} class="text-xs text-gray-400 hover:text-white">
+			Clear
+		</button>
+		<button type="button" onclick={() => applyFilters()} class="btn-primary text-sm px-3 py-2">
+			Apply
+		</button>
 	</div>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
@@ -154,36 +186,48 @@ import { goto, invalidateAll } from '$app/navigation';
 			<option value="breakeven">Breakeven</option>
 		</select>
 
-		<select multiple bind:value={symbols} class="min-h-24 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			{#each filterOptions.symbols || [] as symbol}
-				<option value={symbol}>{symbol}</option>
-			{/each}
-		</select>
-		<select multiple bind:value={sessions} class="min-h-24 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			<option value="asian">Asian</option>
-			<option value="london">London</option>
-			<option value="newyork">New York</option>
-		</select>
-		<select multiple bind:value={directions} class="min-h-24 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			<option value="BUY">BUY</option>
-			<option value="SELL">SELL</option>
-		</select>
-		<select multiple bind:value={reviewStatus} class="min-h-24 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			<option value="unreviewed">Unreviewed</option>
-			<option value="in_progress">In Progress</option>
-			<option value="reviewed">Reviewed</option>
-		</select>
+		<MultiSelectDropdown
+			label="Symbols"
+			options={(filterOptions.symbols || []).map((s: string) => ({ value: s, label: s }))}
+			bind:selected={symbols}
+		/>
+		<MultiSelectDropdown
+			label="Sessions"
+			options={[
+				{ value: 'asian', label: 'Asian' },
+				{ value: 'london', label: 'London' },
+				{ value: 'newyork', label: 'New York' }
+			]}
+			bind:selected={sessions}
+		/>
+		<MultiSelectDropdown
+			label="Directions"
+			options={[
+				{ value: 'BUY', label: 'BUY' },
+				{ value: 'SELL', label: 'SELL' }
+			]}
+			bind:selected={directions}
+		/>
+		<MultiSelectDropdown
+			label="Review Status"
+			options={[
+				{ value: 'unreviewed', label: 'Unreviewed' },
+				{ value: 'in_progress', label: 'In Progress' },
+				{ value: 'reviewed', label: 'Reviewed' }
+			]}
+			bind:selected={reviewStatus}
+		/>
 
-		<select multiple bind:value={tagIds} class="min-h-24 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			{#each tags as tag}
-				<option value={tag.id}>{tag.name}</option>
-			{/each}
-		</select>
-		<select multiple bind:value={playbookIds} class="min-h-24 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			{#each playbooks as playbook}
-				<option value={playbook.id}>{playbook.name}</option>
-			{/each}
-		</select>
+		<MultiSelectDropdown
+			label="Tags"
+			options={tags.map((t: any) => ({ value: t.id, label: t.name }))}
+			bind:selected={tagIds}
+		/>
+		<MultiSelectDropdown
+			label="Playbooks"
+			options={playbooks.map((p: any) => ({ value: p.id, label: p.name }))}
+			bind:selected={playbookIds}
+		/>
 		<select bind:value={durationBucket} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 			<option value="">All durations</option>
 			{#each filterOptions.durationBuckets || [] as bucket}
@@ -220,5 +264,7 @@ import { goto, invalidateAll } from '$app/navigation';
 				{/each}
 			</div>
 		</div>
+	{/if}
+	</div>
 	{/if}
 </div>

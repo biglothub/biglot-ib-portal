@@ -2,17 +2,17 @@ import { applyPortfolioFilters, parsePortfolioFilters } from '$lib/portfolio';
 import {
 	buildDailyHistory,
 	buildFilterOptions,
-	buildJournalCompletionSummary,
-	fetchPortfolioBaseData
+	buildJournalCompletionSummary
 } from '$lib/server/portfolio';
+import { toThaiDateString } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, tags = [], playbooks = [] } = parentData;
+	const { account, baseData, tags = [], playbooks = [] } = parentData;
 	const profile = locals.profile;
 
-	if (!account || !profile) {
+	if (!account || !profile || !baseData) {
 		return {
 			journals: [],
 			dailyHistory: [],
@@ -31,15 +31,11 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const selectedDate = url.searchParams.get('date') || '';
 	const filterState = parsePortfolioFilters(url.searchParams);
 
-	const baseData = await fetchPortfolioBaseData(locals.supabase, account.id, profile.id);
 	const filteredTrades = applyPortfolioFilters(baseData.trades, filterState);
 	const dailyHistory = buildDailyHistory(filteredTrades);
 	const selectedJournal = baseData.journals.find((journal: any) => journal.date === selectedDate) || null;
 	const dayTrades = filteredTrades.filter((trade: any) => {
-		const localDate = new Date(new Date(trade.close_time).getTime() + 7 * 60 * 60 * 1000)
-			.toISOString()
-			.split('T')[0];
-		return localDate === selectedDate;
+		return toThaiDateString(trade.close_time) === selectedDate;
 	});
 
 	return {
