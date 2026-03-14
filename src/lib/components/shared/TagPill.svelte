@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { name, color = '#3b82f6', category = '', removable = false, onremove }: {
+	let { name, color = '#C9A84C', category = '', removable = false, onremove }: {
 		name: string;
 		color?: string;
 		category?: string;

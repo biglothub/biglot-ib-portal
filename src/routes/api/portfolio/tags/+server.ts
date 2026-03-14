@@ -24,7 +24,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			user_id: profile.id,
 			name: name.trim(),
 			category,
-			color: color || '#3b82f6'
+			color: color || '#C9A84C'
 		})
 		.select()
 		.single();

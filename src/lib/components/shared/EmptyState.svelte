@@ -1,6 +1,7 @@
 <script lang="ts">
-	let { message = 'ไม่มีข้อมูล' }: {
+	let { message = 'ไม่มีข้อมูล', icon = '' }: {
 		message?: string;
+		icon?: string;
 	} = $props();
 </script>
 

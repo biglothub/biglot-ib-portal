@@ -25,7 +25,7 @@
 	);
 
 	const sessions = $derived([
-		{ name: 'Asian', profit: sessionAsianProfit, color: 'bg-blue-500' },
+		{ name: 'Asian', profit: sessionAsianProfit, color: 'bg-brand-primary' },
 		{ name: 'London', profit: sessionLondonProfit, color: 'bg-green-500' },
 		{ name: 'New York', profit: sessionNewYorkProfit, color: 'bg-amber-500' }
 	]);

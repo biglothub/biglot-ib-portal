@@ -7,7 +7,7 @@
 	let showForm = $state(false);
 	let newName = $state('');
 	let newCategory: TagCategory = $state('setup');
-	let newColor = $state('#3b82f6');
+	let newColor = $state('#C9A84C');
 	let saving = $state(false);
 	let error = $state('');
 
@@ -20,7 +20,7 @@
 		{ value: 'custom', label: 'Custom' },
 	];
 
-	const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+	const colors = ['#C9A84C', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
 
 	async function createTag() {
 		if (!newName.trim()) return;

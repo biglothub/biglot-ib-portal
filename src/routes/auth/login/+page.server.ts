@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-	if (locals.session) {
+	if (locals.user) {
 		const role = locals.profile?.role;
 		const redirectMap: Record<string, string> = {
 			admin: '/admin',

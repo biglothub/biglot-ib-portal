@@ -3,7 +3,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
-		session: locals.session,
+		user: locals.user,
 		profile: locals.profile,
 		vapidPublicKey: env.VAPID_PUBLIC_KEY || ''
 	};

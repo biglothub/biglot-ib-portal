@@ -19,7 +19,7 @@ declare global {
 			} | null;
 		}
 		interface PageData {
-			session: Session | null;
+			user: User | null;
 			profile: App.Locals['profile'];
 		}
 	}

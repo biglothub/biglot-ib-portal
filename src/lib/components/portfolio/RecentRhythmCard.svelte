@@ -105,7 +105,7 @@
 			<h3 class="mt-1 text-lg font-semibold text-white">Trading Footprint</h3>
 			<p class="mt-1 text-xs leading-5 text-gray-400">Last 7 trading days plus the symbols doing most of the work.</p>
 		</div>
-		<div class="rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-300">
+		<div class="rounded-full border border-brand-primary/20 bg-brand-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-300">
 			Live Form
 		</div>
 	</div>

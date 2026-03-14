@@ -148,8 +148,8 @@
 				},
 				crosshair: {
 					mode: 1,
-					vertLine: { color: 'rgba(59, 130, 246, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
-					horzLine: { color: 'rgba(59, 130, 246, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
+					vertLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
+					horzLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
 				},
 				handleScroll: { mouseWheel: true, pressedMouseMove: true },
 				handleScale: { mouseWheel: true, pinch: true }
@@ -175,17 +175,17 @@
 			});
 
 			equitySeries = chart.addLineSeries({
-				color: '#3B82F6',
+				color: '#C9A84C',
 				lineWidth: 3,
 				lineStyle: LineStyle.Solid,
 				crosshairMarkerVisible: true,
 				crosshairMarkerRadius: 5,
-				crosshairMarkerBorderColor: '#3B82F6',
+				crosshairMarkerBorderColor: '#C9A84C',
 				crosshairMarkerBackgroundColor: '#1F2937',
 				title: 'Equity',
 				lastValueVisible: true,
 				priceLineVisible: true,
-				priceLineColor: '#3B82F6',
+				priceLineColor: '#C9A84C',
 				priceLineStyle: LineStyle.Dashed
 			});
 
@@ -240,7 +240,7 @@
 			<h3 class="text-lg font-semibold text-white">Equity Growth</h3>
 			<div class="flex items-center gap-4 text-xs">
 				<div class="flex items-center gap-1.5">
-					<span class="w-3 h-0.5 bg-blue-500 rounded"></span>
+					<span class="w-3 h-0.5 bg-brand-primary rounded"></span>
 					<span class="text-gray-400">Equity</span>
 				</div>
 				<div class="flex items-center gap-1.5">
@@ -256,7 +256,7 @@
 				<button
 					class="px-3 py-1 text-xs font-medium rounded-md transition-all duration-200
 						{currentTimeframe === tf.label
-						? 'bg-dark-surface text-blue-400 shadow-sm'
+						? 'bg-dark-surface text-brand-primary shadow-sm'
 						: 'text-gray-400 hover:text-gray-300'}"
 					onclick={() => selectTimeframe(tf.label)}
 				>
@@ -284,7 +284,7 @@
 				</div>
 				<div class="flex items-center justify-between mb-1.5">
 					<div class="flex items-center gap-2">
-						<span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+						<span class="w-2 h-2 bg-brand-primary rounded-full"></span>
 						<span class="text-gray-300">Equity</span>
 					</div>
 					<span class="font-mono font-semibold text-white">${formatMoney(tooltipData.equity)}</span>
@@ -341,7 +341,7 @@
 			</div>
 			<div class="bg-dark-bg/30 rounded-lg p-3 text-center">
 				<div class="text-xs text-gray-400 mb-1">Peak</div>
-				<div class="font-mono font-semibold text-blue-400">${formatMoney(maxEquity)}</div>
+				<div class="font-mono font-semibold text-brand-primary">${formatMoney(maxEquity)}</div>
 			</div>
 		</div>
 	{/if}

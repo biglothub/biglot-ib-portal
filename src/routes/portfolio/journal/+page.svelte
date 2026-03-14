@@ -55,7 +55,7 @@
 
 	const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 	const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-	const moodEmojis = ['😢', '😕', '😐', '🙂', '😊'];
+	const moodLabels = ['Very Low', 'Low', 'Neutral', 'Good', 'Excellent'];
 
 	const calendarDays = $derived(() => {
 		const firstDay = new Date(year, month - 1, 1).getDay();
@@ -201,7 +201,7 @@
 							onclick={() => selectDate(cell.date)}
 							class="relative aspect-square flex flex-col items-center justify-center rounded text-xs transition-colors
 								{cell.date === selectedDate ? 'bg-brand-primary/20 border border-brand-primary' : ''}
-								{cell.date === today ? 'ring-1 ring-blue-500/50' : ''}
+								{cell.date === today ? 'ring-1 ring-brand-primary/50' : ''}
 								{cell.profit !== undefined && cell.profit > 0 ? 'bg-green-500/10 text-green-400' : ''}
 								{cell.profit !== undefined && cell.profit < 0 ? 'bg-red-500/10 text-red-400' : ''}
 								{cell.profit === undefined ? 'text-gray-500 hover:bg-dark-border/30' : 'hover:bg-dark-border/30'}
@@ -209,8 +209,12 @@
 						>
 							<span class="text-[11px]">{cell.day}</span>
 							{#if cell.hasJournal}
-								<span class="absolute bottom-0.5 text-[8px]">
-									{cell.completion === 'complete' ? '✅' : '📝'}
+								<span class="absolute bottom-0.5">
+									{#if cell.completion === 'complete'}
+										<span class="w-1.5 h-1.5 rounded-full bg-brand-primary inline-block"></span>
+									{:else}
+										<span class="w-1.5 h-1.5 rounded-full border border-brand-primary inline-block"></span>
+									{/if}
 								</span>
 							{/if}
 						</button>
@@ -284,14 +288,17 @@
 				<div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 					<div class="card">
 						<h4 class="text-xs text-gray-500 mb-2">Mood</h4>
-						<div class="flex gap-2">
-							{#each moodEmojis as emoji, index}
+						<div class="flex flex-wrap gap-1.5">
+							{#each moodLabels as label, index}
 								<button
 									type="button"
 									onclick={() => (mood = mood === index + 1 ? null : index + 1)}
-									class="text-2xl transition-transform hover:scale-110 {mood === index + 1 ? 'scale-125 opacity-100' : 'opacity-40'}"
+									class="px-2 py-1 text-xs rounded-lg border transition-all
+										{mood === index + 1
+											? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
+											: 'border-dark-border text-gray-500 hover:text-gray-300'}"
 								>
-									{emoji}
+									{label}
 								</button>
 							{/each}
 						</div>

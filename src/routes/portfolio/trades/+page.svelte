@@ -160,8 +160,8 @@
 												{/each}
 											</div>
 										</td>
-										<td class="py-3 text-center text-gray-300">{(trade.trade_notes || []).length > 0 ? '📝' : '—'}</td>
-										<td class="py-3 text-center text-gray-300">{(trade.trade_attachments || []).length > 0 ? '📎' : '—'}</td>
+										<td class="py-3 text-center text-gray-300">{(trade.trade_notes || []).length || '—'}</td>
+										<td class="py-3 text-center text-gray-300">{(trade.trade_attachments || []).length || '—'}</td>
 										<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 											{formatCurrency(trade.profit)}
 										</td>

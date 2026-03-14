@@ -166,7 +166,7 @@
 	<div class="p-3 border-b border-dark-border">
 		<div class="flex items-center justify-between gap-2 flex-wrap">
 			<div class="flex items-center gap-2">
-				<svg class="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="w-4 h-4 text-brand-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
 				</svg>
 				<div class="flex items-center gap-1">
@@ -179,7 +179,7 @@
 					<button onclick={nextMonth} class="p-1 rounded hover:bg-dark-border transition-colors" aria-label="Next month">
 						<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
 					</button>
-					<button onclick={goToToday} class="ml-1 px-2 py-0.5 text-xs font-medium text-blue-400 bg-blue-900/30 rounded hover:bg-blue-900/50 transition-colors">
+					<button onclick={goToToday} class="ml-1 px-2 py-0.5 text-xs font-medium text-brand-primary bg-brand-primary/10 rounded hover:bg-brand-primary/20 transition-colors">
 						Today
 					</button>
 				</div>
@@ -246,7 +246,7 @@
 	<div class="p-2">
 		<div class="grid grid-cols-7 gap-0.5 mb-1">
 			{#each daysOfWeek as day, i}
-				<div class="text-center text-[10px] font-semibold py-1 {i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'}">
+				<div class="text-center text-[10px] font-semibold py-1 {i === 0 ? 'text-red-400' : i === 6 ? 'text-brand-primary' : 'text-gray-400'}">
 					{day}
 				</div>
 			{/each}
@@ -257,13 +257,13 @@
 				<button
 					class="relative aspect-square flex flex-col items-center justify-center rounded transition-all duration-200 group
 						{day.isCurrentMonth ? '' : 'opacity-30'}
-						{day.isToday ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-dark-surface' : ''}
-						{day.data ? 'cursor-pointer hover:ring-2 hover:ring-blue-400 hover:scale-105 active:scale-95' : 'cursor-default'}
+						{day.isToday ? 'ring-2 ring-brand-primary ring-offset-1 ring-offset-dark-surface' : ''}
+						{day.data ? 'cursor-pointer hover:ring-2 hover:ring-brand-primary hover:scale-105 active:scale-95' : 'cursor-default'}
 						{getProfitColor(day.data?.profit || 0)}"
 					onclick={() => handleDayClick(day)}
 					disabled={!day.data}
 				>
-					<span class="text-[10px] sm:text-xs font-medium {day.isToday ? 'text-blue-400' : 'text-gray-300'}">
+					<span class="text-[10px] sm:text-xs font-medium {day.isToday ? 'text-brand-primary' : 'text-gray-300'}">
 						{day.dayOfMonth}
 					</span>
 					{#if day.data && day.isCurrentMonth}
@@ -349,7 +349,7 @@
 						<div class="text-[10px] text-gray-500">Trades</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded">
-						<div class="text-lg font-bold text-blue-400">{(selectedDay.data.winRate || 0).toFixed(0)}%</div>
+						<div class="text-lg font-bold text-brand-primary">{(selectedDay.data.winRate || 0).toFixed(0)}%</div>
 						<div class="text-[10px] text-gray-500">Win Rate</div>
 					</div>
 					{#if selectedDay.data.bestTrade}

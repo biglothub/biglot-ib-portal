@@ -343,8 +343,7 @@
 								>
 									<span class="w-3 h-3 rounded-full" style="background-color: {tag.color}"></span>
 									{tag.name}
-									<span class="text-[10px] text-gray-500 ml-auto">{tag.category}</span>
-								</button>
+									<span class="text-[10px] text-gray-500 ml-auto">{tag.category}</span></button>
 							{/each}
 						</div>
 					{/if}
@@ -489,16 +488,17 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center gap-1 mb-3">
+				<div class="flex items-center gap-1.5 mb-3">
 					<span class="text-xs text-gray-500 mr-2">คะแนน:</span>
 					{#each [1, 2, 3, 4, 5] as star}
 						<button
 							type="button"
 							onclick={() => (noteRating = noteRating === star ? null : star)}
-							class="text-lg transition-transform hover:scale-110 {noteRating && noteRating >= star ? 'opacity-100' : 'opacity-30'}"
-						>
-							⭐
-						</button>
+							class="w-5 h-5 rounded-full border-2 transition-all
+							{noteRating && noteRating >= star
+								? 'bg-brand-primary border-brand-primary'
+								: 'bg-transparent border-gray-600 hover:border-gray-400'}"
+						></button>
 					{/each}
 				</div>
 
