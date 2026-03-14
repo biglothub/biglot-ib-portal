@@ -120,7 +120,11 @@
 				</div>
 				<div>
 					<label for="mt5server" class="label">MT5 Server *</label>
-					<input id="mt5server" type="text" bind:value={form.mt5_server} class="input" placeholder="เช่น Exness-MT5Real" required />
+					<select id="mt5server" bind:value={form.mt5_server} class="input" required>
+						<option value="" disabled selected>เลือก MT5 Server</option>
+						<option value="Connext-Real">Connext-Real</option>
+						<option value="Connext-Demo">Connext-Demo</option>
+					</select>
 				</div>
 
 				<div class="flex gap-2">
