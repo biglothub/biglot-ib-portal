@@ -1,5 +1,7 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { getDefaultRules } from '$lib/server/checklist';
+import { rateLimit } from '$lib/server/rate-limit';
+import { getBangkokToday } from '$lib/utils';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -69,6 +71,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
 
+	if (!rateLimit(`portfolio:checklist:${profile.id}`, 30, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
+	}
+
 	const account = await getApprovedPortfolioAccount(locals.supabase);
 	if (!account) {
 		return json({ message: 'No approved account' }, { status: 404 });
@@ -78,7 +84,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// Handle "start my day"
 	if (body.action === 'start_day') {
-		const today = new Date().toISOString().split('T')[0];
+		const today = getBangkokToday();
 		const { error } = await locals.supabase
 			.from('daily_starts')
 			.upsert({

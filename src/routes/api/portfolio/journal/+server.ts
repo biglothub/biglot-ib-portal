@@ -1,3 +1,5 @@
+import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -7,8 +9,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
 
+	if (!rateLimit(`portfolio:journal:${profile.id}`, 30, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
+	}
+
+	const account = await getApprovedPortfolioAccount(locals.supabase);
+	if (!account) {
+		return json({ message: 'No approved account' }, { status: 404 });
+	}
+
 	const {
-		client_account_id,
 		date,
 		pre_market_notes,
 		post_market_notes,
@@ -25,7 +35,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		completion_status
 	} = await request.json();
 
-	if (!client_account_id || !date) {
+	if (!date) {
 		return json({ message: 'Missing required fields' }, { status: 400 });
 	}
 
@@ -49,7 +59,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		.from('daily_journal')
 		.upsert({
 			user_id: profile.id,
-			client_account_id,
+			client_account_id: account.id,
 			date,
 			pre_market_notes: pre_market_notes || '',
 			post_market_notes: post_market_notes || '',

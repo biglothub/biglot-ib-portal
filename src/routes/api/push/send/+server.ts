@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { isSafeUrl } from '$lib/server/trade-guard';
 import webpush from 'web-push';
 import type { RequestHandler } from './$types';
 
@@ -39,7 +40,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'No subscriptions found', sent: 0 });
 	}
 
-	const payload = JSON.stringify({ title, body: body || '', url: url || '/' });
+	const safeUrl = (url && isSafeUrl(url)) ? url : '/';
+	const payload = JSON.stringify({ title, body: body || '', url: safeUrl });
 
 	let sent = 0;
 	const staleEndpoints: string[] = [];

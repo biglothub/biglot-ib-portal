@@ -33,6 +33,10 @@ export function decrypt(encoded: string): string {
 	const key = getKey();
 	const combined = Buffer.from(encoded, 'base64');
 
+	if (combined.length < IV_LENGTH + TAG_LENGTH + 1) {
+		throw new Error('Invalid encrypted data: too short');
+	}
+
 	const iv = combined.subarray(0, IV_LENGTH);
 	const tag = combined.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
 	const ciphertext = combined.subarray(IV_LENGTH + TAG_LENGTH);

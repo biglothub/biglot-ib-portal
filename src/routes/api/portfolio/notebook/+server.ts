@@ -1,4 +1,5 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -7,11 +8,20 @@ function stripHtml(html: string): string {
 	return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/** Escape special characters that could break PostgREST filter syntax */
+function escapePostgrestValue(str: string): string {
+	return str.replace(/[%_\\]/g, c => '\\' + c).replace(/[,.()"']/g, '');
+}
+
 /** POST: CRUD operations for notebooks */
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
+	}
+
+	if (!rateLimit(`portfolio:notebook:${profile.id}`, 30, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -176,13 +186,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const query = body.query?.trim();
 		if (!query) return json({ notes: [] });
 
+		const safeQuery = escapePostgrestValue(query);
 		const { data } = await locals.supabase
 			.from('notebook_notes')
 			.select('id, title, content_plain, folder_id, created_at, updated_at')
 			.eq('client_account_id', account.id)
 			.eq('user_id', profile.id)
 			.eq('is_deleted', false)
-			.or(`title.ilike.%${query}%,content_plain.ilike.%${query}%`)
+			.or(`title.ilike.%${safeQuery}%,content_plain.ilike.%${safeQuery}%`)
 			.order('updated_at', { ascending: false })
 			.limit(20);
 

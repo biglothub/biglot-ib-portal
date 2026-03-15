@@ -1,6 +1,7 @@
 import { parsePortfolioFilters } from '$lib/portfolio';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { buildReportExplorer, fetchPortfolioBaseData } from '$lib/server/portfolio';
+import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -8,6 +9,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
+	}
+
+	if (!rateLimit(`portfolio:reports:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);

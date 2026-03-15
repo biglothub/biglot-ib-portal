@@ -1,4 +1,5 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -32,6 +33,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
+	}
+
+	if (!rateLimit(`portfolio:playbooks:${profile.id}`, 20, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);

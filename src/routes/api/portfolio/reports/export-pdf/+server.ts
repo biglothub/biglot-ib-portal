@@ -2,6 +2,7 @@ import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { fetchPortfolioBaseData, buildReportExplorer, buildDailyHistory, buildKpiMetrics, buildSymbolBreakdown } from '$lib/server/portfolio';
 import { buildStatsOverview } from '$lib/server/stats-overview';
 import { parsePortfolioFilters } from '$lib/portfolio';
+import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -9,6 +10,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
+	}
+
+	if (!rateLimit(`portfolio:export-pdf:${profile.id}`, 5, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);

@@ -30,6 +30,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		if (!msg.role || !msg.content || typeof msg.content !== 'string') {
 			return new Response(JSON.stringify({ message: 'Invalid message format' }), { status: 400 });
 		}
+		if (msg.role !== 'user' && msg.role !== 'assistant') {
+			return new Response(JSON.stringify({ message: 'Invalid message role' }), { status: 400 });
+		}
 		if (msg.content.length > 2000) {
 			msg.content = msg.content.slice(0, 2000);
 		}
