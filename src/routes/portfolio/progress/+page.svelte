@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
 	import { formatPercent, formatNumber } from '$lib/utils';
+	import DailyChecklist from '$lib/components/portfolio/DailyChecklist.svelte';
+	import ProgressHeatmap from '$lib/components/portfolio/ProgressHeatmap.svelte';
 
 	let { data } = $props();
 	let goals = $derived(data.goals || []);
 	let snapshot = $derived(data.snapshot || []);
 	let journalSummary = $derived(data.journalSummary);
 	let reviewSummary = $derived(data.reviewSummary);
+	let checklistRules = $derived(data.checklistRules || []);
+	let checklistCompletions = $derived(data.checklistCompletions || []);
+	let checklistStreak = $derived(data.checklistStreak || 0);
+	let heatmapData = $derived(data.heatmapData || []);
 	let actionError = $state('');
 
 	async function saveGoal(goalType: string, targetValue: number, periodDays: number) {
@@ -99,5 +105,19 @@
 				</div>
 			</div>
 		{/each}
+	</div>
+
+	<!-- Discipline Section: Heatmap + Checklist -->
+	<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+		<div class="card">
+			<ProgressHeatmap data={heatmapData} streak={checklistStreak} />
+		</div>
+		<div class="card">
+			<DailyChecklist
+				rules={checklistRules}
+				completions={checklistCompletions}
+				onupdate={() => invalidate('portfolio:baseData')}
+			/>
+		</div>
 	</div>
 </div>
