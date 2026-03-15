@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { verifyTradeOwnership, isSafeUrl } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
@@ -6,6 +7,9 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
+
+	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
+	if (!ownership.ok) return ownership.response;
 
 	const { data, error } = await locals.supabase
 		.from('trade_attachments')
@@ -28,9 +32,16 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
 
+	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
+	if (!ownership.ok) return ownership.response;
+
 	const { id, kind, storage_path, caption, sort_order } = await request.json();
 	if (!storage_path?.trim()) {
 		return json({ message: 'storage_path is required' }, { status: 400 });
+	}
+
+	if (!isSafeUrl(storage_path.trim())) {
+		return json({ message: 'Invalid URL — only http/https allowed' }, { status: 400 });
 	}
 
 	const validKinds = ['link', 'image_url'];
@@ -71,6 +82,9 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
+
+	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
+	if (!ownership.ok) return ownership.response;
 
 	const { id } = await request.json();
 	if (!id) {

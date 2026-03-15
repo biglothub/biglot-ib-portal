@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { verifyTradeOwnership } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, params, locals }) => {
@@ -6,6 +7,9 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
+
+	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
+	if (!ownership.ok) return ownership.response;
 
 	const { tag_id } = await request.json();
 
@@ -35,6 +39,9 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
+
+	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
+	if (!ownership.ok) return ownership.response;
 
 	const { tag_id } = await request.json();
 

@@ -51,10 +51,10 @@
 			}
 		);
 
-		// Headers
-		html = html.replace(/^### (.+)$/gm, '<h4 class="ai-h3">$1</h4>');
-		html = html.replace(/^## (.+)$/gm, '<h3 class="ai-h2">$1</h3>');
-		html = html.replace(/^# (.+)$/gm, '<h2 class="ai-h1">$1</h2>');
+		// Headers — escape content to prevent XSS
+		html = html.replace(/^### (.+)$/gm, (_, c) => `<h4 class="ai-h3">${escapeHtml(c)}</h4>`);
+		html = html.replace(/^## (.+)$/gm, (_, c) => `<h3 class="ai-h2">${escapeHtml(c)}</h3>`);
+		html = html.replace(/^# (.+)$/gm, (_, c) => `<h2 class="ai-h1">${escapeHtml(c)}</h2>`);
 
 		// Bullet lists — group consecutive lines starting with -
 		html = html.replace(
@@ -93,13 +93,17 @@
 		return html;
 	}
 
+	function escapeHtml(str: string): string {
+		return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
 	function applyInline(text: string): string {
-		// Bold
-		text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+		// Bold — escape capture group to prevent XSS
+		text = text.replace(/\*\*(.+?)\*\*/g, (_, c) => `<strong>${escapeHtml(c)}</strong>`);
 		// Italic
-		text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+		text = text.replace(/\*(.+?)\*/g, (_, c) => `<em>${escapeHtml(c)}</em>`);
 		// Inline code
-		text = text.replace(/`(.+?)`/g, '<code class="ai-code">$1</code>');
+		text = text.replace(/`(.+?)`/g, (_, c) => `<code class="ai-code">${escapeHtml(c)}</code>`);
 		return text;
 	}
 </script>

@@ -69,9 +69,9 @@
 			}
 		);
 
-		html = html.replace(/^### (.+)$/gm, '<h4 class="analysis-h3">$1</h4>');
-		html = html.replace(/^## (.+)$/gm, '<h3 class="analysis-h2">$1</h3>');
-		html = html.replace(/^# (.+)$/gm, '<h2 class="analysis-h1">$1</h2>');
+		html = html.replace(/^### (.+)$/gm, (_, c) => `<h4 class="analysis-h3">${escapeHtml(c)}</h4>`);
+		html = html.replace(/^## (.+)$/gm, (_, c) => `<h3 class="analysis-h2">${escapeHtml(c)}</h3>`);
+		html = html.replace(/^# (.+)$/gm, (_, c) => `<h2 class="analysis-h1">${escapeHtml(c)}</h2>`);
 
 		html = html.replace(
 			/((?:^- .+\n?)+)/gm,
@@ -102,10 +102,14 @@
 		return html;
 	}
 
+	function escapeHtml(str: string): string {
+		return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
 	function applyInline(text: string): string {
-		text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-		text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-		text = text.replace(/`(.+?)`/g, '<code class="analysis-code">$1</code>');
+		text = text.replace(/\*\*(.+?)\*\*/g, (_, c) => `<strong>${escapeHtml(c)}</strong>`);
+		text = text.replace(/\*(.+?)\*/g, (_, c) => `<em>${escapeHtml(c)}</em>`);
+		text = text.replace(/`(.+?)`/g, (_, c) => `<code class="analysis-code">${escapeHtml(c)}</code>`);
 		return text;
 	}
 

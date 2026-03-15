@@ -8,8 +8,21 @@
 	let showAddModal = $state(false);
 	let form = $state({ email: '', full_name: '', ib_code: '', company_name: '' });
 	let loading = $state(false);
+	let loadingCode = $state(false);
 	let error = $state('');
 	let successMsg = $state('');
+
+	async function fetchNextCode() {
+		loadingCode = true;
+		try {
+			const res = await fetch('/api/admin/ibs/next-code');
+			if (res.ok) {
+				const { nextCode } = await res.json();
+				form.ib_code = nextCode;
+			}
+		} catch {}
+		loadingCode = false;
+	}
 
 	async function handleAdd(e: Event) {
 		e.preventDefault();
@@ -43,7 +56,7 @@
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
 		<h1 class="text-xl font-bold">Master IBs</h1>
-		<button class="btn-primary text-sm" onclick={() => { showAddModal = true; error = ''; successMsg = ''; }}>
+		<button class="btn-primary text-sm" onclick={() => { showAddModal = true; error = ''; successMsg = ''; fetchNextCode(); }}>
 			เพิ่ม Master IB
 		</button>
 	</div>
@@ -108,8 +121,8 @@
 					<input id="email" type="email" bind:value={form.email} class="input" required />
 				</div>
 				<div>
-					<label for="code" class="label">รหัส IB</label>
-					<input id="code" type="text" bind:value={form.ib_code} class="input" placeholder="เช่น IB001" required />
+					<label for="code" class="label">รหัส IB (auto)</label>
+					<input id="code" type="text" bind:value={form.ib_code} class="input" placeholder={loadingCode ? 'กำลังสร้างรหัส...' : 'เช่น IB001'} required />
 				</div>
 				<div>
 					<label for="company" class="label">ชื่อบริษัท (ไม่บังคับ)</label>
