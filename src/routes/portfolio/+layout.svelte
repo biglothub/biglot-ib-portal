@@ -26,6 +26,7 @@
 
 	const tabs = [
 		{ href: '/portfolio', label: 'Overview' },
+		{ href: '/portfolio/day-view', label: 'Day View' },
 		{ href: '/portfolio/trades', label: 'Trades' },
 		{ href: '/portfolio/journal', label: 'Journal' },
 		{ href: '/portfolio/analytics', label: 'Analytics' },

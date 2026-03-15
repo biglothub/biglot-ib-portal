@@ -1,0 +1,391 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
+
+	let { data } = $props();
+	let { selectedDate, viewMode, dayTrades, daySummary, weekData, calendarDays } = $derived(data);
+
+	// Calendar state
+	let calendarDate = $derived(new Date((selectedDate || new Date().toISOString().split('T')[0]) + 'T00:00:00'));
+	let calendarYear = $derived(calendarDate.getFullYear());
+	let calendarMonth = $derived(calendarDate.getMonth());
+
+	const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+		'July', 'August', 'September', 'October', 'November', 'December'];
+	const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+	// Build calendar grid
+	const calendarGrid = $derived((() => {
+		const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+		const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+		const grid: Array<{ date: string; day: number; inMonth: boolean; pnl: number; trades: number } | null> = [];
+
+		// Empty cells before first day
+		for (let i = 0; i < firstDay; i++) grid.push(null);
+
+		for (let d = 1; d <= daysInMonth; d++) {
+			const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+			const dayData = calendarDays?.find((cd: any) => cd.date === dateStr);
+			grid.push({
+				date: dateStr,
+				day: d,
+				inMonth: true,
+				pnl: dayData?.pnl || 0,
+				trades: dayData?.trades || 0
+			});
+		}
+		return grid;
+	})());
+
+	function navigateDate(date: string) {
+		const params = new URLSearchParams($page.url.searchParams);
+		params.set('date', date);
+		goto(`/portfolio/day-view?${params.toString()}`, { keepFocus: true });
+	}
+
+	function switchView(mode: string) {
+		const params = new URLSearchParams($page.url.searchParams);
+		params.set('view', mode);
+		if (selectedDate) params.set('date', selectedDate);
+		goto(`/portfolio/day-view?${params.toString()}`, { keepFocus: true });
+	}
+
+	function prevMonth() {
+		const d = new Date(calendarYear, calendarMonth - 1, 1);
+		const dateStr = d.toISOString().split('T')[0];
+		navigateDate(dateStr);
+	}
+
+	function nextMonth() {
+		const d = new Date(calendarYear, calendarMonth + 1, 1);
+		const dateStr = d.toISOString().split('T')[0];
+		navigateDate(dateStr);
+	}
+
+	function prevWeek() {
+		if (!weekData) return;
+		const d = new Date(weekData.weekStart + 'T00:00:00');
+		d.setDate(d.getDate() - 7);
+		const params = new URLSearchParams($page.url.searchParams);
+		params.set('date', d.toISOString().split('T')[0]);
+		params.set('view', 'week');
+		goto(`/portfolio/day-view?${params.toString()}`, { keepFocus: true });
+	}
+
+	function nextWeek() {
+		if (!weekData) return;
+		const d = new Date(weekData.weekStart + 'T00:00:00');
+		d.setDate(d.getDate() + 7);
+		const params = new URLSearchParams($page.url.searchParams);
+		params.set('date', d.toISOString().split('T')[0]);
+		params.set('view', 'week');
+		goto(`/portfolio/day-view?${params.toString()}`, { keepFocus: true });
+	}
+
+	// Day cell color based on P&L
+	function dayColor(pnl: number, trades: number) {
+		if (trades === 0) return '';
+		if (pnl > 0) return 'bg-green-500/20 text-green-400 font-semibold';
+		if (pnl < 0) return 'bg-red-500/20 text-red-400 font-semibold';
+		return 'bg-gray-500/10 text-gray-400';
+	}
+
+	function formatDateLabel(dateStr: string) {
+		const d = new Date(dateStr + 'T00:00:00');
+		return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+	}
+
+	function formatWeekRange(start: string, end: string) {
+		const s = new Date(start + 'T00:00:00');
+		const e = new Date(end + 'T00:00:00');
+		return `${s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+	}
+</script>
+
+<div class="space-y-6">
+	<!-- View Toggle -->
+	<div class="flex items-center justify-between">
+		<div class="flex gap-1 bg-dark-surface rounded-lg p-1">
+			<button
+				class="px-4 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'day' ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
+				onclick={() => switchView('day')}
+			>Day</button>
+			<button
+				class="px-4 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'week' ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
+				onclick={() => switchView('week')}
+			>Week</button>
+		</div>
+	</div>
+
+	{#if viewMode === 'day'}
+		<!-- DAY VIEW -->
+		<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+			<!-- Main content (3 cols) -->
+			<div class="xl:col-span-3 space-y-4">
+				<!-- Date header -->
+				<div class="card">
+					<h2 class="text-lg font-semibold text-white">{formatDateLabel(selectedDate || '')}</h2>
+
+					{#if daySummary}
+						<div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
+								<div class="text-xs text-gray-500">P&L</div>
+								<div class="mt-1 text-xl font-bold {daySummary.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+									{formatCurrency(daySummary.pnl)}
+								</div>
+							</div>
+							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
+								<div class="text-xs text-gray-500">Trades</div>
+								<div class="mt-1 text-xl font-bold text-white">{daySummary.totalTrades}</div>
+							</div>
+							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
+								<div class="text-xs text-gray-500">Win Rate</div>
+								<div class="mt-1 text-xl font-bold {daySummary.winRate >= 50 ? 'text-green-400' : 'text-amber-400'}">
+									{daySummary.winRate.toFixed(0)}%
+								</div>
+							</div>
+							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
+								<div class="text-xs text-gray-500">W / L</div>
+								<div class="mt-1 text-xl font-bold text-white">
+									<span class="text-green-400">{daySummary.wins}</span>
+									<span class="text-gray-600 mx-1">/</span>
+									<span class="text-red-400">{daySummary.losses}</span>
+								</div>
+							</div>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Trade list -->
+				<div class="card">
+					<h3 class="text-sm font-medium text-gray-400 mb-3">Trades</h3>
+					{#if dayTrades.length === 0}
+						<EmptyState message="ไม่มี trade ในวันนี้" />
+					{:else}
+						<div class="overflow-x-auto">
+							<table class="w-full text-sm">
+								<thead>
+									<tr class="border-b border-dark-border text-gray-500 text-xs">
+										<th class="text-left py-2">Time</th>
+										<th class="text-left py-2">Symbol</th>
+										<th class="text-left py-2">Side</th>
+										<th class="text-right py-2">Lot</th>
+										<th class="text-right py-2">Entry</th>
+										<th class="text-right py-2">Exit</th>
+										<th class="text-right py-2">P&L</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each dayTrades as trade}
+										<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
+											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+											<td class="py-3">
+												<a href="/portfolio/trades/{trade.id}" class="font-medium text-white hover:text-brand-primary">{trade.symbol}</a>
+											</td>
+											<td class="py-3">
+												<span class="text-xs px-1.5 py-0.5 rounded {trade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
+													{trade.type}
+												</span>
+											</td>
+											<td class="py-3 text-right text-gray-400">{formatNumber(trade.lot_size, 2)}</td>
+											<td class="py-3 text-right text-gray-400">{formatNumber(trade.open_price, 5)}</td>
+											<td class="py-3 text-right text-gray-400">{formatNumber(trade.close_price, 5)}</td>
+											<td class="py-3 text-right font-medium {Number(trade.profit) >= 0 ? 'text-green-400' : 'text-red-400'}">
+												{formatCurrency(trade.profit)}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- Calendar sidebar (1 col) -->
+			<div class="xl:col-span-1">
+				<div class="card sticky top-4">
+					<div class="flex items-center justify-between mb-3">
+						<button onclick={prevMonth} class="p-1 text-gray-400 hover:text-white">
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+						</button>
+						<span class="text-sm font-semibold text-white">{monthNames[calendarMonth]} {calendarYear}</span>
+						<button onclick={nextMonth} class="p-1 text-gray-400 hover:text-white">
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+						</button>
+					</div>
+
+					<!-- Day labels -->
+					<div class="grid grid-cols-7 gap-1 mb-1">
+						{#each dayLabels as label}
+							<div class="text-center text-[10px] text-gray-500 font-medium py-1">{label}</div>
+						{/each}
+					</div>
+
+					<!-- Calendar grid -->
+					<div class="grid grid-cols-7 gap-1">
+						{#each calendarGrid as cell}
+							{#if cell}
+								<button
+									onclick={() => navigateDate(cell.date)}
+									class="aspect-square flex items-center justify-center text-xs rounded-lg transition-all
+										{cell.date === selectedDate ? 'ring-2 ring-brand-primary' : ''}
+										{dayColor(cell.pnl, cell.trades)}
+										{cell.trades === 0 ? 'text-gray-600 hover:bg-dark-bg/50' : 'hover:ring-1 hover:ring-gray-500'}"
+								>
+									{cell.day}
+								</button>
+							{:else}
+								<div></div>
+							{/if}
+						{/each}
+					</div>
+				</div>
+			</div>
+		</div>
+
+	{:else}
+		<!-- WEEK VIEW -->
+		{#if weekData}
+			<div class="space-y-4">
+				<!-- Week navigation -->
+				<div class="card">
+					<div class="flex items-center justify-between">
+						<button onclick={prevWeek} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+						</button>
+						<div class="text-center">
+							<h2 class="text-lg font-semibold text-white">{formatWeekRange(weekData.weekStart, weekData.weekEnd)}</h2>
+							<p class="text-sm {weekData.stats.grossPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+								Net P&L: {formatCurrency(weekData.stats.grossPnl)}
+							</p>
+						</div>
+						<button onclick={nextWeek} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+						</button>
+					</div>
+				</div>
+
+				<!-- Day cards -->
+				<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+					{#each weekData.dayCards as card}
+						<button
+							onclick={() => { const params = new URLSearchParams(); params.set('date', card.date); params.set('view', 'day'); goto(`/portfolio/day-view?${params.toString()}`); }}
+							class="card text-center p-4 hover:border-brand-primary/40 transition-colors {card.date === selectedDate ? 'border-brand-primary' : ''}"
+						>
+							<div class="text-xs text-gray-500 font-medium">{card.day}</div>
+							{#if card.hasData}
+								<div class="mt-2 text-lg font-bold {card.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+									{formatCurrency(card.pnl)}
+								</div>
+								<div class="mt-1 text-xs text-gray-500">{card.trades} trade{card.trades !== 1 ? 's' : ''}</div>
+							{:else}
+								<div class="mt-2 text-sm text-gray-600">—</div>
+								<div class="mt-1 text-xs text-gray-600">no trades</div>
+							{/if}
+						</button>
+					{/each}
+				</div>
+
+				<!-- Week stats -->
+				{#if weekData.stats.totalTrades > 0}
+					<div class="card">
+						<h3 class="text-sm font-medium text-gray-400 mb-3">Weekly Summary</h3>
+						<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+							<div>
+								<div class="text-xs text-gray-500">Total Trades</div>
+								<div class="text-xl font-bold text-white">{weekData.stats.totalTrades}</div>
+							</div>
+							<div>
+								<div class="text-xs text-gray-500">Win Rate</div>
+								<div class="text-xl font-bold {weekData.stats.winRate >= 50 ? 'text-green-400' : 'text-amber-400'}">
+									{weekData.stats.winRate.toFixed(0)}%
+								</div>
+							</div>
+							<div>
+								<div class="text-xs text-gray-500">Profit Factor</div>
+								<div class="text-xl font-bold {weekData.stats.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">
+									{formatNumber(weekData.stats.profitFactor)}
+								</div>
+							</div>
+							<div>
+								<div class="text-xs text-gray-500">W / L</div>
+								<div class="text-xl font-bold text-white">
+									<span class="text-green-400">{weekData.stats.winners}</span>
+									<span class="text-gray-600 mx-1">/</span>
+									<span class="text-red-400">{weekData.stats.losers}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Daily P&L bar chart (simple CSS bars) -->
+						{#if weekData.dayCards.some((c: any) => c.hasData)}
+							{@const maxPnl = Math.max(...weekData.dayCards.map((c: any) => Math.abs(c.pnl)), 1)}
+							<div class="mt-6">
+								<div class="text-xs text-gray-500 mb-2">Daily P&L</div>
+								<div class="flex items-end gap-2 h-24">
+									{#each weekData.dayCards as card}
+										<div class="flex-1 flex flex-col items-center justify-end h-full">
+											{#if card.hasData}
+												<div
+													class="w-full rounded-t {card.pnl >= 0 ? 'bg-green-500/60' : 'bg-red-500/60'}"
+													style="height: {Math.max((Math.abs(card.pnl) / maxPnl) * 80, 4)}%"
+												></div>
+											{:else}
+												<div class="w-full h-[2px] bg-gray-700 rounded"></div>
+											{/if}
+											<div class="text-[10px] text-gray-500 mt-1">{card.day.slice(0, 2)}</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/if}
+					</div>
+				{/if}
+
+				<!-- Trade list -->
+				<div class="card">
+					<h3 class="text-sm font-medium text-gray-400 mb-3">Trades this week</h3>
+					{#if weekData.trades.length === 0}
+						<EmptyState message="ไม่มี trade ในสัปดาห์นี้" />
+					{:else}
+						<div class="overflow-x-auto">
+							<table class="w-full text-sm">
+								<thead>
+									<tr class="border-b border-dark-border text-gray-500 text-xs">
+										<th class="text-left py-2">Day</th>
+										<th class="text-left py-2">Time</th>
+										<th class="text-left py-2">Symbol</th>
+										<th class="text-left py-2">Side</th>
+										<th class="text-right py-2">P&L</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each weekData.trades as trade}
+										<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
+											<td class="py-3 text-gray-400 text-xs">{new Date(trade.close_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
+											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+											<td class="py-3">
+												<a href="/portfolio/trades/{trade.id}" class="font-medium text-white hover:text-brand-primary">{trade.symbol}</a>
+											</td>
+											<td class="py-3">
+												<span class="text-xs px-1.5 py-0.5 rounded {trade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
+													{trade.type}
+												</span>
+											</td>
+											<td class="py-3 text-right font-medium {Number(trade.profit) >= 0 ? 'text-green-400' : 'text-red-400'}">
+												{formatCurrency(trade.profit)}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{/if}
+				</div>
+			</div>
+		{/if}
+	{/if}
+</div>
