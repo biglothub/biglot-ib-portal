@@ -3,6 +3,7 @@ import { parsePortfolioFilters } from '$lib/portfolio';
 import {
 	buildDailyHistory,
 	buildFilterOptions,
+	buildKpiMetrics,
 	buildReportExplorer,
 	buildReviewSummary
 } from '$lib/server/portfolio';
@@ -57,6 +58,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const trades = report.filteredTrades;
 	const dailyHistory = buildDailyHistory(trades);
 	const reviewSummary = buildReviewSummary(trades);
+	const kpiMetrics = buildKpiMetrics(trades, dailyHistory);
 
 	// Build command center from already-computed data (avoid duplicate computation)
 	const latestDay = dailyHistory[dailyHistory.length - 1] || null;
@@ -104,6 +106,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		setupPerformance: report.setupPerformance,
 		ruleBreakMetrics: report.ruleBreakMetrics,
 		journalSummary: report.journalSummary,
-		reviewSummary
+		reviewSummary,
+		kpiMetrics
 	};
 };

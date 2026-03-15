@@ -3,6 +3,7 @@
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import EquityChart from '$lib/components/charts/EquityChart.svelte';
 	import DailyPnlChart from '$lib/components/charts/DailyPnlChart.svelte';
+	import CumulativePnlChart from '$lib/components/charts/CumulativePnlChart.svelte';
 	import TradingScoreRadar from '$lib/components/charts/TradingScoreRadar.svelte';
 	import MiniCalendar from '$lib/components/portfolio/MiniCalendar.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
@@ -24,7 +25,8 @@
 		playbooks,
 		setupPerformance,
 		ruleBreakMetrics,
-		journalSummary
+		journalSummary,
+		kpiMetrics
 	} = $derived(data);
 	let safeCommandCenter = $derived(commandCenter || {
 		today: { pnl: 0, trades: 0, reviewedTrades: 0, completedJournal: false },
@@ -35,10 +37,15 @@
 	let safeRuleBreakMetrics = $derived(ruleBreakMetrics || { totalRuleBreaks: 0, ruleBreakLoss: 0, topRules: [] });
 	let safeSetupPerformance = $derived(setupPerformance || []);
 
-	// Enhanced metric card calculations
-	let totalTrades = $derived(latestStats?.total_trades || 0);
-	let winCount = $derived(Math.round((latestStats?.win_rate || 0) * totalTrades / 100));
-	let lossCount = $derived(totalTrades - winCount);
+	// KPI calculations from server
+	let kpi = $derived(kpiMetrics || {
+		netPnl: 0, totalTrades: 0, winningTrades: 0, losingTrades: 0, breakEvenTrades: 0,
+		tradeWinRate: 0, profitFactor: 0, dayWinRate: 0, profitableDays: 0,
+		totalTradingDays: 0, avgWin: 0, avgLoss: 0, avgWinLossRatio: 0, cumulativePnl: []
+	});
+	let totalTrades = $derived(kpi.totalTrades);
+	let winCount = $derived(kpi.winningTrades);
+	let lossCount = $derived(kpi.losingTrades);
 </script>
 
 {#if !latestStats && (!commandCenter || !data.account)}
@@ -56,38 +63,71 @@
 			pageKey="overview"
 		/>
 
-		<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+		<!-- Primary KPIs -->
+		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<MetricCard
+				label="Net P&L"
+				value={formatCurrency(kpi.netPnl)}
+				color={kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}
+				subValue={totalTrades > 0 ? `${totalTrades} trades` : ''}
+			/>
+			<MetricCard
+				label="Trade Win Rate"
+				value={formatPercent(kpi.tradeWinRate).replace('+', '')}
+				color={kpi.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}
+				donutPercent={kpi.tradeWinRate}
+				tradeCount={totalTrades > 0 ? { wins: winCount, losses: lossCount } : undefined}
+			/>
+			<MetricCard
+				label="Profit Factor"
+				value={kpi.profitFactor >= 999 ? '∞' : formatNumber(kpi.profitFactor)}
+				color={kpi.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}
+				donutPercent={Math.min((kpi.profitFactor / 3) * 100, 100)}
+			/>
+			<MetricCard
+				label="Day Win Rate"
+				value={formatPercent(kpi.dayWinRate).replace('+', '')}
+				color={kpi.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}
+				donutPercent={kpi.dayWinRate}
+				subValue={kpi.totalTradingDays > 0 ? `${kpi.profitableDays}W / ${kpi.totalTradingDays - kpi.profitableDays}L days` : ''}
+			/>
+		</div>
+
+		<!-- Secondary KPIs -->
+		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 			<MetricCard
 				label="Balance"
 				value={formatCurrency(latestStats?.balance || 0)}
-				subValue={totalTrades > 0 ? `${totalTrades} trades` : ''}
 			/>
 			<MetricCard
 				label="Equity"
 				value={formatCurrency(latestStats?.equity || 0)}
 			/>
 			<MetricCard
-				label="Win Rate"
-				value={formatPercent(latestStats?.win_rate || 0).replace('+', '')}
-				color={(latestStats?.win_rate || 0) >= 50 ? 'text-green-400' : 'text-amber-400'}
-				donutPercent={latestStats?.win_rate || 0}
-				tradeCount={totalTrades > 0 ? { wins: winCount, losses: lossCount } : undefined}
-			/>
-			<MetricCard
-				label="Profit Factor"
-				value={formatNumber(latestStats?.profit_factor || 0)}
-				color={(latestStats?.profit_factor || 0) >= 1 ? 'text-green-400' : 'text-red-400'}
+				label="Avg Win/Loss"
+				value={kpi.avgWinLossRatio >= 999 ? '∞' : formatNumber(kpi.avgWinLossRatio, 2)}
+				color={kpi.avgWinLossRatio >= 1 ? 'text-green-400' : 'text-red-400'}
+				barData={kpi.avgWin > 0 || kpi.avgLoss > 0 ? {
+					left: { value: formatCurrency(kpi.avgWin), color: 'text-green-400' },
+					right: { value: formatCurrency(-kpi.avgLoss), color: 'text-red-400' }
+				} : undefined}
 			/>
 			<MetricCard
 				label="Expectancy"
-				value={formatCurrency(totalTrades > 0 ? (latestStats?.balance || 0) / totalTrades : 0)}
-				color={(latestStats?.balance || 0) >= 0 ? 'text-green-400' : 'text-red-400'}
+				value={formatCurrency(totalTrades > 0 ? kpi.netPnl / totalTrades : 0)}
+				color={kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}
 			/>
 		</div>
 
 		{#if (equitySnapshots && equitySnapshots.length > 1) || (equityCurve && equityCurve.length > 1)}
 			<div class="card">
 				<EquityChart {equitySnapshots} {equityCurve} />
+			</div>
+		{/if}
+
+		{#if kpi.cumulativePnl && kpi.cumulativePnl.length > 1}
+			<div class="card">
+				<CumulativePnlChart data={kpi.cumulativePnl} />
 			</div>
 		{/if}
 
@@ -100,10 +140,13 @@
 		<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
 			<div class="card xl:col-span-1">
 				<TradingScoreRadar
-					winRate={latestStats?.win_rate || 0}
-					profitFactor={latestStats?.profit_factor || 0}
-					avgWin={latestStats?.avg_win || 0}
-					avgLoss={latestStats?.avg_loss || 0}
+					winRate={kpi.tradeWinRate}
+					profitFactor={kpi.profitFactor >= 999 ? 3 : kpi.profitFactor}
+					avgWin={kpi.avgWin}
+					avgLoss={kpi.avgLoss}
+					recoveryFactor={kpi.recoveryFactor || 0}
+					maxDrawdownPct={kpi.maxDrawdownPct || 0}
+					consistency={kpi.consistency || 0}
 				/>
 			</div>
 			<div class="card xl:col-span-1 space-y-4">

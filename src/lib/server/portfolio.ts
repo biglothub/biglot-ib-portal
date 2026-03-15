@@ -127,6 +127,109 @@ export function buildDailyHistory(trades: Trade[]) {
 		.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Build enhanced KPI metrics for dashboard
+ * Calculates: Net P&L, Day Win%, Avg Win, Avg Loss, and cumulative P&L series
+ */
+export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof buildDailyHistory>) {
+	if (!trades || trades.length === 0) {
+		return {
+			netPnl: 0,
+			totalTrades: 0,
+			winningTrades: 0,
+			losingTrades: 0,
+			breakEvenTrades: 0,
+			tradeWinRate: 0,
+			profitFactor: 0,
+			dayWinRate: 0,
+			profitableDays: 0,
+			totalTradingDays: 0,
+			avgWin: 0,
+			avgLoss: 0,
+			avgWinLossRatio: 0,
+			cumulativePnl: [] as Array<{ date: string; value: number }>
+		};
+	}
+
+	// Net P&L
+	const netPnl = trades.reduce((sum, t) => sum + Number(t.profit || 0), 0);
+
+	// Trade counts
+	const wins = trades.filter(t => Number(t.profit || 0) > 0);
+	const losses = trades.filter(t => Number(t.profit || 0) < 0);
+	const breakEven = trades.filter(t => Number(t.profit || 0) === 0);
+
+	// Trade Win Rate
+	const tradeWinRate = trades.length > 0 ? (wins.length / trades.length) * 100 : 0;
+
+	// Profit Factor
+	const totalWinning = wins.reduce((sum, t) => sum + Number(t.profit || 0), 0);
+	const totalLosing = Math.abs(losses.reduce((sum, t) => sum + Number(t.profit || 0), 0));
+	const profitFactor = totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0;
+
+	// Avg Win / Avg Loss
+	const avgWin = wins.length > 0 ? totalWinning / wins.length : 0;
+	const avgLoss = losses.length > 0 ? totalLosing / losses.length : 0;
+	const avgWinLossRatio = avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? Infinity : 0;
+
+	// Day Win Rate
+	const profitableDays = dailyHistory.filter(d => d.profit > 0).length;
+	const losingDays = dailyHistory.filter(d => d.profit < 0).length;
+	const totalTradingDays = profitableDays + losingDays;
+	const dayWinRate = totalTradingDays > 0 ? (profitableDays / totalTradingDays) * 100 : 0;
+
+	// Cumulative P&L series (for line chart)
+	let cumulative = 0;
+	const cumulativePnl = dailyHistory.map(d => {
+		cumulative += d.profit;
+		return { date: d.date, value: cumulative };
+	});
+
+	// Recovery Factor: Net P&L / Max Drawdown
+	let peak = 0;
+	let maxDrawdown = 0;
+	let runningPnl = 0;
+	for (const d of dailyHistory) {
+		runningPnl += d.profit;
+		if (runningPnl > peak) peak = runningPnl;
+		const dd = peak - runningPnl;
+		if (dd > maxDrawdown) maxDrawdown = dd;
+	}
+	const recoveryFactor = maxDrawdown > 0 ? netPnl / maxDrawdown : netPnl > 0 ? 5 : 0;
+	const maxDrawdownPct = peak > 0 ? (maxDrawdown / peak) * 100 : 0;
+
+	// Consistency: 1 - (StdDev / Mean) of daily P&L, clamped to 0-1
+	const dailyProfits = dailyHistory.map(d => d.profit);
+	let consistency = 0;
+	if (dailyProfits.length > 1) {
+		const mean = dailyProfits.reduce((a, b) => a + b, 0) / dailyProfits.length;
+		const variance = dailyProfits.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / dailyProfits.length;
+		const stdDev = Math.sqrt(variance);
+		const cv = Math.abs(mean) > 0 ? stdDev / Math.abs(mean) : 0;
+		consistency = Math.max(0, Math.min(1, 1 - cv / 3)); // normalize: cv=0 → 1, cv=3+ → 0
+	}
+
+	return {
+		netPnl,
+		totalTrades: trades.length,
+		winningTrades: wins.length,
+		losingTrades: losses.length,
+		breakEvenTrades: breakEven.length,
+		tradeWinRate,
+		profitFactor: profitFactor === Infinity ? 999 : profitFactor,
+		dayWinRate,
+		profitableDays,
+		totalTradingDays,
+		avgWin,
+		avgLoss,
+		avgWinLossRatio: avgWinLossRatio === Infinity ? 999 : avgWinLossRatio,
+		cumulativePnl,
+		recoveryFactor: Math.min(recoveryFactor, 10),
+		maxDrawdownPct,
+		consistency
+	};
+}
+
 export function buildSetupPerformance(trades: Trade[]) {
 	const buckets: Map<string, { name: string; trades: Trade[]; playbookId: string | null }> = new Map();
 

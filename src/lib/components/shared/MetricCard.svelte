@@ -55,11 +55,15 @@
 		{/if}
 	</div>
 	{#if barData}
+		{@const leftNum = parseFloat(barData.left.value.replace(/[^0-9.-]/g, '')) || 0}
+		{@const rightNum = Math.abs(parseFloat(barData.right.value.replace(/[^0-9.-]/g, '')) || 0)}
+		{@const total = leftNum + rightNum}
+		{@const leftPct = total > 0 ? (leftNum / total) * 100 : 50}
 		<div class="flex items-center gap-1.5 mt-2">
 			<span class="text-[10px] font-mono {barData.left.color}">{barData.left.value}</span>
 			<div class="flex-1 h-1.5 rounded-full overflow-hidden bg-dark-border flex">
-				<div class="bg-green-500/70 h-full rounded-l-full" style="width: 50%"></div>
-				<div class="bg-red-500/70 h-full rounded-r-full" style="width: 50%"></div>
+				<div class="bg-green-500/70 h-full rounded-l-full" style="width: {leftPct}%"></div>
+				<div class="bg-red-500/70 h-full rounded-r-full" style="width: {100 - leftPct}%"></div>
 			</div>
 			<span class="text-[10px] font-mono {barData.right.color}">{barData.right.value}</span>
 		</div>

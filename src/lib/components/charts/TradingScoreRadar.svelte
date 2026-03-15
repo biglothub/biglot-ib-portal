@@ -3,42 +3,67 @@
 		winRate = 0,
 		profitFactor = 0,
 		avgWin = 0,
-		avgLoss = 0
+		avgLoss = 0,
+		recoveryFactor = 0,
+		maxDrawdownPct = 0,
+		consistency = 0
 	}: {
 		winRate?: number;
 		profitFactor?: number;
 		avgWin?: number;
 		avgLoss?: number;
+		recoveryFactor?: number;
+		maxDrawdownPct?: number;
+		consistency?: number;
 	} = $props();
 
 	const CX = 130;
-	const CY = 95;
-	const R = 60;
+	const CY = 110;
+	const R = 70;
 
-	// Angles: top (-90°), bottom-right (30°), bottom-left (150°)
+	// 6 axes evenly spaced (60° apart), starting from top
 	const axes = [
-		{ angle: -90, label: 'Win %' },
-		{ angle: 30, label: 'Profit Factor' },
-		{ angle: 150, label: 'Avg Win/Loss' }
+		{ angle: -90, label: 'Win %', shortLabel: 'Win' },
+		{ angle: -30, label: 'Profit Factor', shortLabel: 'PF' },
+		{ angle: 30, label: 'Avg W/L', shortLabel: 'W/L' },
+		{ angle: 90, label: 'Recovery', shortLabel: 'Rec' },
+		{ angle: 150, label: 'Drawdown', shortLabel: 'DD' },
+		{ angle: 210, label: 'Consistency', shortLabel: 'Con' }
 	];
 
 	function toRad(deg: number) { return (deg * Math.PI) / 180; }
 	function px(angle: number, pct: number) { return CX + R * (pct / 100) * Math.cos(toRad(angle)); }
 	function py(angle: number, pct: number) { return CY + R * (pct / 100) * Math.sin(toRad(angle)); }
 
-	// Normalize to 0-100
+	// Normalize all metrics to 0-100 scale
 	const nWinRate = $derived(Math.min(Math.max(winRate || 0, 0), 100));
 	const nPF = $derived(Math.min(((profitFactor || 0) / 3) * 100, 100));
 	const wlRatio = $derived((avgLoss || 0) !== 0 ? Math.abs((avgWin || 0) / (avgLoss || 1)) : 0);
 	const nRatio = $derived(Math.min((wlRatio / 3) * 100, 100));
 
-	const score = $derived(Math.round(nWinRate * 0.35 + nPF * 0.35 + nRatio * 0.30));
+	// New metrics normalized to 0-100
+	// Recovery Factor: Net P&L / Max Drawdown (good = > 3, normalize /5 * 100)
+	const nRecovery = $derived(Math.min(((recoveryFactor || 0) / 5) * 100, 100));
+	// Max Drawdown: inverted — low drawdown = high score (0% DD = 100 score, 50%+ DD = 0)
+	const nDrawdown = $derived(Math.max(0, Math.min(100, 100 - (maxDrawdownPct || 0) * 2)));
+	// Consistency: 0-1 scale → 0-100 (1 = perfectly consistent)
+	const nConsistency = $derived(Math.min(Math.max((consistency || 0) * 100, 0), 100));
+
+	const values = $derived([nWinRate, nPF, nRatio, nRecovery, nDrawdown, nConsistency]);
+
+	// Overall score (weighted average)
+	const score = $derived(Math.round(
+		nWinRate * 0.20 +
+		nPF * 0.20 +
+		nRatio * 0.15 +
+		nRecovery * 0.15 +
+		nDrawdown * 0.15 +
+		nConsistency * 0.15
+	));
 
 	// Data polygon points
 	const dataPoints = $derived(
-		`${px(axes[0].angle, nWinRate)},${py(axes[0].angle, nWinRate)} ` +
-		`${px(axes[1].angle, nPF)},${py(axes[1].angle, nPF)} ` +
-		`${px(axes[2].angle, nRatio)},${py(axes[2].angle, nRatio)}`
+		axes.map((a, i) => `${px(a.angle, values[i])},${py(a.angle, values[i])}`).join(' ')
 	);
 
 	// Grid polygon helper
@@ -50,6 +75,16 @@
 	const scoreColor = $derived(
 		score >= 70 ? 'text-green-400' : score >= 40 ? 'text-amber-400' : 'text-red-400'
 	);
+
+	// Label positions (slightly outside the chart)
+	function labelX(angle: number) { return CX + (R + 18) * Math.cos(toRad(angle)); }
+	function labelY(angle: number) { return CY + (R + 18) * Math.sin(toRad(angle)); }
+	function labelAnchor(angle: number) {
+		const cos = Math.cos(toRad(angle));
+		if (cos > 0.3) return 'start';
+		if (cos < -0.3) return 'end';
+		return 'middle';
+	}
 </script>
 
 <div class="w-full">
@@ -57,7 +92,7 @@
 		<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Trading Score</p>
 	</div>
 
-	<svg viewBox="0 0 260 190" class="w-full max-w-[300px] mx-auto">
+	<svg viewBox="0 0 260 230" class="w-full max-w-[300px] mx-auto">
 		<!-- Grid rings -->
 		{#each [25, 50, 75, 100] as pct}
 			<polygon
@@ -88,20 +123,28 @@
 		/>
 
 		<!-- Data points -->
-		<circle cx={px(axes[0].angle, nWinRate)} cy={py(axes[0].angle, nWinRate)} r="3.5" fill="#C9A84C" />
-		<circle cx={px(axes[1].angle, nPF)} cy={py(axes[1].angle, nPF)} r="3.5" fill="#C9A84C" />
-		<circle cx={px(axes[2].angle, nRatio)} cy={py(axes[2].angle, nRatio)} r="3.5" fill="#C9A84C" />
+		{#each axes as axis, i}
+			<circle
+				cx={px(axis.angle, values[i])}
+				cy={py(axis.angle, values[i])}
+				r="3"
+				fill="#C9A84C"
+			/>
+		{/each}
 
 		<!-- Axis labels -->
-		<text x={CX} y={py(axes[0].angle, 100) - 12} text-anchor="middle" class="fill-gray-400" style="font-size: 10px">
-			Win %
-		</text>
-		<text x={px(axes[1].angle, 100) + 10} y={py(axes[1].angle, 100) + 14} text-anchor="start" class="fill-gray-400" style="font-size: 10px">
-			Profit Factor
-		</text>
-		<text x={px(axes[2].angle, 100) - 10} y={py(axes[2].angle, 100) + 14} text-anchor="end" class="fill-gray-400" style="font-size: 10px">
-			Avg Win/Loss
-		</text>
+		{#each axes as axis}
+			<text
+				x={labelX(axis.angle)}
+				y={labelY(axis.angle)}
+				text-anchor={labelAnchor(axis.angle)}
+				dominant-baseline="middle"
+				class="fill-gray-400"
+				style="font-size: 9px"
+			>
+				{axis.label}
+			</text>
+		{/each}
 	</svg>
 
 	<div class="text-center -mt-2">
