@@ -6,6 +6,7 @@
 	import CumulativePnlChart from '$lib/components/charts/CumulativePnlChart.svelte';
 	import TradingScoreRadar from '$lib/components/charts/TradingScoreRadar.svelte';
 	import MiniCalendar from '$lib/components/portfolio/MiniCalendar.svelte';
+	import OverviewSkeleton from '$lib/components/portfolio/OverviewSkeleton.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
@@ -48,11 +49,13 @@
 	let lossCount = $derived(kpi.losingTrades);
 </script>
 
-{#if !latestStats && (!commandCenter || !data.account)}
+{#if !data.account}
 	<div class="card text-center py-12">
 		<h2 class="text-lg font-medium text-white mb-2">ยังไม่มีบัญชีที่อนุมัติ</h2>
 		<p class="text-sm text-gray-400">กรุณาติดต่อ Master IB ของคุณ</p>
 	</div>
+{:else if !latestStats && !kpiMetrics}
+	<OverviewSkeleton />
 {:else}
 	<div class="space-y-6">
 		<PortfolioFilterBar

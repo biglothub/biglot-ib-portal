@@ -106,6 +106,18 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		};
 	}
 
+	// Intraday cumulative P&L series for mini chart
+	let intradayCumPnl: Array<{ time: number; value: number }> = [];
+	if (dayTrades.length > 0) {
+		let cumPnl = 0;
+		intradayCumPnl = [...dayTrades]
+			.sort((a: any, b: any) => new Date(a.close_time).getTime() - new Date(b.close_time).getTime())
+			.map((t: any) => {
+				cumPnl += Number(t.profit || 0);
+				return { time: Math.floor(new Date(t.close_time).getTime() / 1000), value: cumPnl };
+			});
+	}
+
 	// Calendar data: P&L per day for current month
 	const calendarDays = dailyHistory.map(d => ({
 		date: d.date,
@@ -119,6 +131,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		dayTrades,
 		daySummary,
 		weekData,
-		calendarDays
+		calendarDays,
+		intradayCumPnl
 	};
 };

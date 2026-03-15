@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 
 	let { data } = $props();
@@ -332,13 +333,14 @@
 				>Save</button>
 			</div>
 
-			<!-- Content editor (textarea for now, tiptap can be added later) -->
-			<textarea
-				bind:value={editContent}
-				oninput={scheduleSave}
-				placeholder="Start writing..."
-				class="flex-1 w-full bg-transparent text-sm text-gray-200 placeholder-gray-600 outline-none resize-none leading-relaxed"
-			></textarea>
+			<!-- Rich text editor -->
+			<div class="flex-1 overflow-y-auto">
+				<TiptapEditor
+					content={editContent}
+					onupdate={(html) => { editContent = html; scheduleSave(); }}
+					placeholder="Start writing..."
+				/>
+			</div>
 		{:else}
 			<div class="flex-1 flex items-center justify-center">
 				<EmptyState message="Select a note or create a new one" />

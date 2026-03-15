@@ -4,11 +4,13 @@
 	import AnalyticsDashboard from '$lib/components/portfolio/AnalyticsDashboard.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import CumulativePnlChart from '$lib/components/charts/CumulativePnlChart.svelte';
+	import ConfigurableMetricChart from '$lib/components/charts/ConfigurableMetricChart.svelte';
+	import StatsOverviewTable from '$lib/components/reports/StatsOverviewTable.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatNumber, formatPercent } from '$lib/utils';
 
 	let { data } = $props();
-	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, calendarDays, kpiMetrics } = $derived(data);
+	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, calendarDays, kpiMetrics, statsOverview } = $derived(data);
 
 	// Sub-tab state from URL
 	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
@@ -113,6 +115,29 @@
 
 	// Available symbols for compare
 	const availableSymbols = $derived([...new Set((report?.filteredTrades || []).map((t: any) => t.symbol))].sort());
+
+	// Export PDF
+	let exporting = $state(false);
+	async function exportPdf() {
+		exporting = true;
+		try {
+			const res = await fetch('/api/portfolio/reports/export-pdf', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ filters: window.location.search })
+			});
+			if (!res.ok) return;
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `trading-report-${new Date().toISOString().split('T')[0]}.pdf`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			exporting = false;
+		}
+	}
 </script>
 
 <div class="space-y-6">
@@ -125,15 +150,25 @@
 		pageKey="analytics"
 	/>
 
-	<!-- Sub-tab navigation -->
-	<div class="flex gap-1 bg-dark-surface rounded-lg p-1 overflow-x-auto">
-		{#each subTabs as tab}
-			<button
-				class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap
-					{activeTab === tab.key ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
-				onclick={() => switchTab(tab.key)}
-			>{tab.label}</button>
-		{/each}
+	<!-- Sub-tab navigation + Export -->
+	<div class="flex items-center justify-between gap-3">
+		<div class="flex gap-1 bg-dark-surface rounded-lg p-1 overflow-x-auto">
+			{#each subTabs as tab}
+				<button
+					class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap
+						{activeTab === tab.key ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
+					onclick={() => switchTab(tab.key)}
+				>{tab.label}</button>
+			{/each}
+		</div>
+		<button
+			onclick={exportPdf}
+			disabled={exporting}
+			class="flex items-center gap-1.5 rounded-lg border border-dark-border px-3 py-2 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors disabled:opacity-50 whitespace-nowrap"
+		>
+			<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+			{exporting ? 'Exporting...' : 'Export PDF'}
+		</button>
 	</div>
 
 	{#if !report}
@@ -163,6 +198,13 @@
 				<div class="mt-1 text-2xl font-semibold text-white">{report.filteredTrades?.length || 0}</div>
 			</div>
 		</div>
+
+		{#if statsOverview && statsOverview.length > 0}
+			<div class="card">
+				<h2 class="text-lg font-semibold text-white mb-4">Your Stats</h2>
+				<StatsOverviewTable sections={statsOverview} />
+			</div>
+		{/if}
 
 		{#if report.analytics}
 			<AnalyticsDashboard analytics={report.analytics} />
@@ -267,14 +309,24 @@
 		</div>
 
 	{:else if activeTab === 'performance'}
-		<!-- PERFORMANCE VIEW -->
-		<div class="card">
-			<h2 class="text-lg font-semibold text-white mb-4">Performance</h2>
-			{#if kpiMetrics?.cumulativePnl && kpiMetrics.cumulativePnl.length > 1}
-				<CumulativePnlChart data={kpiMetrics.cumulativePnl} height={300} />
-			{:else}
-				<EmptyState message="ไม่มีข้อมูลเพียงพอสำหรับแสดง chart" />
-			{/if}
+		<!-- PERFORMANCE VIEW — Dual Configurable Charts -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+			<div class="card">
+				<ConfigurableMetricChart
+					dailyHistory={calendarDays?.map((d: any) => ({ date: d.date, profit: d.pnl, totalTrades: d.trades })) || []}
+					defaultMetric="net_pnl_cumulative"
+					defaultTimeframe="day"
+					height={280}
+				/>
+			</div>
+			<div class="card">
+				<ConfigurableMetricChart
+					dailyHistory={calendarDays?.map((d: any) => ({ date: d.date, profit: d.pnl, totalTrades: d.trades })) || []}
+					defaultMetric="win_rate"
+					defaultTimeframe="day"
+					height={280}
+				/>
+			</div>
 		</div>
 
 		<!-- Summary stats -->

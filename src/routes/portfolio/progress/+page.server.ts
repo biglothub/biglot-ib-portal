@@ -5,6 +5,7 @@ import {
 	buildReviewSummary
 } from '$lib/server/portfolio';
 import { calculateChecklistStreak, buildChecklistHeatmap } from '$lib/server/checklist';
+import { buildRulesAnalytics } from '$lib/server/rules-analytics';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
@@ -43,6 +44,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 	const checklistCompletions = completionsRes.data || [];
 	const checklistStreak = calculateChecklistStreak(checklistCompletions, checklistRules);
 	const heatmapData = buildChecklistHeatmap(checklistCompletions, checklistRules, 12);
+	const rulesAnalytics = buildRulesAnalytics(checklistRules, checklistCompletions, dailyHistory);
 
 	return {
 		goals: baseData.progressGoals,
@@ -57,6 +59,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		checklistRules,
 		checklistCompletions,
 		checklistStreak,
-		heatmapData
+		heatmapData,
+		rulesAnalytics
 	};
 };

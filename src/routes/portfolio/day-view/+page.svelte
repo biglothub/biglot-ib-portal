@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import DayMiniPnlChart from '$lib/components/charts/DayMiniPnlChart.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
 
 	let { data } = $props();
-	let { selectedDate, viewMode, dayTrades, daySummary, weekData, calendarDays } = $derived(data);
+	let { selectedDate, viewMode, dayTrades, daySummary, weekData, calendarDays, intradayCumPnl } = $derived(data);
 
 	// Calendar state
 	let calendarDate = $derived(new Date((selectedDate || new Date().toISOString().split('T')[0]) + 'T00:00:00'));
@@ -157,6 +158,33 @@
 						</div>
 					{/if}
 				</div>
+
+				<!-- Mini P&L chart + Add note -->
+				{#if intradayCumPnl && intradayCumPnl.length > 1}
+					<div class="card">
+						<div class="flex items-center justify-between mb-2">
+							<h3 class="text-sm font-medium text-gray-400">Intraday P&L</h3>
+							<a
+								href="/portfolio/notebook?linked_date={selectedDate}"
+								class="flex items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
+							>
+								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+								Add note
+							</a>
+						</div>
+						<DayMiniPnlChart data={intradayCumPnl} />
+					</div>
+				{:else if daySummary}
+					<div class="flex justify-end">
+						<a
+							href="/portfolio/notebook?linked_date={selectedDate}"
+							class="flex items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
+						>
+							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+							Add note
+						</a>
+					</div>
+				{/if}
 
 				<!-- Trade list -->
 				<div class="card">

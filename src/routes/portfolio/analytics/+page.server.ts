@@ -7,6 +7,7 @@ import {
 	buildReportExplorer,
 	buildSymbolBreakdown
 } from '$lib/server/portfolio';
+import { buildStatsOverview } from '$lib/server/stats-overview';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
@@ -32,6 +33,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const dailyHistory = buildDailyHistory(report.filteredTrades);
 	const symbolBreakdown = buildSymbolBreakdown(report.filteredTrades);
 	const kpiMetrics = buildKpiMetrics(report.filteredTrades, dailyHistory);
+	const statsOverview = buildStatsOverview(report.filteredTrades, dailyHistory, report.analytics);
 
 	return {
 		filterState,
@@ -50,6 +52,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		savedViews: savedViews.filter((view: any) => view.page === 'analytics'),
 		symbolBreakdown,
 		calendarDays: dailyHistory.map(d => ({ date: d.date, pnl: d.profit, trades: d.totalTrades })),
-		kpiMetrics
+		kpiMetrics,
+		statsOverview
 	};
 };
