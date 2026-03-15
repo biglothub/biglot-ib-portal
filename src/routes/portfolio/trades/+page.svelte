@@ -4,6 +4,8 @@
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
+	import InsightBadge from '$lib/components/portfolio/InsightBadge.svelte';
+	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
 	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
 
@@ -17,6 +19,8 @@
 	let tags = $derived(data.tags || []);
 	let playbooks = $derived(data.playbooks || []);
 	let savedViews = $derived(data.savedViews || []);
+	let tradeInsights = $derived(data.tradeInsights || {});
+	let tradeScores = $derived(data.tradeScores || {});
 
 	let groupBy = $state<'none' | 'day' | 'session' | 'setup'>('day');
 	const totalPages = $derived(Math.ceil(total / pageSize));
@@ -127,6 +131,8 @@
 									<th class="text-left py-2">Tags</th>
 									<th class="text-center py-2">Notes</th>
 									<th class="text-center py-2">Files</th>
+									<th class="text-center py-2">Insights</th>
+									<th class="text-center py-2">Quality</th>
 									<th class="text-right py-2">P/L</th>
 									<th class="text-right py-2">Time</th>
 								</tr>
@@ -162,6 +168,21 @@
 										</td>
 										<td class="py-3 text-center text-gray-300">{(trade.trade_notes || []).length || '—'}</td>
 										<td class="py-3 text-center text-gray-300">{(trade.trade_attachments || []).length || '—'}</td>
+										<td class="py-3 text-center">
+											{#if tradeInsights[trade.id]}
+												{@const ins = tradeInsights[trade.id]}
+												<InsightBadge
+													count={ins.length}
+													positive={ins.filter((i: any) => i.category === 'positive').length}
+													negative={ins.filter((i: any) => i.category === 'negative').length}
+												/>
+											{/if}
+										</td>
+										<td class="py-3 text-center">
+											{#if tradeScores[trade.id] !== undefined}
+												<QualityScoreBar score={tradeScores[trade.id]} />
+											{/if}
+										</td>
 										<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 											{formatCurrency(trade.profit)}
 										</td>

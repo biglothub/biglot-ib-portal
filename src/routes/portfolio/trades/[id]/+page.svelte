@@ -5,12 +5,16 @@
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import TradeContextChart from '$lib/components/portfolio/TradeContextChart.svelte';
 	import TradeReplayChart from '$lib/components/portfolio/TradeReplayChart.svelte';
+	import InsightsSection from '$lib/components/portfolio/InsightsSection.svelte';
+	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
 
 	let { data } = $props();
 	let { trade, relatedTrades, chartContexts, dayJournal, playbooks } = $derived(data);
 	let similarReviewedTrades = $derived(data.similarReviewedTrades || []);
 	let tags = $derived(data.tags || []);
+	let insights = $derived(data.insights || []);
+	let qualityScore = $derived(data.qualityScore || 0);
 
 	let noteContent = $state('');
 	let noteRating = $state<number | null>(null);
@@ -407,7 +411,20 @@
 							{relatedTrades.length} same-symbol trades • {similarReviewedTrades.length} similar reviewed trades
 						</div>
 					</div>
+
+					{#if qualityScore > 0}
+						<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
+							<div class="text-xs text-gray-500 mb-2">Quality Score</div>
+							<QualityScoreBar score={qualityScore} />
+						</div>
+					{/if}
 				</div>
+
+				{#if insights.length > 0}
+					<div class="mt-6">
+						<InsightsSection {insights} />
+					</div>
+				{/if}
 			</div>
 		</div>
 

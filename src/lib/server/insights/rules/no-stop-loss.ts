@@ -1,0 +1,17 @@
+import type { InsightRule } from '../types';
+
+/** Trade was opened without a stop loss */
+export const noStopLossRule: InsightRule = {
+	id: 'no_stop_loss',
+	name: 'No Stop Loss',
+	evaluate(trade) {
+		if (trade.sl && trade.sl > 0) return null;
+
+		return {
+			ruleId: this.id,
+			category: 'negative',
+			message: `No stop loss set — trading without SL increases risk significantly`,
+			data: { symbol: trade.symbol }
+		};
+	}
+};

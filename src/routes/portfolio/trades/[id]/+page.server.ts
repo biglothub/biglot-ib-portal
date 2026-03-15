@@ -1,4 +1,5 @@
 import { fetchTradeChartContext } from '$lib/server/portfolio';
+import { evaluateTradeInsights, calculateQualityScore } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
@@ -62,12 +63,30 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 				)
 	).slice(0, 5);
 
+	// Compute insights for this trade using all related trades as context
+	const allTradesForContext = [...(relatedTradesRes.data || []), trade];
+	const insights = evaluateTradeInsights(trade, allTradesForContext);
+
+	// Build context for quality score
+	const symbolTrades = allTradesForContext.filter((t: any) => t.symbol === trade.symbol);
+	const symbolWins = symbolTrades.filter((t: any) => Number(t.profit || 0) > 0);
+	const symbolLosses = symbolTrades.filter((t: any) => Number(t.profit || 0) < 0);
+	const qualityScore = calculateQualityScore(trade, {
+		allTrades: allTradesForContext,
+		symbolTrades,
+		avgSymbolWin: symbolWins.length > 0 ? symbolWins.reduce((s: number, t: any) => s + Number(t.profit || 0), 0) / symbolWins.length : 0,
+		avgSymbolLoss: symbolLosses.length > 0 ? Math.abs(symbolLosses.reduce((s: number, t: any) => s + Number(t.profit || 0), 0)) / symbolLosses.length : 0,
+		avgSymbolHoldMinutes: symbolTrades.length > 0 ? symbolTrades.reduce((s: number, t: any) => s + (new Date(t.close_time).getTime() - new Date(t.open_time).getTime()) / 60000, 0) / symbolTrades.length : 0,
+	});
+
 	return {
 		trade,
 		relatedTrades: relatedTradesRes.data || [],
 		chartContexts,
 		dayJournal: journalRes.data || null,
 		playbooks,
-		similarReviewedTrades
+		similarReviewedTrades,
+		insights,
+		qualityScore
 	};
 };
