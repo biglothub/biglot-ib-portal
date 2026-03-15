@@ -1,8 +1,11 @@
 import { parsePortfolioFilters } from '$lib/portfolio';
 import {
+	buildDailyHistory,
 	buildFilterOptions,
+	buildKpiMetrics,
 	buildProgressSnapshot,
-	buildReportExplorer
+	buildReportExplorer,
+	buildSymbolBreakdown
 } from '$lib/server/portfolio';
 import type { PageServerLoad } from './$types';
 
@@ -17,12 +20,18 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			report: null,
 			tags: [],
 			playbooks: [],
-			savedViews: []
+			savedViews: [],
+			symbolBreakdown: [],
+			calendarDays: [],
+			kpiMetrics: null
 		};
 	}
 
 	const filterState = parsePortfolioFilters(url.searchParams);
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);
+	const dailyHistory = buildDailyHistory(report.filteredTrades);
+	const symbolBreakdown = buildSymbolBreakdown(report.filteredTrades);
+	const kpiMetrics = buildKpiMetrics(report.filteredTrades, dailyHistory);
 
 	return {
 		filterState,
@@ -38,6 +47,9 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		},
 		tags,
 		playbooks,
-		savedViews: savedViews.filter((view: any) => view.page === 'analytics')
+		savedViews: savedViews.filter((view: any) => view.page === 'analytics'),
+		symbolBreakdown,
+		calendarDays: dailyHistory.map(d => ({ date: d.date, pnl: d.profit, trades: d.totalTrades })),
+		kpiMetrics
 	};
 };

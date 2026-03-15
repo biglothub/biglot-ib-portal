@@ -461,6 +461,38 @@ export function buildCommandCenterData(
 	};
 }
 
+/**
+ * Build symbol-level performance breakdown for Reports > Symbols view
+ */
+export function buildSymbolBreakdown(trades: Trade[]) {
+	const symbolMap = new Map<string, Trade[]>();
+	for (const trade of trades) {
+		const sym = trade.symbol || 'Unknown';
+		if (!symbolMap.has(sym)) symbolMap.set(sym, []);
+		symbolMap.get(sym)!.push(trade);
+	}
+
+	return Array.from(symbolMap.entries())
+		.map(([symbol, symTrades]) => {
+			const wins = symTrades.filter(t => Number(t.profit || 0) > 0);
+			const losses = symTrades.filter(t => Number(t.profit || 0) < 0);
+			const totalWinning = wins.reduce((s, t) => s + Number(t.profit || 0), 0);
+			const totalLosing = Math.abs(losses.reduce((s, t) => s + Number(t.profit || 0), 0));
+			const netPnl = symTrades.reduce((s, t) => s + Number(t.profit || 0), 0);
+			return {
+				symbol,
+				trades: symTrades.length,
+				wins: wins.length,
+				losses: losses.length,
+				winRate: symTrades.length > 0 ? (wins.length / symTrades.length) * 100 : 0,
+				profitFactor: totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0,
+				netPnl,
+				avgPnl: symTrades.length > 0 ? netPnl / symTrades.length : 0
+			};
+		})
+		.sort((a, b) => b.netPnl - a.netPnl);
+}
+
 export function buildFilterOptions(trades: Trade[], playbooks: Playbook[]) {
 	return {
 		symbols: [...new Set(trades.map((trade) => trade.symbol).filter(Boolean))].sort(),
