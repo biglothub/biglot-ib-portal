@@ -2,28 +2,30 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const parentData = await parent();
-	const { account } = parentData;
+	const { account, userId } = parentData;
 	const profile = locals.profile;
 
-	if (!account || !profile) {
+	if (!account || !profile || !userId) {
 		return { folders: [], notes: [], deletedNotes: [] };
 	}
 
-	// Ensure system folders exist
-	await fetch_internal_ensure_folders(locals.supabase, account.id, profile.id);
+	// Ensure system folders exist (skip in admin read-only view)
+	if (!parentData.isAdminView) {
+		await fetch_internal_ensure_folders(locals.supabase, account.id, userId);
+	}
 
 	const [foldersRes, notesRes, deletedRes] = await Promise.all([
 		locals.supabase
 			.from('notebook_folders')
 			.select('*')
 			.eq('client_account_id', account.id)
-			.eq('user_id', profile.id)
+			.eq('user_id', userId)
 			.order('sort_order', { ascending: true }),
 		locals.supabase
 			.from('notebook_notes')
 			.select('id, title, content, folder_id, linked_trade_id, linked_date, linked_session, is_pinned, created_at, updated_at')
 			.eq('client_account_id', account.id)
-			.eq('user_id', profile.id)
+			.eq('user_id', userId)
 			.eq('is_deleted', false)
 			.order('is_pinned', { ascending: false })
 			.order('updated_at', { ascending: false }),
@@ -31,7 +33,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 			.from('notebook_notes')
 			.select('id, title, folder_id, deleted_at, updated_at')
 			.eq('client_account_id', account.id)
-			.eq('user_id', profile.id)
+			.eq('user_id', userId)
 			.eq('is_deleted', true)
 			.order('deleted_at', { ascending: false })
 			.limit(20)

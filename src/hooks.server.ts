@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '$lib/server/supabase';
+import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/server/supabase';
 import { redirect, type Handle } from '@sveltejs/kit';
 
 const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline'];
@@ -69,7 +69,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throw redirect(303, role === 'client' ? '/portfolio' : '/auth/login');
 	}
 	if (path.startsWith('/portfolio') && role !== 'client') {
-		throw redirect(303, role === 'admin' ? '/admin' : role === 'master_ib' ? '/ib' : '/auth/login');
+		// Allow admin to view client portfolios via ?account_id=xxx
+		const accountId = event.url.searchParams.get('account_id');
+		if (role === 'admin' && accountId) {
+			// Look up account to get the client's user_id (service client bypasses RLS)
+			const service = createSupabaseServiceClient();
+			const { data: account } = await service
+				.from('client_accounts')
+				.select('id, user_id')
+				.eq('id', accountId)
+				.single();
+
+			if (account) {
+				event.locals.viewAsAccountId = account.id;
+				event.locals.viewAsUserId = account.user_id;
+			} else {
+				throw redirect(303, '/admin');
+			}
+		} else {
+			throw redirect(303, role === 'admin' ? '/admin' : role === 'master_ib' ? '/ib' : '/auth/login');
+		}
 	}
 
 	// Redirect root based on role

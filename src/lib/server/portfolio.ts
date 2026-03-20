@@ -17,7 +17,7 @@ import type {
 	ProgressGoal,
 	Trade
 } from '$lib/types';
-import { toThaiDateString } from '$lib/utils';
+import { THAILAND_OFFSET_MS, toThaiDateString } from '$lib/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export async function fetchPortfolioBaseData(
@@ -491,6 +491,147 @@ export function buildSymbolBreakdown(trades: Trade[]) {
 			};
 		})
 		.sort((a, b) => b.netPnl - a.netPnl);
+}
+
+export function buildTagBreakdown(trades: Trade[]) {
+	const tagMap = new Map<string, { tagId: string; category: string; color: string; trades: Trade[] }>();
+	const categoryMap = new Map<string, { tags: Set<string>; trades: Trade[] }>();
+
+	for (const trade of trades) {
+		const assignments = trade.trade_tag_assignments || [];
+		for (const assignment of assignments) {
+			const tag = assignment.trade_tags;
+			if (!tag) continue;
+
+			// Per-tag grouping
+			if (!tagMap.has(tag.id)) {
+				tagMap.set(tag.id, { tagId: tag.id, category: tag.category, color: tag.color, trades: [] });
+			}
+			tagMap.get(tag.id)!.trades.push(trade);
+
+			// Per-category grouping
+			if (!categoryMap.has(tag.category)) {
+				categoryMap.set(tag.category, { tags: new Set(), trades: [] });
+			}
+			const cat = categoryMap.get(tag.category)!;
+			cat.tags.add(tag.id);
+			cat.trades.push(trade);
+		}
+	}
+
+	const calcStats = (groupTrades: Trade[]) => {
+		const wins = groupTrades.filter(t => Number(t.profit || 0) > 0);
+		const losses = groupTrades.filter(t => Number(t.profit || 0) < 0);
+		const totalWinning = wins.reduce((s, t) => s + Number(t.profit || 0), 0);
+		const totalLosing = Math.abs(losses.reduce((s, t) => s + Number(t.profit || 0), 0));
+		const netPnl = groupTrades.reduce((s, t) => s + Number(t.profit || 0), 0);
+		return {
+			trades: groupTrades.length,
+			wins: wins.length,
+			losses: losses.length,
+			winRate: groupTrades.length > 0 ? (wins.length / groupTrades.length) * 100 : 0,
+			profitFactor: totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0,
+			netPnl,
+			avgPnl: groupTrades.length > 0 ? netPnl / groupTrades.length : 0
+		};
+	};
+
+	const byTag = Array.from(tagMap.entries())
+		.map(([_, { tagId, category, color, trades: tagTrades }]) => {
+			const tagName = trades
+				.flatMap(t => t.trade_tag_assignments || [])
+				.find(a => a.trade_tags?.id === tagId)?.trade_tags?.name || 'Unknown';
+			return { tagId, tagName, category, color, ...calcStats(tagTrades) };
+		})
+		.sort((a, b) => b.netPnl - a.netPnl);
+
+	const byCategory = Array.from(categoryMap.entries())
+		.map(([category, { tags, trades: catTrades }]) => ({
+			category,
+			tagCount: tags.size,
+			...calcStats(catTrades)
+		}))
+		.sort((a, b) => b.netPnl - a.netPnl);
+
+	return { byTag, byCategory };
+}
+
+export function buildDayOfWeekReport(trades: Trade[]) {
+	const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	const dayMap = new Map<number, Trade[]>();
+
+	for (const trade of trades) {
+		if (!trade.close_time) continue;
+		const thaiDate = new Date(new Date(trade.close_time).getTime() + THAILAND_OFFSET_MS);
+		const dayIdx = thaiDate.getUTCDay();
+		if (!dayMap.has(dayIdx)) dayMap.set(dayIdx, []);
+		dayMap.get(dayIdx)!.push(trade);
+	}
+
+	const days = dayNames.map((name, idx) => {
+		const dayTrades = dayMap.get(idx) || [];
+		const wins = dayTrades.filter(t => Number(t.profit || 0) > 0);
+		const losses = dayTrades.filter(t => Number(t.profit || 0) < 0);
+		const totalWinning = wins.reduce((s, t) => s + Number(t.profit || 0), 0);
+		const totalLosing = Math.abs(losses.reduce((s, t) => s + Number(t.profit || 0), 0));
+		const netPnl = dayTrades.reduce((s, t) => s + Number(t.profit || 0), 0);
+		const profits = dayTrades.map(t => Number(t.profit || 0));
+		const holdTimes = dayTrades.map(t => getTradeDurationMinutes(t.open_time, t.close_time));
+
+		return {
+			day: name,
+			dayIdx: idx,
+			trades: dayTrades.length,
+			wins: wins.length,
+			losses: losses.length,
+			winRate: dayTrades.length > 0 ? (wins.length / dayTrades.length) * 100 : 0,
+			profitFactor: totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0,
+			netPnl,
+			avgPnl: dayTrades.length > 0 ? netPnl / dayTrades.length : 0,
+			avgHoldMinutes: holdTimes.length > 0 ? Math.round(holdTimes.reduce((a, b) => a + b, 0) / holdTimes.length) : 0,
+			bestTrade: profits.length > 0 ? profits.reduce((m, v) => v > m ? v : m, -Infinity) : 0,
+			worstTrade: profits.length > 0 ? profits.reduce((m, v) => v < m ? v : m, Infinity) : 0
+		};
+	}).filter(d => d.trades > 0);
+
+	const bestDay = days.length > 0 ? days.reduce((best, d) => d.netPnl > best.netPnl ? d : best).day : null;
+	const worstDay = days.length > 0 ? days.reduce((worst, d) => d.netPnl < worst.netPnl ? d : worst).day : null;
+
+	return { days, bestDay, worstDay };
+}
+
+export function buildDayTimeHeatmap(trades: Trade[]) {
+	const cellMap = new Map<string, { trades: number; pnl: number; wins: number }>();
+
+	for (const trade of trades) {
+		if (!trade.close_time) continue;
+		const thaiDate = new Date(new Date(trade.close_time).getTime() + THAILAND_OFFSET_MS);
+		const dayIdx = thaiDate.getUTCDay();
+		const hour = thaiDate.getUTCHours();
+		const key = `${dayIdx}-${hour}`;
+		const cell = cellMap.get(key) || { trades: 0, pnl: 0, wins: 0 };
+		cell.trades += 1;
+		cell.pnl += Number(trade.profit || 0);
+		if (Number(trade.profit || 0) > 0) cell.wins += 1;
+		cellMap.set(key, cell);
+	}
+
+	const cells = Array.from(cellMap.entries()).map(([key, data]) => {
+		const [day, hour] = key.split('-').map(Number);
+		return {
+			day,
+			hour,
+			trades: data.trades,
+			pnl: data.pnl,
+			winRate: data.trades > 0 ? (data.wins / data.trades) * 100 : 0
+		};
+	});
+
+	return {
+		cells,
+		maxTrades: cells.length > 0 ? cells.reduce((m, c) => c.trades > m ? c.trades : m, 0) : 0,
+		maxAbsPnl: cells.length > 0 ? cells.reduce((m, c) => Math.abs(c.pnl) > m ? Math.abs(c.pnl) : m, 0) : 0
+	};
 }
 
 export function buildFilterOptions(trades: Trade[], playbooks: Playbook[]) {

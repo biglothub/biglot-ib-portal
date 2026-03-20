@@ -1,11 +1,14 @@
 import { parsePortfolioFilters } from '$lib/portfolio';
 import {
 	buildDailyHistory,
+	buildDayOfWeekReport,
+	buildDayTimeHeatmap,
 	buildFilterOptions,
 	buildKpiMetrics,
 	buildProgressSnapshot,
 	buildReportExplorer,
-	buildSymbolBreakdown
+	buildSymbolBreakdown,
+	buildTagBreakdown
 } from '$lib/server/portfolio';
 import { buildStatsOverview } from '$lib/server/stats-overview';
 import type { PageServerLoad } from './$types';
@@ -32,6 +35,9 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);
 	const dailyHistory = buildDailyHistory(report.filteredTrades);
 	const symbolBreakdown = buildSymbolBreakdown(report.filteredTrades);
+	const tagBreakdown = buildTagBreakdown(report.filteredTrades);
+	const dayOfWeekReport = buildDayOfWeekReport(report.filteredTrades);
+	const dayTimeHeatmap = buildDayTimeHeatmap(report.filteredTrades);
 	const kpiMetrics = buildKpiMetrics(report.filteredTrades, dailyHistory);
 	const statsOverview = buildStatsOverview(report.filteredTrades, dailyHistory, report.analytics);
 
@@ -51,6 +57,9 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		playbooks,
 		savedViews: savedViews.filter((view: any) => view.page === 'analytics'),
 		symbolBreakdown,
+		tagBreakdown,
+		dayOfWeekReport,
+		dayTimeHeatmap,
 		calendarDays: dailyHistory.map(d => ({ date: d.date, pnl: d.profit, trades: d.totalTrades })),
 		kpiMetrics,
 		statsOverview

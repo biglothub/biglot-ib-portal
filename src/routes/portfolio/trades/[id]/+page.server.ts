@@ -5,11 +5,11 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, params, locals }) => {
 	const parentData = await parent();
-	const { account, playbooks = [] } = parentData;
+	const { account, playbooks = [], userId } = parentData;
 	const supabase = locals.supabase;
 	const profile = locals.profile;
 
-	if (!account || !profile) {
+	if (!account || !profile || !userId) {
 		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks: [] };
 	}
 
@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 			.from('daily_journal')
 			.select('*')
 			.eq('client_account_id', account.id)
-			.eq('user_id', profile.id)
+			.eq('user_id', userId)
 			.eq('date', toThaiDateString(trade.close_time))
 			.maybeSingle(),
 		supabase

@@ -10,10 +10,10 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const parentData = await parent();
-	const { account, baseData } = parentData;
+	const { account, baseData, userId } = parentData;
 	const profile = locals.profile;
 
-	if (!account || !profile || !baseData) {
+	if (!account || !profile || !baseData || !userId) {
 		return {
 			goals: [], snapshot: [], journalSummary: null, reviewSummary: null,
 			checklistRules: [], checklistCompletions: [], checklistStreak: 0, heatmapData: []
@@ -28,14 +28,14 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 			.from('checklist_rules')
 			.select('*')
 			.eq('client_account_id', account.id)
-			.eq('user_id', profile.id)
+			.eq('user_id', userId)
 			.eq('is_active', true)
 			.order('sort_order', { ascending: true }),
 		locals.supabase
 			.from('checklist_completions')
 			.select('*')
 			.eq('client_account_id', account.id)
-			.eq('user_id', profile.id)
+			.eq('user_id', userId)
 			.order('date', { ascending: false })
 			.limit(700) // ~12 weeks × ~8 rules
 	]);

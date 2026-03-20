@@ -10,7 +10,7 @@
 	import { formatCurrency, formatNumber, formatPercent } from '$lib/utils';
 
 	let { data } = $props();
-	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, calendarDays, kpiMetrics, statsOverview } = $derived(data);
+	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, tagBreakdown, dayOfWeekReport, dayTimeHeatmap, calendarDays, kpiMetrics, statsOverview } = $derived(data);
 
 	// Sub-tab state from URL
 	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
@@ -20,6 +20,10 @@
 		{ key: 'performance', label: 'Performance' },
 		{ key: 'calendar', label: 'Calendar' },
 		{ key: 'symbols', label: 'Symbols' },
+		{ key: 'tags', label: 'Tags' },
+		{ key: 'days', label: 'Days' },
+		{ key: 'daytime', label: 'Day & Time' },
+		{ key: 'recaps', label: 'Recaps & Insights' },
 		{ key: 'compare', label: 'Compare' },
 	];
 
@@ -113,6 +117,284 @@
 		else symbolSort = { key, asc: false };
 	}
 
+	// Tag sort + filter
+	let tagSort = $state<{ key: string; asc: boolean }>({ key: 'netPnl', asc: false });
+	let tagViewMode = $state('all');
+
+	const sortedTags = $derived((() => {
+		let arr = [...(tagBreakdown?.byTag || [])];
+		if (tagViewMode !== 'all') arr = arr.filter((t: any) => t.category === tagViewMode);
+		arr.sort((a: any, b: any) => {
+			const va = a[tagSort.key] ?? 0;
+			const vb = b[tagSort.key] ?? 0;
+			return tagSort.asc ? va - vb : vb - va;
+		});
+		return arr;
+	})());
+
+	function toggleTagSort(key: string) {
+		if (tagSort.key === key) tagSort = { key, asc: !tagSort.asc };
+		else tagSort = { key, asc: false };
+	}
+
+	const categoryLabels: Record<string, string> = {
+		setup: 'Setup',
+		execution: 'Execution',
+		emotion: 'Emotion',
+		mistake: 'Mistake',
+		market_condition: 'Market Condition',
+		custom: 'Custom'
+	};
+
+	const categoryColors: Record<string, string> = {
+		setup: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+		execution: 'text-green-400 bg-green-500/10 border-green-500/20',
+		emotion: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+		mistake: 'text-red-400 bg-red-500/10 border-red-500/20',
+		market_condition: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+		custom: 'text-gray-400 bg-gray-500/10 border-gray-500/20'
+	};
+
+	// Day-of-week sort
+	let daySort = $state<{ key: string; asc: boolean }>({ key: 'dayIdx', asc: true });
+	const sortedDays = $derived((() => {
+		const arr = [...(dayOfWeekReport?.days || [])];
+		arr.sort((a: any, b: any) => {
+			const va = a[daySort.key] ?? 0;
+			const vb = b[daySort.key] ?? 0;
+			return daySort.asc ? va - vb : vb - va;
+		});
+		return arr;
+	})());
+
+	function toggleDaySort(key: string) {
+		if (daySort.key === key) daySort = { key, asc: !daySort.asc };
+		else daySort = { key, asc: false };
+	}
+
+	function formatHoldTime(minutes: number): string {
+		if (minutes < 60) return `${minutes}m`;
+		const h = Math.floor(minutes / 60);
+		const m = minutes % 60;
+		return m > 0 ? `${h}h ${m}m` : `${h}h`;
+	}
+
+	// Heatmap mode
+	let heatmapMode = $state<'trades' | 'pnl' | 'winRate'>('pnl');
+	const dayLabelsHeatmap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	const hourLabels = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
+
+	function getHeatmapCell(day: number, hour: number) {
+		return dayTimeHeatmap?.cells?.find((c: any) => c.day === day && c.hour === hour) || null;
+	}
+
+	function heatmapCellColor(cell: any): string {
+		if (!cell || cell.trades === 0) return 'bg-dark-bg/20';
+		if (heatmapMode === 'trades') {
+			const max = dayTimeHeatmap?.maxTrades || 1;
+			const intensity = Math.min(cell.trades / max, 1);
+			if (intensity > 0.7) return 'bg-blue-500/70';
+			if (intensity > 0.4) return 'bg-blue-500/40';
+			return 'bg-blue-500/20';
+		}
+		if (heatmapMode === 'pnl') {
+			const max = dayTimeHeatmap?.maxAbsPnl || 1;
+			const intensity = Math.min(Math.abs(cell.pnl) / max, 1);
+			if (cell.pnl > 0) {
+				if (intensity > 0.6) return 'bg-green-500/60';
+				if (intensity > 0.3) return 'bg-green-500/35';
+				return 'bg-green-500/15';
+			} else {
+				if (intensity > 0.6) return 'bg-red-500/60';
+				if (intensity > 0.3) return 'bg-red-500/35';
+				return 'bg-red-500/15';
+			}
+		}
+		// winRate
+		if (cell.winRate >= 70) return 'bg-green-500/60';
+		if (cell.winRate >= 50) return 'bg-green-500/30';
+		if (cell.winRate >= 30) return 'bg-red-500/30';
+		return 'bg-red-500/60';
+	}
+
+	// Recaps state
+	let recapPeriod = $state<'this_week' | 'last_week' | 'this_month' | 'last_month'>('last_week');
+	let recapGenerating = $state(false);
+	let recapError = $state('');
+	let recapSections = $state<Record<string, { content: string; loading: boolean }>>({
+		performance_summary: { content: '', loading: false },
+		patterns: { content: '', loading: false },
+		mistakes: { content: '', loading: false },
+		strengths: { content: '', loading: false },
+		action_plan: { content: '', loading: false },
+	});
+	let recapStats = $state<any>(null);
+	let recapPrevStats = $state<any>(null);
+	let recapTimestamp = $state('');
+
+	function getRecapPeriodDates(period: string): { start: string; end: string; type: string } {
+		const now = new Date();
+		const thai = new Date(now.getTime() + 7 * 60 * 60 * 1000); // UTC+7
+		const todayStr = thai.toISOString().split('T')[0];
+		const today = new Date(todayStr + 'T00:00:00');
+		const dayOfWeek = today.getDay();
+
+		if (period === 'this_week') {
+			const start = new Date(today); start.setDate(today.getDate() - dayOfWeek);
+			return { start: start.toISOString().split('T')[0], end: todayStr, type: 'week' };
+		}
+		if (period === 'last_week') {
+			const end = new Date(today); end.setDate(today.getDate() - dayOfWeek - 1);
+			const start = new Date(end); start.setDate(end.getDate() - 6);
+			return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0], type: 'week' };
+		}
+		if (period === 'this_month') {
+			const start = `${todayStr.substring(0, 7)}-01`;
+			return { start, end: todayStr, type: 'month' };
+		}
+		// last_month
+		const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+		const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+		return {
+			start: lastMonth.toISOString().split('T')[0],
+			end: lastMonthEnd.toISOString().split('T')[0],
+			type: 'month'
+		};
+	}
+
+	async function loadCachedRecap() {
+		const { start, type } = getRecapPeriodDates(recapPeriod);
+		try {
+			const res = await fetch(`/api/portfolio/recaps?period_type=${type}&period_start=${start}`);
+			if (res.ok) {
+				const { recap } = await res.json();
+				if (recap?.sections) {
+					const sections = recap.sections as Record<string, string>;
+					for (const [key, value] of Object.entries(sections)) {
+						if (recapSections[key]) {
+							recapSections[key] = { content: value, loading: false };
+						}
+					}
+					recapStats = recap.stats;
+					recapTimestamp = new Date(recap.created_at).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+					return true;
+				}
+			}
+		} catch { /* ignore */ }
+		return false;
+	}
+
+	async function generateRecap() {
+		recapGenerating = true;
+		recapError = '';
+		for (const key of Object.keys(recapSections)) {
+			recapSections[key] = { content: '', loading: false };
+		}
+		recapStats = null;
+		recapPrevStats = null;
+
+		const { start, end, type } = getRecapPeriodDates(recapPeriod);
+
+		try {
+			const res = await fetch('/api/portfolio/recaps', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ period_type: type, period_start: start, period_end: end })
+			});
+
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
+				recapError = res.status === 429
+					? 'สรุปบ่อยเกินไป กรุณารอสักครู่ (จำกัด 3 ครั้ง/ชั่วโมง)'
+					: data.message || 'เกิดข้อผิดพลาด';
+				recapGenerating = false;
+				return;
+			}
+
+			const reader = res.body?.getReader();
+			if (!reader) { recapError = 'ไม่สามารถเชื่อมต่อได้'; recapGenerating = false; return; }
+
+			const decoder = new TextDecoder();
+			let buffer = '';
+			let currentSection = '';
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+
+				buffer += decoder.decode(value, { stream: true });
+				const lines = buffer.split('\n');
+				buffer = lines.pop() || '';
+
+				for (const line of lines) {
+					if (!line.trim()) continue;
+					try {
+						const chunk = JSON.parse(line);
+						if (chunk.type === 'stats') {
+							recapStats = chunk.stats;
+							recapPrevStats = chunk.prevStats;
+						} else if (chunk.type === 'section_start') {
+							currentSection = chunk.section;
+							if (recapSections[currentSection]) {
+								recapSections[currentSection] = { content: '', loading: true };
+							}
+						} else if (chunk.type === 'text_delta' && currentSection && recapSections[currentSection]) {
+							recapSections[currentSection].content += chunk.text;
+						} else if (chunk.type === 'section_end' && recapSections[currentSection]) {
+							recapSections[currentSection].loading = false;
+						} else if (chunk.type === 'error') {
+							recapError = chunk.message || 'AI error';
+						}
+					} catch { /* skip */ }
+				}
+			}
+
+			for (const key of Object.keys(recapSections)) {
+				if (recapSections[key].loading) recapSections[key].loading = false;
+			}
+			recapTimestamp = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+		} catch {
+			recapError = 'ไม่สามารถเชื่อมต่อได้ ลองอีกครั้ง';
+		} finally {
+			recapGenerating = false;
+		}
+	}
+
+	function recapRenderMarkdown(text: string): string {
+		let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		html = html.replace(/^### (.+)$/gm, (_, c) => `<h4 class="text-sm font-bold text-white mt-3 mb-1">${c}</h4>`);
+		html = html.replace(/^## (.+)$/gm, (_, c) => `<h3 class="text-base font-bold text-white mt-4 mb-2">${c}</h3>`);
+		html = html.replace(/((?:^- .+\n?)+)/gm, (block) => {
+			const items = block.trim().split('\n').map((line: string) => `<li>${line.replace(/^- /, '')}</li>`);
+			return `<ul class="list-disc list-inside space-y-1 text-sm text-gray-300">${items.join('')}</ul>`;
+		});
+		html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+			const items = block.trim().split('\n').map((line: string) => `<li>${line.replace(/^\d+\. /, '')}</li>`);
+			return `<ol class="list-decimal list-inside space-y-1 text-sm text-gray-300">${items.join('')}</ol>`;
+		});
+		html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>');
+		html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+		html = html.replace(/\n/g, '<br>');
+		html = html.replace(/<br>\s*(<(?:h[2-4]|ul|ol))/g, '$1');
+		html = html.replace(/(<\/(?:h[2-4]|ul|ol)>)\s*<br>/g, '$1');
+		return html;
+	}
+
+	const recapSectionConfig = [
+		{ key: 'performance_summary', title: 'สรุปผลการเทรด', icon: '📊' },
+		{ key: 'patterns', title: 'รูปแบบที่พบ', icon: '🔍' },
+		{ key: 'mistakes', title: 'ข้อผิดพลาด', icon: '⚠️' },
+		{ key: 'strengths', title: 'จุดแข็ง', icon: '💪' },
+		{ key: 'action_plan', title: 'แผนปรับปรุง', icon: '🎯' },
+	];
+
+	const recapPeriodLabels: Record<string, string> = {
+		this_week: 'สัปดาห์นี้',
+		last_week: 'สัปดาห์ที่แล้ว',
+		this_month: 'เดือนนี้',
+		last_month: 'เดือนที่แล้ว',
+	};
+
 	// Available symbols for compare
 	const availableSymbols = $derived([...new Set((report?.filteredTrades || []).map((t: any) => t.symbol))].sort());
 
@@ -140,7 +422,7 @@
 	}
 </script>
 
-<div class="space-y-6">
+<div class="space-y-7">
 	<PortfolioFilterBar
 		filters={filterState}
 		{filterOptions}
@@ -152,11 +434,11 @@
 
 	<!-- Sub-tab navigation + Export -->
 	<div class="flex items-center justify-between gap-3">
-		<div class="flex gap-1 bg-dark-surface rounded-lg p-1 overflow-x-auto">
+		<div class="flex gap-1 bg-dark-surface/60 rounded-xl p-1 overflow-x-auto backdrop-blur-sm border border-dark-border/30">
 			{#each subTabs as tab}
 				<button
-					class="px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap
-						{activeTab === tab.key ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap
+						{activeTab === tab.key ? 'bg-dark-bg text-brand-primary shadow-md shadow-brand-primary/5 ring-1 ring-brand-primary/20' : 'text-gray-500 hover:text-gray-300 hover:bg-dark-bg/40'}"
 					onclick={() => switchTab(tab.key)}
 				>{tab.label}</button>
 			{/each}
@@ -179,29 +461,29 @@
 	{:else if activeTab === 'overview'}
 		<!-- OVERVIEW (existing analytics) -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-			<div class="card">
-				<div class="text-xs text-gray-500">Expectancy</div>
-				<div class="mt-1 text-2xl font-semibold {report.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}">
+			<div class="card border-l-2 {report.expectancy >= 0 ? 'border-l-green-500' : 'border-l-red-500'}">
+				<div class="text-xs text-gray-500 uppercase tracking-wider">Expectancy</div>
+				<div class="mt-1.5 text-2xl font-bold {report.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{formatCurrency(report.expectancy)}
 				</div>
 			</div>
-			<div class="card">
-				<div class="text-xs text-gray-500">Rule-break Cost</div>
-				<div class="mt-1 text-2xl font-semibold text-red-400">{formatCurrency(report.ruleBreakMetrics?.ruleBreakLoss || 0)}</div>
+			<div class="card border-l-2 border-l-red-500">
+				<div class="text-xs text-gray-500 uppercase tracking-wider">Rule-break Cost</div>
+				<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(report.ruleBreakMetrics?.ruleBreakLoss || 0)}</div>
 			</div>
-			<div class="card">
-				<div class="text-xs text-gray-500">Journal Completion</div>
-				<div class="mt-1 text-2xl font-semibold text-green-400">{(report.journalSummary?.completionRate || 0).toFixed(0)}%</div>
+			<div class="card border-l-2 border-l-green-500">
+				<div class="text-xs text-gray-500 uppercase tracking-wider">Journal Completion</div>
+				<div class="mt-1.5 text-2xl font-bold text-green-400">{(report.journalSummary?.completionRate || 0).toFixed(0)}%</div>
 			</div>
-			<div class="card">
-				<div class="text-xs text-gray-500">Filtered Trades</div>
-				<div class="mt-1 text-2xl font-semibold text-white">{report.filteredTrades?.length || 0}</div>
+			<div class="card border-l-2 border-l-brand-primary">
+				<div class="text-xs text-gray-500 uppercase tracking-wider">Filtered Trades</div>
+				<div class="mt-1.5 text-2xl font-bold text-white">{report.filteredTrades?.length || 0}</div>
 			</div>
 		</div>
 
 		{#if statsOverview && statsOverview.length > 0}
 			<div class="card">
-				<h2 class="text-lg font-semibold text-white mb-4">Your Stats</h2>
+				<h2 class="text-base font-semibold text-white mb-4">Your Stats</h2>
 				<StatsOverviewTable sections={statsOverview} />
 			</div>
 		{/if}
@@ -212,28 +494,28 @@
 
 		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 			<div class="card">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Setup / Playbook Performance</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">Setup / Playbook Performance</h2>
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-xs">
-								<th class="text-left py-2">Setup</th>
-								<th class="text-right py-2">Trades</th>
-								<th class="text-right py-2">Win Rate</th>
-								<th class="text-right py-2">PF</th>
-								<th class="text-right py-2">Expectancy</th>
-								<th class="text-right py-2">Total P/L</th>
+							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+								<th class="text-left py-2.5 font-medium">Setup</th>
+								<th class="text-right py-2.5 font-medium">Trades</th>
+								<th class="text-right py-2.5 font-medium">Win Rate</th>
+								<th class="text-right py-2.5 font-medium">PF</th>
+								<th class="text-right py-2.5 font-medium">Expectancy</th>
+								<th class="text-right py-2.5 font-medium">Total P/L</th>
 							</tr>
 						</thead>
 						<tbody>
 							{#each report.setupPerformance || [] as setup}
-								<tr class="border-b border-dark-border/40">
-									<td class="py-2 text-white">{setup.name}</td>
-									<td class="py-2 text-right text-gray-300">{setup.totalTrades}</td>
-									<td class="py-2 text-right {setup.winRate >= 50 ? 'text-green-400' : 'text-red-400'}">{formatPercent(setup.winRate).replace('+', '')}</td>
-									<td class="py-2 text-right {setup.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{setup.profitFactor === Infinity ? '∞' : formatNumber(setup.profitFactor)}</td>
-									<td class="py-2 text-right {setup.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(setup.expectancy)}</td>
-									<td class="py-2 text-right font-medium {setup.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(setup.totalProfit)}</td>
+								<tr class="border-b border-dark-border/30 hover:bg-dark-bg/30 transition-colors">
+									<td class="py-2.5 text-white font-medium">{setup.name}</td>
+									<td class="py-2.5 text-right text-gray-300">{setup.totalTrades}</td>
+									<td class="py-2.5 text-right {setup.winRate >= 50 ? 'text-green-400' : 'text-red-400'}">{formatPercent(setup.winRate).replace('+', '')}</td>
+									<td class="py-2.5 text-right {setup.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{setup.profitFactor === Infinity ? '∞' : formatNumber(setup.profitFactor)}</td>
+									<td class="py-2.5 text-right {setup.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(setup.expectancy)}</td>
+									<td class="py-2.5 text-right font-semibold {setup.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(setup.totalProfit)}</td>
 								</tr>
 							{/each}
 						</tbody>
@@ -242,7 +524,7 @@
 			</div>
 
 			<div class="card">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Session Breakdown</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">Session Breakdown</h2>
 				<div class="space-y-3">
 					{#each report.sessionStats || [] as session}
 						<div class="rounded-xl bg-dark-bg/30 px-4 py-3">
@@ -259,7 +541,7 @@
 
 		<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 			<div class="card xl:col-span-1">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Mistake Cost</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">Mistake Cost</h2>
 				<div class="space-y-2">
 					{#if report.mistakeStats?.length > 0}
 						{#each report.mistakeStats.slice(0, 8) as mistake}
@@ -277,7 +559,7 @@
 				</div>
 			</div>
 			<div class="card xl:col-span-1">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Duration Buckets</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">Duration Buckets</h2>
 				<div class="space-y-2">
 					{#each report.durationBuckets || [] as bucket}
 						<div class="rounded-xl bg-dark-bg/30 px-3 py-3">
@@ -291,7 +573,7 @@
 				</div>
 			</div>
 			<div class="card xl:col-span-1">
-				<h2 class="text-sm font-medium text-gray-400 mb-4">Progress Goals</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">Progress Goals</h2>
 				<div class="space-y-3">
 					{#each report.progressSnapshot || [] as goal}
 						<div>
@@ -332,21 +614,21 @@
 		<!-- Summary stats -->
 		{#if kpiMetrics}
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<div class="card">
-					<div class="text-xs text-gray-500">Net P&L</div>
-					<div class="mt-1 text-2xl font-bold {kpiMetrics.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(kpiMetrics.netPnl)}</div>
+				<div class="card border-l-2 {kpiMetrics.netPnl >= 0 ? 'border-l-green-500' : 'border-l-red-500'}">
+					<div class="text-xs text-gray-500 uppercase tracking-wider">Net P&L</div>
+					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(kpiMetrics.netPnl)}</div>
 				</div>
-				<div class="card">
-					<div class="text-xs text-gray-500">Trade Win Rate</div>
-					<div class="mt-1 text-2xl font-bold {kpiMetrics.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.tradeWinRate.toFixed(1)}%</div>
+				<div class="card border-l-2 {kpiMetrics.tradeWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
+					<div class="text-xs text-gray-500 uppercase tracking-wider">Trade Win Rate</div>
+					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.tradeWinRate.toFixed(1)}%</div>
 				</div>
-				<div class="card">
-					<div class="text-xs text-gray-500">Profit Factor</div>
-					<div class="mt-1 text-2xl font-bold {kpiMetrics.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{kpiMetrics.profitFactor >= 999 ? '∞' : formatNumber(kpiMetrics.profitFactor)}</div>
+				<div class="card border-l-2 {kpiMetrics.profitFactor >= 1 ? 'border-l-green-500' : 'border-l-red-500'}">
+					<div class="text-xs text-gray-500 uppercase tracking-wider">Profit Factor</div>
+					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{kpiMetrics.profitFactor >= 999 ? '∞' : formatNumber(kpiMetrics.profitFactor)}</div>
 				</div>
-				<div class="card">
-					<div class="text-xs text-gray-500">Day Win Rate</div>
-					<div class="mt-1 text-2xl font-bold {kpiMetrics.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.dayWinRate.toFixed(1)}%</div>
+				<div class="card border-l-2 {kpiMetrics.dayWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
+					<div class="text-xs text-gray-500 uppercase tracking-wider">Day Win Rate</div>
+					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.dayWinRate.toFixed(1)}%</div>
 				</div>
 			</div>
 		{/if}
@@ -429,8 +711,8 @@
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-xs">
-								<th class="text-left py-2">Symbol</th>
+							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+								<th class="text-left py-2.5 font-medium">Symbol</th>
 								{#each [
 									{ key: 'trades', label: 'Trades' },
 									{ key: 'winRate', label: 'Win Rate' },
@@ -438,7 +720,7 @@
 									{ key: 'netPnl', label: 'Net P&L' },
 									{ key: 'avgPnl', label: 'Avg P&L' },
 								] as col}
-									<th class="text-right py-2 cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleSort(col.key)}>
+									<th class="text-right py-2.5 font-medium cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleSort(col.key)}>
 										{col.label}
 										{#if symbolSort.key === col.key}
 											<span class="ml-0.5">{symbolSort.asc ? '▲' : '▼'}</span>
@@ -461,6 +743,404 @@
 						</tbody>
 					</table>
 				</div>
+			{/if}
+		</div>
+
+	{:else if activeTab === 'tags'}
+		<!-- TAG PERFORMANCE -->
+		<div class="card">
+			<div class="flex items-center justify-between mb-6">
+				<h2 class="text-lg font-semibold text-white">Tag Performance</h2>
+				<!-- Category filter pills -->
+				<div class="flex gap-1.5 flex-wrap">
+					<button
+						class="px-3 py-1 text-xs rounded-full border transition-colors {tagViewMode === 'all' ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
+						onclick={() => tagViewMode = 'all'}
+					>All</button>
+					{#each Object.entries(categoryLabels) as [key, label]}
+						{#if tagBreakdown?.byCategory?.some((c: any) => c.category === key)}
+							<button
+								class="px-3 py-1 text-xs rounded-full border transition-colors {tagViewMode === key ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
+								onclick={() => tagViewMode = key}
+							>{label}</button>
+						{/if}
+					{/each}
+				</div>
+			</div>
+
+			{#if !tagBreakdown || tagBreakdown.byTag.length === 0}
+				<EmptyState message="ยังไม่มี tags ใน filtered trades — เพิ่ม tag ให้กับ trades ก่อน" />
+			{:else}
+				<!-- Category summary cards -->
+				{#if tagViewMode === 'all' && tagBreakdown.byCategory.length > 0}
+					<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+						{#each tagBreakdown.byCategory as cat}
+							<button
+								class="rounded-xl border px-4 py-3 text-left transition-colors hover:border-brand-primary/30 {categoryColors[cat.category] || 'text-gray-400 bg-gray-500/10 border-gray-500/20'}"
+								onclick={() => tagViewMode = cat.category}
+							>
+								<div class="text-xs opacity-70">{categoryLabels[cat.category] || cat.category}</div>
+								<div class="mt-1 flex items-baseline gap-2">
+									<span class="text-xl font-bold">{cat.tagCount}</span>
+									<span class="text-xs opacity-60">tags • {cat.trades} trades</span>
+								</div>
+								<div class="mt-1 flex items-center gap-3 text-xs">
+									<span>WR {cat.winRate.toFixed(0)}%</span>
+									<span class="{cat.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(cat.netPnl)}</span>
+								</div>
+							</button>
+						{/each}
+					</div>
+				{/if}
+
+				<!-- Bar chart — top tags by P&L -->
+				{@const maxAbsTagPnl = Math.max(...sortedTags.map((t: any) => Math.abs(t.netPnl)), 1)}
+				<div class="space-y-2 mb-6">
+					{#each sortedTags.slice(0, 10) as tag}
+						<div class="flex items-center gap-3">
+							<div class="w-32 flex items-center gap-2 min-w-0">
+								<div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {tag.color}"></div>
+								<span class="text-sm font-medium text-white truncate">{tag.tagName}</span>
+							</div>
+							<div class="flex-1 flex items-center">
+								{#if tag.netPnl >= 0}
+									<div class="h-5 rounded-r bg-green-500/50" style="width: {(tag.netPnl / maxAbsTagPnl) * 100}%"></div>
+								{:else}
+									<div class="h-5 rounded-l bg-red-500/50 ml-auto" style="width: {(Math.abs(tag.netPnl) / maxAbsTagPnl) * 100}%"></div>
+								{/if}
+							</div>
+							<div class="w-24 text-right text-sm font-medium {tag.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+								{formatCurrency(tag.netPnl)}
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Full sortable table -->
+				<div class="overflow-x-auto">
+					<table class="w-full text-sm">
+						<thead>
+							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+								<th class="text-left py-2.5 font-medium">Tag</th>
+								<th class="text-left py-2.5 font-medium">Category</th>
+								{#each [
+									{ key: 'trades', label: 'Trades' },
+									{ key: 'winRate', label: 'Win Rate' },
+									{ key: 'profitFactor', label: 'PF' },
+									{ key: 'netPnl', label: 'Net P&L' },
+									{ key: 'avgPnl', label: 'Avg P&L' },
+								] as col}
+									<th class="text-right py-2.5 font-medium cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleTagSort(col.key)}>
+										{col.label}
+										{#if tagSort.key === col.key}
+											<span class="ml-0.5">{tagSort.asc ? '▲' : '▼'}</span>
+										{/if}
+									</th>
+								{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each sortedTags as tag}
+								<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
+									<td class="py-2.5">
+										<div class="flex items-center gap-2">
+											<div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {tag.color}"></div>
+											<span class="font-medium text-white">{tag.tagName}</span>
+										</div>
+									</td>
+									<td class="py-2.5">
+										<span class="text-xs px-2 py-0.5 rounded-full border {categoryColors[tag.category] || 'text-gray-400 border-gray-500/20'}">
+											{categoryLabels[tag.category] || tag.category}
+										</span>
+									</td>
+									<td class="py-2.5 text-right text-gray-300">{tag.trades}</td>
+									<td class="py-2.5 text-right {tag.winRate >= 50 ? 'text-green-400' : 'text-red-400'}">{tag.winRate.toFixed(0)}%</td>
+									<td class="py-2.5 text-right {tag.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{tag.profitFactor === Infinity ? '∞' : formatNumber(tag.profitFactor)}</td>
+									<td class="py-2.5 text-right font-medium {tag.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(tag.netPnl)}</td>
+									<td class="py-2.5 text-right {tag.avgPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(tag.avgPnl)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		</div>
+
+	{:else if activeTab === 'days'}
+		<!-- DAY OF WEEK REPORT -->
+		<div class="card">
+			<h2 class="text-lg font-semibold text-white mb-4">Day of Week Performance</h2>
+
+			{#if !dayOfWeekReport || dayOfWeekReport.days.length === 0}
+				<EmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับวิเคราะห์รายวัน" />
+			{:else}
+				<!-- Best / Worst Day -->
+				<div class="grid grid-cols-2 gap-4 mb-6">
+					<div class="rounded-xl bg-green-500/10 border border-green-500/20 px-4 py-3">
+						<div class="text-xs text-green-400/70">Best Day</div>
+						<div class="text-2xl font-bold text-green-400 mt-1">{dayOfWeekReport.bestDay}</div>
+					</div>
+					<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
+						<div class="text-xs text-red-400/70">Worst Day</div>
+						<div class="text-2xl font-bold text-red-400 mt-1">{dayOfWeekReport.worstDay}</div>
+					</div>
+				</div>
+
+				<!-- Bar chart -->
+				{@const maxAbsDayPnl = Math.max(...sortedDays.map((d: any) => Math.abs(d.netPnl)), 1)}
+				<div class="space-y-2 mb-6">
+					{#each dayOfWeekReport.days.sort((a: any, b: any) => a.dayIdx - b.dayIdx) as day}
+						<div class="flex items-center gap-3">
+							<div class="w-10 text-sm font-semibold text-gray-300 shrink-0">{day.day}</div>
+							<div class="flex-1 flex items-center">
+								{#if day.netPnl >= 0}
+									<div class="h-6 rounded-r bg-green-500/40" style="width: {(day.netPnl / maxAbsDayPnl) * 100}%"></div>
+								{:else}
+									<div class="h-6 rounded-l bg-red-500/40 ml-auto" style="width: {(Math.abs(day.netPnl) / maxAbsDayPnl) * 100}%"></div>
+								{/if}
+							</div>
+							<div class="w-24 text-right text-sm font-medium {day.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+								{formatCurrency(day.netPnl)}
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Sortable table -->
+				<div class="overflow-x-auto">
+					<table class="w-full text-sm">
+						<thead>
+							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+								{#each [
+									{ key: 'dayIdx', label: 'Day' },
+									{ key: 'trades', label: 'Trades' },
+									{ key: 'winRate', label: 'Win Rate' },
+									{ key: 'profitFactor', label: 'PF' },
+									{ key: 'netPnl', label: 'Net P&L' },
+									{ key: 'avgPnl', label: 'Avg P&L' },
+									{ key: 'avgHoldMinutes', label: 'Avg Hold' },
+									{ key: 'bestTrade', label: 'Best' },
+									{ key: 'worstTrade', label: 'Worst' },
+								] as col}
+									<th class="{col.key === 'dayIdx' ? 'text-left' : 'text-right'} py-2.5 font-medium cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleDaySort(col.key)}>
+										{col.label}
+										{#if daySort.key === col.key}
+											<span class="ml-0.5">{daySort.asc ? '▲' : '▼'}</span>
+										{/if}
+									</th>
+								{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each sortedDays as day}
+								<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
+									<td class="py-2.5 font-medium text-white">{day.day}</td>
+									<td class="py-2.5 text-right text-gray-300">{day.trades}</td>
+									<td class="py-2.5 text-right {day.winRate >= 50 ? 'text-green-400' : 'text-red-400'}">{day.winRate.toFixed(0)}%</td>
+									<td class="py-2.5 text-right {day.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{day.profitFactor === Infinity ? '∞' : formatNumber(day.profitFactor)}</td>
+									<td class="py-2.5 text-right font-medium {day.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(day.netPnl)}</td>
+									<td class="py-2.5 text-right {day.avgPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(day.avgPnl)}</td>
+									<td class="py-2.5 text-right text-gray-300">{formatHoldTime(day.avgHoldMinutes)}</td>
+									<td class="py-2.5 text-right text-green-400">{formatCurrency(day.bestTrade)}</td>
+									<td class="py-2.5 text-right text-red-400">{formatCurrency(day.worstTrade)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		</div>
+
+	{:else if activeTab === 'daytime'}
+		<!-- DAY & TIME HEATMAP -->
+		<div class="card">
+			<div class="flex items-center justify-between mb-6">
+				<h2 class="text-lg font-semibold text-white">Day & Time Heatmap</h2>
+				<div class="flex gap-1 bg-dark-bg rounded-lg p-1">
+					{#each [
+						{ key: 'pnl', label: 'P&L' },
+						{ key: 'trades', label: 'Trades' },
+						{ key: 'winRate', label: 'Win Rate' },
+					] as mode}
+						<button
+							class="px-3 py-1 text-xs font-medium rounded-md transition-all {heatmapMode === mode.key ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
+							onclick={() => heatmapMode = mode.key as any}
+						>{mode.label}</button>
+					{/each}
+				</div>
+			</div>
+
+			<p class="text-xs text-gray-500 mb-4">เวลาแสดงเป็น UTC+7 (เวลาไทย)</p>
+
+			{#if !dayTimeHeatmap || dayTimeHeatmap.cells.length === 0}
+				<EmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับ heatmap" />
+			{:else}
+				<div class="overflow-x-auto">
+					<table class="w-full border-collapse">
+						<thead>
+							<tr>
+								<th class="w-12"></th>
+								{#each hourLabels as label, i}
+									{#if i % 2 === 0}
+										<th class="text-[9px] text-gray-500 font-normal px-0.5 pb-1" colspan="2">{label}</th>
+									{/if}
+								{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each dayLabelsHeatmap as dayName, dayIdx}
+								<tr>
+									<td class="text-xs text-gray-400 font-medium pr-2 py-0.5">{dayName}</td>
+									{#each Array(24) as _, hour}
+										{@const cell = getHeatmapCell(dayIdx, hour)}
+										<td
+											class="p-0.5"
+											title={cell ? `${dayName} ${String(hour).padStart(2, '0')}:00 — ${cell.trades} trades, ${formatCurrency(cell.pnl)}, ${cell.winRate.toFixed(0)}% win` : `${dayName} ${String(hour).padStart(2, '0')}:00 — no trades`}
+										>
+											<div class="w-full aspect-square rounded-sm min-w-[16px] {heatmapCellColor(cell)}"></div>
+										</td>
+									{/each}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Legend -->
+				<div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+					{#if heatmapMode === 'pnl'}
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/60"></div> Profit</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/60"></div> Loss</div>
+					{:else if heatmapMode === 'trades'}
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/20"></div> Low</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/40"></div> Medium</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/70"></div> High</div>
+					{:else}
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/60"></div> >70%</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/30"></div> 50-70%</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/30"></div> 30-50%</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/60"></div> &lt;30%</div>
+					{/if}
+					<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-dark-bg/20"></div> No trades</div>
+				</div>
+			{/if}
+		</div>
+
+	{:else if activeTab === 'recaps'}
+		<!-- RECAPS & INSIGHTS -->
+		<div class="space-y-6">
+			<!-- Period selector -->
+			<div class="flex items-center justify-between">
+				<div class="flex gap-1.5">
+					{#each ['last_week', 'this_week', 'last_month', 'this_month'] as period}
+						<button
+							class="px-4 py-2 text-sm rounded-lg border transition-colors {recapPeriod === period ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
+							onclick={() => { recapPeriod = period as any; recapStats = null; recapTimestamp = ''; for (const k of Object.keys(recapSections)) recapSections[k] = { content: '', loading: false }; }}
+						>{recapPeriodLabels[period]}</button>
+					{/each}
+				</div>
+				{#if recapTimestamp}
+					<div class="text-xs text-gray-500">สรุปเมื่อ: {recapTimestamp}</div>
+				{/if}
+			</div>
+
+			<!-- Stats snapshot -->
+			{#if recapStats}
+				<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+					<div class="card">
+						<div class="text-xs text-gray-500">Net P&L</div>
+						<div class="mt-1 text-2xl font-bold {recapStats.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(recapStats.netPnl)}</div>
+						{#if recapPrevStats}
+							<div class="mt-1 text-xs {recapStats.netPnl >= recapPrevStats.netPnl ? 'text-green-400' : 'text-red-400'}">
+								{recapStats.netPnl >= recapPrevStats.netPnl ? '↑' : '↓'} vs {formatCurrency(recapPrevStats.netPnl)}
+							</div>
+						{/if}
+					</div>
+					<div class="card">
+						<div class="text-xs text-gray-500">Win Rate</div>
+						<div class="mt-1 text-2xl font-bold {recapStats.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{recapStats.tradeWinRate?.toFixed(1)}%</div>
+						{#if recapPrevStats}
+							<div class="mt-1 text-xs {recapStats.tradeWinRate >= recapPrevStats.tradeWinRate ? 'text-green-400' : 'text-red-400'}">
+								{recapStats.tradeWinRate >= recapPrevStats.tradeWinRate ? '↑' : '↓'} vs {recapPrevStats.tradeWinRate?.toFixed(1)}%
+							</div>
+						{/if}
+					</div>
+					<div class="card">
+						<div class="text-xs text-gray-500">Profit Factor</div>
+						<div class="mt-1 text-2xl font-bold {recapStats.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{formatNumber(recapStats.profitFactor)}</div>
+					</div>
+					<div class="card">
+						<div class="text-xs text-gray-500">Trades</div>
+						<div class="mt-1 text-2xl font-bold text-white">{recapStats.totalTrades}</div>
+					</div>
+				</div>
+			{/if}
+
+			{#if recapError}
+				<div class="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg">
+					{recapError}
+				</div>
+			{/if}
+
+			<!-- Generate button or sections -->
+			{#if !recapSections.performance_summary.content && !recapGenerating}
+				<div class="card text-center py-12">
+					<div class="text-4xl mb-4">🤖</div>
+					<h3 class="text-lg font-semibold text-white mb-2">AI Recap & Insights</h3>
+					<p class="text-sm text-gray-400 mb-6">สรุปผลการเทรด{recapPeriodLabels[recapPeriod]} วิเคราะห์จุดแข็ง จุดอ่อน และแผนปรับปรุง</p>
+					<div class="flex gap-3 justify-center">
+						<button
+							onclick={async () => { if (await loadCachedRecap()) return; generateRecap(); }}
+							class="px-6 py-3 rounded-lg bg-brand-primary text-dark-bg font-semibold hover:opacity-90 transition-opacity"
+						>สรุปผลด้วย AI</button>
+					</div>
+				</div>
+			{:else}
+				<!-- Streaming sections -->
+				<div class="space-y-4">
+					{#each recapSectionConfig as cfg}
+						{@const section = recapSections[cfg.key]}
+						{#if section?.content || section?.loading || recapGenerating}
+							<div class="card">
+								<div class="flex items-center gap-2 mb-3">
+									<span class="text-lg">{cfg.icon}</span>
+									<h3 class="text-base font-semibold text-white">{cfg.title}</h3>
+									{#if section?.loading}
+										<div class="ml-auto flex items-center gap-1.5 text-xs text-brand-primary">
+											<div class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></div>
+											กำลังวิเคราะห์...
+										</div>
+									{/if}
+								</div>
+								{#if section?.content}
+									<div class="prose-sm text-gray-300 leading-relaxed">
+										{@html recapRenderMarkdown(section.content)}
+									</div>
+								{:else if !section?.loading && recapGenerating}
+									<!-- Skeleton -->
+									<div class="space-y-2 animate-pulse">
+										<div class="h-3 bg-dark-border rounded w-3/4"></div>
+										<div class="h-3 bg-dark-border rounded w-1/2"></div>
+										<div class="h-3 bg-dark-border rounded w-5/6"></div>
+									</div>
+								{/if}
+							</div>
+						{/if}
+					{/each}
+				</div>
+
+				<!-- Regenerate button -->
+				{#if !recapGenerating && recapSections.performance_summary.content}
+					<div class="flex justify-end">
+						<button
+							onclick={generateRecap}
+							class="flex items-center gap-2 px-4 py-2 rounded-lg border border-dark-border text-sm text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+							สร้างใหม่
+						</button>
+					</div>
+				{/if}
 			{/if}
 		</div>
 
@@ -530,11 +1210,11 @@
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-xs">
-								<th class="text-left py-2">Metric</th>
-								<th class="text-right py-2">Group #1</th>
-								<th class="text-right py-2">Group #2</th>
-								<th class="text-right py-2">Diff</th>
+							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+								<th class="text-left py-2.5 font-medium">Metric</th>
+								<th class="text-right py-2.5 font-medium">Group #1</th>
+								<th class="text-right py-2.5 font-medium">Group #2</th>
+								<th class="text-right py-2.5 font-medium">Diff</th>
 							</tr>
 						</thead>
 						<tbody>

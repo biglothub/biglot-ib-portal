@@ -17,6 +17,9 @@ declare global {
 				role: 'admin' | 'master_ib' | 'client';
 				avatar_url: string | null;
 			} | null;
+			/** Admin "View As" mode — set when admin views a client's portfolio */
+			viewAsAccountId?: string;
+			viewAsUserId?: string;
 		}
 		interface PageData {
 			user: User | null;
