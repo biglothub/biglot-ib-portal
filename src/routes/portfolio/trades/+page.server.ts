@@ -1,6 +1,6 @@
 import { applyPortfolioFilters, parsePortfolioFilters } from '$lib/portfolio';
 import { buildFilterOptions } from '$lib/server/portfolio';
-import { evaluateAllInsights, calculateAllQualityScores } from '$lib/server/insights/engine';
+import { evaluateAllInsights, calculateAllQualityScores, calculateAllExecutionMetrics } from '$lib/server/insights/engine';
 import type { PageServerLoad } from './$types';
 
 const PAGE_SIZE = 25;
@@ -31,18 +31,22 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const total = filteredTrades.length;
 	const pagedTrades = filteredTrades.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-	// Compute insights and quality scores for paged trades
+	// Compute insights, quality scores, and execution metrics for paged trades
 	const allInsightsMap = evaluateAllInsights(filteredTrades);
 	const allScoresMap = calculateAllQualityScores(filteredTrades);
+	const allMetricsMap = calculateAllExecutionMetrics(filteredTrades);
 
 	// Convert maps to plain objects for serialization (only for paged trades)
 	const tradeInsights: Record<string, any[]> = {};
 	const tradeScores: Record<string, number> = {};
+	const tradeExecutionMetrics: Record<string, any> = {};
 	for (const trade of pagedTrades) {
 		const insights = allInsightsMap.get(trade.id);
 		if (insights) tradeInsights[trade.id] = insights;
 		const score = allScoresMap.get(trade.id);
 		if (score !== undefined) tradeScores[trade.id] = score;
+		const metrics = allMetricsMap.get(trade.id);
+		if (metrics) tradeExecutionMetrics[trade.id] = metrics;
 	}
 
 	return {
@@ -56,6 +60,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		playbooks,
 		savedViews: savedViews.filter((view: any) => view.page === 'trades'),
 		tradeInsights,
-		tradeScores
+		tradeScores,
+		tradeExecutionMetrics
 	};
 };

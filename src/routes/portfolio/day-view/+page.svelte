@@ -2,11 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import DayMiniPnlChart from '$lib/components/charts/DayMiniPnlChart.svelte';
+	import DayInsightsSection from '$lib/components/portfolio/DayInsightsSection.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
 
 	let { data } = $props();
-	let { selectedDate, viewMode, dayTrades, daySummary, weekData, calendarDays, intradayCumPnl } = $derived(data);
+	let { selectedDate, viewMode, dayTrades, daySummary, weekData, calendarDays, intradayCumPnl, dayInsights } = $derived(data);
 
 	// Calendar state
 	let calendarDate = $derived(new Date((selectedDate || new Date().toISOString().split('T')[0]) + 'T00:00:00'));
@@ -155,6 +156,13 @@
 									<span class="text-red-400">{daySummary.losses}</span>
 								</div>
 							</div>
+						</div>
+					{/if}
+
+					<!-- Day-level insights -->
+					{#if dayInsights && dayInsights.length > 0}
+						<div class="mt-4">
+							<DayInsightsSection insights={dayInsights} />
 						</div>
 					{/if}
 				</div>

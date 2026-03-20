@@ -7,6 +7,7 @@ import {
 	buildReportExplorer,
 	buildReviewSummary
 } from '$lib/server/portfolio';
+import { calculateHealthScore } from '$lib/server/insights/engine';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
@@ -107,6 +108,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		ruleBreakMetrics: report.ruleBreakMetrics,
 		journalSummary: report.journalSummary,
 		reviewSummary,
-		kpiMetrics
+		kpiMetrics,
+		healthScore: calculateHealthScore(kpiMetrics)
 	};
 };

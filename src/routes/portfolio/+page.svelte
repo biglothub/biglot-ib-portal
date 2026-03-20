@@ -5,6 +5,7 @@
 	import DailyPnlChart from '$lib/components/charts/DailyPnlChart.svelte';
 	import CumulativePnlChart from '$lib/components/charts/CumulativePnlChart.svelte';
 	import TradingScoreRadar from '$lib/components/charts/TradingScoreRadar.svelte';
+	import HealthScoreCard from '$lib/components/portfolio/HealthScoreCard.svelte';
 	import MiniCalendar from '$lib/components/portfolio/MiniCalendar.svelte';
 	import OverviewSkeleton from '$lib/components/portfolio/OverviewSkeleton.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
@@ -27,7 +28,8 @@
 		setupPerformance,
 		ruleBreakMetrics,
 		journalSummary,
-		kpiMetrics
+		kpiMetrics,
+		healthScore
 	} = $derived(data);
 	let safeCommandCenter = $derived(commandCenter || {
 		today: { pnl: 0, trades: 0, reviewedTrades: 0, completedJournal: false },
@@ -141,7 +143,9 @@
 		{/if}
 
 		<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
-			<div class="card xl:col-span-1">
+			<div class="xl:col-span-1 space-y-4">
+				<HealthScoreCard score={healthScore?.score || 0} />
+				<div class="card">
 				<TradingScoreRadar
 					winRate={kpi.tradeWinRate}
 					profitFactor={kpi.profitFactor >= 999 ? 3 : kpi.profitFactor}
@@ -151,6 +155,7 @@
 					maxDrawdownPct={kpi.maxDrawdownPct || 0}
 					consistency={kpi.consistency || 0}
 				/>
+				</div>
 			</div>
 			<div class="card xl:col-span-1 space-y-4">
 				<div>

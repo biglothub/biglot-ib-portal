@@ -1,4 +1,5 @@
 import { buildDailyHistory, buildKpiMetrics } from '$lib/server/portfolio';
+import { evaluateDayInsights } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
@@ -125,6 +126,11 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		trades: d.totalTrades
 	}));
 
+	// Compute day-level insights
+	const dayInsights = dayTrades.length > 0
+		? evaluateDayInsights(dayTrades, trades)
+		: [];
+
 	return {
 		selectedDate,
 		viewMode,
@@ -132,6 +138,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		daySummary,
 		weekData,
 		calendarDays,
-		intradayCumPnl
+		intradayCumPnl,
+		dayInsights
 	};
 };

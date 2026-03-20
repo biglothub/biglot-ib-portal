@@ -7,10 +7,11 @@
 	import ConfigurableMetricChart from '$lib/components/charts/ConfigurableMetricChart.svelte';
 	import StatsOverviewTable from '$lib/components/reports/StatsOverviewTable.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import HealthScoreCard from '$lib/components/portfolio/HealthScoreCard.svelte';
 	import { formatCurrency, formatNumber, formatPercent } from '$lib/utils';
 
 	let { data } = $props();
-	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, tagBreakdown, dayOfWeekReport, dayTimeHeatmap, calendarDays, kpiMetrics, statsOverview } = $derived(data);
+	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, tagBreakdown, dayOfWeekReport, dayTimeHeatmap, calendarDays, kpiMetrics, statsOverview, healthScore } = $derived(data);
 
 	// Sub-tab state from URL
 	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
@@ -631,6 +632,12 @@
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.dayWinRate.toFixed(1)}%</div>
 				</div>
 			</div>
+
+			{#if healthScore}
+				<div class="mt-4 max-w-xs">
+					<HealthScoreCard score={healthScore.score} />
+				</div>
+			{/if}
 		{/if}
 
 	{:else if activeTab === 'calendar'}

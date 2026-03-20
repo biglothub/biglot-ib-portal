@@ -19,8 +19,9 @@
 	let tags = $derived(data.tags || []);
 	let playbooks = $derived(data.playbooks || []);
 	let savedViews = $derived(data.savedViews || []);
-	let tradeInsights = $derived(data.tradeInsights || {});
-	let tradeScores = $derived(data.tradeScores || {});
+	let tradeInsights: Record<string, any[]> = $derived(data.tradeInsights || {});
+	let tradeScores: Record<string, number> = $derived(data.tradeScores || {});
+	let tradeExecutionMetrics: Record<string, any> = $derived(data.tradeExecutionMetrics || {});
 
 	let groupBy = $state<'none' | 'day' | 'session' | 'setup'>('day');
 	const totalPages = $derived(Math.ceil(total / pageSize));
@@ -133,6 +134,7 @@
 									<th class="text-center py-2">Files</th>
 									<th class="text-center py-2">Insights</th>
 									<th class="text-center py-2">Quality</th>
+									<th class="text-center py-2">R</th>
 									<th class="text-right py-2">P/L</th>
 									<th class="text-right py-2">Time</th>
 								</tr>
@@ -183,7 +185,17 @@
 												<QualityScoreBar score={tradeScores[trade.id]} />
 											{/if}
 										</td>
-										<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
+										<td class="py-3 text-center">
+										{#if tradeExecutionMetrics[trade.id]?.rMultiple != null}
+											{@const r = tradeExecutionMetrics[trade.id].rMultiple}
+											<span class="text-xs font-mono {r >= 1 ? 'text-green-400' : r >= 0 ? 'text-amber-400' : 'text-red-400'}">
+												{r >= 0 ? '+' : ''}{r.toFixed(1)}R
+											</span>
+										{:else}
+											<span class="text-xs text-gray-600">—</span>
+										{/if}
+									</td>
+									<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 											{formatCurrency(trade.profit)}
 										</td>
 										<td class="py-3 text-right text-gray-500">{formatDateTime(trade.close_time)}</td>

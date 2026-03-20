@@ -7,6 +7,7 @@
 	import TradeReplayChart from '$lib/components/portfolio/TradeReplayChart.svelte';
 	import InsightsSection from '$lib/components/portfolio/InsightsSection.svelte';
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
+	import ExecutionMetricsCard from '$lib/components/portfolio/ExecutionMetricsCard.svelte';
 	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
 
 	let { data } = $props();
@@ -15,6 +16,7 @@
 	let tags = $derived(data.tags || []);
 	let insights = $derived(data.insights || []);
 	let qualityScore = $derived(data.qualityScore || 0);
+	let executionMetrics = $derived(data.executionMetrics || { plannedRisk: null, plannedReward: null, rMultiple: null, executionEfficiency: null });
 
 	let noteContent = $state('');
 	let noteRating = $state<number | null>(null);
@@ -427,6 +429,12 @@
 						</div>
 					{/if}
 				</div>
+
+				{#if executionMetrics.rMultiple != null || executionMetrics.executionEfficiency != null}
+					<div class="mt-4">
+						<ExecutionMetricsCard metrics={executionMetrics} />
+					</div>
+				{/if}
 
 				{#if insights.length > 0}
 					<div class="mt-6">

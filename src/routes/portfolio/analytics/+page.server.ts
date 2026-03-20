@@ -11,6 +11,7 @@ import {
 	buildTagBreakdown
 } from '$lib/server/portfolio';
 import { buildStatsOverview } from '$lib/server/stats-overview';
+import { calculateHealthScore } from '$lib/server/insights/engine';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
@@ -62,6 +63,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		dayTimeHeatmap,
 		calendarDays: dailyHistory.map(d => ({ date: d.date, pnl: d.profit, trades: d.totalTrades })),
 		kpiMetrics,
-		statsOverview
+		statsOverview,
+		healthScore: calculateHealthScore(kpiMetrics)
 	};
 };
