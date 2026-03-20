@@ -330,6 +330,7 @@ export interface PortfolioBaseData {
 	playbooks: Playbook[];
 	savedViews: PortfolioSavedView[];
 	progressGoals: ProgressGoal[];
+	warnings: string[];
 }
 
 export interface ApprovalLog {

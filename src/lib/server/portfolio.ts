@@ -20,6 +20,14 @@ import type {
 import { THAILAND_OFFSET_MS, toThaiDateString } from '$lib/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+const MAX_RATIO = 999;
+
+/** Cap profit factor / ratio to avoid Infinity in JSON serialization */
+function capRatio(numerator: number, denominator: number): number {
+	if (denominator > 0) return Math.min(numerator / denominator, MAX_RATIO);
+	return numerator > 0 ? MAX_RATIO : 0;
+}
+
 export async function fetchPortfolioBaseData(
 	supabase: SupabaseClient,
 	accountId: string,
@@ -68,17 +76,29 @@ export async function fetchPortfolioBaseData(
 				.order('goal_type', { ascending: true })
 		]);
 
+	const warnings: string[] = [];
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const getData = (result: PromiseSettledResult<{ data: any[] | null }>) =>
-		result.status === 'fulfilled' ? result.value.data || [] : [];
+	const getData = (result: PromiseSettledResult<{ data: any[] | null; error: any }>, label: string) => {
+		if (result.status === 'fulfilled') {
+			if (result.value.error) {
+				console.error(`[Portfolio] ${label} query error:`, result.value.error.message);
+				warnings.push(label);
+			}
+			return result.value.data || [];
+		}
+		console.error(`[Portfolio] ${label} promise rejected:`, (result as PromiseRejectedResult).reason);
+		warnings.push(label);
+		return [];
+	};
 
 	return {
-		trades: getData(tradesRes),
-		dailyStats: getData(dailyStatsRes),
-		journals: getData(journalsRes),
-		playbooks: getData(playbooksRes),
-		savedViews: getData(savedViewsRes),
-		progressGoals: mergeDefaultProgressGoals(getData(progressGoalsRes), accountId, userId)
+		trades: getData(tradesRes, 'trades'),
+		dailyStats: getData(dailyStatsRes, 'dailyStats'),
+		journals: getData(journalsRes, 'journals'),
+		playbooks: getData(playbooksRes, 'playbooks'),
+		savedViews: getData(savedViewsRes, 'savedViews'),
+		progressGoals: mergeDefaultProgressGoals(getData(progressGoalsRes, 'progressGoals'), accountId, userId),
+		warnings
 	};
 }
 
@@ -95,31 +115,31 @@ export async function fetchTradeChartContext(supabase: SupabaseClient, tradeId: 
 export function buildDailyHistory(trades: Trade[]) {
 	if (!trades || trades.length === 0) return [];
 
-	const dailyMap = new Map<string, { profit: number; trades: number[]; reviewed: number }>();
+	const dailyMap = new Map<string, { profit: number; profitValues: number[]; reviewed: number }>();
 
 	for (const trade of trades) {
 		const dateKey = toThaiDateString(trade.close_time);
 		const reviewStatus = getTradeReviewStatus(trade);
 
 		if (!dailyMap.has(dateKey)) {
-			dailyMap.set(dateKey, { profit: 0, trades: [], reviewed: 0 });
+			dailyMap.set(dateKey, { profit: 0, profitValues: [], reviewed: 0 });
 		}
 		const day = dailyMap.get(dateKey)!;
 		day.profit += Number(trade.profit || 0);
-		day.trades.push(Number(trade.profit || 0));
+		day.profitValues.push(Number(trade.profit || 0));
 		if (reviewStatus === 'reviewed') day.reviewed += 1;
 	}
 
 	return Array.from(dailyMap.entries())
 		.map(([date, data]) => {
-			const wins = data.trades.filter((p) => p > 0);
-			const losses = data.trades.filter((p) => p < 0);
+			const wins = data.profitValues.filter((p) => p > 0);
+			const losses = data.profitValues.filter((p) => p < 0);
 			return {
 				date,
 				profit: data.profit,
-				totalTrades: data.trades.length,
+				totalTrades: data.profitValues.length,
 				reviewedTrades: data.reviewed,
-				winRate: data.trades.length > 0 ? (wins.length / data.trades.length) * 100 : 0,
+				winRate: data.profitValues.length > 0 ? (wins.length / data.profitValues.length) * 100 : 0,
 				bestTrade: wins.length > 0 ? Math.max(...wins) : 0,
 				worstTrade: losses.length > 0 ? Math.min(...losses) : 0
 			};
@@ -165,12 +185,12 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 	// Profit Factor
 	const totalWinning = wins.reduce((sum, t) => sum + Number(t.profit || 0), 0);
 	const totalLosing = Math.abs(losses.reduce((sum, t) => sum + Number(t.profit || 0), 0));
-	const profitFactor = totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0;
+	const profitFactor = capRatio(totalWinning, totalLosing);
 
 	// Avg Win / Avg Loss
 	const avgWin = wins.length > 0 ? totalWinning / wins.length : 0;
 	const avgLoss = losses.length > 0 ? totalLosing / losses.length : 0;
-	const avgWinLossRatio = avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? Infinity : 0;
+	const avgWinLossRatio = capRatio(avgWin, avgLoss);
 
 	// Day Win Rate
 	const profitableDays = dailyHistory.filter(d => d.profit > 0).length;
@@ -216,13 +236,13 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 		losingTrades: losses.length,
 		breakEvenTrades: breakEven.length,
 		tradeWinRate,
-		profitFactor: profitFactor === Infinity ? 999 : profitFactor,
+		profitFactor,
 		dayWinRate,
 		profitableDays,
 		totalTradingDays,
 		avgWin,
 		avgLoss,
-		avgWinLossRatio: avgWinLossRatio === Infinity ? 999 : avgWinLossRatio,
+		avgWinLossRatio,
 		cumulativePnl,
 		recoveryFactor: Math.min(recoveryFactor, 10),
 		maxDrawdownPct,
@@ -263,13 +283,19 @@ export function buildSetupPerformance(trades: Trade[]) {
 				totalProfit,
 				winRate: bucket.trades.length > 0 ? (wins.length / bucket.trades.length) * 100 : 0,
 				expectancy: bucket.trades.length > 0 ? totalProfit / bucket.trades.length : 0,
-				profitFactor: grossLoss > 0 ? grossWin / grossLoss : grossWin > 0 ? Infinity : 0,
+				profitFactor: capRatio(grossWin, grossLoss),
 				reviewedTrades: bucket.trades.filter((trade) => getTradeReviewStatus(trade) === 'reviewed').length
 			};
 		})
 		.sort((a, b) => b.totalProfit - a.totalProfit);
 }
 
+/**
+ * Build rule break metrics from reviewed trades.
+ * Note: `ruleBreakLoss` is the total loss of trades that broke ANY rule (counted once per trade).
+ * Per-rule `loss` is attributed to each rule the trade broke — so if a losing trade broke 3 rules,
+ * each rule's loss includes that trade's full loss (shows exposure per rule, intentionally sums > total).
+ */
 export function buildRuleBreakMetrics(trades: Trade[]) {
 	const brokenRuleMap = new Map<string, { count: number; loss: number; wins: number }>();
 	let totalRuleBreaks = 0;
@@ -485,7 +511,7 @@ export function buildSymbolBreakdown(trades: Trade[]) {
 				wins: wins.length,
 				losses: losses.length,
 				winRate: symTrades.length > 0 ? (wins.length / symTrades.length) * 100 : 0,
-				profitFactor: totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0,
+				profitFactor: capRatio(totalWinning, totalLosing),
 				netPnl,
 				avgPnl: symTrades.length > 0 ? netPnl / symTrades.length : 0
 			};
@@ -530,7 +556,7 @@ export function buildTagBreakdown(trades: Trade[]) {
 			wins: wins.length,
 			losses: losses.length,
 			winRate: groupTrades.length > 0 ? (wins.length / groupTrades.length) * 100 : 0,
-			profitFactor: totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0,
+			profitFactor: capRatio(totalWinning, totalLosing),
 			netPnl,
 			avgPnl: groupTrades.length > 0 ? netPnl / groupTrades.length : 0
 		};
@@ -585,7 +611,7 @@ export function buildDayOfWeekReport(trades: Trade[]) {
 			wins: wins.length,
 			losses: losses.length,
 			winRate: dayTrades.length > 0 ? (wins.length / dayTrades.length) * 100 : 0,
-			profitFactor: totalLosing > 0 ? totalWinning / totalLosing : totalWinning > 0 ? Infinity : 0,
+			profitFactor: capRatio(totalWinning, totalLosing),
 			netPnl,
 			avgPnl: dayTrades.length > 0 ? netPnl / dayTrades.length : 0,
 			avgHoldMinutes: holdTimes.length > 0 ? Math.round(holdTimes.reduce((a, b) => a + b, 0) / holdTimes.length) : 0,
@@ -684,34 +710,29 @@ function mergeDefaultProgressGoals(goals: ProgressGoal[], accountId: string, use
 			existing || {
 				...goal,
 				id: `default-${goal.goal_type}`,
-				created_at: '',
-				updated_at: ''
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			}
 		);
 	});
 }
 
 function buildDurationBucketStats(trades: Trade[]) {
-	const buckets = new Map<string, { count: number; profit: number }>();
+	const buckets = new Map<string, { count: number; profit: number; totalMinutes: number }>();
 	for (const trade of trades) {
 		const bucket = getTradeDurationBucket(trade.open_time, trade.close_time) || 'intraday';
-		const current = buckets.get(bucket) || { count: 0, profit: 0 };
+		const current = buckets.get(bucket) || { count: 0, profit: 0, totalMinutes: 0 };
 		current.count += 1;
 		current.profit += Number(trade.profit || 0);
+		current.totalMinutes += getTradeDurationMinutes(trade.open_time, trade.close_time);
 		buckets.set(bucket, current);
 	}
 
 	return Array.from(buckets.entries()).map(([bucket, stats]) => ({
 		bucket,
-		...stats,
-		avgMinutes:
-			stats.count > 0
-				? Math.round(
-						trades
-							.filter((trade) => getTradeDurationBucket(trade.open_time, trade.close_time) === bucket)
-							.reduce((sum, trade) => sum + getTradeDurationMinutes(trade.open_time, trade.close_time), 0) / stats.count
-					)
-				: 0
+		count: stats.count,
+		profit: stats.profit,
+		avgMinutes: stats.count > 0 ? Math.round(stats.totalMinutes / stats.count) : 0
 	}));
 }
 

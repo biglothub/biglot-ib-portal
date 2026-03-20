@@ -15,6 +15,14 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	depends('portfolio:baseData');
 	depends('portfolio:marketNews');
 
+	// Guard: ensure required context exists before proceeding
+	if (isAdminView && !locals.viewAsUserId) {
+		throw redirect(303, '/admin/clients');
+	}
+	if (!isAdminView && !locals.profile) {
+		throw redirect(303, '/auth/login');
+	}
+
 	// For admin view, use service client (bypasses RLS) and target the client's account
 	const supabase = isAdminView ? createSupabaseServiceClient() : locals.supabase;
 	const effectiveUserId = isAdminView ? locals.viewAsUserId! : locals.profile!.id;
@@ -48,8 +56,8 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 			savedViews: [],
 			userId: locals.profile?.id,
 			marketNews: [],
-			isAdminView: false,
-			viewAsAccountId: null
+			isAdminView,
+			viewAsAccountId: isAdminView ? locals.viewAsAccountId : null
 		};
 	}
 

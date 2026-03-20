@@ -53,6 +53,7 @@
 	// Optimistic tag state
 	let optimisticAddedTags = $state<any[]>([]);
 	let optimisticRemovedTagIds = $state<Set<string>>(new Set());
+	let lastSyncedTradeId = $state('');
 
 	const effectiveAssignments = $derived((() => {
 		const real = (trade?.trade_tag_assignments || [])
@@ -69,6 +70,9 @@
 	);
 
 	$effect(() => {
+		const tradeId = trade?.id || '';
+		const isNewTrade = tradeId !== lastSyncedTradeId;
+
 		noteContent = trade?.trade_notes?.[0]?.content || '';
 		noteRating = trade?.trade_notes?.[0]?.rating || null;
 		reviewStatus = review?.review_status || 'unreviewed';
@@ -87,9 +91,13 @@
 		followedPlan = review?.followed_plan == null ? '' : review.followed_plan ? 'yes' : 'no';
 		brokenRules = review?.broken_rules || [];
 		attachments = trade?.trade_attachments || [];
-		// Reset optimistic state when server data arrives
-		optimisticAddedTags = [];
-		optimisticRemovedTagIds = new Set();
+
+		// Only reset optimistic state when navigating to a different trade
+		if (isNewTrade) {
+			lastSyncedTradeId = tradeId;
+			optimisticAddedTags = [];
+			optimisticRemovedTagIds = new Set();
+		}
 	});
 
 	function getDuration(openTime: string, closeTime: string): string {

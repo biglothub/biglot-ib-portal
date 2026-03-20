@@ -50,6 +50,10 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
 
+	if (!rateLimit(`portfolio:tags:delete:${profile.id}`, 20, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
+	}
+
 	const { id } = await request.json();
 
 	if (!id) {

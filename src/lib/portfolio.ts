@@ -1,4 +1,5 @@
 import type { PortfolioFilterState, ReviewStatus, Trade } from '$lib/types';
+import { THAILAND_OFFSET_MS } from '$lib/utils';
 
 export const EMPTY_PORTFOLIO_FILTERS: PortfolioFilterState = {
 	q: '',
@@ -28,6 +29,8 @@ export const REVIEW_STATUS_STYLES: Record<ReviewStatus, string> = {
 	reviewed: 'bg-green-500/10 text-green-300 border-green-500/20'
 };
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 export function parsePortfolioFilters(searchParams: URLSearchParams): PortfolioFilterState {
 	const parseBool = (value: string | null) => {
 		if (value == null || value === '') return null;
@@ -36,11 +39,13 @@ export function parsePortfolioFilters(searchParams: URLSearchParams): PortfolioF
 
 	const outcome = searchParams.get('outcome');
 	const durationBucket = searchParams.get('duration');
+	const rawFrom = searchParams.get('from') || '';
+	const rawTo = searchParams.get('to') || '';
 
 	return {
 		q: searchParams.get('q') || '',
-		from: searchParams.get('from') || '',
-		to: searchParams.get('to') || '',
+		from: DATE_RE.test(rawFrom) ? rawFrom : '',
+		to: DATE_RE.test(rawTo) ? rawTo : '',
 		symbols: searchParams.getAll('symbol'),
 		sessions: searchParams.getAll('session'),
 		directions: searchParams.getAll('direction'),
@@ -136,11 +141,11 @@ export function applyPortfolioFilters<T extends Partial<Trade> & Record<string, 
 		}
 		if (filters.tagIds.length > 0) {
 			const assignedTagIds = new Set((trade.trade_tag_assignments || []).map((assignment) => assignment.tag_id));
-			if (!filters.tagIds.every((tagId) => assignedTagIds.has(tagId))) return false;
+			if (!filters.tagIds.some((tagId) => assignedTagIds.has(tagId))) return false;
 		}
 		if (filters.outcome === 'win' && Number(trade.profit || 0) <= 0) return false;
 		if (filters.outcome === 'loss' && Number(trade.profit || 0) >= 0) return false;
-		if (filters.outcome === 'breakeven' && Number(trade.profit || 0) !== 0) return false;
+		if (filters.outcome === 'breakeven' && Math.abs(Number(trade.profit || 0)) > 0.01) return false;
 		if (filters.hasNotes === true && getTradeNotes(trade).length === 0) return false;
 		if (filters.hasNotes === false && getTradeNotes(trade).length > 0) return false;
 		if (filters.hasAttachments === true && getTradeAttachments(trade).length === 0) return false;
@@ -150,12 +155,12 @@ export function applyPortfolioFilters<T extends Partial<Trade> & Record<string, 
 		}
 		if (filters.from) {
 			const closeTime = trade.close_time ? new Date(trade.close_time).getTime() : 0;
-			const from = new Date(`${filters.from}T00:00:00`).getTime();
+			const from = new Date(`${filters.from}T00:00:00Z`).getTime() - THAILAND_OFFSET_MS;
 			if (closeTime < from) return false;
 		}
 		if (filters.to) {
 			const closeTime = trade.close_time ? new Date(trade.close_time).getTime() : 0;
-			const to = new Date(`${filters.to}T23:59:59`).getTime();
+			const to = new Date(`${filters.to}T23:59:59Z`).getTime() - THAILAND_OFFSET_MS;
 			if (closeTime > to) return false;
 		}
 		if (query) {

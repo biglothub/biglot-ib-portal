@@ -1,5 +1,5 @@
 import { fetchTradeChartContext } from '$lib/server/portfolio';
-import { evaluateTradeInsights, calculateQualityScore } from '$lib/server/insights/engine';
+import { evaluateTradeInsights, calculateQualityScore, calculateExecutionMetrics } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
@@ -26,6 +26,21 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks };
 	}
 
+	const currentPlaybookId = trade.trade_reviews?.[0]?.playbook_id || null;
+
+	// Build similar trades query with DB-level filtering when possible
+	let similarQuery = supabase
+		.from('trades')
+		.select('id, symbol, type, profit, close_time, trade_reviews(review_status, playbook_id), trade_tag_assignments(tag_id, trade_tags(id, name, color, category))')
+		.eq('client_account_id', account.id)
+		.neq('id', trade.id)
+		.order('close_time', { ascending: false })
+		.limit(20);
+
+	if (currentPlaybookId) {
+		similarQuery = similarQuery.not('trade_reviews', 'is', null);
+	}
+
 	const [relatedTradesRes, chartContexts, journalRes, similarReviewRes] = await Promise.all([
 		supabase
 			.from('trades')
@@ -45,17 +60,10 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 			.eq('user_id', userId)
 			.eq('date', toThaiDateString(trade.close_time))
 			.maybeSingle(),
-		supabase
-			.from('trades')
-			.select('id, symbol, type, profit, close_time, trade_reviews(review_status, playbook_id), trade_tag_assignments(tag_id, trade_tags(id, name, color, category))')
-			.eq('client_account_id', account.id)
-			.order('close_time', { ascending: false })
-			.limit(20)
+		similarQuery
 	]);
 
-	const currentPlaybookId = trade.trade_reviews?.[0]?.playbook_id || null;
 	const similarReviewedTrades = (similarReviewRes.data || []).filter((item: any) =>
-		item.id !== trade.id &&
 		currentPlaybookId
 			? item.trade_reviews?.[0]?.playbook_id === currentPlaybookId
 			: (item.trade_tag_assignments || []).some((assignment: any) =>
@@ -79,6 +87,8 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		avgSymbolHoldMinutes: symbolTrades.length > 0 ? symbolTrades.reduce((s: number, t: any) => s + (new Date(t.close_time).getTime() - new Date(t.open_time).getTime()) / 60000, 0) / symbolTrades.length : 0,
 	});
 
+	const executionMetrics = calculateExecutionMetrics(trade);
+
 	return {
 		trade,
 		relatedTrades: relatedTradesRes.data || [],
@@ -87,6 +97,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		playbooks,
 		similarReviewedTrades,
 		insights,
-		qualityScore
+		qualityScore,
+		executionMetrics
 	};
 };

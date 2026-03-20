@@ -45,6 +45,10 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 		return json({ message: 'Forbidden' }, { status: 403 });
 	}
 
+	if (!rateLimit(`portfolio:trade-tags:delete:${profile.id}`, 30, 60_000)) {
+		return json({ message: 'Too many requests' }, { status: 429 });
+	}
+
 	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
 	if (!ownership.ok) return ownership.response;
 
