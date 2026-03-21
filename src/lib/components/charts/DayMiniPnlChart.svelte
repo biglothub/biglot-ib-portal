@@ -18,12 +18,28 @@
 	let tooltipY = $state(0);
 	let tooltipValue = $state(0);
 
+	function updateChartData(chartData: Array<{ time: number; value: number }>) {
+		if (!areaSeries || !chart || !chartData || chartData.length === 0) return;
+
+		const lastValue = chartData[chartData.length - 1]?.value || 0;
+		const lineColor = lastValue >= 0 ? '#22c55e' : '#ef4444';
+		const topColor = lastValue >= 0 ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+
+		areaSeries.applyOptions({
+			lineColor,
+			topColor,
+			crosshairMarkerBackgroundColor: lineColor
+		});
+		areaSeries.setData(chartData);
+		chart.timeScale().fitContent();
+	}
+
 	onMount(() => {
 		let observer: ResizeObserver | undefined;
 		let destroyed = false;
 
 		import('lightweight-charts').then((lc) => {
-			if (destroyed || !chartContainer || !data || data.length === 0) return;
+			if (destroyed || !chartContainer) return;
 			const { createChart, ColorType, LineStyle } = lc;
 
 			chart = createChart(chartContainer, {
@@ -38,23 +54,16 @@
 				handleScale: false
 			});
 
-			const lastValue = data[data.length - 1]?.value || 0;
-			const lineColor = lastValue >= 0 ? '#22c55e' : '#ef4444';
-			const topColor = lastValue >= 0 ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)';
-
 			areaSeries = chart.addAreaSeries({
-				lineColor,
-				topColor,
+				lineColor: '#22c55e',
+				topColor: 'rgba(34, 197, 94, 0.3)',
 				bottomColor: 'rgba(0,0,0,0)',
 				lineWidth: 2,
 				priceFormat: { type: 'price', precision: 2, minMove: 0.01 },
 				crosshairMarkerVisible: true,
 				crosshairMarkerRadius: 3,
-				crosshairMarkerBackgroundColor: lineColor
+				crosshairMarkerBackgroundColor: '#22c55e'
 			});
-
-			areaSeries.setData(data);
-			chart.timeScale().fitContent();
 
 			chart.subscribeCrosshairMove((param: any) => {
 				if (!param?.time || !param?.point) { tooltipVisible = false; return; }
@@ -64,9 +73,15 @@
 
 			observer = new ResizeObserver(() => { chart?.applyOptions({ width: chartContainer.clientWidth }); });
 			observer.observe(chartContainer);
+
+			updateChartData(data);
 		});
 
 		return () => { destroyed = true; observer?.disconnect(); chart?.remove(); };
+	});
+
+	$effect(() => {
+		if (data) updateChartData(data);
 	});
 </script>
 

@@ -459,10 +459,11 @@
   - Files: src/service-worker.ts
   - ✅ Session 2026-03-22: Added `validateSameOriginUrl()` function that parses URLs and checks origin matches `sw.location.origin`; validates at both push receive (data storage) and notificationclick (before openWindow); falls back to '/' for invalid or cross-origin URLs; returns pathname+search+hash only to prevent protocol-level attacks
 
-- [ ] [M] FIX-010: Fix DayMiniPnlChart data reactivity
+- [x] [M] FIX-010: Fix DayMiniPnlChart data reactivity
   - Chart doesn't update when underlying data changes
   - Add $effect to watch data prop changes and re-render chart
   - Files: src/lib/components/charts/DayMiniPnlChart.svelte
+  - ✅ Session 2026-03-22: Extracted `updateChartData()` helper that updates series data and colors (green/red based on last value); called from both `onMount` (initial render) and `$effect` (reactive updates when data prop changes); chart creation separated from data setting for clean reactivity
 
 ### Feature Gaps vs TradeZella
 
