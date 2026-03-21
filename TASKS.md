@@ -286,47 +286,54 @@
   - Files: src/routes/portfolio/social/+page.svelte (new), DB: social_posts table
   - Session note: DB migration 025 — social_settings (opt-in), social_posts (3 types: insight/trade_share/milestone), social_likes (toggle), social_comments. Triggers keep likes_count/comments_count in sync. SECURITY DEFINER function get_social_leaderboard() bypasses trades RLS for cross-user stats. 5 API endpoints under /api/portfolio/social (feed CRUD, like toggle, comments CRUD, leaderboard GET, settings upsert). Page at /portfolio/social with Feed + Leaderboard tabs, opt-in banner, create post form, like/comment UI, mini leaderboard sidebar. Tab added to portfolio layout nav.
 
-- [ ] [M] ADV-009: Automated Daily Report email
+- [x] [M] ADV-009: Automated Daily Report email
   - End-of-day summary email: P&L, trades, rule breaks, checklist status
   - Weekly digest email
   - Email preferences in settings
   - Files: src/routes/api/portfolio/daily-report/+server.ts (new)
+  - Session note: DB migration 026_email_reports.sql (email_report_settings table with daily/weekly toggles, send_hour, weekly_day, rate-limiting timestamps). Email sending via Resend REST API (no new package — uses fetch). HTML email templates: buildDailyReportHtml (P&L hero, KPI grid, top winner/loser, discipline row, CTA) and buildWeeklyDigestHtml (summary stats 4-col grid, top symbol, discipline). API at /api/portfolio/daily-report (GET settings, PUT upsert, POST send now/test). Settings page at /settings/email-reports with toggle cards for daily + weekly, send-hour select, "ส่งทดสอบ" button per type. Tab added to settings sidebar. Requires RESEND_API_KEY + RESEND_FROM_EMAIL in env (documented in .env.example).
 
-- [ ] [L] ADV-010: Advanced Charting — multi-timeframe analysis
+- [x] [L] ADV-010: Advanced Charting — multi-timeframe analysis
   - Show trade on multiple timeframes (1m, 5m, 15m, 1H, 4H, D)
   - Synchronized crosshair across timeframes
   - Uses lightweight-charts instances
   - Files: src/lib/components/charts/MultiTimeframeChart.svelte (new)
+  - Session note: Svelte action `chartPanel` initialises one lightweight-charts candlestick instance per context. Shared `instances[]` array + `syncCrosshair()` propagates vertical crosshair across all open charts via `setCrosshairPosition` / `clearCrosshairPosition`. Grid mode (2-col responsive) auto-heights panels; ResizeObserver resizes charts on layout change. Click ⤢ focuses single TF at 380px with pill-tab switcher. Entry/exit arrowUp/arrowDown markers + dashed SL/TP price lines on every TF. Replaces TradeContextChart in trade detail page. 127 tests pass, build OK.
 
 ## Phase 3 — Mobile & PWA Enhancement
 
-- [ ] [M] MOB-001: Bottom navigation bar for mobile
+- [x] [M] MOB-001: Bottom navigation bar for mobile
   - Fixed bottom nav: Dashboard, Trades, Journal, Analytics, More
   - Hide sidebar on mobile, show bottom nav instead
   - Files: src/lib/components/layout/MobileNav.svelte (new)
+  - Session note: Fixed `bottom-0` nav bar (md:hidden) with 4 primary tabs (ภาพรวม, เทรด, บันทึก, รายงาน) + "เพิ่มเติม" button. More button opens slide-up grid drawer with remaining 9 tabs (4-col grid). Horizontal tab bar in portfolio layout is now `hidden md:flex`. Added `pb-16 md:pb-0` to layout container. MobileNav receives `tabs[]` + `isActive()` from layout — respects admin view account_id in hrefs. Build OK.
 
-- [ ] [M] MOB-002: Swipe gestures for trade cards
+- [x] [M] MOB-002: Swipe gestures for trade cards
   - Swipe left: quick review
   - Swipe right: add tag
   - Touch-friendly trade detail view
   - Files: src/routes/portfolio/trades/+page.svelte
+  - Session note: SwipeableTradeCard.svelte — Svelte action with non-passive touchmove listener detects horizontal vs vertical intent (8px lock threshold). Left swipe (≥72px) opens Quick Review bottom sheet (3-state selector). Right swipe opens Add Tag bottom sheet (tag pill grid). Both sheets use full-width backdrop + rounded-t-2xl panel. Mobile card list shown md:hidden inside each group; existing desktop table wrapped in hidden md:block. 127 tests pass, build OK.
 
-- [ ] [S] MOB-003: Pull-to-refresh on mobile
+- [x] [S] MOB-003: Pull-to-refresh on mobile
   - Pull down on portfolio pages to refresh data
   - Show refresh indicator
   - Files: src/routes/portfolio/+layout.svelte
+  - Session note: Touch event listeners attached via $effect (non-passive touchmove to allow preventDefault). Only triggers when scrollY=0. 72px threshold; visual indicator is a fixed circle at top-center with sync icon that rotates as you pull (opacity+rotation tracks pullProgress) then spins (animate-spin + brand-primary) during refresh. Content div gets subtle translateY (max 24px) for physical pull feel. Calls invalidate('portfolio:baseData') on release. Cleans up listeners on component destroy. Build OK.
 
-- [ ] [M] MOB-004: Offline mode with service worker
+- [x] [M] MOB-004: Offline mode with service worker
   - Cache recent trades/journal locally
   - Show cached data when offline
   - Sync when back online
   - Files: src/service-worker.ts
+  - Session note: Enhanced service worker with stale-while-revalidate strategy for /portfolio/* navigation requests (DATA_CACHE 'portfolio-pages-v1'). Cached pages served instantly when offline; network response updates cache in background. Offline page at /routes/offline/+page.svelte enhanced with dark theme, Thai copy, "what you can do offline" tips list, and link to /portfolio. Portfolio layout (+layout.svelte) adds: offline banner (fixed top bar "ออฟไลน์ — กำลังแสดงข้อมูลที่บันทึกไว้ล่าสุด") when navigator.onLine=false, reconnected toast ("เชื่อมต่อแล้ว — กำลังอัปเดตข้อมูล") auto-dismissed after 4s + triggers invalidate('portfolio:baseData') to refresh. 127 tests pass, build OK.
 
-- [ ] [M] MOB-005: Quick trade entry from mobile
+- [x] [M] MOB-005: Quick trade entry from mobile
   - Floating "+" button on mobile
   - Simplified trade form (symbol, side, P&L)
   - For manual trade logging
   - Files: src/lib/components/portfolio/QuickTradeEntry.svelte (new)
+  - Session note: Floating "+" FAB (bottom-right, bottom-20 above mobile nav, md:hidden). Tapping opens bottom-sheet modal with swipe-down-to-dismiss. Form fields: symbol, BUY/SELL toggle (color-coded green/red), P&L ($), lot size, open/close datetime-local. Optional advanced section (open/close price, SL, TP) behind collapsible toggle. Validation: symbol required, P&L must be a number, close time ≥ open time. Success state shows green checkmark + auto-closes after 2s + invalidates portfolio:baseData. API: POST /api/portfolio/trades/manual (rate-limited 20/min, client-only, inserts with position_id=0, commission=0, swap=0, defaults). Hidden in admin view. 127 tests pass, build OK.
 
 ---
 
@@ -337,6 +344,16 @@
 - [x] INFRA-004: Tests for server/portfolio.ts (29 tests, 127 total)
 
 ## Session Notes
+### Session 2026-03-21 (MOB-005)
+- Task: MOB-005 — Quick trade entry from mobile
+- Result: QuickTradeEntry.svelte — floating "+" FAB above mobile nav bar, bottom-sheet modal with swipe-down dismiss. Form: symbol, BUY/SELL toggle, P&L, lot size, open/close datetime, advanced section (prices, SL, TP). API: POST /api/portfolio/trades/manual (rate-limited, client-only). Success state with auto-close. Integrated in portfolio layout, hidden in admin view. 127 tests pass, build OK.
+- Next: All tasks complete — Phase 3 Mobile & PWA done
+
+### Session 2026-03-21 (ADV-010)
+- Task: ADV-010 — Advanced Charting multi-timeframe analysis
+- Result: MultiTimeframeChart.svelte (src/lib/components/charts/). Svelte action pattern per panel, shared crosshair sync, 2-col responsive grid, focus/expand mode with pill tabs. Replaces TradeContextChart in trades/[id]/+page.svelte. 127 tests pass, build OK.
+- Next: MOB-001
+
 ### Session 2026-03-21 (ADV-008)
 - Task: ADV-008 — Social Trading Feed
 - Result: Migration 025 (social_settings, social_posts, social_likes, social_comments + triggers + leaderboard SECURITY DEFINER fn). 5 API route groups under /api/portfolio/social. Page /portfolio/social: Feed tab (opt-in banner, create post form, post cards with like/comment, load-more) + Leaderboard tab (Net P&L/Win Rate/PF sort). Tab added to layout nav. 127 tests pass, build OK.

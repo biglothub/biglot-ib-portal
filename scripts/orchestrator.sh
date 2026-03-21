@@ -85,17 +85,17 @@ count_completed() {
 # --- Phase detection ---
 detect_phase() {
     # Check for BUILD tasks first (TZ-, INFRA-, ADV-, MOB-)
-    if grep -q '^\- \[ \] \*\*\(TZ\|INFRA\|ADV\|MOB\)-' "$PROJECT_DIR/TASKS.md" 2>/dev/null; then
+    if grep -qE '^\- \[ \] .*(TZ|INFRA|ADV|MOB)-' "$PROJECT_DIR/TASKS.md" 2>/dev/null; then
         echo "build"
         return
     fi
     # Then QA
-    if grep -q '^\- \[ \] \*\*QA-' "$PROJECT_DIR/TASKS.md" 2>/dev/null; then
+    if grep -qE '^\- \[ \] .*QA-' "$PROJECT_DIR/TASKS.md" 2>/dev/null; then
         echo "qa"
         return
     fi
     # Then POLISH
-    if grep -q '^\- \[ \] \*\*POLISH-' "$PROJECT_DIR/TASKS.md" 2>/dev/null; then
+    if grep -qE '^\- \[ \] .*POLISH-' "$PROJECT_DIR/TASKS.md" 2>/dev/null; then
         echo "polish"
         return
     fi
@@ -193,7 +193,8 @@ while true; do
     remaining=$(count_remaining)
     completed=$(count_completed)
     log ""
-    log "=== Task #$batch_count | Phase: ${phase^^} | Remaining: $remaining | Completed: $completed ==="
+    phase_upper=$(echo "$phase" | tr '[:lower:]' '[:upper:]')
+    log "=== Task #$batch_count | Phase: $phase_upper | Remaining: $remaining | Completed: $completed ==="
 
     # Get next task line for cooldown calculation
     task_line=$(grep -m1 '^\- \[ \]' "$PROJECT_DIR/TASKS.md" 2>/dev/null || echo "")
@@ -208,7 +209,7 @@ while true; do
     # Run Claude
     log "Running Claude (phase: $phase, cooldown: ${cooldown}s)..."
     if echo "$prompt" | \
-        claude --model claude-opus-4-6 \
+        claude --model claude-sonnet-4-6 \
         --dangerously-skip-permissions \
         --verbose \
         2>&1 | tee -a "$LOGFILE"; then
