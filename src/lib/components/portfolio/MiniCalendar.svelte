@@ -10,7 +10,7 @@
 
 	const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
-	const calendarDays = $derived((() => {
+	const calendarDays = $derived.by(() => {
 		const firstDay = new Date(year, month - 1, 1).getDay();
 		const daysInMonth = new Date(year, month, 0).getDate();
 		const days: { day: number; date: string; profit?: number; trades?: number }[] = [];
@@ -27,16 +27,16 @@
 			days.push({ day, date, profit: dayData?.profit, trades: dayData?.totalTrades });
 		}
 		return days;
-	})());
+	});
 
-	const monthSummary = $derived((() => {
+	const monthSummary = $derived.by(() => {
 		const prefix = `${year}-${String(month).padStart(2, '0')}`;
 		const monthData = (dailyHistory || []).filter(d => d.date.startsWith(prefix));
 		const totalProfit = monthData.reduce((sum, d) => sum + d.profit, 0);
 		const totalTrades = monthData.reduce((sum, d) => sum + d.totalTrades, 0);
 		const tradingDays = monthData.length;
 		return { totalProfit, totalTrades, tradingDays };
-	})());
+	});
 
 	function prevMonth() {
 		if (month === 1) { month = 12; year--; }
@@ -51,11 +51,11 @@
 <div>
 	<!-- Month navigation -->
 	<div class="flex items-center justify-between mb-3">
-		<button onclick={prevMonth} aria-label="เดือนก่อนหน้า" class="p-1 rounded hover:bg-dark-hover text-gray-400 hover:text-white transition-colors">
+		<button onclick={prevMonth} aria-label="เดือนก่อนหน้า" class="p-2 rounded hover:bg-dark-hover text-gray-400 hover:text-white transition-colors">
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 		</button>
 		<span class="text-sm font-medium text-white">{monthNames[month - 1]} {year}</span>
-		<button onclick={nextMonth} aria-label="เดือนถัดไป" class="p-1 rounded hover:bg-dark-hover text-gray-400 hover:text-white transition-colors">
+		<button onclick={nextMonth} aria-label="เดือนถัดไป" class="p-2 rounded hover:bg-dark-hover text-gray-400 hover:text-white transition-colors">
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
 		</button>
 	</div>

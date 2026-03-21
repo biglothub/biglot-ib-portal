@@ -1033,7 +1033,7 @@
 						{ key: 'winRate', label: 'อัตราชนะ' },
 					] as mode}
 						<button
-							class="px-3 py-1 text-xs font-medium rounded-md transition-all {heatmapMode === mode.key ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
+							class="px-3 py-1.5 text-xs font-medium rounded-md transition-all {heatmapMode === mode.key ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
 							onclick={() => heatmapMode = mode.key as any}
 						>{mode.label}</button>
 					{/each}

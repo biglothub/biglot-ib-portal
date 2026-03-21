@@ -170,13 +170,13 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
 				</svg>
 				<div class="flex items-center gap-1">
-					<button onclick={previousMonth} class="p-1 rounded hover:bg-dark-border transition-colors" aria-label="Previous month">
+					<button onclick={previousMonth} class="p-2 rounded hover:bg-dark-border transition-colors" aria-label="Previous month">
 						<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
 					</button>
 					<span class="text-sm font-semibold text-gray-200 min-w-[100px] text-center">
 						{monthNames[currentMonth].slice(0, 3)} {currentYear}
 					</span>
-					<button onclick={nextMonth} class="p-1 rounded hover:bg-dark-border transition-colors" aria-label="Next month">
+					<button onclick={nextMonth} class="p-2 rounded hover:bg-dark-border transition-colors" aria-label="Next month">
 						<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
 					</button>
 					<button onclick={goToToday} aria-label="ไปวันนี้" class="ml-1 px-2 py-0.5 text-xs font-medium text-brand-primary bg-brand-primary/10 rounded hover:bg-brand-primary/20 transition-colors">
@@ -198,7 +198,7 @@
 					<span class="text-gray-500">เทรด:</span>
 					<span class="font-medium text-gray-300">{monthStats.totalTrades}</span>
 				</div>
-				<button onclick={() => showStats = !showStats} class="p-1 rounded hover:bg-dark-border transition-colors" aria-label="Toggle stats">
+				<button onclick={() => showStats = !showStats} class="p-2 rounded hover:bg-dark-border transition-colors" aria-label="Toggle stats">
 					<svg class="w-4 h-4 text-gray-500 transition-transform {showStats ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 					</svg>
@@ -332,7 +332,7 @@
 				<h3 class="text-sm font-bold text-white">
 					{selectedDay.date.toLocaleDateString('th-TH', { weekday: 'long', month: 'short', day: 'numeric' })}
 				</h3>
-				<button onclick={closeDayModal} class="p-1 hover:bg-dark-border rounded transition-colors" aria-label="ปิด">
+				<button onclick={closeDayModal} class="p-2 hover:bg-dark-border rounded transition-colors" aria-label="ปิด">
 					<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>

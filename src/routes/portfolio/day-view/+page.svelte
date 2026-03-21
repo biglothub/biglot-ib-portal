@@ -244,11 +244,11 @@
 			<div class="xl:col-span-1">
 				<div class="card sticky top-4">
 					<div class="flex items-center justify-between mb-3">
-						<button onclick={prevMonth} aria-label="เดือนที่แล้ว" class="p-1 text-gray-400 hover:text-white">
+						<button onclick={prevMonth} aria-label="เดือนที่แล้ว" class="p-2 text-gray-400 hover:text-white">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 						</button>
 						<span class="text-sm font-semibold text-white">{monthNames[calendarMonth]} {calendarYear}</span>
-						<button onclick={nextMonth} aria-label="เดือนถัดไป" class="p-1 text-gray-400 hover:text-white">
+						<button onclick={nextMonth} aria-label="เดือนถัดไป" class="p-2 text-gray-400 hover:text-white">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
 						</button>
 					</div>

@@ -24,7 +24,7 @@
 	<!-- Risk-Adjusted Metrics -->
 	<div class="card">
 		<h3 class="text-lg font-semibold text-white mb-5">ตัวชี้วัดปรับความเสี่ยง</h3>
-		<div class="grid grid-cols-3 gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 			<div class="text-center">
 				<div class="text-xs text-gray-400 mb-1">Sharpe Ratio</div>
 				<div class="text-2xl font-bold {getRatioColor(analytics.sharpeRatio)}">

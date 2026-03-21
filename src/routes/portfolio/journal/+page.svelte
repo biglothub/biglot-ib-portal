@@ -221,9 +221,9 @@
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<div class="card lg:col-span-1">
 			<div class="flex items-center justify-between mb-4">
-				<button type="button" onclick={() => navigateMonth(-1)} class="text-gray-400 hover:text-white p-1">←</button>
+				<button type="button" onclick={() => navigateMonth(-1)} class="text-gray-400 hover:text-white p-2">←</button>
 				<h3 class="text-sm font-medium text-white">{monthNames[month - 1]} {year}</h3>
-				<button type="button" onclick={() => navigateMonth(1)} class="text-gray-400 hover:text-white p-1">→</button>
+				<button type="button" onclick={() => navigateMonth(1)} class="text-gray-400 hover:text-white p-2">→</button>
 			</div>
 
 			<div class="grid grid-cols-7 gap-1 mb-1">

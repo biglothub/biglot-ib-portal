@@ -647,12 +647,13 @@
   - Audit all pages, add missing empty states
   - Notes: Added empty states to trade detail relatedTrades, RulesAnalyticsTable, StatsOverviewTable, progress page goals. Normalized MarketNewsFeed and notebook inline empties to use EmptyState component. Enhanced NotificationBell empty state with icon. Fixed admin client stats to use EmptyState. All empty states now use consistent pattern: icon + Thai message.
 
-- [ ] [M] POLISH2-003: Responsive audit — test every page at 375px
+- [x] [M] POLISH2-003: Responsive audit — test every page at 375px
   - No horizontal overflow
   - Text readable (min 14px)
   - Touch targets min 44x44px
   - Cards stack vertically on mobile
   - Tables scroll horizontally or convert to cards
+  - Notes: Fixed NotificationBell dropdown overflow (w-80 → responsive calc), AnalyticsDashboard 3-col grid → 1-col on mobile, EquityChart stats → 1-col on mobile, calendar p-8 → p-4 sm:p-8, increased touch targets on calendar nav buttons (p-1 → p-2) across MiniCalendar/TradingCalendar/day-view/journal, increased filter control text sizes (text-[10px] → text-xs in MultiSelectDropdown/ActiveFilterChips), improved DateRangePresets button padding, RangeInput touch targets, analytics heatmap toggle padding, ScreenshotAnnotator responsive min-width
 
 - [ ] [S] POLISH2-004: Remove any remaining console.log
   - grep -r 'console\.log' src/ — remove all

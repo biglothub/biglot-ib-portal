@@ -336,7 +336,7 @@
 		{@const growth = first?.equity ? ((latest.equity - first.equity) / first.equity) * 100 : 0}
 		{@const maxEquity = currentRangeData.reduce((max, d) => d.equity > max ? d.equity : max, -Infinity)}
 
-		<div class="grid grid-cols-3 gap-3 mt-4">
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
 			<div class="bg-dark-bg/30 rounded-lg p-3 text-center">
 				<div class="text-xs text-gray-400 mb-1">Current</div>
 				<div class="font-mono font-semibold text-white">${formatMoney(latest.equity)}</div>

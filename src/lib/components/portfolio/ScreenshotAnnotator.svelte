@@ -446,7 +446,7 @@
 
 			<!-- Text input overlay -->
 			{#if showTextInput && pendingTextPos}
-				<div class="absolute z-10 top-8 left-1/2 -translate-x-1/2 bg-dark-surface border border-dark-border rounded-xl shadow-lg p-3 flex items-center gap-2 min-w-[280px]">
+				<div class="absolute z-10 top-8 left-1/2 -translate-x-1/2 bg-dark-surface border border-dark-border rounded-xl shadow-lg p-3 flex items-center gap-2 min-w-[min(280px,calc(100vw-3rem))]">
 					<input
 						type="text"
 						bind:value={textInput}

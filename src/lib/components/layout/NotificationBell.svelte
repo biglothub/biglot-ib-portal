@@ -116,7 +116,7 @@
 	</button>
 
 	{#if open}
-		<div class="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-dark-surface border border-dark-border rounded-lg shadow-xl z-50">
+		<div class="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-h-96 overflow-y-auto bg-dark-surface border border-dark-border rounded-lg shadow-xl z-50">
 			<div class="flex items-center justify-between p-3 border-b border-dark-border">
 				<span class="text-sm font-medium text-white">การแจ้งเตือน</span>
 				{#if unreadCount > 0}
