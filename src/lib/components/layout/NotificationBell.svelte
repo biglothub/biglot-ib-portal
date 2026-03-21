@@ -7,20 +7,33 @@
 
 	let notifications = $state<Notification[]>([]);
 	let open = $state(false);
+	let loading = $state(true);
+	let error = $state<string | null>(null);
 
 	let unreadCount = $derived(notifications.filter(n => !n.is_read).length);
 
+	async function fetchNotifications() {
+		loading = true;
+		error = null;
+		try {
+			const { data, error: fetchError } = await supabase
+				.from('notifications')
+				.select('*')
+				.eq('user_id', userId)
+				.order('created_at', { ascending: false })
+				.limit(20);
+
+			if (fetchError) throw fetchError;
+			notifications = data ?? [];
+		} catch (e) {
+			error = 'ไม่สามารถโหลดการแจ้งเตือนได้';
+		} finally {
+			loading = false;
+		}
+	}
+
 	$effect(() => {
-		// Initial fetch
-		supabase
-			.from('notifications')
-			.select('*')
-			.eq('user_id', userId)
-			.order('created_at', { ascending: false })
-			.limit(20)
-			.then(({ data }) => {
-				if (data) notifications = data;
-			});
+		fetchNotifications();
 
 		// Realtime subscription
 		const channel = supabase
@@ -45,20 +58,35 @@
 	});
 
 	async function markAsRead(id: string) {
-		await supabase
-			.from('notifications')
-			.update({ is_read: true })
-			.eq('id', id);
-		notifications = notifications.map(n => n.id === id ? { ...n, is_read: true } : n);
+		try {
+			const { error: updateError } = await supabase
+				.from('notifications')
+				.update({ is_read: true })
+				.eq('id', id);
+
+			if (updateError) throw updateError;
+			notifications = notifications.map(n => n.id === id ? { ...n, is_read: true } : n);
+		} catch {
+			// Silently fail — notification stays visually unread
+		}
 	}
 
 	async function markAllAsRead() {
-		await supabase
-			.from('notifications')
-			.update({ is_read: true })
-			.eq('user_id', userId)
-			.eq('is_read', false);
+		const previousNotifications = [...notifications];
+		// Optimistic update
 		notifications = notifications.map(n => ({ ...n, is_read: true }));
+		try {
+			const { error: updateError } = await supabase
+				.from('notifications')
+				.update({ is_read: true })
+				.eq('user_id', userId)
+				.eq('is_read', false);
+
+			if (updateError) throw updateError;
+		} catch {
+			// Rollback on failure
+			notifications = previousNotifications;
+		}
 	}
 
 	function handleClickOutside(event: MouseEvent) {
@@ -97,7 +125,29 @@
 					</button>
 				{/if}
 			</div>
-			{#if notifications.length === 0}
+			{#if loading}
+				<div class="p-4 space-y-3">
+					{#each Array(3) as _}
+						<div class="flex items-start gap-2 animate-pulse">
+							<div class="w-2 h-2 rounded-full bg-dark-border mt-1.5 shrink-0"></div>
+							<div class="flex-1 space-y-1.5">
+								<div class="h-3.5 bg-dark-border rounded w-3/4"></div>
+								<div class="h-3 bg-dark-border rounded w-1/2"></div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else if error}
+				<div class="p-6 text-center">
+					<p class="text-sm text-red-400 mb-2">{error}</p>
+					<button
+						class="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+						onclick={fetchNotifications}
+					>
+						ลองใหม่อีกครั้ง
+					</button>
+				</div>
+			{:else if notifications.length === 0}
 				<div class="p-6 text-center text-gray-500 text-sm">ไม่มีการแจ้งเตือน</div>
 			{:else}
 				{#each notifications as notif}

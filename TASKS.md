@@ -447,10 +447,11 @@
   - Files: src/routes/portfolio/analysis/+page.svelte
   - ✅ Session 2026-03-22: Added AbortController to generateAnalysis(); signal passed to fetch; abort on component destroy via onMount cleanup; abort previous request on re-generate; AbortError silently ignored in catch
 
-- [ ] [S] FIX-008: Fix NotificationBell — add error handling
+- [x] [S] FIX-008: Fix NotificationBell — add error handling
   - Notification API calls have no try/catch
   - Add error handling with fallback UI
   - Files: src/lib/components/layout/NotificationBell.svelte
+  - ✅ Session 2026-03-22: Added try/catch to all 3 Supabase calls (fetch, markAsRead, markAllAsRead); added loading skeleton (3 animated placeholders); added error state with Thai message + retry button; optimistic update with rollback on markAllAsRead; Supabase error objects properly checked
 
 - [ ] [S] FIX-009: Fix push notification URL validation
   - Service worker opens URLs from push data without validation
