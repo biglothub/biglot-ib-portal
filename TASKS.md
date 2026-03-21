@@ -91,7 +91,7 @@
   - Dark theme layout pattern
   - Files: src/routes/settings/+layout.svelte (new), src/routes/settings/+page.svelte (new)
 
-- [ ] [L] TZ-012: Settings — Security tab
+- [x] [L] TZ-012: Settings — Security tab
   - Password change form (current + new + confirm)
   - Active sessions list with "Revoke"
   - 2FA toggle (show as "coming soon")
@@ -287,3 +287,7 @@
 - Task: TZ-011 — Settings page — layout + navigation
 - Result: /settings route with layout.server.ts (auth guard), layout.svelte (sidebar nav with Profile/Security/Trade Settings tabs, mobile dropdown, user info card), +page.svelte (Profile tab: avatar, name, email, role, account info, notification prefs placeholder). Settings link added to Sidebar for all roles.
 - Next: TZ-012
+### Session 2026-03-21 (continued 7)
+- Task: TZ-012 — Settings — Security tab
+- Result: /settings/security page with: password change form (current+new+confirm, show/hide toggle, validation, loading state), OAuth user detection (shows info message instead of form for Google users), active sessions card with current session + sign-out-all button, 2FA section with "coming soon" badge + disabled toggle, login provider info card with Google icon. API: POST /api/settings/security (rate-limited, verifies current password via signInWithPassword, updates via updateUser).
+- Next: TZ-013
