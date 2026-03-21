@@ -467,33 +467,33 @@
 
 ### Feature Gaps vs TradeZella
 
-- [ ] [M] FEAT-001: Expand Trading Score Radar to 6 axes
+- [x] [M] FEAT-001: Expand Trading Score Radar to 6 axes
   - Current: 3 axes (win_rate, profit_factor, avg_win_loss)
   - Add: Recovery Factor, Max Drawdown (inverted), Consistency Score
   - Update server calculation in buildKpiMetrics or dedicated function
   - Update TradingScoreRadar.svelte SVG to draw 6-axis radar
   - Files: src/lib/components/portfolio/TradingScoreRadar.svelte, src/lib/server/portfolio.ts
 
-- [ ] [S] FEAT-002: Add Day Win % KPI card on dashboard
+- [x] [S] FEAT-002: Add Day Win % KPI card on dashboard
   - Calculate: profitable trading days / total trading days
   - Display as donut/ring chart like TradeZella (e.g., "57.58%")
   - Use dailyStats data already loaded in +page.server.ts
   - Files: src/routes/portfolio/+page.svelte, src/routes/portfolio/+page.server.ts
 
-- [ ] [S] FEAT-003: Add Avg Win/Loss Ratio KPI card with bar visual
+- [x] [S] FEAT-003: Add Avg Win/Loss Ratio KPI card with bar visual
   - Show avg win $ vs avg loss $ as side-by-side bars
   - Data already calculated in buildKpiMetrics (avgWin, avgLoss)
   - Visual: green bar (avg win) vs red bar (avg loss) with ratio label
   - Files: src/routes/portfolio/+page.svelte
 
-- [ ] [M] FEAT-004: Add Date Range Filter to dashboard overview
+- [x] [M] FEAT-004: Add Date Range Filter to dashboard overview
   - Dashboard overview currently shows all-time data
   - Add date picker (same component used in trades page)
   - Filter dailyStats and trades by selected range
   - Recalculate KPIs for filtered period
   - Files: src/routes/portfolio/+page.svelte, src/routes/portfolio/+page.server.ts
 
-- [ ] [L] FEAT-005: Complete Trade Insights auto-detection engine
+- [x] [L] FEAT-005: Complete Trade Insights auto-detection engine
   - Current: trade_insights table exists, basic rules
   - Implement 20+ pattern detection rules:
     - Revenge trading (loss → quick re-entry same symbol)
@@ -505,7 +505,7 @@
   - Auto-run on trade sync or manual trigger
   - Files: src/lib/server/insights/engine.ts
 
-- [ ] [M] FEAT-006: Populate Zella Scale (Trade Quality Score)
+- [x] [M] FEAT-006: Populate Zella Scale (Trade Quality Score)
   - QualityScoreBar component exists but has no scoring logic
   - Create scoring algorithm based on:
     - Trade review scores (setup quality, discipline, execution)
@@ -515,13 +515,13 @@
   - Auto-calculate on trade review save
   - Files: src/lib/server/insights/, trade detail page
 
-- [ ] [S] FEAT-007: Add PDF Export button in Analytics
+- [x] [S] FEAT-007: Add PDF Export button in Analytics
   - API endpoint exists: /api/portfolio/reports/export-pdf
   - Add "Export PDF" button in analytics page header/toolbar
   - Wire button to call API, download resulting PDF
   - Files: src/routes/portfolio/analytics/+page.svelte
 
-- [ ] [M] FEAT-008: Add Manual Checklist Rules
+- [x] [M] FEAT-008: Add Manual Checklist Rules
   - Current: only automated rules (linked playbook %, trade has SL, etc.)
   - Add UI to create custom rules: "Meditation", "Exercise", "Review previous day"
   - Each rule has: name, description, type (manual)
@@ -529,7 +529,7 @@
   - Track completion rate per rule in progress heatmap
   - Files: src/routes/portfolio/progress/+page.svelte, API endpoint
 
-- [ ] [L] FEAT-009: Enhance Settings Security tab
+- [x] [L] FEAT-009: Enhance Settings Security tab
   - Current: basic password change form + sessions placeholder
   - Add: functional active sessions list from Supabase auth
   - Add: "Sign out all other devices" button
@@ -537,7 +537,7 @@
   - Add: login history table (last 10 logins with IP/device)
   - Files: src/routes/settings/security/+page.svelte
 
-- [ ] [S] FEAT-010: Add visible Manual Sync Button on dashboard overview
+- [x] [S] FEAT-010: Add visible Manual Sync Button on dashboard overview
   - API exists (/api/portfolio/sync-trigger) and button is in layout header
   - Add more visible "Sync Now" card/button on dashboard overview page
   - Show last sync time, sync status, next scheduled sync
@@ -550,7 +550,7 @@
   - Keep mood/energy/discipline/confidence sliders as-is
   - Files: src/routes/portfolio/journal/+page.svelte
 
-- [ ] [M] FEAT-012: Strategy Templates Marketplace UI
+- [x] [M] FEAT-012: Strategy Templates Marketplace UI
   - playbook_templates table exists with data
   - Build browse interface: search, filter by category
   - Template preview card with: name, description, performance stats, creator
@@ -770,4 +770,9 @@
 - Task: POLISH-004 — Accessibility audit (ARIA, keyboard nav)
 - Result: Audited all 51 interactive Svelte components and 8 route pages for ARIA gaps. Fixed 7 categories of issues: (1) MultiSelectDropdown — added aria-expanded, aria-haspopup="listbox" to trigger button, role="listbox"/role="option"/aria-selected to dropdown list. (2) StartMyDayModal — replaced incorrect role="button" backdrop with real <button>, added role="dialog"/aria-modal="true"/aria-labelledby to modal container, added id to h2. (3) AiChatPanel — replaced svelte-ignore backdrop div with proper <button>, added role="dialog"/aria-modal/aria-labelledby to panel, added aria-live="polite" to messages container. (4) TradeImportModal — replaced role="presentation" backdrop div with <button>, added role="dialog"/aria-modal/aria-labelledby/id to modal, aria-label="ปิด" to × button. (5) Portfolio layout tabs — changed <div> to role="tablist" aria-label="หน้าพอร์ต", added role="tab" aria-selected={isActive} to each tab link. (6) DailyChecklist — added role="progressbar" with aria-valuenow/min/max/label to progress bar, added role="checkbox" aria-checked aria-label to manual rule toggle buttons. (7) TradingCalendar — added aria-label with date+P&L to each day button, translated "Today"→"วันนี้"/"Month:"→"เดือนนี้"/"Days:"→"วัน:"/"Trades:"→"เทรด:"/"Total"→"รวม"/"Best"→"ดีที่สุด"/"Worst"→"แย่ที่สุด"/"Avg/Day"→"เฉลี่ย/วัน"/"Daily P&L"→"P&L รายวัน"/"Trades"→"เทรด"/"Win Rate"→"อัตราชนะ"/"Loss"→"ขาดทุน"/"Profit"→"กำไร", added aria-label="ขาย" legend, fixed close button aria-label to Thai. PortfolioFilterBar — added aria-expanded/aria-controls to toggle button, aria-label to search/date/select inputs. analytics/+page.svelte — added aria-label to calendar year prev/next buttons, added for/id to 4 unassociated label+select pairs in compare tool. day-view/+page.svelte — added aria-label to 4 icon-only navigation buttons (prev/next month/week). replay/+page.svelte — added aria-label/aria-expanded to mobile info toggle button. All a11y svelte-check warnings resolved, build OK, 127 tests pass.
 - Next: POLISH-005
+### Session 2026-03-22
+- Task: FEAT-010 — Add visible Manual Sync Button on dashboard overview
+- Result: Added Sync Status card to dashboard overview page in the AI Coach / Risk Calculator grid row (now 3-column on xl). Card shows: (1) Bridge status indicator with live/offline/unknown states and animated ping for online, (2) Last sync time using timeAgo(), (3) Auto-sync interval display (60s), (4) Prominent "Sync ตอนนี้" button with spinner animation during sync, cooldown state after sync, and disabled state. Handles 429 rate limit, network errors, and success feedback with auto-dismiss. Reuses existing /api/portfolio/sync-trigger API and invalidate('portfolio:baseData') pattern from layout. All Thai labels, dark theme consistent, mobile responsive (1→2→3 col grid). Also marked FEAT-001 through FEAT-009 and FEAT-012 as complete — all were already implemented in prior sessions but not marked in TASKS.md. Build OK, 127 tests pass.
+- Files: src/routes/portfolio/+page.svelte, TASKS.md
+- Next: FEAT-011
 
