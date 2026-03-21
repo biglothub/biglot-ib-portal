@@ -149,7 +149,7 @@
 
 <div class="w-full">
 	<div class="flex items-center justify-between mb-4">
-		<h3 class="text-lg font-semibold text-white">Cumulative P&L</h3>
+		<h3 class="text-lg font-semibold text-white">กำไร/ขาดทุนสะสม</h3>
 		<div class="flex gap-1 bg-dark-bg/50 rounded-lg p-1">
 			{#each timeframes as tf}
 				<button
@@ -179,7 +179,7 @@
 			>
 				<div class="text-gray-400 text-[10px] uppercase tracking-wide mb-2">{tooltipData.date}</div>
 				<div class="flex items-center justify-between">
-					<span class="text-gray-300">Cumulative P&L</span>
+					<span class="text-gray-300">กำไร/ขาดทุนสะสม</span>
 					<span class="font-mono font-semibold {tooltipData.value >= 0 ? 'text-green-400' : 'text-red-400'}">
 						{formatCurrency(tooltipData.value)}
 					</span>

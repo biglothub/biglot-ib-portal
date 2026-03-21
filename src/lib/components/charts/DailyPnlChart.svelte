@@ -145,7 +145,7 @@
 
 <div class="w-full">
 	<div class="flex items-center justify-between mb-4">
-		<h3 class="text-lg font-semibold text-white">Net Daily P&L</h3>
+		<h3 class="text-lg font-semibold text-white">กำไร/ขาดทุนรายวัน</h3>
 		<div class="flex gap-1 bg-dark-bg/50 rounded-lg p-1">
 			{#each timeframes as tf}
 				<button
@@ -175,13 +175,13 @@
 			>
 				<div class="text-gray-400 text-[10px] uppercase tracking-wide mb-2">{tooltipData.date}</div>
 				<div class="flex items-center justify-between mb-1">
-					<span class="text-gray-300">P&L</span>
+					<span class="text-gray-300">กำไร/ขาดทุน</span>
 					<span class="font-mono font-semibold {tooltipData.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 						{formatCurrency(tooltipData.profit)}
 					</span>
 				</div>
 				<div class="flex items-center justify-between">
-					<span class="text-gray-300">Trades</span>
+					<span class="text-gray-300">จำนวนเทรด</span>
 					<span class="font-mono text-white">{tooltipData.trades}</span>
 				</div>
 			</div>

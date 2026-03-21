@@ -1,7 +1,7 @@
 <script lang="ts">
 	let {
 		score = 0,
-		label = 'Trading Health'
+		label = 'สุขภาพการเทรด'
 	}: {
 		score?: number;
 		label?: string;
@@ -18,10 +18,10 @@
 	const strokeDasharray = $derived(`${(clampedScore / 100) * circumference} ${circumference}`);
 
 	const scoreLabel = $derived(
-		clampedScore >= 80 ? 'Excellent' :
-		clampedScore >= 60 ? 'Good' :
-		clampedScore >= 40 ? 'Average' :
-		clampedScore >= 20 ? 'Needs Work' : 'Critical'
+		clampedScore >= 80 ? 'ยอดเยี่ยม' :
+		clampedScore >= 60 ? 'ดี' :
+		clampedScore >= 40 ? 'ปานกลาง' :
+		clampedScore >= 20 ? 'ต้องปรับปรุง' : 'วิกฤต'
 	);
 </script>
 
@@ -49,7 +49,7 @@
 		<!-- Label -->
 		<div>
 			<p class="text-sm font-medium {scoreColor}">{scoreLabel}</p>
-			<p class="text-xs text-gray-500 mt-0.5">out of 100</p>
+			<p class="text-xs text-gray-500 mt-0.5">จาก 100</p>
 		</div>
 	</div>
 </div>

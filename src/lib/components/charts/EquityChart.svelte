@@ -237,7 +237,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3">
-			<h3 class="text-lg font-semibold text-white">Equity Growth</h3>
+			<h3 class="text-lg font-semibold text-white">การเติบโตของ Equity</h3>
 			<div class="flex items-center gap-4 text-xs">
 				<div class="flex items-center gap-1.5">
 					<span class="w-3 h-0.5 bg-brand-primary rounded"></span>

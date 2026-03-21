@@ -1,8 +1,8 @@
 # IB-Portal Task Board — TradeZella Feature Parity
 
 > Last updated: 2026-03-21
-> Active session: none
-> Completed this cycle: 11
+> Active session: QA-001
+> Completed this cycle: 12
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -148,7 +148,7 @@
 
 ## QA Round — Verify Built Features Match TradeZella
 
-- [ ] [L] QA-001: QA Dashboard — compare with TradeZella dashboard
+- [x] [L] QA-001: QA Dashboard — compare with TradeZella dashboard
   - Read tradezella-explore/GAP_ANALYSIS.md section 1 (Dashboard)
   - Verify: KPI cards (Net P&L, Win%, Profit Factor, Day Win%, Avg Win/Loss) all present and styled
   - Verify: Cumulative P&L chart works with real data shape
@@ -393,3 +393,7 @@
 - Task: TZ-019 — Import/Export trade history
 - Result: Export: GET /api/portfolio/trades/export (rate-limited 5/min, returns CSV with 16 columns including pips/commission/swap/SL/TP/tags/review status, date filtering, BOM for Excel). Import: POST /api/portfolio/trades/import (rate-limited 3/min, max 500 rows, CSV parsing with RFC 4180 quote handling, auto-detect column mapping via 30+ aliases like Entry Price=open_price/PnL=profit, custom column_map override, row-level validation with typed errors, batch insert, filename tracking). Import history: GET /api/portfolio/trades/import?history=1 returns last 20 imports. DB: migration 022 creates trade_import_logs table with RLS. UI: TradeImportModal.svelte (4-step wizard: upload→mapping→preview→result), import history panel with status badges, Thai labels. Trades page: Import/Export buttons above stats cards, Export All downloads server-generated CSV.
 - Next: QA-001
+### Session 2026-03-21 (continued 15)
+- Task: QA-001 — QA Dashboard — compare with TradeZella dashboard
+- Result: All 8 dashboard features verified present and functional (KPI cards with donut/gauge/bar, Cumulative P&L chart with timeframe picker, Trading Score Radar with 6 axes, Start My Day button + 3-step modal, Currency switcher $/%/pips, Sync status badge, Sync Now button with cooldown). Fixed: translated 20+ English strings to Thai across 7 files (MetricCard labels, chart titles, tooltips, tab navigation, HealthScoreCard labels, TradingScoreRadar label, Sync Now button). All checks pass: build OK, 127 tests pass.
+- Next: QA-002

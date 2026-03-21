@@ -81,13 +81,13 @@
 		<!-- Primary KPIs -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 			<MetricCard
-				label="Net P&L"
+				label="กำไร/ขาดทุนสุทธิ"
 				value={formatPnl(kpi.netPnl, $displayUnit, latestStats?.balance)}
 				color={kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}
-				subValue={totalTrades > 0 ? `${totalTrades} trades` : ''}
+				subValue={totalTrades > 0 ? `${totalTrades} เทรด` : ''}
 			/>
 			<MetricCard
-				label="Trade Win Rate"
+				label="อัตราชนะ (เทรด)"
 				value={formatPercent(kpi.tradeWinRate).replace('+', '')}
 				color={kpi.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}
 				donutPercent={kpi.tradeWinRate}
@@ -100,18 +100,18 @@
 				donutPercent={Math.min((kpi.profitFactor / 3) * 100, 100)}
 			/>
 			<MetricCard
-				label="Day Win Rate"
+				label="อัตราชนะ (วัน)"
 				value={formatPercent(kpi.dayWinRate).replace('+', '')}
 				color={kpi.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}
 				donutPercent={kpi.dayWinRate}
-				subValue={kpi.totalTradingDays > 0 ? `${kpi.profitableDays}W / ${kpi.totalTradingDays - kpi.profitableDays}L days` : ''}
+				subValue={kpi.totalTradingDays > 0 ? `${kpi.profitableDays}W / ${kpi.totalTradingDays - kpi.profitableDays}L วัน` : ''}
 			/>
 		</div>
 
 		<!-- Secondary KPIs -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 			<MetricCard
-				label="Balance"
+				label="ยอดเงิน"
 				value={formatCurrency(latestStats?.balance || 0)}
 			/>
 			<MetricCard
@@ -119,7 +119,7 @@
 				value={formatCurrency(latestStats?.equity || 0)}
 			/>
 			<MetricCard
-				label="Avg Win/Loss"
+				label="ค่าเฉลี่ย ชนะ/แพ้"
 				value={kpi.avgWinLossRatio >= 999 ? '∞' : formatNumber(kpi.avgWinLossRatio, 2)}
 				color={kpi.avgWinLossRatio >= 1 ? 'text-green-400' : 'text-red-400'}
 				barData={kpi.avgWin > 0 || kpi.avgLoss > 0 ? {
@@ -128,7 +128,7 @@
 				} : undefined}
 			/>
 			<MetricCard
-				label="Expectancy"
+				label="ค่าคาดหวัง"
 				value={formatPnl(totalTrades > 0 ? kpi.netPnl / totalTrades : 0, $displayUnit, latestStats?.balance)}
 				color={kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}
 			/>
@@ -378,10 +378,10 @@
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-xs">
-								<th class="text-left py-2">Symbol</th>
-								<th class="text-left py-2">Review</th>
-								<th class="text-right py-2">P/L</th>
-								<th class="text-right py-2">Time</th>
+								<th class="text-left py-2">สัญลักษณ์</th>
+								<th class="text-left py-2">รีวิว</th>
+								<th class="text-right py-2">กำไร/ขาดทุน</th>
+								<th class="text-right py-2">เวลา</th>
 							</tr>
 						</thead>
 						<tbody>

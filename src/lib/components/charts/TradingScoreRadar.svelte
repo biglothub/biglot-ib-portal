@@ -89,7 +89,7 @@
 
 <div class="w-full">
 	<div class="flex items-center gap-2 mb-2">
-		<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Trading Score</p>
+		<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">คะแนนการเทรด</p>
 	</div>
 
 	<svg viewBox="0 0 260 230" class="w-full max-w-[300px] mx-auto">
@@ -148,7 +148,7 @@
 	</svg>
 
 	<div class="text-center -mt-2">
-		<span class="text-sm text-gray-400">Your Score:</span>
+		<span class="text-sm text-gray-400">คะแนนของคุณ:</span>
 		<span class="text-2xl font-bold ml-1.5 {scoreColor}">{score}</span>
 	</div>
 </div>

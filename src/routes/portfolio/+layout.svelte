@@ -87,17 +87,17 @@
 	});
 
 	const tabDefs = [
-		{ base: '/portfolio', label: 'Overview' },
-		{ base: '/portfolio/day-view', label: 'Day View' },
-		{ base: '/portfolio/trades', label: 'Trades' },
-		{ base: '/portfolio/journal', label: 'Journal' },
-		{ base: '/portfolio/notebook', label: 'Notebook' },
-		{ base: '/portfolio/analytics', label: 'Reports' },
+		{ base: '/portfolio', label: 'ภาพรวม' },
+		{ base: '/portfolio/day-view', label: 'รายวัน' },
+		{ base: '/portfolio/trades', label: 'เทรด' },
+		{ base: '/portfolio/journal', label: 'บันทึก' },
+		{ base: '/portfolio/notebook', label: 'สมุดโน้ต' },
+		{ base: '/portfolio/analytics', label: 'รายงาน' },
 		{ base: '/portfolio/playbook', label: 'Playbook' },
-		{ base: '/portfolio/progress', label: 'Progress' },
-		{ base: '/portfolio/calendar', label: 'Calendar' },
-		{ base: '/portfolio/live-trade', label: 'Live Trade' },
-		{ base: '/portfolio/analysis', label: 'Gold Analysis' },
+		{ base: '/portfolio/progress', label: 'ความคืบหน้า' },
+		{ base: '/portfolio/calendar', label: 'ปฏิทิน' },
+		{ base: '/portfolio/live-trade', label: 'เทรดสด' },
+		{ base: '/portfolio/analysis', label: 'วิเคราะห์ทอง' },
 	];
 
 	const tabs = $derived(tabDefs.map(t => ({ href: tabHref(t.base), base: t.base, label: t.label })));
@@ -161,7 +161,7 @@
 								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
 								</svg>
-								<span>Sync Now</span>
+								<span>Sync ตอนนี้</span>
 							{/if}
 						</button>
 						{#if syncError}
