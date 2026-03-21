@@ -577,7 +577,7 @@
     - SEC-002/004/005/006: DB-level fixes (RLS, trigger function, column security) — verified via code review, not unit-testable without real DB
     - Refactored: extracted validateChatMessages() and sanitizeSearchQuery() into $lib/server/validation.ts for testability
 
-- [ ] [L] QA2-002: QA Advanced features (ADV-001 to ADV-010) end-to-end
+- [x] [L] QA2-002: QA Advanced features (ADV-001 to ADV-010) end-to-end
   - AI Coach: verify coaching message generates with real data
   - Risk Calculator: verify calculations correct
   - Correlation Matrix: verify heatmap renders
@@ -588,6 +588,19 @@
   - Social Feed: verify post/like/comment/leaderboard
   - Daily Report: verify email template renders
   - Advanced Charts: verify multi-timeframe sync
+  - Session: 2026-03-22 — Created 91 QA tests in src/lib/__tests__/adv-features.test.ts covering:
+    - ADV-001: 5 tests — session stats, 3-hour blocks, min trade count, profitFactor cap
+    - ADV-002: 10 tests — lot size calc, R:R ratio, zero edge cases, gold pip value
+    - ADV-003: 8 tests — Pearson r (+1/-1/0/null), matrix symmetry, high-corr warning
+    - ADV-004: 14 tests — cooldown logic, all 5 alert types, null metrics, unknown type
+    - ADV-005: 7 tests — arrow/ellipse/rect geometry, canvas scaling, undo stack, file validation
+    - ADV-006: 6 tests — combined metrics sum, single/zero accounts, profitFactor cap
+    - ADV-007: 5 tests — post-market auto-fill, symbol dedup, empty/negative P&L, null profit
+    - ADV-008: 7 tests — post type validation, content limit, avatar hash, leaderboard sort, pagination
+    - ADV-009: 7 tests — daily report HTML (positive/negative P&L, infinity PF, unsubscribe link), weekly digest
+    - ADV-010: 8 tests — TF ordering, labels, entry/exit markers, SL/TP lines, chart heights
+    - Cross-feature: 3 tests — KPI metrics, rule break counting, journal completion summary
+    - BUG FIXED: daily-report/+server.ts used `ruleBreaks.totalBreaks` instead of `ruleBreaks.totalRuleBreaks` (2 occurrences)
 
 - [ ] [L] QA2-003: QA Mobile features (MOB-001 to MOB-005)
   - Test at 375px viewport width

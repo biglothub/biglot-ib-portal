@@ -204,7 +204,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			profitFactor: kpi.profitFactor,
 			avgWin: kpi.avgWin,
 			avgLoss: Math.abs(kpi.avgLoss),
-			ruleBreaks: ruleBreaks.totalBreaks,
+			ruleBreaks: ruleBreaks.totalRuleBreaks,
 			journalCompleted: (journals ?? []).length > 0,
 			topWinner,
 			topLoser,
@@ -301,7 +301,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		profitFactor: kpi.profitFactor,
 		dayWinRate: kpi.dayWinRate,
 		topSymbol,
-		ruleBreakCount: ruleBreaks.totalBreaks,
+		ruleBreakCount: ruleBreaks.totalRuleBreaks,
 		journalStreak: journalSummary.currentStreak
 	});
 
