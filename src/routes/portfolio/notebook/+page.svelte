@@ -353,7 +353,17 @@
 				{/if}
 			</div>
 
-			{#if filteredNotes.length === 0}
+			{#if isSearching}
+				<div class="space-y-1 animate-pulse">
+					{#each Array(3) as _}
+						<div class="rounded-lg px-3 py-2">
+							<div class="h-3 w-3/4 bg-dark-border/50 rounded mb-1.5"></div>
+							<div class="h-2.5 w-1/2 bg-dark-border/30 rounded mb-1.5"></div>
+							<div class="h-2 w-4/5 bg-dark-border/20 rounded"></div>
+						</div>
+					{/each}
+				</div>
+			{:else if filteredNotes.length === 0}
 				<div class="text-xs text-gray-600 text-center py-6">ไม่มีโน้ต</div>
 			{:else}
 				{#each filteredNotes as note}

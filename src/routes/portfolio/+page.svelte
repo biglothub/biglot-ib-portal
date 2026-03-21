@@ -11,6 +11,8 @@
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import StartMyDayModal from '$lib/components/portfolio/StartMyDayModal.svelte';
+	import AiCoachCard from '$lib/components/portfolio/AiCoachCard.svelte';
+	import RiskCalculator from '$lib/components/portfolio/RiskCalculator.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent, formatPnl } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 	import { displayUnit } from '$lib/stores/displayUnit';
@@ -359,6 +361,11 @@
 				</div>
 				<MiniCalendar {dailyHistory} />
 			</div>
+		</div>
+
+		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+			<AiCoachCard />
+			<RiskCalculator accountBalance={latestStats?.balance || 0} />
 		</div>
 
 		<div class="card">

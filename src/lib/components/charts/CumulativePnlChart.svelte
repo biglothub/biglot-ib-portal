@@ -59,82 +59,90 @@
 	}
 
 	onMount(() => {
-		let observer: ResizeObserver | undefined;
+		let resizeObserver: ResizeObserver | undefined;
 		let destroyed = false;
 
-		import('lightweight-charts').then((lc) => {
-			if (destroyed || !chartContainer) return;
-			const { createChart, ColorType, LineStyle } = lc;
+		const intersectionObserver = new IntersectionObserver((entries) => {
+			if (!entries[0].isIntersecting) return;
+			intersectionObserver.disconnect();
 
-			chart = createChart(chartContainer, {
-				layout: {
-					background: { type: ColorType.Solid, color: 'transparent' },
-					textColor: '#9CA3AF',
-					fontFamily: "'Inter', sans-serif"
-				},
-				grid: {
-					vertLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted },
-					horzLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted }
-				},
-				width: chartContainer.clientWidth,
-				height,
-				rightPriceScale: {
-					borderColor: 'rgba(55, 65, 81, 0.5)',
-					scaleMargins: { top: 0.1, bottom: 0.1 }
-				},
-				timeScale: {
-					borderColor: 'rgba(55, 65, 81, 0.5)',
-					timeVisible: false,
-					rightOffset: 3
-				},
-				crosshair: {
-					mode: 1,
-					vertLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
-					horzLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
-				},
-				handleScroll: { mouseWheel: true, pressedMouseMove: true },
-				handleScale: { mouseWheel: true, pinch: true }
+			import('lightweight-charts').then((lc) => {
+				if (destroyed || !chartContainer) return;
+				const { createChart, ColorType, LineStyle } = lc;
+
+				chart = createChart(chartContainer, {
+					layout: {
+						background: { type: ColorType.Solid, color: 'transparent' },
+						textColor: '#9CA3AF',
+						fontFamily: "'Inter', sans-serif"
+					},
+					grid: {
+						vertLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted },
+						horzLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted }
+					},
+					width: chartContainer.clientWidth,
+					height,
+					rightPriceScale: {
+						borderColor: 'rgba(55, 65, 81, 0.5)',
+						scaleMargins: { top: 0.1, bottom: 0.1 }
+					},
+					timeScale: {
+						borderColor: 'rgba(55, 65, 81, 0.5)',
+						timeVisible: false,
+						rightOffset: 3
+					},
+					crosshair: {
+						mode: 1,
+						vertLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
+						horzLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
+					},
+					handleScroll: { mouseWheel: true, pressedMouseMove: true },
+					handleScale: { mouseWheel: true, pinch: true }
+				});
+
+				areaSeries = chart.addAreaSeries({
+					lineColor: '#C9A84C',
+					topColor: 'rgba(201, 168, 76, 0.3)',
+					bottomColor: 'rgba(201, 168, 76, 0.02)',
+					lineWidth: 2,
+					priceFormat: { type: 'price', precision: 2, minMove: 0.01 },
+					crosshairMarkerVisible: true,
+					crosshairMarkerRadius: 4,
+					crosshairMarkerBackgroundColor: '#C9A84C'
+				});
+
+				chart.subscribeCrosshairMove((param: any) => {
+					if (!param || !param.time || !param.point) {
+						tooltipVisible = false;
+						return;
+					}
+					const val = param.seriesData.get(areaSeries);
+					if (val) {
+						tooltipVisible = true;
+						tooltipX = param.point.x;
+						tooltipY = param.point.y;
+						tooltipData = {
+							date: param.time,
+							value: val.value
+						};
+					}
+				});
+
+				resizeObserver = new ResizeObserver(() => {
+					chart?.applyOptions({ width: chartContainer.clientWidth });
+				});
+				resizeObserver.observe(chartContainer);
+
+				updateChartData();
 			});
+		}, { threshold: 0.05 });
 
-			areaSeries = chart.addAreaSeries({
-				lineColor: '#C9A84C',
-				topColor: 'rgba(201, 168, 76, 0.3)',
-				bottomColor: 'rgba(201, 168, 76, 0.02)',
-				lineWidth: 2,
-				priceFormat: { type: 'price', precision: 2, minMove: 0.01 },
-				crosshairMarkerVisible: true,
-				crosshairMarkerRadius: 4,
-				crosshairMarkerBackgroundColor: '#C9A84C'
-			});
-
-			chart.subscribeCrosshairMove((param: any) => {
-				if (!param || !param.time || !param.point) {
-					tooltipVisible = false;
-					return;
-				}
-				const val = param.seriesData.get(areaSeries);
-				if (val) {
-					tooltipVisible = true;
-					tooltipX = param.point.x;
-					tooltipY = param.point.y;
-					tooltipData = {
-						date: param.time,
-						value: val.value
-					};
-				}
-			});
-
-			observer = new ResizeObserver(() => {
-				chart?.applyOptions({ width: chartContainer.clientWidth });
-			});
-			observer.observe(chartContainer);
-
-			updateChartData();
-		});
+		intersectionObserver.observe(chartContainer);
 
 		return () => {
 			destroyed = true;
-			observer?.disconnect();
+			intersectionObserver.disconnect();
+			resizeObserver?.disconnect();
 			chart?.remove();
 			chart = undefined;
 		};

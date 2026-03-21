@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto, invalidate } from '$app/navigation';
+	import ScreenshotAnnotator from '$lib/components/portfolio/ScreenshotAnnotator.svelte';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
-	import TradeContextChart from '$lib/components/portfolio/TradeContextChart.svelte';
-	import TradeReplayChart from '$lib/components/portfolio/TradeReplayChart.svelte';
+	import MultiTimeframeChart from '$lib/components/charts/MultiTimeframeChart.svelte';
 	import InsightsSection from '$lib/components/portfolio/InsightsSection.svelte';
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import ExecutionMetricsCard from '$lib/components/portfolio/ExecutionMetricsCard.svelte';
@@ -45,7 +45,16 @@
 	let reviewSaved = $state(false);
 
 	let attachments = $state<any[]>([]);
+	let showAnnotator = $state(false);
 	let showReplay = $state(false);
+	let TradeReplayChart = $state<any>(null);
+
+	async function openReplay() {
+		if (!TradeReplayChart) {
+			TradeReplayChart = (await import('$lib/components/portfolio/TradeReplayChart.svelte')).default;
+		}
+		showReplay = true;
+	}
 	let attachmentKind = $state<'link' | 'image_url'>('link');
 	let attachmentPath = $state('');
 	let attachmentCaption = $state('');
@@ -360,14 +369,18 @@
 			<div class="mt-5 grid grid-cols-1 xl:grid-cols-3 gap-6">
 				<div class="xl:col-span-2">
 					{#if showReplay && chartContexts?.length > 0}
-						<TradeReplayChart contexts={chartContexts} {trade} onclose={() => showReplay = false} />
+						{#if TradeReplayChart}
+							<svelte:component this={TradeReplayChart} contexts={chartContexts} {trade} onclose={() => showReplay = false} />
+						{:else}
+							<div class="animate-pulse rounded-xl bg-dark-border/50 h-64 flex items-center justify-center text-gray-500 text-sm">กำลังโหลด Replay...</div>
+						{/if}
 					{:else}
-						<TradeContextChart contexts={chartContexts} {trade} />
+						<MultiTimeframeChart contexts={chartContexts} {trade} />
 						{#if chartContexts?.length > 0}
 							<div class="mt-2 flex items-center gap-4">
 								<button
 									type="button"
-									onclick={() => showReplay = true}
+									onclick={openReplay}
 									class="text-xs text-brand-primary hover:text-brand-primary/80 flex items-center gap-1.5 transition-colors"
 								>
 									<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
@@ -657,9 +670,21 @@
 			</div>
 
 			<div class="card space-y-4">
-				<div>
-					<h3 class="text-sm font-medium text-gray-400">ไฟล์แนบ</h3>
-					<p class="text-xs text-gray-500 mt-1">วาง link กราฟ หรือ URL รูปภาพเพื่อประกอบ review</p>
+				<div class="flex items-start justify-between gap-3">
+					<div>
+						<h3 class="text-sm font-medium text-gray-400">ไฟล์แนบ</h3>
+						<p class="text-xs text-gray-500 mt-1">วาง link กราฟ, URL รูปภาพ หรืออัปโหลด Screenshot พร้อม annotation</p>
+					</div>
+					<button
+						type="button"
+						onclick={() => showAnnotator = true}
+						class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-primary/20 text-brand-primary hover:bg-brand-primary/30 text-xs font-medium transition-colors"
+					>
+						<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+						</svg>
+						Annotate Screenshot
+					</button>
 				</div>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 					<select bind:value={attachmentKind} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
@@ -676,17 +701,69 @@
 				<div class="space-y-2">
 					{#if attachments.length > 0}
 						{#each attachments as attachment}
-							<div class="flex items-center justify-between rounded-xl bg-dark-bg/30 px-3 py-3 text-sm">
-								<div class="min-w-0">
-									<a href={attachment.storage_path} target="_blank" class="font-medium text-white hover:text-brand-primary truncate block">
-										{attachment.caption || attachment.storage_path}
-									</a>
-									<div class="text-[11px] text-gray-500">{attachment.kind}</div>
+							{#if attachment.kind === 'screenshot'}
+								<div class="rounded-xl bg-dark-bg/30 border border-dark-border overflow-hidden">
+									<img
+										src={attachment.storage_path}
+										alt={attachment.caption || 'Trade screenshot'}
+										class="w-full max-h-64 object-contain bg-black/30"
+										loading="lazy"
+									/>
+									<div class="flex items-center justify-between px-3 py-2">
+										<div class="min-w-0">
+											<span class="text-xs font-medium text-gray-300">{attachment.caption || 'Screenshot'}</span>
+											<div class="flex items-center gap-1.5 mt-0.5">
+												<span class="inline-flex items-center gap-1 text-[10px] text-brand-primary/80 bg-brand-primary/10 rounded px-1.5 py-0.5">
+													<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M3 21h3.572L21 6.732a2.5 2.5 0 00-3.536-3.536L3 17.428V21z" />
+													</svg>
+													Annotated
+												</span>
+												<a
+													href={attachment.storage_path}
+													target="_blank"
+													rel="noopener noreferrer"
+													class="text-[10px] text-gray-500 hover:text-gray-300"
+												>
+													เปิดแบบเต็ม ↗
+												</a>
+											</div>
+										</div>
+										<button type="button" onclick={() => deleteAttachment(attachment.id)} class="text-xs text-red-300 hover:text-red-200 ml-2">
+											ลบ
+										</button>
+									</div>
 								</div>
-								<button type="button" onclick={() => deleteAttachment(attachment.id)} class="text-xs text-red-300 hover:text-red-200">
-									ลบ
-								</button>
-							</div>
+							{:else if attachment.kind === 'image_url'}
+								<div class="rounded-xl bg-dark-bg/30 border border-dark-border overflow-hidden">
+									<img
+										src={attachment.storage_path}
+										alt={attachment.caption || 'Trade image'}
+										class="w-full max-h-48 object-contain bg-black/30"
+										loading="lazy"
+									/>
+									<div class="flex items-center justify-between px-3 py-2">
+										<a href={attachment.storage_path} target="_blank" rel="noopener noreferrer" class="text-xs text-white hover:text-brand-primary truncate">
+											{attachment.caption || attachment.storage_path}
+										</a>
+										<button type="button" onclick={() => deleteAttachment(attachment.id)} class="text-xs text-red-300 hover:text-red-200 ml-2">
+											ลบ
+										</button>
+									</div>
+								</div>
+							{:else}
+								<div class="flex items-center justify-between rounded-xl bg-dark-bg/30 px-3 py-3 text-sm">
+									<div class="min-w-0">
+										<a href={attachment.storage_path} target="_blank" rel="noopener noreferrer" class="font-medium text-white hover:text-brand-primary truncate block">
+											{attachment.caption || attachment.storage_path}
+										</a>
+										<div class="text-[11px] text-gray-500">{attachment.kind}</div>
+									</div>
+									<button type="button" onclick={() => deleteAttachment(attachment.id)} class="text-xs text-red-300 hover:text-red-200">
+										ลบ
+									</button>
+								</div>
+							{/if}
 						{/each}
 					{:else}
 						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-500">
@@ -744,3 +821,14 @@
 		</div>
 	{/if}
 </div>
+
+{#if showAnnotator && trade}
+	<ScreenshotAnnotator
+		tradeId={trade.id}
+		onclose={() => showAnnotator = false}
+		onsaved={(attachment) => {
+			attachments = [...attachments, attachment];
+			showAnnotator = false;
+		}}
+	/>
+{/if}

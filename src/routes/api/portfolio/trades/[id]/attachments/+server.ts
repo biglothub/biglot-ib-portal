@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		return json({ message: 'Invalid URL — only http/https allowed' }, { status: 400 });
 	}
 
-	const validKinds = ['link', 'image_url'];
+	const validKinds = ['link', 'image_url', 'screenshot'];
 	if (kind && !validKinds.includes(kind)) {
 		return json({ message: 'Invalid attachment kind' }, { status: 400 });
 	}

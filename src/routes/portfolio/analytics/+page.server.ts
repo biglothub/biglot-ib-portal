@@ -220,6 +220,82 @@ function daysBetween(d1: string, d2: string): number {
 	return Math.max(1, Math.round(ms / (1000 * 60 * 60 * 24)));
 }
 
+function buildCorrelationMatrix(trades: Trade[]): {
+	symbols: string[];
+	matrix: (number | null)[][];
+	topPairs: Array<{ symA: string; symB: string; correlation: number; sharedDays: number }>;
+} {
+	const symbolSet = new Set(trades.map(t => t.symbol).filter(Boolean));
+	const symbols = [...symbolSet].sort();
+
+	if (symbols.length < 2) {
+		return { symbols, matrix: [], topPairs: [] };
+	}
+
+	// Build daily P&L per symbol: symbol → { date → pnl }
+	const symbolDailyPnl = new Map<string, Map<string, number>>();
+	for (const sym of symbols) symbolDailyPnl.set(sym, new Map());
+
+	for (const trade of trades) {
+		if (!trade.symbol || !trade.close_time) continue;
+		const date = String(trade.close_time).split('T')[0];
+		const symMap = symbolDailyPnl.get(trade.symbol);
+		if (symMap) symMap.set(date, (symMap.get(date) || 0) + Number(trade.profit));
+	}
+
+	function pearson(
+		aMap: Map<string, number>,
+		bMap: Map<string, number>
+	): { r: number | null; sharedDays: number } {
+		const sharedDates = [...aMap.keys()].filter(d => bMap.has(d));
+		const sharedDays = sharedDates.length;
+		if (sharedDays < 3) return { r: null, sharedDays };
+
+		const xs = sharedDates.map(d => aMap.get(d)!);
+		const ys = sharedDates.map(d => bMap.get(d)!);
+		const n = xs.length;
+		const xMean = xs.reduce((s, v) => s + v, 0) / n;
+		const yMean = ys.reduce((s, v) => s + v, 0) / n;
+
+		let num = 0, xVar = 0, yVar = 0;
+		for (let i = 0; i < n; i++) {
+			const dx = xs[i] - xMean;
+			const dy = ys[i] - yMean;
+			num += dx * dy;
+			xVar += dx * dx;
+			yVar += dy * dy;
+		}
+
+		const denom = Math.sqrt(xVar * yVar);
+		if (denom === 0) return { r: null, sharedDays: n };
+		return { r: Math.max(-1, Math.min(1, num / denom)), sharedDays: n };
+	}
+
+	const n = symbols.length;
+	const matrix: (number | null)[][] = Array.from({ length: n }, (_, i) =>
+		Array.from({ length: n }, (_, j) => (i === j ? 1 : null))
+	);
+	const allPairs: Array<{ symA: string; symB: string; correlation: number; sharedDays: number }> = [];
+
+	for (let i = 0; i < n; i++) {
+		for (let j = i + 1; j < n; j++) {
+			const { r, sharedDays } = pearson(
+				symbolDailyPnl.get(symbols[i])!,
+				symbolDailyPnl.get(symbols[j])!
+			);
+			matrix[i][j] = r;
+			matrix[j][i] = r;
+			if (r !== null) {
+				allPairs.push({ symA: symbols[i], symB: symbols[j], correlation: r, sharedDays });
+			}
+		}
+	}
+
+	allPairs.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
+
+	return { symbols, matrix, topPairs: allPairs.slice(0, 10) };
+}
+
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
 	const { account, baseData, tags = [], playbooks = [], savedViews = [] } = parentData;
@@ -248,6 +324,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const kpiMetrics = buildKpiMetrics(report.filteredTrades, dailyHistory);
 	const statsOverview = buildStatsOverview(report.filteredTrades, dailyHistory, report.analytics);
 	const riskAnalysis = buildRiskAnalysis(report.filteredTrades, dailyHistory, report.analytics);
+	const correlationMatrix = buildCorrelationMatrix(report.filteredTrades);
 
 	return {
 		filterState,
@@ -272,6 +349,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		kpiMetrics,
 		statsOverview,
 		healthScore: calculateHealthScore(kpiMetrics),
-		riskAnalysis
+		riskAnalysis,
+		correlationMatrix
 	};
 };

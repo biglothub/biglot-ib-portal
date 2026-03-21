@@ -4,6 +4,7 @@
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import JournalTemplates from '$lib/components/portfolio/JournalTemplates.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 
@@ -37,6 +38,25 @@
 	let saving = $state(false);
 	let saved = $state(false);
 	let actionError = $state('');
+	let showTemplates = $state(false);
+
+	function applyTemplate(fields: Partial<{
+		preMarketNotes: string;
+		postMarketNotes: string;
+		sessionPlan: string;
+		marketBias: string;
+		keyLevels: string;
+		lessons: string;
+		tomorrowFocus: string;
+	}>) {
+		if (fields.preMarketNotes !== undefined) preMarketNotes = fields.preMarketNotes;
+		if (fields.postMarketNotes !== undefined) postMarketNotes = fields.postMarketNotes;
+		if (fields.sessionPlan !== undefined) sessionPlan = fields.sessionPlan;
+		if (fields.marketBias !== undefined) marketBias = fields.marketBias;
+		if (fields.keyLevels !== undefined) keyLevels = fields.keyLevels;
+		if (fields.lessons !== undefined) lessons = fields.lessons;
+		if (fields.tomorrowFocus !== undefined) tomorrowFocus = fields.tomorrowFocus;
+	}
 
 	$effect(() => {
 		preMarketNotes = selectedJournal?.pre_market_notes || '';
@@ -242,11 +262,21 @@
 					<p class="text-gray-500 text-sm">เลือกวันจากปฏิทินเพื่อเขียน Notebook</p>
 				</div>
 			{:else}
-				<div class="flex items-center justify-between gap-3">
+				<div class="flex flex-wrap items-center justify-between gap-2">
 					<h3 class="text-sm font-medium text-white">
 						Notebook: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
 					</h3>
-					<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2 flex-wrap">
+						<button
+							type="button"
+							onclick={() => (showTemplates = true)}
+							class="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-dark-border text-gray-400 hover:text-white hover:border-brand-primary/50 transition-colors"
+						>
+							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
+							</svg>
+							ใช้ Template
+						</button>
 						<select bind:value={completionStatus} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 							<option value="not_started">ยังไม่เริ่ม</option>
 							<option value="in_progress">กำลังเขียน</option>
@@ -379,3 +409,9 @@
 		</div>
 	</div>
 </div>
+
+<JournalTemplates
+	bind:open={showTemplates}
+	{dayTrades}
+	onApply={applyTemplate}
+/>

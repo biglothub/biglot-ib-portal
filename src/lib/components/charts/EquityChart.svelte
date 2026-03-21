@@ -118,108 +118,116 @@
 	}
 
 	onMount(() => {
-		let observer: ResizeObserver | undefined;
+		let resizeObserver: ResizeObserver | undefined;
 		let destroyed = false;
 
-		import('lightweight-charts').then(({ createChart, ColorType, LineStyle }) => {
-			if (destroyed || !chartContainer) return;
+		const intersectionObserver = new IntersectionObserver((entries) => {
+			if (!entries[0].isIntersecting) return;
+			intersectionObserver.disconnect();
 
-			chart = createChart(chartContainer, {
-				layout: {
-					background: { type: ColorType.Solid, color: 'transparent' },
-					textColor: '#9CA3AF',
-					fontFamily: "'Inter', sans-serif"
-				},
-				grid: {
-					vertLines: { color: 'rgba(55, 65, 81, 0.5)', style: LineStyle.Dotted },
-					horzLines: { color: 'rgba(55, 65, 81, 0.5)', style: LineStyle.Dotted }
-				},
-				width: chartContainer.clientWidth,
-				height,
-				rightPriceScale: {
-					borderColor: 'rgba(55, 65, 81, 0.5)',
-					scaleMargins: { top: 0.1, bottom: 0.1 }
-				},
-				timeScale: {
-					borderColor: 'rgba(55, 65, 81, 0.5)',
-					timeVisible: true,
-					secondsVisible: false,
-					rightOffset: 5
-				},
-				crosshair: {
-					mode: 1,
-					vertLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
-					horzLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
-				},
-				handleScroll: { mouseWheel: true, pressedMouseMove: true },
-				handleScale: { mouseWheel: true, pinch: true }
+			import('lightweight-charts').then(({ createChart, ColorType, LineStyle }) => {
+				if (destroyed || !chartContainer) return;
+
+				chart = createChart(chartContainer, {
+					layout: {
+						background: { type: ColorType.Solid, color: 'transparent' },
+						textColor: '#9CA3AF',
+						fontFamily: "'Inter', sans-serif"
+					},
+					grid: {
+						vertLines: { color: 'rgba(55, 65, 81, 0.5)', style: LineStyle.Dotted },
+						horzLines: { color: 'rgba(55, 65, 81, 0.5)', style: LineStyle.Dotted }
+					},
+					width: chartContainer.clientWidth,
+					height,
+					rightPriceScale: {
+						borderColor: 'rgba(55, 65, 81, 0.5)',
+						scaleMargins: { top: 0.1, bottom: 0.1 }
+					},
+					timeScale: {
+						borderColor: 'rgba(55, 65, 81, 0.5)',
+						timeVisible: true,
+						secondsVisible: false,
+						rightOffset: 5
+					},
+					crosshair: {
+						mode: 1,
+						vertLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
+						horzLine: { color: 'rgba(201, 168, 76, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
+					},
+					handleScroll: { mouseWheel: true, pressedMouseMove: true },
+					handleScale: { mouseWheel: true, pinch: true }
+				});
+
+				floatingZoneSeries = chart.addAreaSeries({
+					lineColor: 'transparent',
+					topColor: 'rgba(16, 185, 129, 0.15)',
+					bottomColor: 'rgba(239, 68, 68, 0.15)',
+					lineWidth: 0,
+					crosshairMarkerVisible: false
+				});
+
+				balanceSeries = chart.addLineSeries({
+					color: '#6B7280',
+					lineWidth: 2,
+					lineStyle: LineStyle.Solid,
+					crosshairMarkerVisible: true,
+					crosshairMarkerRadius: 4,
+					crosshairMarkerBorderColor: '#6B7280',
+					crosshairMarkerBackgroundColor: '#1F2937',
+					title: 'Balance'
+				});
+
+				equitySeries = chart.addLineSeries({
+					color: '#C9A84C',
+					lineWidth: 3,
+					lineStyle: LineStyle.Solid,
+					crosshairMarkerVisible: true,
+					crosshairMarkerRadius: 5,
+					crosshairMarkerBorderColor: '#C9A84C',
+					crosshairMarkerBackgroundColor: '#1F2937',
+					title: 'Equity',
+					lastValueVisible: true,
+					priceLineVisible: true,
+					priceLineColor: '#C9A84C',
+					priceLineStyle: LineStyle.Dashed
+				});
+
+				chart.subscribeCrosshairMove((param: any) => {
+					if (!param || !param.time || !param.point) {
+						tooltipVisible = false;
+						return;
+					}
+					const eqVal = param.seriesData.get(equitySeries);
+					const balVal = param.seriesData.get(balanceSeries);
+					if (eqVal && balVal) {
+						tooltipVisible = true;
+						tooltipX = param.point.x;
+						tooltipY = param.point.y;
+						tooltipData = {
+							time: param.time,
+							equity: eqVal.value,
+							balance: balVal.value,
+							floatingPL: eqVal.value - balVal.value
+						};
+					}
+				});
+
+				resizeObserver = new ResizeObserver(() => {
+					chart?.applyOptions({ width: chartContainer.clientWidth });
+				});
+				resizeObserver.observe(chartContainer);
+
+				updateChartData();
 			});
+		}, { threshold: 0.05 });
 
-			floatingZoneSeries = chart.addAreaSeries({
-				lineColor: 'transparent',
-				topColor: 'rgba(16, 185, 129, 0.15)',
-				bottomColor: 'rgba(239, 68, 68, 0.15)',
-				lineWidth: 0,
-				crosshairMarkerVisible: false
-			});
-
-			balanceSeries = chart.addLineSeries({
-				color: '#6B7280',
-				lineWidth: 2,
-				lineStyle: LineStyle.Solid,
-				crosshairMarkerVisible: true,
-				crosshairMarkerRadius: 4,
-				crosshairMarkerBorderColor: '#6B7280',
-				crosshairMarkerBackgroundColor: '#1F2937',
-				title: 'Balance'
-			});
-
-			equitySeries = chart.addLineSeries({
-				color: '#C9A84C',
-				lineWidth: 3,
-				lineStyle: LineStyle.Solid,
-				crosshairMarkerVisible: true,
-				crosshairMarkerRadius: 5,
-				crosshairMarkerBorderColor: '#C9A84C',
-				crosshairMarkerBackgroundColor: '#1F2937',
-				title: 'Equity',
-				lastValueVisible: true,
-				priceLineVisible: true,
-				priceLineColor: '#C9A84C',
-				priceLineStyle: LineStyle.Dashed
-			});
-
-			chart.subscribeCrosshairMove((param: any) => {
-				if (!param || !param.time || !param.point) {
-					tooltipVisible = false;
-					return;
-				}
-				const eqVal = param.seriesData.get(equitySeries);
-				const balVal = param.seriesData.get(balanceSeries);
-				if (eqVal && balVal) {
-					tooltipVisible = true;
-					tooltipX = param.point.x;
-					tooltipY = param.point.y;
-					tooltipData = {
-						time: param.time,
-						equity: eqVal.value,
-						balance: balVal.value,
-						floatingPL: eqVal.value - balVal.value
-					};
-				}
-			});
-
-			observer = new ResizeObserver(() => {
-				chart?.applyOptions({ width: chartContainer.clientWidth });
-			});
-			observer.observe(chartContainer);
-
-			updateChartData();
-		});
+		intersectionObserver.observe(chartContainer);
 
 		return () => {
 			destroyed = true;
-			observer?.disconnect();
+			intersectionObserver.disconnect();
+			resizeObserver?.disconnect();
 			chart?.remove();
 			chart = undefined;
 		};
