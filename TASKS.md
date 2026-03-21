@@ -2,7 +2,7 @@
 
 > Last updated: 2026-03-21
 > Active session: none
-> Completed this cycle: 7
+> Completed this cycle: 8
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -97,7 +97,7 @@
   - 2FA toggle (show as "coming soon")
   - Files: src/routes/settings/security/+page.svelte (new)
 
-- [ ] [L] TZ-013: Settings — Trade settings tab
+- [x] [L] TZ-013: Settings — Trade settings tab
   - Default PT/SL values per instrument
   - Timezone preference
   - Commission/fee override per symbol
@@ -291,3 +291,7 @@
 - Task: TZ-012 — Settings — Security tab
 - Result: /settings/security page with: password change form (current+new+confirm, show/hide toggle, validation, loading state), OAuth user detection (shows info message instead of form for Google users), active sessions card with current session + sign-out-all button, 2FA section with "coming soon" badge + disabled toggle, login provider info card with Google icon. API: POST /api/settings/security (rate-limited, verifies current password via signInWithPassword, updates via updateUser).
 - Next: TZ-013
+### Session 2026-03-21 (continued 8)
+- Task: TZ-013 — Settings — Trade settings tab
+- Result: /settings/trade page with: timezone selector (17 timezones with Thai labels), default TP/SL inputs (pips), per-symbol settings table (add/edit/remove symbols with custom TP/SL/commission), save button with loading state + success/error messages, empty state for no symbols. API: POST /api/settings/trade (rate-limited, validates timezone/values, upserts to user_trade_settings). DB: migration 020 creates user_trade_settings table with RLS policies + updated_at trigger. symbol_settings stored as JSONB array.
+- Next: TZ-014
