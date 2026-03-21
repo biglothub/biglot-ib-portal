@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { sanitizeHtml } from '$lib/utils';
 	let { role, content }: { role: 'user' | 'assistant'; content: string } = $props();
 
 	function renderMarkdown(text: string): string {
@@ -115,7 +116,7 @@
 				? 'bg-brand-600 text-white rounded-2xl rounded-br-md'
 				: 'bg-dark-hover text-gray-200 rounded-2xl rounded-bl-md ai-msg'}"
 	>
-		{@html renderMarkdown(content)}
+		{@html sanitizeHtml(renderMarkdown(content))}
 	</div>
 </div>
 

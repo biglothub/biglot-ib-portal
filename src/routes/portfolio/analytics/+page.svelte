@@ -6,7 +6,7 @@
 	import StatsOverviewTable from '$lib/components/reports/StatsOverviewTable.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import HealthScoreCard from '$lib/components/portfolio/HealthScoreCard.svelte';
-	import { formatCurrency, formatNumber, formatPercent } from '$lib/utils';
+	import { formatCurrency, formatNumber, formatPercent, sanitizeHtml } from '$lib/utils';
 
 	let { data } = $props();
 	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, tagBreakdown, dayOfWeekReport, dayTimeHeatmap, calendarDays, kpiMetrics, statsOverview, healthScore, riskAnalysis, correlationMatrix } = $derived(data);
@@ -1379,7 +1379,7 @@
 								</div>
 								{#if section?.content}
 									<div class="prose-sm text-gray-300 leading-relaxed">
-										{@html recapRenderMarkdown(section.content)}
+										{@html sanitizeHtml(recapRenderMarkdown(section.content))}
 									</div>
 								{:else if !section?.loading && recapGenerating}
 									<!-- Skeleton -->

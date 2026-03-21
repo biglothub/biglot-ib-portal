@@ -1,8 +1,8 @@
 # IB-Portal Task Board — TradeZella Feature Parity
 
-> Last updated: 2026-03-21
-> Active session: ADV-008
-> Completed this cycle: 15
+> Last updated: 2026-03-22
+> Status: Cycle 1 complete (56 tasks). Cycle 2 starting (39 tasks).
+> Phase order: SEC → FIX → FEAT → QA2 → POLISH2
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -337,7 +337,290 @@
 
 ---
 
-## Completed
+## Cycle 2 — Security, Bug Fixes, Feature Gaps, QA, Polish
+
+### Security (CRITICAL — blocks production)
+
+- [x] [M] SEC-001: Fix Prompt Injection in AI Chat
+  - Validate msg.role at runtime in ai-chat/+server.ts
+  - Only allow role: 'user' from client, reject 'system'/'assistant'
+  - Add input validation for message content length
+  - Files: src/routes/api/portfolio/ai-chat/+server.ts
+  - Session: 2026-03-22 — Added strict message alternation validation (user→assistant→user), rejects 'system'/'tool' roles, content truncated at 2000 chars, rate limiting already in place
+
+- [x] [S] SEC-002: Fix IDOR in Journal API
+  - journal/+server.ts uses body parameter for account_id
+  - Must use server-verified account.id from authenticated session
+  - Test: try writing to another user's journal — should fail
+  - Files: src/routes/api/portfolio/journal/+server.ts
+  - Session: Already fixed in commit e2e6a0b — client_account_id now comes from getApprovedPortfolioAccount() not request body
+
+- [x] [S] SEC-003: Fix PostgREST Filter Injection in Notebook search
+  - notebook/+server.ts passes raw search query to PostgREST .or() filter
+  - Escape PostgREST special operators (., (), *) from user input
+  - Or use parameterized query instead of string interpolation
+  - Files: src/routes/api/portfolio/notebook/+server.ts
+  - Session: 2026-03-22 — Replaced blacklist escapePostgrestValue with whitelist sanitizeSearchQuery (Unicode \p{L}\p{N} + safe chars only), added type check, 100-char length limit, and empty-after-sanitize guard
+
+- [x] [S] SEC-004: Fix trade_insights RLS — too permissive
+  - Current: USING(true) WITH CHECK(true) — any user can read/write any row
+  - Create new migration: restrict SELECT/UPDATE to trade owner via trades join
+  - Files: supabase/migrations/ (new migration)
+  - Session: 2026-03-22 — Already fixed in migration 017_fix_security_issues.sql: dropped dangerous "Service can manage trade insights" FOR ALL policy, added proper SELECT-only policy using is_own_account()
+
+- [x] [S] SEC-005: Fix Role Injection in handle_new_user()
+  - User can set admin role via signup metadata raw_user_meta_data->>'role'
+  - Always default to 'client' regardless of metadata
+  - Create new migration to fix the trigger function
+  - Files: supabase/migrations/ (new migration)
+  - Session: 2026-03-22 — Already fixed in migration 017_fix_security_issues.sql: handle_new_user() now always defaults role to 'client'
+
+- [x] [M] SEC-006: Fix mt5_investor_password exposed via RLS
+  - Client SELECT policy on client_accounts includes encrypted password column
+  - Create a view that excludes sensitive columns, or use column-level security
+  - Files: supabase/migrations/ (new migration)
+  - Session: 2026-03-22 — Already fixed in migration 017_fix_security_issues.sql: REVOKE SELECT on mt5_investor_password column from authenticated and anon roles
+
+- [x] [M] SEC-007: Fix XSS in analysis and AI chat pages
+  - {@html} used without DOMPurify sanitization
+  - Install DOMPurify: npm install dompurify @types/dompurify
+  - Create sanitizeHtml() helper, apply to all {@html} usage
+  - Audit: grep -r '{@html' src/ to find all instances
+  - Files: src/lib/utils.ts, all files using {@html}
+  - Session: 2026-03-22 — Installed DOMPurify, created sanitizeHtml() in $lib/utils with allowlist of safe tags/attrs, applied to all 3 markdown-rendering {@html} instances (AiChatMessage, analysis, analytics). Hardcoded SVG icons left as-is (no user input). Also marked SEC-004/005/006 as done (already fixed in migration 017)
+
+- [ ] [M] SEC-008: Add rate limiting middleware
+  - 13+ mutation endpoints have no rate limiting
+  - Create reusable rateLimit() helper (in-memory Map with TTL)
+  - Apply to: journal, notebook, playbook, tags, social, alerts, ai-coach, ai-chat
+  - Files: src/lib/server/rateLimit.ts (new), multiple API routes
+
+### Bug Fixes (High Priority)
+
+- [ ] [S] FIX-001: Fix $derived() misuse — should be $derived.by()
+  - Audit all $derived() calls across components
+  - $derived(expression) is for simple expressions
+  - $derived.by(() => { ... }) is for multi-line/complex computations
+  - Fix any misuse found
+  - Files: grep -r '\$derived(' src/ to find all instances
+
+- [ ] [S] FIX-002: Fix memory leaks — timers not cleaned in notebook
+  - notebook/+page.svelte has setInterval for auto-save without cleanup
+  - Wrap in $effect with return cleanup function, or use onDestroy
+  - Files: src/routes/portfolio/notebook/+page.svelte
+
+- [ ] [S] FIX-003: Fix memory leak — unsubscribed store subscriptions
+  - Some components subscribe to stores without unsubscribing
+  - Use $ prefix for auto-subscription or add explicit unsubscribe
+  - Audit: components importing stores and calling .subscribe()
+  - Files: multiple components
+
+- [ ] [M] FIX-004: Fix admin dashboard unbounded query
+  - Fetches ALL daily_stats with no date limit — O(n) grows forever
+  - Add default date range filter (last 90 days)
+  - Add pagination for client lists
+  - Files: src/routes/admin/+page.server.ts
+
+- [ ] [S] FIX-005: Fix Math.max(...largeArray) stack overflow risk
+  - Math.max/Math.min with spread on large arrays can exceed call stack
+  - Replace with reduce: arr.reduce((max, v) => v > max ? v : max, -Infinity)
+  - Audit: grep -r 'Math\.\(max\|min\)(\.\.\.' src/
+  - Files: src/lib/server/portfolio.ts
+
+- [ ] [M] FIX-006: Fix keyboard accessibility on trade rows
+  - Trade table rows are not keyboard navigable
+  - Add tabindex="0" to interactive rows
+  - Add onkeydown handler (Enter/Space → navigate to trade detail)
+  - Add visible focus ring styles
+  - Files: src/routes/portfolio/trades/+page.svelte
+
+- [ ] [S] FIX-007: Fix analysis streaming — add AbortController
+  - AI analysis streaming has no abort signal
+  - If user navigates away mid-stream, fetch continues in background
+  - Add AbortController, abort on component destroy
+  - Files: src/routes/portfolio/analysis/+page.svelte
+
+- [ ] [S] FIX-008: Fix NotificationBell — add error handling
+  - Notification API calls have no try/catch
+  - Add error handling with fallback UI
+  - Files: src/lib/components/layout/NotificationBell.svelte
+
+- [ ] [S] FIX-009: Fix push notification URL validation
+  - Service worker opens URLs from push data without validation
+  - Validate URL is same-origin before opening
+  - Files: src/service-worker.ts
+
+- [ ] [M] FIX-010: Fix DayMiniPnlChart data reactivity
+  - Chart doesn't update when underlying data changes
+  - Add $effect to watch data prop changes and re-render chart
+  - Files: src/lib/components/charts/DayMiniPnlChart.svelte
+
+### Feature Gaps vs TradeZella
+
+- [ ] [M] FEAT-001: Expand Trading Score Radar to 6 axes
+  - Current: 3 axes (win_rate, profit_factor, avg_win_loss)
+  - Add: Recovery Factor, Max Drawdown (inverted), Consistency Score
+  - Update server calculation in buildKpiMetrics or dedicated function
+  - Update TradingScoreRadar.svelte SVG to draw 6-axis radar
+  - Files: src/lib/components/portfolio/TradingScoreRadar.svelte, src/lib/server/portfolio.ts
+
+- [ ] [S] FEAT-002: Add Day Win % KPI card on dashboard
+  - Calculate: profitable trading days / total trading days
+  - Display as donut/ring chart like TradeZella (e.g., "57.58%")
+  - Use dailyStats data already loaded in +page.server.ts
+  - Files: src/routes/portfolio/+page.svelte, src/routes/portfolio/+page.server.ts
+
+- [ ] [S] FEAT-003: Add Avg Win/Loss Ratio KPI card with bar visual
+  - Show avg win $ vs avg loss $ as side-by-side bars
+  - Data already calculated in buildKpiMetrics (avgWin, avgLoss)
+  - Visual: green bar (avg win) vs red bar (avg loss) with ratio label
+  - Files: src/routes/portfolio/+page.svelte
+
+- [ ] [M] FEAT-004: Add Date Range Filter to dashboard overview
+  - Dashboard overview currently shows all-time data
+  - Add date picker (same component used in trades page)
+  - Filter dailyStats and trades by selected range
+  - Recalculate KPIs for filtered period
+  - Files: src/routes/portfolio/+page.svelte, src/routes/portfolio/+page.server.ts
+
+- [ ] [L] FEAT-005: Complete Trade Insights auto-detection engine
+  - Current: trade_insights table exists, basic rules
+  - Implement 20+ pattern detection rules:
+    - Revenge trading (loss → quick re-entry same symbol)
+    - Overtrading (>N trades per day)
+    - Holding too long / cutting too short
+    - News trading without stop loss
+    - Session-specific patterns (win rate drop in certain sessions)
+    - Risk management violations (position too large, no SL)
+  - Auto-run on trade sync or manual trigger
+  - Files: src/lib/server/insights/engine.ts
+
+- [ ] [M] FEAT-006: Populate Zella Scale (Trade Quality Score)
+  - QualityScoreBar component exists but has no scoring logic
+  - Create scoring algorithm based on:
+    - Trade review scores (setup quality, discipline, execution)
+    - Rule breaks (penalty)
+    - Risk-reward ratio achieved vs planned
+    - Whether trade followed playbook
+  - Auto-calculate on trade review save
+  - Files: src/lib/server/insights/, trade detail page
+
+- [ ] [S] FEAT-007: Add PDF Export button in Analytics
+  - API endpoint exists: /api/portfolio/reports/export-pdf
+  - Add "Export PDF" button in analytics page header/toolbar
+  - Wire button to call API, download resulting PDF
+  - Files: src/routes/portfolio/analytics/+page.svelte
+
+- [ ] [M] FEAT-008: Add Manual Checklist Rules
+  - Current: only automated rules (linked playbook %, trade has SL, etc.)
+  - Add UI to create custom rules: "Meditation", "Exercise", "Review previous day"
+  - Each rule has: name, description, type (manual)
+  - User manually checks off each day
+  - Track completion rate per rule in progress heatmap
+  - Files: src/routes/portfolio/progress/+page.svelte, API endpoint
+
+- [ ] [L] FEAT-009: Enhance Settings Security tab
+  - Current: basic password change form + sessions placeholder
+  - Add: functional active sessions list from Supabase auth
+  - Add: "Sign out all other devices" button
+  - Add: 2FA setup flow (show QR code, verify code) or "coming soon" with better UI
+  - Add: login history table (last 10 logins with IP/device)
+  - Files: src/routes/settings/security/+page.svelte
+
+- [ ] [S] FEAT-010: Add visible Manual Sync Button on dashboard overview
+  - API exists (/api/portfolio/sync-trigger) and button is in layout header
+  - Add more visible "Sync Now" card/button on dashboard overview page
+  - Show last sync time, sync status, next scheduled sync
+  - Files: src/routes/portfolio/+page.svelte
+
+- [ ] [L] FEAT-011: Upgrade Journal to Rich Text Editor
+  - Current: plain textarea fields for journal entries
+  - Upgrade to TiptapEditor (already used in Notebook)
+  - Migrate form fields: preMarketNotes, duringMarketNotes, postMarketNotes
+  - Keep mood/energy/discipline/confidence sliders as-is
+  - Files: src/routes/portfolio/journal/+page.svelte
+
+- [ ] [M] FEAT-012: Strategy Templates Marketplace UI
+  - playbook_templates table exists with data
+  - Build browse interface: search, filter by category
+  - Template preview card with: name, description, performance stats, creator
+  - "Clone to My Playbooks" button
+  - Files: src/routes/portfolio/playbook/+page.svelte
+
+### QA Round 2
+
+- [ ] [L] QA2-001: QA Security fixes — verify all SEC-001 to SEC-008
+  - Test prompt injection blocked (SEC-001)
+  - Test IDOR blocked — can't write to other user's journal (SEC-002)
+  - Test search injection sanitized (SEC-003)
+  - Test RLS policies correct for trade_insights (SEC-004)
+  - Test signup always creates 'client' role (SEC-005)
+  - Test mt5_investor_password not in SELECT results (SEC-006)
+  - Test {@html} content sanitized (SEC-007)
+  - Test rate limiting blocks excessive requests (SEC-008)
+
+- [ ] [L] QA2-002: QA Advanced features (ADV-001 to ADV-010) end-to-end
+  - AI Coach: verify coaching message generates with real data
+  - Risk Calculator: verify calculations correct
+  - Correlation Matrix: verify heatmap renders
+  - Performance Alerts: verify alert creation, evaluation, push
+  - Screenshot Annotator: verify upload, annotate, save
+  - Multi-account: verify accounts load, comparison works
+  - Journal Templates: verify template apply fills fields
+  - Social Feed: verify post/like/comment/leaderboard
+  - Daily Report: verify email template renders
+  - Advanced Charts: verify multi-timeframe sync
+
+- [ ] [L] QA2-003: QA Mobile features (MOB-001 to MOB-005)
+  - Test at 375px viewport width
+  - Bottom nav: all tabs accessible, active state correct
+  - Swipe gestures: left=review, right=tag, smooth animation
+  - Pull-to-refresh: indicator shows, data refreshes
+  - Offline mode: disconnect network, cached pages load, reconnect toast
+  - Quick trade entry: FAB visible, form validates, submit works
+
+- [ ] [M] QA2-004: QA Cross-page consistency
+  - Same loading skeleton pattern on all pages
+  - Same empty state pattern (icon + Thai message + action button)
+  - Same error state pattern (error icon + retry button)
+  - Same card/panel styling (dark-surface, dark-border, rounded-xl, p-6)
+  - Same button styles and sizes
+  - Same table/list patterns
+  - Fix inconsistencies found
+
+### Final Polish
+
+- [ ] [M] POLISH2-001: Consistent loading skeletons across all pages
+  - Audit every page for loading skeleton
+  - Ensure same animation style (animate-pulse)
+  - Same skeleton card height/layout per content type
+
+- [ ] [M] POLISH2-002: Consistent empty states with Thai messages
+  - Every list/table needs empty state
+  - Pattern: icon + Thai message + optional CTA button
+  - Audit all pages, add missing empty states
+
+- [ ] [M] POLISH2-003: Responsive audit — test every page at 375px
+  - No horizontal overflow
+  - Text readable (min 14px)
+  - Touch targets min 44x44px
+  - Cards stack vertically on mobile
+  - Tables scroll horizontally or convert to cards
+
+- [ ] [S] POLISH2-004: Remove any remaining console.log
+  - grep -r 'console\.log' src/ — remove all
+  - Keep console.error for actual error reporting
+
+- [ ] [M] POLISH2-005: Animation & transition polish
+  - Page transitions smooth
+  - Modal open/close animated
+  - Hover states on all interactive elements
+  - Focus rings visible for keyboard nav
+  - Chart animations smooth
+
+---
+
+## Completed (Cycle 1)
 - [x] INFRA-001: Install vitest
 - [x] INFRA-002: Tests for utils.ts (33 tests)
 - [x] INFRA-003: Tests for portfolio.ts (63 tests, 98 total)

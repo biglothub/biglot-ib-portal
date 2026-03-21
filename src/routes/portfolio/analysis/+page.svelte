@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { sanitizeHtml } from '$lib/utils';
 
 	let { data } = $props();
 
@@ -346,7 +347,7 @@
 				<!-- Section content -->
 				<div class="px-4 py-3 text-sm text-gray-300 leading-relaxed analysis-content min-h-[80px]">
 					{#if section.content}
-						{@html renderMarkdown(section.content)}
+						{@html sanitizeHtml(renderMarkdown(section.content))}
 					{:else if section.loading}
 						<!-- Skeleton -->
 						<div class="space-y-2 animate-pulse">
