@@ -1,5 +1,6 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { sendPushToUser } from '$lib/server/push';
+import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { AlertType } from '../+server';
@@ -20,6 +21,10 @@ export const POST: RequestHandler = async ({ locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+
+	if (!rateLimit(`alerts:eval:${profile.id}`, 5, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);

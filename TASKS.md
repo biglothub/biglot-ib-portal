@@ -389,11 +389,12 @@
   - Files: src/lib/utils.ts, all files using {@html}
   - Session: 2026-03-22 — Installed DOMPurify, created sanitizeHtml() in $lib/utils with allowlist of safe tags/attrs, applied to all 3 markdown-rendering {@html} instances (AiChatMessage, analysis, analytics). Hardcoded SVG icons left as-is (no user input). Also marked SEC-004/005/006 as done (already fixed in migration 017)
 
-- [ ] [M] SEC-008: Add rate limiting middleware
+- [x] [M] SEC-008: Add rate limiting middleware
   - 13+ mutation endpoints have no rate limiting
   - Create reusable rateLimit() helper (in-memory Map with TTL)
   - Apply to: journal, notebook, playbook, tags, social, alerts, ai-coach, ai-chat
   - Files: src/lib/server/rateLimit.ts (new), multiple API routes
+  - Session: 2026-03-22 — Existing rateLimit() helper already covered most endpoints. Added rate limiting to 9 remaining unprotected files: social feed (POST 10/60s, DELETE 10/60s), social like (POST 30/60s), social comments (POST/DELETE 20/60s), social settings (POST 10/60s), alerts (POST/DELETE 20/60s), alerts evaluate (POST 5/60s), daily-report (PUT 10/60s, POST 3/60s), push subscribe (POST/DELETE 10/60s), push send (POST 10/60s). All mutation endpoints now have rate limiting.
 
 ### Bug Fixes (High Priority)
 

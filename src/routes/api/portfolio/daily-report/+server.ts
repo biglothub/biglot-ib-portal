@@ -8,6 +8,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { rateLimit } from '$lib/server/rate-limit';
 import {
 	buildDailyHistory,
 	buildKpiMetrics,
@@ -72,6 +73,10 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 		weekly_day: number;
 	}>;
 
+	if (!rateLimit(`daily-report:settings:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
+	}
+
 	// Validate
 	if (body.daily_send_hour !== undefined) {
 		const h = body.daily_send_hour;
@@ -109,6 +114,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+
+	if (!rateLimit(`daily-report:send:${profile.id}`, 3, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const body = await request.json() as { type: 'daily' | 'weekly'; test?: boolean };

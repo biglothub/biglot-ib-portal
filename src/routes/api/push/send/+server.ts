@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { rateLimit } from '$lib/server/rate-limit';
 import { isSafeUrl } from '$lib/server/trade-guard';
 import webpush from 'web-push';
 import type { RequestHandler } from './$types';
@@ -8,6 +9,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'admin') {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
+	}
+
+	if (!rateLimit(`push:send:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const { userId, title, body, url } = await request.json();

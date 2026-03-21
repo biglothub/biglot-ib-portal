@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
 export interface SocialPost {
@@ -76,6 +77,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
+	if (!rateLimit(`social:post:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
+	}
+
 	// Must have opted-in (social_settings with is_public=true)
 	const { data: settings } = await locals.supabase
 		.from('social_settings')
@@ -138,6 +143,10 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+
+	if (!rateLimit(`social:delete:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const id = url.searchParams.get('id');

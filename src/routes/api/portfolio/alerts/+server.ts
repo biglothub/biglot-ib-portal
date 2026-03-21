@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
 export type AlertType =
@@ -40,6 +41,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+
+	if (!rateLimit(`alerts:${profile.id}`, 20, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const body = await request.json();
@@ -101,6 +106,10 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+
+	if (!rateLimit(`alerts:del:${profile.id}`, 20, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const id = url.searchParams.get('id');

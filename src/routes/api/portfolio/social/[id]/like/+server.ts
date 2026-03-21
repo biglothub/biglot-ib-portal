@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
 /** POST /api/portfolio/social/[id]/like — toggle like on a post */
@@ -6,6 +7,10 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+
+	if (!rateLimit(`social:like:${profile.id}`, 30, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const postId = params.id;

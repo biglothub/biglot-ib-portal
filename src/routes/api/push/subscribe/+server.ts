@@ -1,10 +1,15 @@
 import { json } from '@sveltejs/kit';
+import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'Unauthorized' }, { status: 401 });
+	}
+
+	if (!rateLimit(`push:sub:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const { subscription } = await request.json();
@@ -33,6 +38,10 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile) {
 		return json({ message: 'Unauthorized' }, { status: 401 });
+	}
+
+	if (!rateLimit(`push:unsub:${profile.id}`, 10, 60_000)) {
+		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
 	const { endpoint } = await request.json();
