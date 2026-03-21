@@ -139,14 +139,15 @@ sw.addEventListener('push', (event) => {
 			body: data.body || '',
 			icon: '/icon-192.png',
 			badge: '/favicon.png',
-			data: { url: data.url || '/' }
+			data: { url: validateSameOriginUrl(data.url || '/') }
 		})
 	);
 });
 
 sw.addEventListener('notificationclick', (event) => {
 	event.notification.close();
-	const url = event.notification.data?.url || '/';
+	const rawUrl = event.notification.data?.url || '/';
+	const url = validateSameOriginUrl(rawUrl);
 	event.waitUntil(
 		sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
 			// Focus existing window if available
@@ -160,3 +161,16 @@ sw.addEventListener('notificationclick', (event) => {
 		})
 	);
 });
+
+/** Validate that a URL is same-origin; return '/' if not */
+function validateSameOriginUrl(url: string): string {
+	try {
+		const parsed = new URL(url, sw.location.origin);
+		if (parsed.origin !== sw.location.origin) {
+			return '/';
+		}
+		return parsed.pathname + parsed.search + parsed.hash;
+	} catch {
+		return '/';
+	}
+}

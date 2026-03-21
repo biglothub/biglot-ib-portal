@@ -453,10 +453,11 @@
   - Files: src/lib/components/layout/NotificationBell.svelte
   - ✅ Session 2026-03-22: Added try/catch to all 3 Supabase calls (fetch, markAsRead, markAllAsRead); added loading skeleton (3 animated placeholders); added error state with Thai message + retry button; optimistic update with rollback on markAllAsRead; Supabase error objects properly checked
 
-- [ ] [S] FIX-009: Fix push notification URL validation
+- [x] [S] FIX-009: Fix push notification URL validation
   - Service worker opens URLs from push data without validation
   - Validate URL is same-origin before opening
   - Files: src/service-worker.ts
+  - ✅ Session 2026-03-22: Added `validateSameOriginUrl()` function that parses URLs and checks origin matches `sw.location.origin`; validates at both push receive (data storage) and notificationclick (before openWindow); falls back to '/' for invalid or cross-origin URLs; returns pathname+search+hash only to prevent protocol-level attacks
 
 - [ ] [M] FIX-010: Fix DayMiniPnlChart data reactivity
   - Chart doesn't update when underlying data changes
