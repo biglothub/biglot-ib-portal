@@ -1,5 +1,6 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
+import { getTradeSession } from '$lib/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -198,6 +199,127 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.limit(20);
 
 		return json({ notes: data || [] });
+	}
+
+	// ── Generate session recap ──
+	if (body.action === 'generate_session_recap') {
+		const date = body.date as string | undefined;
+		if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+			return json({ message: 'Invalid date format (YYYY-MM-DD)' }, { status: 400 });
+		}
+
+		// Find Sessions Recap folder
+		const { data: sessionsFolder } = await locals.supabase
+			.from('notebook_folders')
+			.select('id')
+			.eq('client_account_id', account.id)
+			.eq('user_id', profile.id)
+			.eq('system_type', 'sessions')
+			.single();
+
+		if (!sessionsFolder) {
+			return json({ message: 'Sessions Recap folder not found' }, { status: 404 });
+		}
+
+		// Check if recap already exists for this date
+		const { data: existingNote } = await locals.supabase
+			.from('notebook_notes')
+			.select('id')
+			.eq('folder_id', sessionsFolder.id)
+			.eq('user_id', profile.id)
+			.eq('linked_date', date)
+			.eq('is_deleted', false)
+			.maybeSingle();
+
+		if (existingNote) {
+			return json({ message: 'Recap already exists for this date', existingId: existingNote.id }, { status: 409 });
+		}
+
+		// Fetch trades for the date (using Thai timezone: date boundary = UTC 17:00 prev day to UTC 17:00 this day)
+		const dayStart = `${date}T00:00:00+07:00`;
+		const dayEnd = `${date}T23:59:59+07:00`;
+
+		const { data: trades } = await locals.supabase
+			.from('trades')
+			.select('id, symbol, type, lot_size, open_price, close_price, open_time, close_time, profit, pips, commission, swap')
+			.eq('client_account_id', account.id)
+			.gte('close_time', dayStart)
+			.lte('close_time', dayEnd)
+			.order('close_time', { ascending: true });
+
+		const allTrades = trades || [];
+
+		if (allTrades.length === 0) {
+			return json({ message: 'No trades found for this date' }, { status: 404 });
+		}
+
+		// Group trades by session
+		const sessionMap = new Map<string, typeof allTrades>();
+		for (const trade of allTrades) {
+			const session = getTradeSession(trade.close_time);
+			const list = sessionMap.get(session) || [];
+			list.push(trade);
+			sessionMap.set(session, list);
+		}
+
+		const sessionLabels: Record<string, string> = {
+			asian: 'Asian Session (00:00–08:00 UTC)',
+			london: 'London Session (08:00–15:00 UTC)',
+			newyork: 'New York Session (15:00–24:00 UTC)'
+		};
+
+		// Build HTML recap
+		const totalProfit = allTrades.reduce((s, t) => s + Number(t.profit || 0), 0);
+		const totalWins = allTrades.filter(t => Number(t.profit || 0) > 0).length;
+		const winRate = allTrades.length > 0 ? ((totalWins / allTrades.length) * 100).toFixed(1) : '0';
+
+		let html = `<h1>Session Recap — ${date}</h1>`;
+		html += `<p><strong>Total:</strong> ${allTrades.length} trades | P&L: $${totalProfit.toFixed(2)} | Win Rate: ${winRate}%</p>`;
+		html += `<hr>`;
+
+		for (const sessionKey of ['asian', 'london', 'newyork'] as const) {
+			const sessionTrades = sessionMap.get(sessionKey);
+			if (!sessionTrades || sessionTrades.length === 0) {
+				html += `<h2>${sessionLabels[sessionKey]}</h2>`;
+				html += `<p><em>No trades</em></p>`;
+				continue;
+			}
+
+			const sessionProfit = sessionTrades.reduce((s, t) => s + Number(t.profit || 0), 0);
+			const sessionWins = sessionTrades.filter(t => Number(t.profit || 0) > 0).length;
+			const sessionWinRate = ((sessionWins / sessionTrades.length) * 100).toFixed(1);
+
+			html += `<h2>${sessionLabels[sessionKey]}</h2>`;
+			html += `<p><strong>${sessionTrades.length}</strong> trades | P&L: <strong>$${sessionProfit.toFixed(2)}</strong> | Win Rate: ${sessionWinRate}%</p>`;
+			html += `<ul>`;
+			for (const t of sessionTrades) {
+				const pnlColor = Number(t.profit || 0) >= 0 ? 'green' : 'red';
+				const closeTimeStr = t.close_time ? new Date(t.close_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }) + ' UTC' : '';
+				html += `<li><strong>${t.symbol}</strong> ${t.type} ${t.lot_size} lots — P&L: $${Number(t.profit || 0).toFixed(2)} ${t.pips != null ? `(${Number(t.pips).toFixed(1)} pips)` : ''} @ ${closeTimeStr}</li>`;
+			}
+			html += `</ul>`;
+		}
+
+		const title = `Session Recap — ${date}`;
+		const contentPlain = stripHtml(html);
+
+		const { data: note, error } = await locals.supabase
+			.from('notebook_notes')
+			.insert({
+				client_account_id: account.id,
+				user_id: profile.id,
+				folder_id: sessionsFolder.id,
+				title,
+				content: html,
+				content_plain: contentPlain,
+				linked_date: date,
+				linked_session: null
+			})
+			.select()
+			.single();
+
+		if (error) return json({ message: error.message }, { status: 500 });
+		return json({ success: true, note });
 	}
 
 	return json({ message: 'Unknown action' }, { status: 400 });

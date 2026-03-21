@@ -22,6 +22,16 @@
 	let showNewFolder = $state(false);
 	let newFolderName = $state('');
 
+	// Session recap state
+	let recapDate = $state(new Date().toISOString().split('T')[0]);
+	let generatingRecap = $state(false);
+	let recapMessage = $state('');
+
+	// Detect sessions recap folder
+	const isSessionsFolder = $derived(
+		folders.find((f: any) => f.id === selectedFolderId && f.system_type === 'sessions') != null
+	);
+
 	// Filtered notes by folder
 	const filteredNotes = $derived((() => {
 		if (showDeleted) return deletedNotes;
@@ -176,6 +186,38 @@
 		searchTimer = setTimeout(searchNotes, 400);
 	}
 
+	async function generateSessionRecap() {
+		if (!recapDate) return;
+		generatingRecap = true;
+		recapMessage = '';
+		try {
+			const res = await fetch('/api/portfolio/notebook', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'generate_session_recap', date: recapDate })
+			});
+			const result = await res.json();
+			if (res.ok && result.note) {
+				selectedNoteId = result.note.id;
+				editTitle = result.note.title;
+				editContent = result.note.content;
+				recapMessage = '';
+				await invalidate('portfolio:baseData');
+			} else if (res.status === 409) {
+				recapMessage = 'มี Recap ของวันนี้แล้ว';
+				if (result.existingId) selectedNoteId = result.existingId;
+			} else if (res.status === 404 && result.message?.includes('No trades')) {
+				recapMessage = 'ไม่พบเทรดในวันที่เลือก';
+			} else {
+				recapMessage = result.message || 'เกิดข้อผิดพลาด';
+			}
+		} catch {
+			recapMessage = 'เกิดข้อผิดพลาด';
+		} finally {
+			generatingRecap = false;
+		}
+	}
+
 	function formatDate(dateStr: string) {
 		return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 	}
@@ -187,9 +229,9 @@
 	}
 </script>
 
-<div class="flex gap-4 h-[calc(100vh-220px)] min-h-[500px]">
+<div class="flex flex-col md:flex-row gap-4 h-[calc(100vh-220px)] min-h-[500px]">
 	<!-- Sidebar: Folders + Note List -->
-	<div class="w-72 flex-shrink-0 flex flex-col gap-3">
+	<div class="w-full md:w-72 flex-shrink-0 flex flex-col gap-3 {selectedNoteId ? 'hidden md:flex' : 'flex'}">
 		<!-- Search -->
 		<div class="relative">
 			<input
@@ -268,6 +310,38 @@
 			{/if}
 		</div>
 
+		<!-- Session Recap Generator -->
+		{#if isSessionsFolder}
+			<div class="card flex-shrink-0 space-y-2">
+				<span class="text-[10px] uppercase tracking-wider text-gray-600">สร้าง Session Recap</span>
+				<div class="flex gap-2">
+					<input
+						type="date"
+						bind:value={recapDate}
+						max={new Date().toISOString().split('T')[0]}
+						class="flex-1 rounded-md bg-dark-bg border border-dark-border px-2 py-1.5 text-xs text-white [color-scheme:dark]"
+					/>
+					<button
+						onclick={generateSessionRecap}
+						disabled={generatingRecap || !recapDate}
+						class="px-3 py-1.5 rounded-md bg-brand-primary text-dark-bg text-xs font-medium disabled:opacity-50 whitespace-nowrap"
+					>
+						{#if generatingRecap}
+							<span class="inline-flex items-center gap-1">
+								<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"></path></svg>
+								กำลังสร้าง...
+							</span>
+						{:else}
+							สร้าง Recap
+						{/if}
+					</button>
+				</div>
+				{#if recapMessage}
+					<p class="text-[11px] text-amber-400">{recapMessage}</p>
+				{/if}
+			</div>
+		{/if}
+
 		<!-- Note List -->
 		<div class="card flex-1 overflow-y-auto space-y-1">
 			<div class="flex items-center justify-between mb-2">
@@ -306,8 +380,16 @@
 	</div>
 
 	<!-- Editor -->
-	<div class="flex-1 card flex flex-col">
+	<div class="flex-1 card flex flex-col {selectedNoteId ? 'flex' : 'hidden md:flex'}">
 		{#if selectedNoteId && selectedNote}
+			<!-- Mobile back button -->
+			<button
+				onclick={() => { selectedNoteId = null; editTitle = ''; editContent = ''; }}
+				class="md:hidden flex items-center gap-1 text-xs text-gray-400 hover:text-white mb-2"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+				กลับ
+			</button>
 			<!-- Title -->
 			<input
 				bind:value={editTitle}
@@ -343,7 +425,11 @@
 			</div>
 		{:else}
 			<div class="flex-1 flex items-center justify-center">
-				<EmptyState message="Select a note or create a new one" />
+				{#if isSessionsFolder && filteredNotes.length === 0}
+					<EmptyState message="เลือกวันที่แล้วกด 'สร้าง Recap' เพื่อสรุปเทรดตาม Session" />
+				{:else}
+					<EmptyState message="Select a note or create a new one" />
+				{/if}
 			</div>
 		{/if}
 	</div>

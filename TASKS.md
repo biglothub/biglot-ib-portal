@@ -112,7 +112,7 @@
 
 ## Notebook Enhancement
 
-- [ ] [M] TZ-015: Sessions Recap folder in Notebook
+- [x] [M] TZ-015: Sessions Recap folder in Notebook
   - Auto-create "Sessions Recap" system folder
   - Generate session recap note after trading day
   - Group by session: Asian, London, New York
@@ -299,3 +299,7 @@
 - Task: TZ-014 — Settings — Profile tab
 - Result: Enhanced /settings profile page with: editable display name (inline edit with save/cancel, API validation 2-100 chars), MT5 account info section (account ID, server, broker, account name, status, last sync with sync count), 4 functional notification toggles (push, daily email, trade alerts, weekly recap) with save/cancel and upsert to user_notification_prefs table. API: POST /api/settings/profile (rate-limited, handles update_name + update_notifications actions). Server: +page.server.ts loads client_accounts + user_notification_prefs in parallel.
 - Next: TZ-015
+### Session 2026-03-21 (continued 10)
+- Task: TZ-015 — Sessions Recap folder in Notebook
+- Result: Sessions Recap system folder (already auto-created). New `generate_session_recap` API action: fetches trades for a date, groups by session (Asian/London/New York) using getTradeSession(), generates HTML recap with per-session stats (trade count, P&L, win rate, individual trade details). Duplicate detection (409 if recap exists). UI: date picker + "สร้าง Recap" button shown when Sessions Recap folder is selected, loading spinner, error/duplicate messages in Thai. Mobile responsive: sidebar/editor toggle with back button. Empty state prompt in Thai.
+- Next: TZ-016
