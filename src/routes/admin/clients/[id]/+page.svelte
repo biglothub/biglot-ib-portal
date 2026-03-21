@@ -175,7 +175,7 @@
 			<MetricCard label="เทรดทั้งหมด" value={String(latestStats.total_trades || 0)} />
 		</div>
 	{:else}
-		<div class="card text-center py-8"><p class="text-gray-500">ยังไม่มีข้อมูล</p></div>
+		<EmptyState message="ยังไม่มีข้อมูลสถิติ" icon="📊" />
 	{/if}
 
 	<div class="card">

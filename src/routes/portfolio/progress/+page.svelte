@@ -4,6 +4,7 @@
 	import DailyChecklist from '$lib/components/portfolio/DailyChecklist.svelte';
 	import ProgressHeatmap from '$lib/components/portfolio/ProgressHeatmap.svelte';
 	import RulesAnalyticsTable from '$lib/components/portfolio/RulesAnalyticsTable.svelte';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 
 	let { data } = $props();
 	let goals = $derived(data.goals || []);
@@ -68,6 +69,9 @@
 		</div>
 	</div>
 
+	{#if snapshot.length === 0}
+		<EmptyState message="ยังไม่มีเป้าหมาย — ตั้งเป้าหมายเพื่อติดตามความก้าวหน้า" icon="🎯" />
+	{:else}
 	<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 		{#each snapshot as goal}
 			<div class="card space-y-4">
@@ -108,6 +112,7 @@
 			</div>
 		{/each}
 	</div>
+	{/if}
 
 	<!-- Discipline Section: Heatmap + Checklist -->
 	<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">

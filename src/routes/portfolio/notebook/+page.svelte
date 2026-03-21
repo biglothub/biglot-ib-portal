@@ -33,12 +33,12 @@
 	);
 
 	// Filtered notes by folder
-	const filteredNotes = $derived((() => {
+	const filteredNotes = $derived.by(() => {
 		if (showDeleted) return deletedNotes;
 		if (searchQuery && searchResults.length > 0) return searchResults;
 		if (selectedFolderId === null) return notes;
 		return notes.filter((n: any) => n.folder_id === selectedFolderId);
-	})());
+	});
 
 	// Selected note
 	const selectedNote = $derived(
@@ -185,6 +185,14 @@
 		if (!searchQuery.trim()) { searchResults = []; return; }
 		searchTimer = setTimeout(searchNotes, 400);
 	}
+
+	// Cleanup all debounce timers on component destroy
+	$effect(() => {
+		return () => {
+			clearTimeout(saveTimer);
+			clearTimeout(searchTimer);
+		};
+	});
 
 	async function generateSessionRecap() {
 		if (!recapDate) return;
@@ -364,7 +372,7 @@
 					{/each}
 				</div>
 			{:else if filteredNotes.length === 0}
-				<div class="text-xs text-gray-600 text-center py-6">ไม่มีโน้ต</div>
+				<EmptyState message="ไม่มีโน้ต" icon="📝" />
 			{:else}
 				{#each filteredNotes as note}
 					<button

@@ -778,20 +778,26 @@
 			<div class="card">
 				<h3 class="text-sm font-medium text-gray-400 mb-3">Trades อื่นของ {trade.symbol}</h3>
 				<div class="space-y-2">
-					{#each relatedTrades as relatedTrade}
-						<a href={`/portfolio/trades/${relatedTrade.id}`} class="flex items-center justify-between p-3 rounded-xl hover:bg-dark-border/30 transition-colors">
-							<div class="flex items-center gap-2">
-								<span class="text-xs px-1.5 py-0.5 rounded {relatedTrade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
-									{relatedTrade.type}
-								</span>
-								<span class="text-sm text-gray-300">{relatedTrade.lot_size} lots</span>
-							</div>
-							<div class="text-right">
-								<div class="text-sm font-medium {relatedTrade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(relatedTrade.profit)}</div>
-								<div class="text-xs text-gray-500">{formatDateTime(relatedTrade.close_time)}</div>
-							</div>
-						</a>
-					{/each}
+					{#if relatedTrades.length > 0}
+						{#each relatedTrades as relatedTrade}
+							<a href={`/portfolio/trades/${relatedTrade.id}`} class="flex items-center justify-between p-3 rounded-xl hover:bg-dark-border/30 transition-colors">
+								<div class="flex items-center gap-2">
+									<span class="text-xs px-1.5 py-0.5 rounded {relatedTrade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
+										{relatedTrade.type}
+									</span>
+									<span class="text-sm text-gray-300">{relatedTrade.lot_size} lots</span>
+								</div>
+								<div class="text-right">
+									<div class="text-sm font-medium {relatedTrade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(relatedTrade.profit)}</div>
+									<div class="text-xs text-gray-500">{formatDateTime(relatedTrade.close_time)}</div>
+								</div>
+							</a>
+						{/each}
+					{:else}
+						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-500">
+							ยังไม่มีเทรดอื่นของ {trade.symbol}
+						</div>
+					{/if}
 				</div>
 			</div>
 

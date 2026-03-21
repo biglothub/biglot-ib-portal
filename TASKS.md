@@ -641,10 +641,11 @@
   - Same skeleton card height/layout per content type
   - Notes: Normalized 8 files to canonical 3-tier opacity (labels /50, content /30, large areas /20). Fixed calendar (/40→/50+/30), analytics chart+recap (bare→/50+/20+/30), social comments (bare→/50+/30), trade replay (surface→border/20), AiCoachCard (bare→tiered), PortfolioSkeleton (values /50→/30, areas /30→/20), MarketNewsFeed (/40→/30), NotificationBell (bare→/50+/30)
 
-- [ ] [M] POLISH2-002: Consistent empty states with Thai messages
+- [x] [M] POLISH2-002: Consistent empty states with Thai messages
   - Every list/table needs empty state
   - Pattern: icon + Thai message + optional CTA button
   - Audit all pages, add missing empty states
+  - Notes: Added empty states to trade detail relatedTrades, RulesAnalyticsTable, StatsOverviewTable, progress page goals. Normalized MarketNewsFeed and notebook inline empties to use EmptyState component. Enhanced NotificationBell empty state with icon. Fixed admin client stats to use EmptyState. All empty states now use consistent pattern: icon + Thai message.
 
 - [ ] [M] POLISH2-003: Responsive audit — test every page at 375px
   - No horizontal overflow
