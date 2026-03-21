@@ -38,7 +38,7 @@ export async function fetchPortfolioBaseData(
 			supabase
 				.from('trades')
 				.select(
-					'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id), trade_reviews(id, review_status, playbook_id, broken_rules, entry_reason, mistake_summary, lesson_summary, followed_plan, playbooks(id, name)), trade_attachments(id)'
+					'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id), trade_reviews(id, review_status, playbook_id, broken_rules, entry_reason, mistake_summary, lesson_summary, followed_plan, setup_quality_score, discipline_score, execution_score, confidence_at_entry, playbooks(id, name)), trade_attachments(id)'
 				)
 				.eq('client_account_id', accountId)
 				.order('close_time', { ascending: false }),
@@ -140,8 +140,8 @@ export function buildDailyHistory(trades: Trade[]) {
 				totalTrades: data.profitValues.length,
 				reviewedTrades: data.reviewed,
 				winRate: data.profitValues.length > 0 ? (wins.length / data.profitValues.length) * 100 : 0,
-				bestTrade: wins.length > 0 ? Math.max(...wins) : 0,
-				worstTrade: losses.length > 0 ? Math.min(...losses) : 0
+				bestTrade: wins.length > 0 ? wins.reduce((max, v) => v > max ? v : max, -Infinity) : 0,
+				worstTrade: losses.length > 0 ? losses.reduce((min, v) => v < min ? v : min, Infinity) : 0
 			};
 		})
 		.sort((a, b) => a.date.localeCompare(b.date));
@@ -661,6 +661,10 @@ export function buildDayTimeHeatmap(trades: Trade[]) {
 }
 
 export function buildFilterOptions(trades: Trade[], playbooks: Playbook[]) {
+	const profits = trades.map((t) => Number(t.profit || 0));
+	const lotSizes = trades.map((t) => Number(t.lot_size || 0));
+	const pipsValues = trades.filter((t) => t.pips != null).map((t) => Number(t.pips));
+
 	return {
 		symbols: [...new Set(trades.map((trade) => trade.symbol).filter(Boolean))].sort(),
 		sessions: ['asian', 'london', 'newyork'],
@@ -671,7 +675,16 @@ export function buildFilterOptions(trades: Trade[], playbooks: Playbook[]) {
 			{ value: 'swing', label: 'Swing (<3d)' },
 			{ value: 'position', label: 'Position (3d+)' }
 		],
-		playbooks: playbooks.map((playbook) => ({ id: playbook.id, name: playbook.name }))
+		playbooks: playbooks.map((playbook) => ({ id: playbook.id, name: playbook.name })),
+		profitRange: profits.length
+			? { min: Math.round(profits.reduce((m, v) => v < m ? v : m, Infinity) * 100) / 100, max: Math.round(profits.reduce((m, v) => v > m ? v : m, -Infinity) * 100) / 100 }
+			: null,
+		lotSizeRange: lotSizes.length
+			? { min: lotSizes.reduce((m, v) => v < m ? v : m, Infinity), max: lotSizes.reduce((m, v) => v > m ? v : m, -Infinity) }
+			: null,
+		pipsRange: pipsValues.length
+			? { min: Math.round(pipsValues.reduce((m, v) => v < m ? v : m, Infinity) * 10) / 10, max: Math.round(pipsValues.reduce((m, v) => v > m ? v : m, -Infinity) * 10) / 10 }
+			: null
 	};
 }
 

@@ -19,7 +19,7 @@
 	const dayLabels = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 	// Build calendar grid
-	const calendarGrid = $derived((() => {
+	const calendarGrid = $derived.by(() => {
 		const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
 		const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
 		const grid: Array<{ date: string; day: number; inMonth: boolean; pnl: number; trades: number } | null> = [];
@@ -39,7 +39,7 @@
 			});
 		}
 		return grid;
-	})());
+	});
 
 	function navigateDate(date: string) {
 		const params = new URLSearchParams($page.url.searchParams);
@@ -358,7 +358,7 @@
 
 						<!-- Daily P&L bar chart (simple CSS bars) -->
 						{#if weekData.dayCards.some((c: any) => c.hasData)}
-							{@const maxPnl = Math.max(...weekData.dayCards.map((c: any) => Math.abs(c.pnl)), 1)}
+							{@const maxPnl = weekData.dayCards.reduce((max: number, c: any) => { const v = Math.abs(c.pnl); return v > max ? v : max; }, 1)}
 							<div class="mt-6">
 								<div class="text-xs text-gray-500 mb-2">กำไร/ขาดทุนรายวัน</div>
 								<div class="flex items-end gap-2 h-24">

@@ -70,7 +70,7 @@ function evaluateSingleRule(
 
 		case 'max_loss_trade': {
 			if (dayTrades.length === 0) return { completed: true, value: 0 };
-			const maxLoss = Math.min(...dayTrades.map(t => Number(t.profit || 0)));
+			const maxLoss = dayTrades.reduce((min, t) => { const v = Number(t.profit || 0); return v < min ? v : min; }, Infinity);
 			const limit = (rule.condition as any)?.max ?? 100;
 			const absLoss = Math.abs(Math.min(maxLoss, 0));
 			return { completed: absLoss <= limit, value: absLoss };

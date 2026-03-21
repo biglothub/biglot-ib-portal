@@ -45,8 +45,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		wins: wins.length,
 		losses: losses.length,
 		winRate: dayTrades.length > 0 ? (wins.length / dayTrades.length) * 100 : 0,
-		bestTrade: wins.length > 0 ? Math.max(...wins.map((t: any) => Number(t.profit))) : 0,
-		worstTrade: losses.length > 0 ? Math.min(...losses.map((t: any) => Number(t.profit))) : 0,
+		bestTrade: wins.length > 0 ? wins.reduce((max: number, t: any) => { const v = Number(t.profit); return v > max ? v : max; }, -Infinity) : 0,
+		worstTrade: losses.length > 0 ? losses.reduce((min: number, t: any) => { const v = Number(t.profit); return v < min ? v : min; }, Infinity) : 0,
 	} : null;
 
 	// Week View: get the week containing selectedDate

@@ -17,7 +17,7 @@ export const bigWinnerRule: InsightRule = {
 
 		if (sameDayTrades.length < 3) return null;
 
-		const maxProfit = Math.max(...sameDayTrades.map(t => Number(t.profit || 0)));
+		const maxProfit = sameDayTrades.reduce((max, t) => { const v = Number(t.profit || 0); return v > max ? v : max; }, -Infinity);
 		if (profit < maxProfit) return null;
 
 		return {

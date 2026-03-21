@@ -231,7 +231,7 @@
 {/snippet}
 
 {#snippet pnlBarChart(summaries: typeof accountSummaries)}
-	{@const maxAbs = Math.max(...summaries.map((s) => Math.abs(s.netPnl)), 1)}
+	{@const maxAbs = summaries.reduce((max, s) => { const v = Math.abs(s.netPnl); return v > max ? v : max; }, 1)}
 	<div class="space-y-3">
 		{#each summaries as summary}
 			<div class="flex items-center gap-3">

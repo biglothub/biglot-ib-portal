@@ -334,7 +334,7 @@
 		{@const latest = currentRangeData[currentRangeData.length - 1]}
 		{@const first = currentRangeData[0]}
 		{@const growth = first?.equity ? ((latest.equity - first.equity) / first.equity) * 100 : 0}
-		{@const maxEquity = Math.max(...currentRangeData.map(d => d.equity))}
+		{@const maxEquity = currentRangeData.reduce((max, d) => d.equity > max ? d.equity : max, -Infinity)}
 
 		<div class="grid grid-cols-3 gap-3 mt-4">
 			<div class="bg-dark-bg/30 rounded-lg p-3 text-center">

@@ -15,9 +15,9 @@
 		return 'text-red-400';
 	}
 
-	const maxDayProfit = $derived(Math.max(...analytics.dayOfWeekPnL.map(d => Math.abs(d.profit)), 1));
-	const maxLotCount = $derived(Math.max(...analytics.lotDistribution.map(d => d.count), 1));
-	const maxHoldCount = $derived(Math.max(...analytics.holdingTimeAnalysis.map(d => d.count), 1));
+	const maxDayProfit = $derived(analytics.dayOfWeekPnL.reduce((max, d) => { const v = Math.abs(d.profit); return v > max ? v : max; }, 1));
+	const maxLotCount = $derived(analytics.lotDistribution.reduce((max, d) => d.count > max ? d.count : max, 1));
+	const maxHoldCount = $derived(analytics.holdingTimeAnalysis.reduce((max, d) => d.count > max ? d.count : max, 1));
 </script>
 
 <div class="space-y-6">

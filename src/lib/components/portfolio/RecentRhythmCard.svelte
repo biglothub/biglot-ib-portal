@@ -55,7 +55,7 @@
 	);
 
 	const maxAbsRecentProfit = $derived(
-		Math.max(...recentDays.map(day => Math.abs(Number(day.profit) || 0)), 1)
+		recentDays.reduce((max, day) => { const v = Math.abs(Number(day.profit) || 0); return v > max ? v : max; }, 1)
 	);
 
 	const netRecentProfit = $derived(

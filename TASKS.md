@@ -426,7 +426,7 @@
   - Files: src/routes/admin/+page.server.ts
   - Session: 2026-03-22 — Added 90-day date filter (.gte('date', ninetyDaysAgo)) to daily_stats query in admin +page.server.ts. This bounds the AUM calculation to recent data instead of fetching every row ever. Client list pagination not needed on this page (lists are on /admin/approvals and /admin/ibs).
 
-- [ ] [S] FIX-005: Fix Math.max(...largeArray) stack overflow risk
+- [x] [S] FIX-005: Fix Math.max(...largeArray) stack overflow risk
   - Math.max/Math.min with spread on large arrays can exceed call stack
   - Replace with reduce: arr.reduce((max, v) => v > max ? v : max, -Infinity)
   - Audit: grep -r 'Math\.\(max\|min\)(\.\.\.' src/

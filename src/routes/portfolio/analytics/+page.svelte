@@ -113,7 +113,7 @@
 
 	// Symbol sort
 	let symbolSort = $state<{ key: string; asc: boolean }>({ key: 'netPnl', asc: false });
-	const sortedSymbols = $derived((() => {
+	const sortedSymbols = $derived.by(() => {
 		const arr = [...(symbolBreakdown || [])];
 		arr.sort((a: any, b: any) => {
 			const va = a[symbolSort.key] ?? 0;
@@ -121,7 +121,7 @@
 			return symbolSort.asc ? va - vb : vb - va;
 		});
 		return arr;
-	})());
+	});
 
 	function toggleSort(key: string) {
 		if (symbolSort.key === key) symbolSort = { key, asc: !symbolSort.asc };
@@ -132,7 +132,7 @@
 	let tagSort = $state<{ key: string; asc: boolean }>({ key: 'netPnl', asc: false });
 	let tagViewMode = $state('all');
 
-	const sortedTags = $derived((() => {
+	const sortedTags = $derived.by(() => {
 		let arr = [...(tagBreakdown?.byTag || [])];
 		if (tagViewMode !== 'all') arr = arr.filter((t: any) => t.category === tagViewMode);
 		arr.sort((a: any, b: any) => {
@@ -141,7 +141,7 @@
 			return tagSort.asc ? va - vb : vb - va;
 		});
 		return arr;
-	})());
+	});
 
 	function toggleTagSort(key: string) {
 		if (tagSort.key === key) tagSort = { key, asc: !tagSort.asc };
@@ -168,7 +168,7 @@
 
 	// Day-of-week sort
 	let daySort = $state<{ key: string; asc: boolean }>({ key: 'dayIdx', asc: true });
-	const sortedDays = $derived((() => {
+	const sortedDays = $derived.by(() => {
 		const arr = [...(dayOfWeekReport?.days || [])];
 		arr.sort((a: any, b: any) => {
 			const va = a[daySort.key] ?? 0;
@@ -176,7 +176,7 @@
 			return daySort.asc ? va - vb : vb - va;
 		});
 		return arr;
-	})());
+	});
 
 	function toggleDaySort(key: string) {
 		if (daySort.key === key) daySort = { key, asc: !daySort.asc };
@@ -758,7 +758,7 @@
 				<EmptyState message="ไม่พบข้อมูล symbol ใน filter ที่เลือก" />
 			{:else}
 				<!-- Top symbols bar chart -->
-				{@const maxAbsPnl = Math.max(...sortedSymbols.map((s: any) => Math.abs(s.netPnl)), 1)}
+				{@const maxAbsPnl = sortedSymbols.reduce((max: number, s: any) => { const v = Math.abs(s.netPnl); return v > max ? v : max; }, 1)}
 				<div class="space-y-2 mb-6">
 					{#each sortedSymbols.slice(0, 8) as sym}
 						<div class="flex items-center gap-3">
@@ -864,7 +864,7 @@
 				{/if}
 
 				<!-- Bar chart — top tags by P&L -->
-				{@const maxAbsTagPnl = Math.max(...sortedTags.map((t: any) => Math.abs(t.netPnl)), 1)}
+				{@const maxAbsTagPnl = sortedTags.reduce((max: number, t: any) => { const v = Math.abs(t.netPnl); return v > max ? v : max; }, 1)}
 				<div class="space-y-2 mb-6">
 					{#each sortedTags.slice(0, 10) as tag}
 						<div class="flex items-center gap-3">
@@ -957,7 +957,7 @@
 				</div>
 
 				<!-- Bar chart -->
-				{@const maxAbsDayPnl = Math.max(...sortedDays.map((d: any) => Math.abs(d.netPnl)), 1)}
+				{@const maxAbsDayPnl = sortedDays.reduce((max: number, d: any) => { const v = Math.abs(d.netPnl); return v > max ? v : max; }, 1)}
 				<div class="space-y-2 mb-6">
 					{#each dayOfWeekReport.days.sort((a: any, b: any) => a.dayIdx - b.dayIdx) as day}
 						<div class="flex items-center gap-3">
@@ -1157,7 +1157,7 @@
 					<EmptyState message="ยังไม่มีข้อมูล drawdown" />
 				{:else}
 					{@const series = riskAnalysis.drawdownSeries}
-					{@const minDD = Math.min(...series.map((s: { drawdown: number }) => s.drawdown))}
+					{@const minDD = series.reduce((min: number, s: { drawdown: number }) => s.drawdown < min ? s.drawdown : min, Infinity)}
 					{@const range = -minDD || 1}
 					<div class="h-64 relative">
 						<svg class="w-full h-full" viewBox="0 0 {series.length * 10} 200" preserveAspectRatio="none">
@@ -1234,7 +1234,7 @@
 					{:else}
 						<div class="space-y-3">
 							{#each riskAnalysis.rrDistribution as bucket}
-								{@const maxCount = Math.max(...riskAnalysis.rrDistribution.map((b: { count: number }) => b.count), 1)}
+								{@const maxCount = riskAnalysis.rrDistribution.reduce((max: number, b: { count: number }) => b.count > max ? b.count : max, 1)}
 								{@const pct = bucket.count > 0 ? (bucket.count / riskAnalysis.totalRRTrades) * 100 : 0}
 								{@const winPct = bucket.count > 0 ? (bucket.wins / bucket.count) * 100 : 0}
 								<div>

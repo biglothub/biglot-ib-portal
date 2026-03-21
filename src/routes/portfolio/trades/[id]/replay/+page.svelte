@@ -97,8 +97,8 @@
 	}
 
 	let currentPnl = $derived(pnlData.length > 0 ? pnlData[pnlData.length - 1]?.value ?? 0 : 0);
-	let maxPnl = $derived(pnlData.length > 0 ? Math.max(...pnlData.map(p => p.value)) : 0);
-	let minPnl = $derived(pnlData.length > 0 ? Math.min(...pnlData.map(p => p.value)) : 0);
+	let maxPnl = $derived(pnlData.length > 0 ? pnlData.reduce((max, p) => p.value > max ? p.value : max, -Infinity) : 0);
+	let minPnl = $derived(pnlData.length > 0 ? pnlData.reduce((min, p) => p.value < min ? p.value : min, Infinity) : 0);
 
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
