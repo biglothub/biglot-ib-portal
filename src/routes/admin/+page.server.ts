@@ -16,9 +16,13 @@ export const load: PageServerLoad = async () => {
 	]);
 
 	// Get latest balance per approved account for AUM
+	// Limit to last 90 days to prevent unbounded query growth
+	const ninetyDaysAgo = new Date();
+	ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 	const { data: latestStats } = await supabase
 		.from('daily_stats')
 		.select('client_account_id, balance')
+		.gte('date', ninetyDaysAgo.toISOString().split('T')[0])
 		.order('date', { ascending: false });
 
 	const balanceMap = new Map<string, number>();

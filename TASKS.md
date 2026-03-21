@@ -419,11 +419,12 @@
   - Files: multiple components
   - Session: 2026-03-22 — Audited all .subscribe() calls in src/. Found one leak: SidebarNews.svelte called marketNewsStore.subscribe() at module scope without cleanup. Fixed by wrapping in $effect() with unsubscribe return. Other .subscribe() calls (chart crosshair, Supabase realtime, Web Push API) were already properly cleaned up.
 
-- [ ] [M] FIX-004: Fix admin dashboard unbounded query
+- [x] [M] FIX-004: Fix admin dashboard unbounded query
   - Fetches ALL daily_stats with no date limit — O(n) grows forever
   - Add default date range filter (last 90 days)
   - Add pagination for client lists
   - Files: src/routes/admin/+page.server.ts
+  - Session: 2026-03-22 — Added 90-day date filter (.gte('date', ninetyDaysAgo)) to daily_stats query in admin +page.server.ts. This bounds the AUM calculation to recent data instead of fetching every row ever. Client list pagination not needed on this page (lists are on /admin/approvals and /admin/ibs).
 
 - [ ] [S] FIX-005: Fix Math.max(...largeArray) stack overflow risk
   - Math.max/Math.min with spread on large arrays can exceed call stack
