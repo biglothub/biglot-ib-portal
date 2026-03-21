@@ -75,7 +75,7 @@
 						{step >= s ? 'bg-brand-600 text-white' : 'bg-dark-border text-gray-500'}">
 						{s}
 					</div>
-					<span class="text-xs text-gray-500">{s === 1 ? 'ข้อมูลลูกค้า' : 'MT5 Credentials'}</span>
+					<span class="text-xs text-gray-500">{s === 1 ? 'ข้อมูลลูกค้า' : 'ข้อมูล MT5'}</span>
 				</div>
 				{#if s < 2}
 					<div class="flex-1 h-px {step > s ? 'bg-brand-600' : 'bg-dark-border'}"></div>

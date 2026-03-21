@@ -96,7 +96,7 @@
 							<th class="text-left py-2 px-2">ชื่อ</th>
 							<th class="text-left py-2 px-2">MT5</th>
 							<th class="text-left py-2 px-2">สถานะ</th>
-							<th class="text-left py-2 px-2">MT5 Valid</th>
+							<th class="text-left py-2 px-2">MT5 ยืนยัน</th>
 							<th class="text-left py-2 px-2">ส่งเมื่อ</th>
 							<th class="text-right py-2 px-2"></th>
 						</tr>

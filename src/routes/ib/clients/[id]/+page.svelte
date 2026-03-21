@@ -152,7 +152,7 @@
 </script>
 
 <svelte:head>
-	<title>{account.client_name} - Portfolio</title>
+	<title>{account.client_name} - พอร์ตโฟลิโอ</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -260,15 +260,15 @@
 		{#if latestStats}
 			<!-- KPI Cards -->
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<MetricCard label="Balance" value={formatCurrency(latestStats.balance)} color="text-white" />
-				<MetricCard label="Equity" value={formatCurrency(latestStats.equity)} color="text-white" />
+				<MetricCard label="ยอดเงิน" value={formatCurrency(latestStats.balance)} color="text-white" />
+				<MetricCard label="มูลค่าพอร์ต" value={formatCurrency(latestStats.equity)} color="text-white" />
 				<MetricCard
-					label="Floating P/L"
+					label="กำไร/ขาดทุนลอย"
 					value={formatCurrency(latestStats.floating_pl)}
 					color={latestStats.floating_pl >= 0 ? 'text-green-400' : 'text-red-400'}
 				/>
 				<MetricCard
-					label="Profit"
+					label="กำไร"
 					value={formatCurrency(latestStats.profit)}
 					color={latestStats.profit >= 0 ? 'text-green-400' : 'text-red-400'}
 				/>
@@ -276,10 +276,10 @@
 
 			<!-- Performance Stats -->
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<MetricCard label="Win Rate" value={formatPercent(latestStats.win_rate).replace('+', '')} />
-				<MetricCard label="Profit Factor" value={formatNumber(latestStats.profit_factor)} />
-				<MetricCard label="Max Drawdown" value={formatPercent(latestStats.max_drawdown)} color="text-red-400" />
-				<MetricCard label="Total Trades" value={String(latestStats.total_trades || 0)} />
+				<MetricCard label="อัตราชนะ" value={formatPercent(latestStats.win_rate).replace('+', '')} />
+				<MetricCard label="อัตราส่วนกำไร" value={formatNumber(latestStats.profit_factor)} />
+				<MetricCard label="ขาดทุนสูงสุด" value={formatPercent(latestStats.max_drawdown)} color="text-red-400" />
+				<MetricCard label="เทรดทั้งหมด" value={String(latestStats.total_trades || 0)} />
 			</div>
 		{:else}
 			<div class="card text-center py-8">
@@ -297,7 +297,7 @@
 		<!-- Open Positions -->
 		<div class="card">
 			<h2 class="text-sm font-medium text-gray-400 mb-4">
-				Open Positions ({openPositions.length})
+				ตำแหน่งที่เปิด ({openPositions.length})
 			</h2>
 			{#if openPositions.length === 0}
 				<EmptyState message="ไม่มี position เปิดอยู่" icon="📭" />
@@ -306,12 +306,12 @@
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-xs">
-								<th class="text-left py-2">Symbol</th>
-								<th class="text-left py-2">Type</th>
-								<th class="text-right py-2">Lots</th>
-								<th class="text-right py-2">Open Price</th>
-								<th class="text-right py-2">Current</th>
-								<th class="text-right py-2">P/L</th>
+								<th class="text-left py-2">สัญลักษณ์</th>
+								<th class="text-left py-2">ประเภท</th>
+								<th class="text-right py-2">ล็อต</th>
+								<th class="text-right py-2">ราคาเปิด</th>
+								<th class="text-right py-2">ปัจจุบัน</th>
+								<th class="text-right py-2">กำไร/ขาดทุน</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -340,7 +340,7 @@
 		<!-- Recent Trades -->
 		<div class="card">
 			<h2 class="text-sm font-medium text-gray-400 mb-4">
-				Recent Trades ({recentTrades.length})
+				เทรดล่าสุด ({recentTrades.length})
 			</h2>
 			{#if recentTrades.length === 0}
 				<EmptyState message="ยังไม่มี trade" icon="📊" />
@@ -349,13 +349,13 @@
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-xs">
-								<th class="text-left py-2">Symbol</th>
-								<th class="text-left py-2">Type</th>
-								<th class="text-right py-2">Lots</th>
-								<th class="text-right py-2">Open</th>
-								<th class="text-right py-2">Close</th>
-								<th class="text-right py-2">P/L</th>
-								<th class="text-right py-2">Time</th>
+								<th class="text-left py-2">สัญลักษณ์</th>
+								<th class="text-left py-2">ประเภท</th>
+								<th class="text-right py-2">ล็อต</th>
+								<th class="text-right py-2">เปิด</th>
+								<th class="text-right py-2">ปิด</th>
+								<th class="text-right py-2">กำไร/ขาดทุน</th>
+								<th class="text-right py-2">เวลา</th>
 							</tr>
 						</thead>
 						<tbody>
