@@ -5,6 +5,7 @@
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import JournalTemplates from '$lib/components/portfolio/JournalTemplates.svelte';
+	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 
@@ -40,6 +41,13 @@
 	let actionError = $state('');
 	let showTemplates = $state(false);
 
+	/** Wrap plain text in <p> tags for Tiptap compatibility */
+	function toHtml(text: string): string {
+		if (!text) return '';
+		if (text.includes('<')) return text; // Already contains HTML
+		return text.split('\n').filter(Boolean).map((line) => `<p>${line}</p>`).join('');
+	}
+
 	function applyTemplate(fields: Partial<{
 		preMarketNotes: string;
 		postMarketNotes: string;
@@ -49,19 +57,19 @@
 		lessons: string;
 		tomorrowFocus: string;
 	}>) {
-		if (fields.preMarketNotes !== undefined) preMarketNotes = fields.preMarketNotes;
-		if (fields.postMarketNotes !== undefined) postMarketNotes = fields.postMarketNotes;
-		if (fields.sessionPlan !== undefined) sessionPlan = fields.sessionPlan;
+		if (fields.preMarketNotes !== undefined) preMarketNotes = toHtml(fields.preMarketNotes);
+		if (fields.postMarketNotes !== undefined) postMarketNotes = toHtml(fields.postMarketNotes);
+		if (fields.sessionPlan !== undefined) sessionPlan = toHtml(fields.sessionPlan);
 		if (fields.marketBias !== undefined) marketBias = fields.marketBias;
 		if (fields.keyLevels !== undefined) keyLevels = fields.keyLevels;
-		if (fields.lessons !== undefined) lessons = fields.lessons;
-		if (fields.tomorrowFocus !== undefined) tomorrowFocus = fields.tomorrowFocus;
+		if (fields.lessons !== undefined) lessons = toHtml(fields.lessons);
+		if (fields.tomorrowFocus !== undefined) tomorrowFocus = toHtml(fields.tomorrowFocus);
 	}
 
 	$effect(() => {
-		preMarketNotes = selectedJournal?.pre_market_notes || '';
-		postMarketNotes = selectedJournal?.post_market_notes || '';
-		sessionPlan = selectedJournal?.session_plan || '';
+		preMarketNotes = toHtml(selectedJournal?.pre_market_notes || '');
+		postMarketNotes = toHtml(selectedJournal?.post_market_notes || '');
+		sessionPlan = toHtml(selectedJournal?.session_plan || '');
 		marketBias = selectedJournal?.market_bias || '';
 		keyLevels = selectedJournal?.key_levels || '';
 		checklist = selectedJournal?.checklist || [];
@@ -69,8 +77,8 @@
 		energyScore = selectedJournal?.energy_score || null;
 		disciplineScore = selectedJournal?.discipline_score || null;
 		confidenceScore = selectedJournal?.confidence_score || null;
-		lessons = selectedJournal?.lessons || '';
-		tomorrowFocus = selectedJournal?.tomorrow_focus || '';
+		lessons = toHtml(selectedJournal?.lessons || '');
+		tomorrowFocus = toHtml(selectedJournal?.tomorrow_focus || '');
 		completionStatus = selectedJournal?.completion_status || 'not_started';
 	});
 
@@ -78,7 +86,7 @@
 	const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 	const moodLabels = ['แย่มาก', 'แย่', 'ปานกลาง', 'ดี', 'ดีมาก'];
 
-	const calendarDays = $derived(() => {
+	const calendarDays = $derived.by(() => {
 		const firstDay = new Date(year, month - 1, 1).getDay();
 		const daysInMonth = new Date(year, month, 0).getDate();
 		const days: { day: number; date: string; profit?: number; trades?: number; hasJournal: boolean; completion?: string }[] = [];
@@ -225,7 +233,7 @@
 			</div>
 
 			<div class="grid grid-cols-7 gap-1">
-				{#each calendarDays() as cell}
+				{#each calendarDays as cell}
 					{#if cell.day === 0}
 						<div></div>
 					{:else}
@@ -303,11 +311,11 @@
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
 						<h4 class="text-xs text-gray-500 mb-2">บันทึกก่อนเทรด</h4>
-						<textarea bind:value={preMarketNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+						<TiptapEditor compact content={preMarketNotes} onupdate={(html) => (preMarketNotes = html)} placeholder="วิเคราะห์ตลาดก่อนเทรด..." />
 					</div>
 					<div class="card">
 						<h4 class="text-xs text-gray-500 mb-2">แผนการเทรด</h4>
-						<textarea bind:value={sessionPlan} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+						<TiptapEditor compact content={sessionPlan} onupdate={(html) => (sessionPlan = html)} placeholder="แผนการเทรดวันนี้..." />
 					</div>
 					<div class="card">
 						<h4 class="text-xs text-gray-500 mb-2">มุมมองตลาด</h4>
@@ -363,15 +371,15 @@
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
 						<h4 class="text-xs text-gray-500 mb-2">บันทึกหลังเทรด</h4>
-						<textarea bind:value={postMarketNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+						<TiptapEditor compact content={postMarketNotes} onupdate={(html) => (postMarketNotes = html)} placeholder="สรุปผลการเทรดวันนี้..." />
 					</div>
 					<div class="card">
 						<h4 class="text-xs text-gray-500 mb-2">บทเรียน</h4>
-						<textarea bind:value={lessons} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+						<TiptapEditor compact content={lessons} onupdate={(html) => (lessons = html)} placeholder="บทเรียนที่ได้รับ..." />
 					</div>
 					<div class="card xl:col-span-2">
 						<h4 class="text-xs text-gray-500 mb-2">จุดโฟกัสพรุ่งนี้</h4>
-						<textarea bind:value={tomorrowFocus} rows="3" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+						<TiptapEditor compact content={tomorrowFocus} onupdate={(html) => (tomorrowFocus = html)} placeholder="สิ่งที่จะโฟกัสพรุ่งนี้..." />
 					</div>
 				</div>
 

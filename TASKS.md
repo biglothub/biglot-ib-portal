@@ -543,12 +543,13 @@
   - Show last sync time, sync status, next scheduled sync
   - Files: src/routes/portfolio/+page.svelte
 
-- [ ] [L] FEAT-011: Upgrade Journal to Rich Text Editor
+- [x] [L] FEAT-011: Upgrade Journal to Rich Text Editor
   - Current: plain textarea fields for journal entries
   - Upgrade to TiptapEditor (already used in Notebook)
   - Migrate form fields: preMarketNotes, duringMarketNotes, postMarketNotes
   - Keep mood/energy/discipline/confidence sliders as-is
   - Files: src/routes/portfolio/journal/+page.svelte
+  - Session: 2026-03-22 — Replaced 5 textarea fields (preMarketNotes, sessionPlan, postMarketNotes, lessons, tomorrowFocus) with TiptapEditor in compact mode. Added compact prop to TiptapEditor (reduced min-height, simplified toolbar). Added toHtml() helper for backward compatibility with existing plain text data. Fixed pre-existing setContent type error. Kept marketBias/keyLevels as single-line inputs, mood/energy/discipline/confidence sliders unchanged.
 
 - [x] [M] FEAT-012: Strategy Templates Marketplace UI
   - playbook_templates table exists with data

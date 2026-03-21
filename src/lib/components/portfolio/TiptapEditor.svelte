@@ -7,11 +7,15 @@
 	let {
 		content = '',
 		onupdate,
-		placeholder = 'เริ่มเขียน...'
+		placeholder = 'เริ่มเขียน...',
+		compact = false,
+		minHeight = ''
 	}: {
 		content?: string;
 		onupdate?: (html: string) => void;
 		placeholder?: string;
+		compact?: boolean;
+		minHeight?: string;
 	} = $props();
 
 	let editorElement = $state<HTMLDivElement>(undefined!);
@@ -51,7 +55,8 @@
 			content,
 			editorProps: {
 				attributes: {
-					class: 'tiptap-content outline-none min-h-[200px] text-sm text-gray-200 leading-relaxed',
+					class: `tiptap-content outline-none ${compact ? 'min-h-[80px]' : 'min-h-[200px]'} text-sm text-gray-200 leading-relaxed`,
+					...(minHeight ? { style: `min-height: ${minHeight}` } : {}),
 				},
 			},
 			onUpdate: ({ editor: e }) => {
@@ -72,7 +77,7 @@
 		if (editor && content !== undefined) {
 			const current = editor.getHTML();
 			if (current !== content) {
-				editor.commands.setContent(content, false);
+				editor.commands.setContent(content, { emitUpdate: false });
 			}
 		}
 	});
@@ -98,15 +103,6 @@
 
 		<div class="w-px h-5 bg-dark-border mx-1"></div>
 
-		<button type="button" class={tbClass(headingLevel === 1)} onclick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()} title="หัวข้อ 1">
-			<span class="text-xs font-bold w-4 h-4 flex items-center justify-center">H1</span>
-		</button>
-		<button type="button" class={tbClass(headingLevel === 2)} onclick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} title="หัวข้อ 2">
-			<span class="text-xs font-bold w-4 h-4 flex items-center justify-center">H2</span>
-		</button>
-
-		<div class="w-px h-5 bg-dark-border mx-1"></div>
-
 		<button type="button" class={tbClass(isBulletList)} onclick={() => editor?.chain().focus().toggleBulletList().run()} title="รายการ">
 			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="4" cy="18" r="1.5" fill="currentColor"/></svg>
 		</button>
@@ -114,20 +110,31 @@
 			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="3" y="8" font-size="7" fill="currentColor" stroke="none">1</text><text x="3" y="14" font-size="7" fill="currentColor" stroke="none">2</text><text x="3" y="20" font-size="7" fill="currentColor" stroke="none">3</text></svg>
 		</button>
 
-		<div class="w-px h-5 bg-dark-border mx-1"></div>
+		{#if !compact}
+			<div class="w-px h-5 bg-dark-border mx-1"></div>
 
-		<button type="button" class={tbClass(isBlockquote)} onclick={() => editor?.chain().focus().toggleBlockquote().run()} title="อ้างอิง">
-			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>
-		</button>
-		<button type="button" class={tbClass(isCodeBlock)} onclick={() => editor?.chain().focus().toggleCodeBlock().run()} title="บล็อกโค้ด">
-			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-		</button>
+			<button type="button" class={tbClass(headingLevel === 1)} onclick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()} title="หัวข้อ 1">
+				<span class="text-xs font-bold w-4 h-4 flex items-center justify-center">H1</span>
+			</button>
+			<button type="button" class={tbClass(headingLevel === 2)} onclick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} title="หัวข้อ 2">
+				<span class="text-xs font-bold w-4 h-4 flex items-center justify-center">H2</span>
+			</button>
 
-		<div class="w-px h-5 bg-dark-border mx-1"></div>
+			<div class="w-px h-5 bg-dark-border mx-1"></div>
 
-		<button type="button" class="p-1.5 rounded text-gray-500 hover:text-gray-300 hover:bg-dark-bg/50 transition-colors" onclick={() => editor?.chain().focus().setHorizontalRule().run()} title="เส้นแบ่ง">
-			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="22" y2="12"/></svg>
-		</button>
+			<button type="button" class={tbClass(isBlockquote)} onclick={() => editor?.chain().focus().toggleBlockquote().run()} title="อ้างอิง">
+				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>
+			</button>
+			<button type="button" class={tbClass(isCodeBlock)} onclick={() => editor?.chain().focus().toggleCodeBlock().run()} title="บล็อกโค้ด">
+				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+			</button>
+
+			<div class="w-px h-5 bg-dark-border mx-1"></div>
+
+			<button type="button" class="p-1.5 rounded text-gray-500 hover:text-gray-300 hover:bg-dark-bg/50 transition-colors" onclick={() => editor?.chain().focus().setHorizontalRule().run()} title="เส้นแบ่ง">
+				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="22" y2="12"/></svg>
+			</button>
+		{/if}
 	</div>
 
 	<!-- Editor -->
