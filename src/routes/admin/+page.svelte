@@ -4,7 +4,13 @@
 	import { formatCurrency, timeAgo } from '$lib/utils';
 
 	let { data } = $props();
-	let { kpis, recentActivity } = $derived(data);
+	let { kpis, recentActivity, bridgeHealth } = $derived(data);
+
+	let bridgeOnline = $derived(
+		bridgeHealth?.last_heartbeat
+			? (Date.now() - new Date(bridgeHealth.last_heartbeat).getTime()) < 5 * 60 * 1000
+			: false
+	);
 </script>
 
 <svelte:head>
@@ -25,6 +31,51 @@
 		<MetricCard label="ลูกค้า (approved)" value={String(kpis.totalClients)} />
 		<MetricCard label="AUM รวม" value={formatCurrency(kpis.totalAUM, 0)} color="text-green-400" />
 	</div>
+
+	<!-- Bridge Health -->
+	{#if bridgeHealth}
+		<div class="card">
+			<div class="flex items-center justify-between mb-3">
+				<h2 class="text-sm font-medium text-gray-400">Bridge Status</h2>
+				<div class="flex items-center gap-2">
+					<span class="w-2 h-2 rounded-full {bridgeOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'}"></span>
+					<span class="text-xs {bridgeOnline ? 'text-green-400' : 'text-red-400'}">
+						{bridgeOnline ? 'Online' : 'Offline'}
+					</span>
+				</div>
+			</div>
+			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+				<div>
+					<p class="text-gray-500 text-xs">Last Heartbeat</p>
+					<p class="text-gray-300">{bridgeHealth.last_heartbeat ? timeAgo(bridgeHealth.last_heartbeat) : '-'}</p>
+				</div>
+				<div>
+					<p class="text-gray-500 text-xs">Last Cycle</p>
+					<p class="text-gray-300">
+						{#if bridgeHealth.accounts_synced != null}
+							<span class="text-green-400">{bridgeHealth.accounts_synced}</span> ok
+							{#if bridgeHealth.accounts_failed > 0}
+								, <span class="text-red-400">{bridgeHealth.accounts_failed}</span> fail
+							{/if}
+						{:else}
+							-
+						{/if}
+					</p>
+				</div>
+				<div>
+					<p class="text-gray-500 text-xs">Cycle Time</p>
+					<p class="text-gray-300">{bridgeHealth.cycle_duration_ms ? (bridgeHealth.cycle_duration_ms / 1000).toFixed(1) + 's' : '-'}</p>
+				</div>
+				<div>
+					<p class="text-gray-500 text-xs">Version</p>
+					<p class="text-gray-300">v{bridgeHealth.version || '-'}</p>
+				</div>
+			</div>
+			{#if bridgeHealth.error_message}
+				<p class="text-xs text-red-400/80 mt-2">{bridgeHealth.error_message}</p>
+			{/if}
+		</div>
+	{/if}
 
 	<!-- Quick Actions -->
 	<div class="flex gap-3">

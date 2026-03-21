@@ -1,6 +1,6 @@
-"""Tests for core.py — decrypt_password, init_mt5, send_telegram_message.
+"""Tests for core.py — decrypt_password, init_mt5, send_telegram_message, retry helpers.
 
-core.py has side effects at import time (load_dotenv, create_client, import MetaTrader5).
+core.py has side effects at import time (import config, create_client, import MetaTrader5).
 We patch sys.modules and env vars before importing.
 """
 from __future__ import annotations
@@ -22,9 +22,21 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 @pytest.fixture
 def core_module(mt5_mock, monkeypatch):
-    """Import core.py with mocked MetaTrader5 and supabase."""
+    """Import core.py with mocked MetaTrader5, config, and supabase."""
     # Ensure MT5 is mocked
     monkeypatch.setitem(sys.modules, 'MetaTrader5', mt5_mock)
+
+    # Mock config module
+    mock_config = MagicMock()
+    mock_config.SUPABASE_URL = 'https://test.supabase.co'
+    mock_config.SUPABASE_KEY = 'test-key'
+    mock_config.MT5_ENCRYPTION_KEY = ''
+    mock_config.MT5_PATH = None
+    mock_config.TELEGRAM_BOT_TOKEN = ''
+    mock_config.TELEGRAM_ADMIN_CHAT_ID = ''
+    mock_config.RETRY_ATTEMPTS = 3
+    mock_config.mask_account_id = lambda x: f'***{str(x)[-2:]}'
+    monkeypatch.setitem(sys.modules, 'config', mock_config)
 
     # Mock supabase.create_client
     fake_supabase_mod = MagicMock()
@@ -119,8 +131,7 @@ class TestInitMt5:
         assert result is False
 
     def test_with_path(self, core_module, mt5_mock, monkeypatch):
-        monkeypatch.setenv('MT5_PATH', '/path/to/mt5')
-        # Re-read env inside init_mt5
+        monkeypatch.setattr(core_module, 'MT5_PATH', '/path/to/mt5')
         result = core_module.init_mt5()
         assert result is True
 
@@ -160,3 +171,67 @@ class TestSendTelegramMessage:
             requests.post.side_effect = ConnectionError('network error')
             # Should not raise
             core_module.send_telegram_message('chat-42', 'test')
+
+
+# ===================================================================
+# retry_mt5
+# ===================================================================
+
+class TestRetryMt5:
+    def test_success_first_try(self, core_module):
+        mock_func = MagicMock(return_value='result')
+        result = core_module.retry_mt5(mock_func, 'arg1')
+        assert result == 'result'
+        assert mock_func.call_count == 1
+
+    def test_success_after_retry(self, core_module):
+        mock_func = MagicMock(side_effect=[None, 'result'])
+        with patch('time.sleep'):
+            result = core_module.retry_mt5(mock_func, max_retries=3)
+        assert result == 'result'
+        assert mock_func.call_count == 2
+
+    def test_all_retries_exhausted(self, core_module):
+        mock_func = MagicMock(return_value=None)
+        with patch('time.sleep'):
+            result = core_module.retry_mt5(mock_func, max_retries=3)
+        assert result is None
+        assert mock_func.call_count == 3
+
+    def test_exception_retried(self, core_module):
+        mock_func = MagicMock(side_effect=[RuntimeError('oops'), 'ok'])
+        with patch('time.sleep'):
+            result = core_module.retry_mt5(mock_func, max_retries=3)
+        assert result == 'ok'
+
+
+# ===================================================================
+# retry_supabase
+# ===================================================================
+
+class TestRetrySupabase:
+    def test_success_first_try(self, core_module):
+        op = MagicMock(return_value='data')
+        result = core_module.retry_supabase(op, description='test')
+        assert result == 'data'
+        assert op.call_count == 1
+
+    def test_retries_on_network_error(self, core_module):
+        op = MagicMock(side_effect=[ConnectionError('timeout'), 'data'])
+        with patch('time.sleep'):
+            result = core_module.retry_supabase(op, description='test', max_retries=3)
+        assert result == 'data'
+        assert op.call_count == 2
+
+    def test_no_retry_on_400(self, core_module):
+        op = MagicMock(side_effect=Exception('400 Bad Request'))
+        with pytest.raises(Exception, match='400'):
+            core_module.retry_supabase(op, description='test', max_retries=3)
+        assert op.call_count == 1
+
+    def test_all_retries_exhausted_raises(self, core_module):
+        op = MagicMock(side_effect=ConnectionError('timeout'))
+        with patch('time.sleep'):
+            with pytest.raises(ConnectionError):
+                core_module.retry_supabase(op, description='test', max_retries=2)
+        assert op.call_count == 2

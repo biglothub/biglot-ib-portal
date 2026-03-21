@@ -4,14 +4,15 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async () => {
 	const supabase = createSupabaseServiceClient();
 
-	const [pendingRes, ibCountRes, clientCountRes, recentRes] = await Promise.all([
+	const [pendingRes, ibCountRes, clientCountRes, recentRes, bridgeHealthRes] = await Promise.all([
 		supabase.from('client_accounts').select('id', { count: 'exact' }).eq('status', 'pending'),
 		supabase.from('master_ibs').select('id', { count: 'exact' }).eq('is_active', true),
 		supabase.from('client_accounts').select('id', { count: 'exact' }).eq('status', 'approved'),
 		supabase.from('approval_log')
 			.select('*, client_accounts(client_name), profiles!performed_by(full_name)')
 			.order('created_at', { ascending: false })
-			.limit(10)
+			.limit(10),
+		supabase.from('bridge_health').select('*').eq('id', 'singleton').maybeSingle()
 	]);
 
 	// Get latest balance per approved account for AUM
@@ -35,6 +36,16 @@ export const load: PageServerLoad = async () => {
 			totalClients: clientCountRes.count || 0,
 			totalAUM
 		},
-		recentActivity: recentRes.data || []
+		recentActivity: recentRes.data || [],
+		bridgeHealth: bridgeHealthRes.data as {
+			last_heartbeat: string | null;
+			status: string;
+			accounts_synced: number;
+			accounts_failed: number;
+			cycle_duration_ms: number | null;
+			total_cycles: number;
+			error_message: string | null;
+			version: string | null;
+		} | null
 	};
 };

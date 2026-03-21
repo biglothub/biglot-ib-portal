@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Any, Iterable
 
 UTC = timezone.utc
+log = logging.getLogger('bridge.stats')
 
 
 def parse_iso_datetime(value: str | None) -> datetime | None:

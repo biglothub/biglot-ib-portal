@@ -5,15 +5,22 @@ Usage:
   python backfill_daily_stats.py
 """
 
+import logging
 from datetime import datetime, timezone
 
+from config import validate_env, setup_logging
 from core import supabase
 from stats import recompute_daily_stats_for_account
 
+log = logging.getLogger('bridge.backfill')
+
 
 def main():
+    validate_env()
+    setup_logging()
+
     started_at = datetime.now(timezone.utc)
-    print(f"Backfill daily_stats started at {started_at.isoformat()}")
+    log.info(f"Backfill daily_stats started at {started_at.isoformat()}")
 
     response = supabase.table('client_accounts').select('id, client_name').execute()
     accounts = response.data or []
@@ -29,13 +36,13 @@ def main():
                 replace_existing=True
             )
             rebuilt += 1
-            print(f"  {account['client_name']}: rebuilt {row_count} daily rows")
+            log.info(f"  {account['client_name']}: rebuilt {row_count} daily rows")
         except Exception as exc:
             failed += 1
-            print(f"  Failed {account['client_name']}: {exc}")
+            log.error(f"  Failed {account['client_name']}: {exc}")
 
     finished_at = datetime.now(timezone.utc)
-    print(
+    log.info(
         f"Backfill complete at {finished_at.isoformat()} "
         f"(rebuilt={rebuilt}, failed={failed})"
     )

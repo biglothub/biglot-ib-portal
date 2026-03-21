@@ -1,140 +1,86 @@
 """
-IB Portal MT5 Bridge Service
-Adapted from TSP-Competition bridge/main.py
+IB Portal MT5 Bridge Service v2.0
 
-Key changes from TSP:
-  - Dynamic account loading from client_accounts WHERE status='approved'
-  - Validation queue for pending accounts
-  - Error tracking per account (sync_error, last_synced_at)
-  - Field mapping: participant_id -> client_account_id
+Key improvements over v1:
+  - Structured logging with rotation
+  - Parallel sync via ThreadPoolExecutor
+  - Incremental deal fetch (since last_synced_at)
+  - Upsert open positions (no delete-reinsert gap)
+  - Partial close / multi-exit deal support
+  - Dynamic point size from MT5 symbol_info
+  - Enhanced symbol normalization
+  - Retry logic for MT5 and Supabase calls
+  - Per-account failure backoff
+  - Graceful shutdown on SIGINT/SIGTERM
+  - Health heartbeat reporting
 """
 
 import MetaTrader5 as mt5
+import signal
 import time
-import os
+import threading
+import logging
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
-from dotenv import load_dotenv
-from core import supabase, init_mt5, send_telegram_message, decrypt_password, TELEGRAM_ADMIN_CHAT_ID
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from config import (
+    SYNC_INTERVAL, SERVER_OFFSET, TRADE_START,
+    EQUITY_INTERVAL_MINUTES, CHART_CONTEXT_TIMEFRAME, CHART_CONTEXT_PADDING_MINUTES,
+    MAX_WORKERS, CONSECUTIVE_FAIL_THRESHOLD, CONSECUTIVE_FAIL_SKIP_CYCLES,
+    BRIDGE_VERSION, CYCLE_TIME_ALERT_THRESHOLD,
+    validate_env, setup_logging, mask_account_id,
+)
+from core import (
+    supabase, init_mt5, send_telegram_message, decrypt_password,
+    retry_mt5, retry_supabase, TELEGRAM_ADMIN_CHAT_ID,
+)
 from stats import close_trade_dates_from_rows, recompute_daily_stats_for_account
+from health import update_health
 
-load_dotenv()
+log = logging.getLogger('bridge.main')
 
-SYNC_INTERVAL = int(os.getenv('SYNC_INTERVAL', '60'))
-SERVER_OFFSET = 10800  # 3 hours (MT5 server time offset)
-TRADE_START = datetime(2024, 1, 1, tzinfo=timezone.utc)
-EQUITY_INTERVAL_MINUTES = 5
-CHART_CONTEXT_TIMEFRAME = 'M5'
-CHART_CONTEXT_PADDING_MINUTES = 60
+# --- Graceful shutdown ---
+_shutdown_event = threading.Event()
 
 
-def get_approved_accounts():
-    """Fetch only approved client accounts"""
-    response = supabase.table('client_accounts') \
-        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id, sync_count') \
-        .eq('status', 'approved') \
-        .execute()
-    return response.data or []
+def _signal_handler(signum, frame):
+    sig_name = signal.Signals(signum).name
+    log.info(f"Received {sig_name} — shutting down gracefully after current work...")
+    _shutdown_event.set()
 
 
-def check_validation_queue():
-    """Validate pending accounts that haven't been checked yet"""
-    response = supabase.table('client_accounts') \
-        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id') \
-        .eq('status', 'pending') \
-        .eq('mt5_validated', False) \
-        .execute()
-
-    accounts = response.data or []
-    validated = 0
-    failed = 0
-
-    for account in accounts:
-        try:
-            authorized = mt5.login(
-                int(account['mt5_account_id']),
-                password=decrypt_password(account['mt5_investor_password']),
-                server=account['mt5_server']
-            )
-
-            now = datetime.now(timezone.utc).isoformat()
-
-            if authorized:
-                supabase.table('client_accounts').update({
-                    'mt5_validated': True,
-                    'mt5_validation_error': None,
-                    'last_validated_at': now
-                }).eq('id', account['id']).execute()
-                validated += 1
-
-                # Notify admins
-                admins = supabase.table('profiles').select('id').eq('role', 'admin').execute()
-                for admin in (admins.data or []):
-                    supabase.table('notifications').insert({
-                        'user_id': admin['id'],
-                        'type': 'mt5_validated',
-                        'title': f'MT5 Validated: {account["client_name"]}',
-                        'body': f'Account {account["mt5_account_id"]} on {account["mt5_server"]}'
-                    }).execute()
-
-                # Telegram: notify admin
-                send_telegram_message(
-                    TELEGRAM_ADMIN_CHAT_ID,
-                    f"<b>MT5 Validated</b>\n{account['client_name']}\nAccount: {account['mt5_account_id']} @ {account['mt5_server']}"
-                )
-            else:
-                error_code, error_msg = mt5.last_error()
-                error_text = f"MT5 Error {error_code}: {error_msg}"
-
-                supabase.table('client_accounts').update({
-                    'mt5_validated': False,
-                    'mt5_validation_error': error_text,
-                    'last_validated_at': now
-                }).eq('id', account['id']).execute()
-                failed += 1
-
-                # Notify IB
-                ib = supabase.table('master_ibs').select('user_id').eq('id', account['master_ib_id']).execute()
-                if ib.data:
-                    ib_user_id = ib.data[0]['user_id']
-                    supabase.table('notifications').insert({
-                        'user_id': ib_user_id,
-                        'type': 'mt5_validation_failed',
-                        'title': f'MT5 ไม่ถูกต้อง: {account["client_name"]}',
-                        'body': error_text
-                    }).execute()
-
-                    # Telegram: notify IB
-                    ib_profile = supabase.table('profiles').select('telegram_chat_id').eq('id', ib_user_id).execute()
-                    if ib_profile.data and ib_profile.data[0].get('telegram_chat_id'):
-                        send_telegram_message(
-                            ib_profile.data[0]['telegram_chat_id'],
-                            f"<b>MT5 Validation Failed</b>\n{account['client_name']}\n{error_text}"
-                        )
-
-                # Telegram: notify admin
-                send_telegram_message(
-                    TELEGRAM_ADMIN_CHAT_ID,
-                    f"<b>MT5 Validation Failed</b>\n{account['client_name']}\n{error_text}"
-                )
-
-        except Exception as e:
-            supabase.table('client_accounts').update({
-                'mt5_validated': False,
-                'mt5_validation_error': str(e),
-                'last_validated_at': datetime.now(timezone.utc).isoformat()
-            }).eq('id', account['id']).execute()
-            failed += 1
-
-    return validated, failed
+# --- Symbol normalization ---
+SYMBOL_MAP = {'GOLD': 'XAUUSD', 'SILVER': 'XAGUSD'}
+SYMBOL_SUFFIXES = ['micro', '.raw', '.std', '.pro', 'pro', '#', 'm']
 
 
 def normalize_symbol(symbol):
-    if any(g in symbol.upper() for g in ['GOLD', 'XAUUSD']):
-        return 'XAUUSD'
-    return symbol
+    s = symbol.upper()
+    for suffix in SYMBOL_SUFFIXES:
+        if s.endswith(suffix.upper()):
+            s = s[:-len(suffix)]
+            break
+    return SYMBOL_MAP.get(s, s)
 
 
+# --- Point size ---
+def get_point_size(symbol):
+    """Get point size from MT5, fallback to heuristic."""
+    try:
+        info = mt5.symbol_info(symbol)
+        if info and info.point > 0:
+            return info.point
+    except Exception:
+        pass
+    # Fallback heuristic
+    normalized = normalize_symbol(symbol)
+    if 'JPY' in normalized or normalized == 'XAUUSD':
+        return 0.01
+    return 0.0001
+
+
+# --- Helpers ---
 def _parse_iso_datetime(value):
     return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
 
@@ -205,16 +151,155 @@ def build_trade_chart_context_rows(mt5_module, trade_rows):
     return rows
 
 
+# --- Per-account failure tracking ---
+_account_failures = {}  # account_id -> {'consecutive': int, 'skip_until_cycle': int}
+_cycle_count = 0
+
+
+def _should_skip_account(account_id):
+    """Check if account should be skipped due to consecutive failures."""
+    info = _account_failures.get(account_id)
+    if not info:
+        return False
+    if info['consecutive'] >= CONSECUTIVE_FAIL_THRESHOLD and _cycle_count < info['skip_until_cycle']:
+        return True
+    return False
+
+
+def _record_failure(account_id):
+    info = _account_failures.setdefault(account_id, {'consecutive': 0, 'skip_until_cycle': 0})
+    info['consecutive'] += 1
+    if info['consecutive'] >= CONSECUTIVE_FAIL_THRESHOLD:
+        info['skip_until_cycle'] = _cycle_count + CONSECUTIVE_FAIL_SKIP_CYCLES
+        log.warning(
+            f"Account {mask_account_id(account_id)} failed {info['consecutive']} times consecutively, "
+            f"skipping next {CONSECUTIVE_FAIL_SKIP_CYCLES} cycles"
+        )
+
+
+def _record_success(account_id):
+    if account_id in _account_failures:
+        del _account_failures[account_id]
+
+
+# --- Account fetching ---
+def get_approved_accounts():
+    """Fetch only approved client accounts."""
+    response = supabase.table('client_accounts') \
+        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id, sync_count, last_synced_at') \
+        .eq('status', 'approved') \
+        .execute()
+    return response.data or []
+
+
+# --- Validation queue ---
+def check_validation_queue():
+    """Validate pending accounts that haven't been checked yet."""
+    response = supabase.table('client_accounts') \
+        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id') \
+        .eq('status', 'pending') \
+        .eq('mt5_validated', False) \
+        .execute()
+
+    accounts = response.data or []
+    validated = 0
+    failed = 0
+
+    for account in accounts:
+        if _shutdown_event.is_set():
+            break
+        try:
+            authorized = mt5.login(
+                int(account['mt5_account_id']),
+                password=decrypt_password(account['mt5_investor_password']),
+                server=account['mt5_server']
+            )
+
+            now = datetime.now(timezone.utc).isoformat()
+
+            if authorized:
+                supabase.table('client_accounts').update({
+                    'mt5_validated': True,
+                    'mt5_validation_error': None,
+                    'last_validated_at': now
+                }).eq('id', account['id']).execute()
+                validated += 1
+                log.info(f"MT5 validated: {account['client_name']} ({mask_account_id(account['mt5_account_id'])})")
+
+                # Notify admins
+                admins = supabase.table('profiles').select('id').eq('role', 'admin').execute()
+                for admin in (admins.data or []):
+                    supabase.table('notifications').insert({
+                        'user_id': admin['id'],
+                        'type': 'mt5_validated',
+                        'title': f'MT5 Validated: {account["client_name"]}',
+                        'body': f'Account {account["mt5_account_id"]} on {account["mt5_server"]}'
+                    }).execute()
+
+                send_telegram_message(
+                    TELEGRAM_ADMIN_CHAT_ID,
+                    f"<b>MT5 Validated</b>\n{account['client_name']}\nAccount: {account['mt5_account_id']} @ {account['mt5_server']}"
+                )
+            else:
+                error_code, error_msg = mt5.last_error()
+                error_text = f"MT5 Error {error_code}: {error_msg}"
+
+                supabase.table('client_accounts').update({
+                    'mt5_validated': False,
+                    'mt5_validation_error': error_text,
+                    'last_validated_at': now
+                }).eq('id', account['id']).execute()
+                failed += 1
+                log.warning(f"MT5 validation failed: {account['client_name']} — {error_text}")
+
+                # Notify IB
+                ib = supabase.table('master_ibs').select('user_id').eq('id', account['master_ib_id']).execute()
+                if ib.data:
+                    ib_user_id = ib.data[0]['user_id']
+                    supabase.table('notifications').insert({
+                        'user_id': ib_user_id,
+                        'type': 'mt5_validation_failed',
+                        'title': f'MT5 ไม่ถูกต้อง: {account["client_name"]}',
+                        'body': error_text
+                    }).execute()
+
+                    ib_profile = supabase.table('profiles').select('telegram_chat_id').eq('id', ib_user_id).execute()
+                    if ib_profile.data and ib_profile.data[0].get('telegram_chat_id'):
+                        send_telegram_message(
+                            ib_profile.data[0]['telegram_chat_id'],
+                            f"<b>MT5 Validation Failed</b>\n{account['client_name']}\n{error_text}"
+                        )
+
+                send_telegram_message(
+                    TELEGRAM_ADMIN_CHAT_ID,
+                    f"<b>MT5 Validation Failed</b>\n{account['client_name']}\n{error_text}"
+                )
+
+        except Exception as e:
+            supabase.table('client_accounts').update({
+                'mt5_validated': False,
+                'mt5_validation_error': str(e),
+                'last_validated_at': datetime.now(timezone.utc).isoformat()
+            }).eq('id', account['id']).execute()
+            failed += 1
+            log.error(f"Validation exception for {account['client_name']}: {e}")
+
+    return validated, failed
+
+
+# --- Main sync ---
 def sync_client_account(account):
-    """Sync a single client account (adapted from TSP sync_participant)"""
+    """Sync a single client account from MT5 to Supabase."""
     account_id = account['id']
     mt5_id = int(account['mt5_account_id'])
+    masked_id = mask_account_id(account['mt5_account_id'])
 
     try:
-        authorized = mt5.login(
+        authorized = retry_mt5(
+            mt5.login,
             mt5_id,
-            password=decrypt_password(account['mt5_investor_password']),
-            server=account['mt5_server']
+            decrypt_password(account['mt5_investor_password']),
+            account['mt5_server']
         )
         if not authorized:
             error_msg = f"Login failed: {mt5.last_error()}"
@@ -222,6 +307,8 @@ def sync_client_account(account):
                 'sync_error': error_msg,
                 'last_synced_at': datetime.now(timezone.utc).isoformat()
             }).eq('id', account_id).execute()
+            log.warning(f"[{masked_id}] {error_msg}")
+            _record_failure(account_id)
             return False
 
         info = mt5.account_info()
@@ -230,32 +317,39 @@ def sync_client_account(account):
                 'sync_error': 'account_info() returned None',
                 'last_synced_at': datetime.now(timezone.utc).isoformat()
             }).eq('id', account_id).execute()
+            log.warning(f"[{masked_id}] account_info() returned None")
+            _record_failure(account_id)
             return False
 
-        # 1. Equity snapshot (every 5 min)
         now = datetime.now(timezone.utc)
+
+        # 1. Equity snapshot (every N minutes)
         minute = now.minute
         if minute % EQUITY_INTERVAL_MINUTES < 2:
             timestamp = now.replace(
                 minute=(minute // EQUITY_INTERVAL_MINUTES) * EQUITY_INTERVAL_MINUTES,
                 second=0, microsecond=0
             )
-            supabase.table('equity_snapshots').upsert({
-                'client_account_id': account_id,
-                'timestamp': timestamp.isoformat(),
-                'balance': info.balance,
-                'equity': info.equity,
-                'floating_pl': info.equity - info.balance,
-                'margin_level': info.margin_level if info.margin_level else None
-            }, on_conflict='client_account_id,timestamp').execute()
+            retry_supabase(
+                lambda: supabase.table('equity_snapshots').upsert({
+                    'client_account_id': account_id,
+                    'timestamp': timestamp.isoformat(),
+                    'balance': info.balance,
+                    'equity': info.equity,
+                    'floating_pl': info.equity - info.balance,
+                    'margin_level': info.margin_level if info.margin_level else None
+                }, on_conflict='client_account_id,timestamp').execute(),
+                description=f"equity_snapshot [{masked_id}]"
+            )
 
-        # 2. Open positions
-        supabase.table('open_positions').delete().eq('client_account_id', account_id).execute()
+        # 2. Open positions — upsert + cleanup stale
         positions = mt5.positions_get()
+        current_tickets = set()
         if positions:
             rows = []
             for pos in positions:
                 symbol = normalize_symbol(pos.symbol)
+                current_tickets.add(pos.ticket)
                 rows.append({
                     'client_account_id': account_id,
                     'position_id': pos.ticket,
@@ -271,11 +365,38 @@ def sync_client_account(account):
                     'updated_at': now.isoformat()
                 })
             if rows:
-                supabase.table('open_positions').insert(rows).execute()
+                retry_supabase(
+                    lambda: supabase.table('open_positions').upsert(
+                        rows, on_conflict='client_account_id,position_id'
+                    ).execute(),
+                    description=f"open_positions upsert [{masked_id}]"
+                )
 
-        # 3. Closed trades
+        # Delete stale positions (closed since last sync)
+        existing_resp = supabase.table('open_positions') \
+            .select('position_id') \
+            .eq('client_account_id', account_id) \
+            .execute()
+        existing_ids = {row['position_id'] for row in (existing_resp.data or [])}
+        stale_ids = existing_ids - current_tickets
+        if stale_ids:
+            for stale_id in stale_ids:
+                supabase.table('open_positions') \
+                    .delete() \
+                    .eq('client_account_id', account_id) \
+                    .eq('position_id', stale_id) \
+                    .execute()
+            log.debug(f"[{masked_id}] Cleaned {len(stale_ids)} stale positions")
+
+        # 3. Closed trades — incremental fetch
+        last_synced = account.get('last_synced_at')
+        if last_synced:
+            fetch_from = _parse_iso_datetime(last_synced) - timedelta(days=1)
+        else:
+            fetch_from = TRADE_START
+
         trades_to_upsert = []
-        deals = mt5.history_deals_get(TRADE_START, datetime.now())
+        deals = mt5.history_deals_get(fetch_from, datetime.now())
         if deals:
             position_deals = defaultdict(list)
             for deal in deals:
@@ -284,20 +405,31 @@ def sync_client_account(account):
 
             for pos_id, pos_deals in position_deals.items():
                 entry = next((d for d in pos_deals if d.entry == 0), None)
-                exit_deal = next((d for d in pos_deals if d.entry == 1), None)
-                if not entry or not exit_deal:
+                exits = [d for d in pos_deals if d.entry == 1]
+                if not entry or not exits:
                     continue
 
                 symbol = normalize_symbol(entry.symbol)
-
                 trade_type = 'BUY' if entry.type == 0 else 'SELL'
-                point_size = 0.01 if ('JPY' in symbol or symbol == 'XAUUSD') else 0.0001
-                pips = ((exit_deal.price - entry.price) / point_size) if trade_type == 'BUY' \
-                    else ((entry.price - exit_deal.price) / point_size)
 
-                # Sum commission and swap from all deals for this position
+                # Dynamic point size
+                point_size = get_point_size(symbol)
+
+                # Weighted average close price for partial closes
+                total_exit_volume = sum(d.volume for d in exits)
+                if total_exit_volume > 0:
+                    close_price = sum(d.price * d.volume for d in exits) / total_exit_volume
+                else:
+                    close_price = exits[0].price
+
+                total_profit = sum(d.profit for d in exits)
                 total_commission = sum(getattr(d, 'commission', 0) or 0 for d in pos_deals)
                 total_swap = sum(getattr(d, 'swap', 0) or 0 for d in pos_deals)
+
+                if trade_type == 'BUY':
+                    pips = (close_price - entry.price) / point_size
+                else:
+                    pips = (entry.price - close_price) / point_size
 
                 trades_to_upsert.append({
                     'client_account_id': account_id,
@@ -305,10 +437,10 @@ def sync_client_account(account):
                     'type': trade_type,
                     'lot_size': entry.volume,
                     'open_price': entry.price,
-                    'close_price': exit_deal.price,
+                    'close_price': round(close_price, 5),
                     'open_time': datetime.fromtimestamp(entry.time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
-                    'close_time': datetime.fromtimestamp(exit_deal.time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
-                    'profit': exit_deal.profit,
+                    'close_time': datetime.fromtimestamp(exits[-1].time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
+                    'profit': total_profit,
                     'commission': round(total_commission, 2),
                     'swap': round(total_swap, 2),
                     'sl': None, 'tp': None,
@@ -317,10 +449,13 @@ def sync_client_account(account):
                 })
 
             if trades_to_upsert:
-                supabase.table('trades').upsert(
-                    trades_to_upsert,
-                    on_conflict='client_account_id,position_id'
-                ).execute()
+                retry_supabase(
+                    lambda: supabase.table('trades').upsert(
+                        trades_to_upsert,
+                        on_conflict='client_account_id,position_id'
+                    ).execute(),
+                    description=f"trades upsert [{masked_id}]"
+                )
 
                 synced_positions = {trade['position_id'] for trade in trades_to_upsert}
                 existing_trades = supabase.table('trades') \
@@ -335,12 +470,15 @@ def sync_client_account(account):
                     ]
                 )
                 if chart_context_rows:
-                    supabase.table('trade_chart_context').upsert(
-                        chart_context_rows,
-                        on_conflict='trade_id,timeframe'
-                    ).execute()
+                    retry_supabase(
+                        lambda: supabase.table('trade_chart_context').upsert(
+                            chart_context_rows,
+                            on_conflict='trade_id,timeframe'
+                        ).execute(),
+                        description=f"chart_context [{masked_id}]"
+                    )
 
-        # 4. Daily stats (per UTC day, not lifetime summary)
+        # 4. Daily stats
         touched_dates = close_trade_dates_from_rows(trades_to_upsert)
         touched_dates.add(now.date())
         recompute_daily_stats_for_account(
@@ -363,56 +501,145 @@ def sync_client_account(account):
             'sync_count': (account.get('sync_count') or 0) + 1
         }).eq('id', account_id).execute()
 
+        _record_success(account_id)
+        log.debug(f"[{masked_id}] Sync complete — {len(trades_to_upsert)} trades, {len(current_tickets)} positions")
         return True
 
     except Exception as e:
-        print(f"  Error syncing {account['client_name']}: {e}")
-        supabase.table('client_accounts').update({
-            'sync_error': str(e),
-            'last_synced_at': datetime.now(timezone.utc).isoformat()
-        }).eq('id', account_id).execute()
+        log.error(f"[{masked_id}] Sync error: {e}")
+        try:
+            supabase.table('client_accounts').update({
+                'sync_error': str(e),
+                'last_synced_at': datetime.now(timezone.utc).isoformat()
+            }).eq('id', account_id).execute()
+        except Exception:
+            pass
+        _record_failure(account_id)
         return False
 
 
+# --- Main loop ---
 def main():
-    print("IB Portal Bridge starting...")
+    global _cycle_count
+
+    validate_env()
+    logger = setup_logging()
+    log.info(f"IB Portal Bridge v{BRIDGE_VERSION} starting...")
+
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, _signal_handler)
+    signal.signal(signal.SIGTERM, _signal_handler)
 
     if not init_mt5():
-        print("MT5 initialization failed")
+        log.error("MT5 initialization failed — exiting")
         return
 
-    print(f"MT5 initialized. Sync interval: {SYNC_INTERVAL}s")
+    log.info(f"Sync interval: {SYNC_INTERVAL}s, Max workers: {MAX_WORKERS}")
 
-    while True:
+    # Notify restart
+    send_telegram_message(
+        TELEGRAM_ADMIN_CHAT_ID,
+        f"<b>Bridge Started</b>\nVersion: {BRIDGE_VERSION}\nSync interval: {SYNC_INTERVAL}s"
+    )
+
+    while not _shutdown_event.is_set():
+        _cycle_count += 1
         start_time = time.time()
-        print(f"\n--- Sync: {datetime.now().strftime('%H:%M:%S')} ---")
+        log.info(f"--- Sync cycle #{_cycle_count} ---")
+
+        ok = 0
+        err = 0
+        skipped = 0
 
         try:
             # 1. Validate pending accounts
-            validated, failed = check_validation_queue()
-            if validated or failed:
-                print(f"  Validation: {validated} ok, {failed} failed")
+            if not _shutdown_event.is_set():
+                validated, failed = check_validation_queue()
+                if validated or failed:
+                    log.info(f"Validation: {validated} ok, {failed} failed")
 
-            # 2. Sync approved accounts
-            accounts = get_approved_accounts()
-            print(f"  Syncing {len(accounts)} accounts...")
+            # 2. Sync approved accounts (parallel)
+            if not _shutdown_event.is_set():
+                accounts = get_approved_accounts()
+                accounts_to_sync = []
+                for acc in accounts:
+                    if _should_skip_account(acc['id']):
+                        skipped += 1
+                    else:
+                        accounts_to_sync.append(acc)
 
-            ok = 0
-            err = 0
-            for account in accounts:
-                if sync_client_account(account):
-                    ok += 1
-                else:
-                    err += 1
+                if skipped:
+                    log.info(f"Skipping {skipped} accounts (consecutive failures)")
 
-            print(f"  Done: {ok} ok, {err} errors")
+                log.info(f"Syncing {len(accounts_to_sync)} accounts (workers={MAX_WORKERS})...")
+
+                with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                    futures = {
+                        executor.submit(sync_client_account, acc): acc
+                        for acc in accounts_to_sync
+                    }
+                    for future in as_completed(futures):
+                        if _shutdown_event.is_set():
+                            break
+                        try:
+                            if future.result():
+                                ok += 1
+                            else:
+                                err += 1
+                        except Exception as e:
+                            err += 1
+                            acc = futures[future]
+                            log.error(f"Unhandled error syncing {acc['client_name']}: {e}")
 
         except Exception as e:
-            print(f"  Cycle error: {e}")
+            log.error(f"Cycle error: {e}")
 
         elapsed = time.time() - start_time
+        elapsed_ms = int(elapsed * 1000)
+        log.info(f"Cycle #{_cycle_count} done: {ok} ok, {err} errors, {skipped} skipped ({elapsed:.1f}s)")
+
+        # Health heartbeat
+        try:
+            update_health(
+                supabase=supabase,
+                accounts_synced=ok,
+                accounts_failed=err,
+                cycle_duration_ms=elapsed_ms,
+                total_cycles=_cycle_count,
+                error_message=None if err == 0 else f"{err} account(s) failed"
+            )
+        except Exception as e:
+            log.warning(f"Health update failed: {e}")
+
+        # Alert if cycle too slow
+        if elapsed > CYCLE_TIME_ALERT_THRESHOLD:
+            send_telegram_message(
+                TELEGRAM_ADMIN_CHAT_ID,
+                f"<b>Bridge Slow Cycle</b>\nCycle #{_cycle_count}: {elapsed:.1f}s (threshold: {CYCLE_TIME_ALERT_THRESHOLD}s)"
+            )
+
+        # Sleep until next cycle (interruptible)
         sleep_time = max(0, SYNC_INTERVAL - elapsed)
-        time.sleep(sleep_time)
+        _shutdown_event.wait(timeout=sleep_time)
+
+    log.info("Bridge shutdown complete")
+    send_telegram_message(
+        TELEGRAM_ADMIN_CHAT_ID,
+        f"<b>Bridge Stopped</b>\nVersion: {BRIDGE_VERSION}\nTotal cycles: {_cycle_count}"
+    )
+
+    # Update health status to stopped
+    try:
+        update_health(
+            supabase=supabase,
+            accounts_synced=0,
+            accounts_failed=0,
+            cycle_duration_ms=0,
+            total_cycles=_cycle_count,
+            status='stopped'
+        )
+    except Exception:
+        pass
 
 
 if __name__ == '__main__':

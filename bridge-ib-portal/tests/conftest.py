@@ -140,6 +140,7 @@ def _create_mt5_mock():
     mock.positions_get.return_value = []
     mock.history_deals_get.return_value = []
     mock.copy_rates_range.return_value = []
+    mock.symbol_info.return_value = None  # default: no symbol info
     return mock
 
 
@@ -157,10 +158,12 @@ def mt5_mock():
 def make_deal():
     """Factory for MT5 deal objects (SimpleNamespace)."""
     def _make(*, entry=0, position_id=123, symbol='EURUSD', type_=0,
-              volume=0.1, price=1.1000, time_=1705312800, profit=0.0):
+              volume=0.1, price=1.1000, time_=1705312800, profit=0.0,
+              commission=0.0, swap=0.0):
         return SimpleNamespace(
             entry=entry, position_id=position_id, symbol=symbol,
             type=type_, volume=volume, price=price, time=time_, profit=profit,
+            commission=commission, swap=swap,
         )
     return _make
 
