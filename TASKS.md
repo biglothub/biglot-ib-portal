@@ -398,23 +398,26 @@
 
 ### Bug Fixes (High Priority)
 
-- [ ] [S] FIX-001: Fix $derived() misuse — should be $derived.by()
+- [x] [S] FIX-001: Fix $derived() misuse — should be $derived.by()
   - Audit all $derived() calls across components
   - $derived(expression) is for simple expressions
   - $derived.by(() => { ... }) is for multi-line/complex computations
   - Fix any misuse found
   - Files: grep -r '\$derived(' src/ to find all instances
+  - Session: 2026-03-22 — Fixed 6 real bugs where $derived(() => { ... }) stored the function instead of its result (SidebarNews, TagManager, social, playbook, calendar, journal). Also fixed 5 template call sites that used variable() because it was a function. Converted 13 IIFE patterns $derived((() => { ... })()) to idiomatic $derived.by(() => { ... }) across charts, analytics, notebook, day-view, MiniCalendar, ProgressHeatmap, and trade detail. 19 total fixes.
 
-- [ ] [S] FIX-002: Fix memory leaks — timers not cleaned in notebook
+- [x] [S] FIX-002: Fix memory leaks — timers not cleaned in notebook
   - notebook/+page.svelte has setInterval for auto-save without cleanup
   - Wrap in $effect with return cleanup function, or use onDestroy
   - Files: src/routes/portfolio/notebook/+page.svelte
+  - Session: 2026-03-22 — Added $effect cleanup that clears both saveTimer (auto-save debounce) and searchTimer (search debounce) on component destroy. Prevents stale timer callbacks firing after navigation away from notebook page.
 
-- [ ] [S] FIX-003: Fix memory leak — unsubscribed store subscriptions
+- [x] [S] FIX-003: Fix memory leak — unsubscribed store subscriptions
   - Some components subscribe to stores without unsubscribing
   - Use $ prefix for auto-subscription or add explicit unsubscribe
   - Audit: components importing stores and calling .subscribe()
   - Files: multiple components
+  - Session: 2026-03-22 — Audited all .subscribe() calls in src/. Found one leak: SidebarNews.svelte called marketNewsStore.subscribe() at module scope without cleanup. Fixed by wrapping in $effect() with unsubscribe return. Other .subscribe() calls (chart crosshair, Supabase realtime, Web Push API) were already properly cleaned up.
 
 - [ ] [M] FIX-004: Fix admin dashboard unbounded query
   - Fetches ALL daily_stats with no date limit — O(n) grows forever

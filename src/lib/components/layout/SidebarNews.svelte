@@ -27,11 +27,14 @@
 		general: 'ทั่วไป'
 	};
 
-	marketNewsStore.subscribe((v) => (articles = v));
+	$effect(() => {
+		const unsubscribe = marketNewsStore.subscribe((v) => (articles = v));
+		return unsubscribe;
+	});
 
 	let displayedArticles = $derived(articles.slice(0, 8));
 
-	let isStale = $derived(() => {
+	let isStale = $derived.by(() => {
 		if (articles.length === 0) return true;
 		const latest = articles.reduce(
 			(max, a) => (a.published_at > max ? a.published_at : max),
@@ -73,7 +76,7 @@
 				onclick={() => (expanded = !expanded)}
 			>
 				<span
-					class="w-1.5 h-1.5 rounded-full {isStale() ? 'bg-amber-500' : 'bg-emerald-500'}"
+					class="w-1.5 h-1.5 rounded-full {isStale ? 'bg-amber-500' : 'bg-emerald-500'}"
 				></span>
 				ข่าวตลาด
 			</button>
