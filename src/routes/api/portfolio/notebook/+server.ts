@@ -18,16 +18,16 @@ function escapePostgrestValue(str: string): string {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:notebook:${profile.id}`, 30, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
 	if (!account) {
-		return json({ message: 'No approved account' }, { status: 404 });
+		return json({ message: 'ไม่พบบัญชีที่อนุมัติ' }, { status: 404 });
 	}
 
 	const body = await request.json();
@@ -205,7 +205,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (body.action === 'generate_session_recap') {
 		const date = body.date as string | undefined;
 		if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-			return json({ message: 'Invalid date format (YYYY-MM-DD)' }, { status: 400 });
+			return json({ message: 'รูปแบบวันที่ไม่ถูกต้อง (YYYY-MM-DD)' }, { status: 400 });
 		}
 
 		// Find Sessions Recap folder
@@ -218,7 +218,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.single();
 
 		if (!sessionsFolder) {
-			return json({ message: 'Sessions Recap folder not found' }, { status: 404 });
+			return json({ message: 'ไม่พบโฟลเดอร์ Sessions Recap' }, { status: 404 });
 		}
 
 		// Check if recap already exists for this date
@@ -232,7 +232,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.maybeSingle();
 
 		if (existingNote) {
-			return json({ message: 'Recap already exists for this date', existingId: existingNote.id }, { status: 409 });
+			return json({ message: 'มี Recap ของวันนี้แล้ว', existingId: existingNote.id }, { status: 409 });
 		}
 
 		// Fetch trades for the date (using Thai timezone: date boundary = UTC 17:00 prev day to UTC 17:00 this day)
@@ -250,7 +250,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const allTrades = trades || [];
 
 		if (allTrades.length === 0) {
-			return json({ message: 'No trades found for this date' }, { status: 404 });
+			return json({ message: 'ไม่พบเทรดในวันที่เลือก' }, { status: 404 });
 		}
 
 		// Group trades by session
@@ -263,9 +263,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		const sessionLabels: Record<string, string> = {
-			asian: 'Asian Session (00:00–08:00 UTC)',
-			london: 'London Session (08:00–15:00 UTC)',
-			newyork: 'New York Session (15:00–24:00 UTC)'
+			asian: 'เซสชัน Asian (00:00–08:00 UTC)',
+			london: 'เซสชัน London (08:00–15:00 UTC)',
+			newyork: 'เซสชัน New York (15:00–24:00 UTC)'
 		};
 
 		// Build HTML recap
@@ -273,15 +273,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const totalWins = allTrades.filter(t => Number(t.profit || 0) > 0).length;
 		const winRate = allTrades.length > 0 ? ((totalWins / allTrades.length) * 100).toFixed(1) : '0';
 
-		let html = `<h1>Session Recap — ${date}</h1>`;
-		html += `<p><strong>Total:</strong> ${allTrades.length} trades | P&L: $${totalProfit.toFixed(2)} | Win Rate: ${winRate}%</p>`;
+		let html = `<h1>สรุปเซสชัน — ${date}</h1>`;
+		html += `<p><strong>รวม:</strong> ${allTrades.length} เทรด | P&L: $${totalProfit.toFixed(2)} | Win Rate: ${winRate}%</p>`;
 		html += `<hr>`;
 
 		for (const sessionKey of ['asian', 'london', 'newyork'] as const) {
 			const sessionTrades = sessionMap.get(sessionKey);
 			if (!sessionTrades || sessionTrades.length === 0) {
 				html += `<h2>${sessionLabels[sessionKey]}</h2>`;
-				html += `<p><em>No trades</em></p>`;
+				html += `<p><em>ไม่มีเทรด</em></p>`;
 				continue;
 			}
 
@@ -290,7 +290,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			const sessionWinRate = ((sessionWins / sessionTrades.length) * 100).toFixed(1);
 
 			html += `<h2>${sessionLabels[sessionKey]}</h2>`;
-			html += `<p><strong>${sessionTrades.length}</strong> trades | P&L: <strong>$${sessionProfit.toFixed(2)}</strong> | Win Rate: ${sessionWinRate}%</p>`;
+			html += `<p><strong>${sessionTrades.length}</strong> เทรด | P&L: <strong>$${sessionProfit.toFixed(2)}</strong> | Win Rate: ${sessionWinRate}%</p>`;
 			html += `<ul>`;
 			for (const t of sessionTrades) {
 				const pnlColor = Number(t.profit || 0) >= 0 ? 'green' : 'red';
@@ -300,7 +300,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			html += `</ul>`;
 		}
 
-		const title = `Session Recap — ${date}`;
+		const title = `สรุปเซสชัน — ${date}`;
 		const contentPlain = stripHtml(html);
 
 		const { data: note, error } = await locals.supabase
@@ -322,5 +322,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ success: true, note });
 	}
 
-	return json({ message: 'Unknown action' }, { status: 400 });
+	return json({ message: 'การกระทำไม่ถูกต้อง' }, { status: 400 });
 };

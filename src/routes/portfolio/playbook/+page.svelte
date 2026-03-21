@@ -199,9 +199,9 @@
 			});
 
 			if (res.status === 409) {
-				actionError = 'คุณ Clone template นี้แล้ว';
+				actionError = 'คุณคัดลอกเทมเพลตนี้แล้ว';
 			} else if (!res.ok) {
-				actionError = 'ไม่สามารถ Clone ได้';
+				actionError = 'ไม่สามารถคัดลอกได้';
 			} else {
 				invalidate('portfolio:baseData');
 			}
@@ -259,7 +259,7 @@
 					? 'text-brand-primary border-b-2 border-brand-primary'
 					: 'text-gray-500 hover:text-gray-300'}"
 		>
-			My Playbooks
+			Playbook ของฉัน
 			<span class="ml-1 text-xs text-gray-500">({playbooks.length})</span>
 		</button>
 		<button
@@ -269,7 +269,7 @@
 					? 'text-brand-primary border-b-2 border-brand-primary'
 					: 'text-gray-500 hover:text-gray-300'}"
 		>
-			Community Templates
+			เทมเพลตชุมชน
 			<span class="ml-1 text-xs text-gray-500">({templates.length})</span>
 		</button>
 	</div>
@@ -279,14 +279,14 @@
 		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 			<div class="card space-y-4">
 				<div>
-					<h2 class="text-lg font-semibold text-white">Playbook Editor</h2>
-					<p class="text-sm text-gray-500 mt-1">Define your setup, rules, risk process, and example trades.</p>
+					<h2 class="text-lg font-semibold text-white">ตัวแก้ไข Playbook</h2>
+					<p class="text-sm text-gray-500 mt-1">กำหนด Setup, กฎ, กระบวนการจัดการความเสี่ยง และเทรดตัวอย่าง</p>
 				</div>
 
-				<input bind:value={name} placeholder="Playbook name" class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-				<textarea bind:value={description} rows="3" placeholder="Description" class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"></textarea>
+				<input bind:value={name} placeholder="ชื่อ Playbook" class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
+				<textarea bind:value={description} rows="3" placeholder="คำอธิบาย" class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"></textarea>
 				<select bind:value={setupTagId} class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="">No setup tag</option>
+					<option value="">ไม่มี Setup Tag</option>
 					{#each tags.filter((tag: any) => tag.category === 'setup') as tag}
 						<option value={tag.id}>{tag.name}</option>
 					{/each}
@@ -294,21 +294,21 @@
 
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card p-4 bg-dark-bg/20">
-						<ChecklistEditor items={entryCriteria} label="Entry Criteria" onchange={(items) => (entryCriteria = items)} />
+						<ChecklistEditor items={entryCriteria} label="เงื่อนไขเข้าเทรด" onchange={(items) => (entryCriteria = items)} />
 					</div>
 					<div class="card p-4 bg-dark-bg/20">
-						<ChecklistEditor items={exitCriteria} label="Exit Criteria" onchange={(items) => (exitCriteria = items)} />
+						<ChecklistEditor items={exitCriteria} label="เงื่อนไขออกเทรด" onchange={(items) => (exitCriteria = items)} />
 					</div>
 					<div class="card p-4 bg-dark-bg/20">
-						<ChecklistEditor items={riskRules} label="Risk Rules" onchange={(items) => (riskRules = items)} />
+						<ChecklistEditor items={riskRules} label="กฎจัดการความเสี่ยง" onchange={(items) => (riskRules = items)} />
 					</div>
 					<div class="card p-4 bg-dark-bg/20">
-						<ChecklistEditor items={mistakesToAvoid} label="Mistakes To Avoid" onchange={(items) => (mistakesToAvoid = items)} />
+						<ChecklistEditor items={mistakesToAvoid} label="ข้อผิดพลาดที่ต้องหลีกเลี่ยง" onchange={(items) => (mistakesToAvoid = items)} />
 					</div>
 				</div>
 
 				<div>
-					<label for="example-trades" class="text-xs text-gray-500 mb-2 block">Example Trades</label>
+					<label for="example-trades" class="text-xs text-gray-500 mb-2 block">เทรดตัวอย่าง</label>
 					<select id="example-trades" multiple bind:value={exampleTradeIds} class="w-full min-h-32 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 						{#each trades as trade}
 							<option value={trade.id}>
@@ -320,15 +320,15 @@
 
 				<label class="flex items-center gap-2 text-sm text-gray-300">
 					<input type="checkbox" bind:checked={isActive} />
-					Active
+					เปิดใช้งาน
 				</label>
 
 				<div class="flex items-center gap-3">
 					<button type="button" onclick={savePlaybook} disabled={saving} class="btn-primary text-sm py-2 px-5 disabled:opacity-50">
-						{saving ? 'Saving...' : editingId ? 'Update Playbook' : 'Create Playbook'}
+						{saving ? 'กำลังบันทึก...' : editingId ? 'อัปเดต Playbook' : 'สร้าง Playbook'}
 					</button>
 					<button type="button" onclick={resetForm} class="text-sm text-gray-400 hover:text-white">
-						Reset
+						รีเซ็ต
 					</button>
 				</div>
 			</div>
@@ -336,7 +336,7 @@
 			<div class="card">
 				<div class="flex items-center justify-between mb-4">
 					<div>
-						<h2 class="text-lg font-semibold text-white">Playbook Library</h2>
+						<h2 class="text-lg font-semibold text-white">คลัง Playbook</h2>
 						<p class="text-sm text-gray-500 mt-1">{playbooks.length} playbooks</p>
 					</div>
 				</div>
@@ -352,10 +352,10 @@
 										<div class="flex items-center gap-2 flex-wrap">
 											<h3 class="text-white font-medium truncate">{playbook.name}</h3>
 											<span class="text-[10px] px-2 py-1 rounded-full shrink-0 {playbook.is_active ? 'bg-green-500/10 text-green-300' : 'bg-gray-500/10 text-gray-400'}">
-												{playbook.is_active ? 'ACTIVE' : 'INACTIVE'}
+												{playbook.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
 											</span>
 										</div>
-										<p class="mt-1 text-sm text-gray-400 truncate">{playbook.description || 'No description'}</p>
+										<p class="mt-1 text-sm text-gray-400 truncate">{playbook.description || 'ไม่มีคำอธิบาย'}</p>
 									</div>
 									<div class="flex items-center gap-2 shrink-0">
 										<button type="button" onclick={() => openPublishModal(playbook.id)} class="text-xs text-purple-400 hover:text-purple-300" title="เผยแพร่เป็น Template">
@@ -363,13 +363,13 @@
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
 											</svg>
 										</button>
-										<button type="button" onclick={() => editPlaybook(playbook)} class="text-xs text-brand-primary">Edit</button>
-										<button type="button" onclick={() => deletePlaybook(playbook.id)} class="text-xs text-red-300">Delete</button>
+										<button type="button" onclick={() => editPlaybook(playbook)} class="text-xs text-brand-primary">แก้ไข</button>
+										<button type="button" onclick={() => deletePlaybook(playbook.id)} class="text-xs text-red-300">ลบ</button>
 									</div>
 								</div>
 								<div class="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-500">
-									<div>{playbook.entry_criteria?.length || 0} entry rules</div>
-									<div>{playbook.risk_rules?.length || 0} risk rules</div>
+									<div>{playbook.entry_criteria?.length || 0} เงื่อนไขเข้า</div>
+									<div>{playbook.risk_rules?.length || 0} กฎความเสี่ยง</div>
 								</div>
 							</div>
 						{/each}
@@ -380,17 +380,17 @@
 
 		<!-- Setup Performance -->
 		<div class="card">
-			<h2 class="text-lg font-semibold text-white mb-4">Setup Performance Snapshot</h2>
+			<h2 class="text-lg font-semibold text-white mb-4">ภาพรวมผลงาน Setup</h2>
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
 						<tr class="border-b border-dark-border text-gray-500 text-xs">
 							<th class="text-left py-2">Setup</th>
-							<th class="text-right py-2">Trades</th>
-							<th class="text-right py-2">Reviewed</th>
-							<th class="text-right py-2">Win Rate</th>
-							<th class="text-right py-2">Expectancy</th>
-							<th class="text-right py-2">P/L</th>
+							<th class="text-right py-2">เทรด</th>
+							<th class="text-right py-2">รีวิวแล้ว</th>
+							<th class="text-right py-2">อัตราชนะ</th>
+							<th class="text-right py-2">ค่าคาดหวัง</th>
+							<th class="text-right py-2">กำไร/ขาดทุน</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -420,7 +420,7 @@
 				</svg>
 				<input
 					bind:value={searchQuery}
-					placeholder="ค้นหา template..."
+					placeholder="ค้นหาเทมเพลต..."
 					class="w-full bg-dark-bg border border-dark-border rounded-lg pl-10 pr-3 py-2 text-sm text-white placeholder-gray-500"
 				/>
 			</div>
@@ -432,13 +432,13 @@
 			<select bind:value={sortBy} class="bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white">
 				<option value="popular">ยอดนิยม</option>
 				<option value="newest">ล่าสุด</option>
-				<option value="win_rate">Win Rate สูงสุด</option>
+				<option value="win_rate">อัตราชนะสูงสุด</option>
 			</select>
 		</div>
 
 		<!-- Template Grid -->
 		{#if filteredTemplates().length === 0}
-			<EmptyState message="ยังไม่มี template ในหมวดนี้" />
+			<EmptyState message="ยังไม่มีเทมเพลตในหมวดนี้" />
 		{:else}
 			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 				{#each filteredTemplates() as template}
@@ -450,7 +450,7 @@
 							<div class="min-w-0 flex-1">
 								<h3 class="text-white font-medium truncate">{template.name}</h3>
 								<p class="text-xs text-gray-500 mt-0.5 truncate">
-									โดย {template.author_name || 'Anonymous'}
+									โดย {template.author_name || 'ไม่ระบุชื่อ'}
 								</p>
 							</div>
 							<span class="shrink-0 text-[10px] px-2 py-1 rounded-full bg-purple-500/10 text-purple-300">
@@ -466,11 +466,11 @@
 						<!-- Stats -->
 						<div class="grid grid-cols-3 gap-2 mb-3">
 							<div class="text-center p-2 rounded-lg bg-dark-bg/40">
-								<div class="text-xs text-gray-500">Trades</div>
+								<div class="text-xs text-gray-500">เทรด</div>
 								<div class="text-sm font-medium text-white">{template.total_trades}</div>
 							</div>
 							<div class="text-center p-2 rounded-lg bg-dark-bg/40">
-								<div class="text-xs text-gray-500">Win Rate</div>
+								<div class="text-xs text-gray-500">อัตราชนะ</div>
 								<div class="text-sm font-medium {template.win_rate >= 50 ? 'text-green-400' : 'text-red-400'}">
 									{template.win_rate.toFixed(1)}%
 								</div>
@@ -487,17 +487,17 @@
 						<div class="flex flex-wrap gap-1.5 mb-3">
 							{#if (template.entry_criteria?.length || 0) > 0}
 								<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300">
-									{template.entry_criteria.length} entry rules
+									{template.entry_criteria.length} เงื่อนไขเข้า
 								</span>
 							{/if}
 							{#if (template.exit_criteria?.length || 0) > 0}
 								<span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-300">
-									{template.exit_criteria.length} exit rules
+									{template.exit_criteria.length} เงื่อนไขออก
 								</span>
 							{/if}
 							{#if (template.risk_rules?.length || 0) > 0}
 								<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300">
-									{template.risk_rules.length} risk rules
+									{template.risk_rules.length} กฎความเสี่ยง
 								</span>
 							{/if}
 						</div>
@@ -509,7 +509,7 @@
 									<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
 									</svg>
-									{template.clone_count} clones
+									{template.clone_count} ครั้ง
 								</span>
 							</div>
 							{#if isOwn}
@@ -525,7 +525,7 @@
 									<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
 										<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
 									</svg>
-									Clone แล้ว
+									คัดลอกแล้ว
 								</span>
 							{:else}
 								<button
@@ -539,12 +539,12 @@
 											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
 										</svg>
-										กำลัง Clone...
+										กำลังคัดลอก...
 									{:else}
 										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 										</svg>
-										Clone to My Playbooks
+										คัดลอกมาใช้
 									{/if}
 								</button>
 							{/if}
@@ -568,9 +568,9 @@
 		></button>
 		<!-- Modal -->
 		<div class="relative w-full max-w-md rounded-2xl border border-dark-border bg-dark-surface p-6 space-y-4 shadow-2xl">
-			<h3 class="text-lg font-semibold text-white">เผยแพร่เป็น Community Template</h3>
+			<h3 class="text-lg font-semibold text-white">เผยแพร่เป็นเทมเพลตชุมชน</h3>
 			<p class="text-sm text-gray-400">
-				Playbook ของคุณจะถูกแชร์ให้ผู้ใช้คนอื่นดูและ Clone ได้ สถิติผลงานจะถูกบันทึกจากข้อมูลปัจจุบัน
+				Playbook ของคุณจะถูกแชร์ให้ผู้ใช้คนอื่นดูและคัดลอกได้ สถิติผลงานจะถูกบันทึกจากข้อมูลปัจจุบัน
 			</p>
 
 			<div>

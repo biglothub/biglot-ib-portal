@@ -140,14 +140,14 @@
 </script>
 
 <svelte:head>
-	<title>Economic Calendar | IB Portal</title>
+	<title>ปฏิทินเศรษฐกิจ | IB Portal</title>
 </svelte:head>
 
 <div class="min-h-screen p-4 md:p-6 space-y-4 md:space-y-6">
 	<!-- Header -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 		<div>
-			<h1 class="text-xl md:text-2xl font-bold text-white">Economic Calendar</h1>
+			<h1 class="text-xl md:text-2xl font-bold text-white">ปฏิทินเศรษฐกิจ</h1>
 			<p class="text-sm text-gray-400 mt-1">ปฏิทินเศรษฐกิจ — ข่าวสารและเหตุการณ์สำคัญ</p>
 		</div>
 

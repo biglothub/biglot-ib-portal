@@ -194,7 +194,7 @@
   - Verify: All forms have validation, loading states, success/error messages
   - Fix ANY issues found. Commit fixes.
 
-- [ ] [L] QA-006: QA Notebook, Playbook, Calendar
+- [x] [L] QA-006: QA Notebook, Playbook, Calendar
   - Verify: Notebook folders (All, Daily Journal, Trade Notes, Sessions Recap, My Notes)
   - Verify: Rich text editor works (bold, italic, lists, links)
   - Verify: Search across notes
@@ -413,3 +413,7 @@
 - Task: QA-005 — QA Settings pages
 - Result: All 3 Settings tabs verified present and functional (Profile with editable name/avatar/MT5 account info/notification toggles, Security with password change/OAuth detection/active sessions/2FA coming soon badge/login provider info, Trade Settings with timezone selector/default TP-SL/per-symbol settings table/add-remove symbols). Fixed: translated 10+ English strings to Thai across 6 files — Profile page ("Push Notifications"→"การแจ้งเตือนผ่าน Push", aria-label), Security page ("Authenticator App"→"แอปยืนยันตัวตน"), Security API ("Invalid action"→"การกระทำไม่ถูกต้อง"), Trade API ("Timezone ไม่ถูกต้อง"→"โซนเวลาไม่ถูกต้อง"), all 3 APIs ("Unauthorized"→"ไม่ได้รับอนุญาต"). Removed 3 console.error statements from profile and trade APIs. Fixed type error for master_ibs broker name display. Improved trade settings mobile grid responsiveness (grid-cols-1 sm:grid-cols-2 md:grid-cols-5). All checks pass: build OK, 127 tests pass.
 - Next: QA-006
+### Session 2026-03-21 (continued 20)
+- Task: QA-006 — QA Notebook, Playbook, Calendar, Trade Replay
+- Result: All 4 feature areas verified present and functional (Notebook folders/search/rich text editor/Sessions Recap generation, Playbook templates marketplace browse/clone/publish with stats, Economic Calendar with events/filters/impact levels/week selector, Trade Replay with candlestick chart/transport controls/speed/P&L curve/entry-exit markers). Fixed: translated 70+ English strings to Thai across 6 files — Notebook page (folder labels, search placeholder, note list headers, editor toolbar, save status, empty states, date locale en-US→th-TH), TiptapEditor (9 toolbar tooltips: Bold→ตัวหนา, Italic→ตัวเอียง, etc.), Notebook API (5 error messages + session recap labels/title/stats text), Playbook page (tab labels, editor form labels, library section, performance table headers, template stats, clone/publish text), Calendar page (heading + title), Trade Replay page (status bar labels IN TRADE/CLOSED/PRE-ENTRY→Thai, transport control tooltips, jump buttons, keyboard hints, header labels Entry/Exit/Duration→Thai, Unrealized P/L label). All checks pass: build OK, 127 tests pass.
+- Next: QA-007

@@ -80,7 +80,7 @@
 				body: JSON.stringify({
 					action: 'create_note',
 					folder_id: selectedFolderId,
-					title: 'Untitled',
+					title: 'ไม่มีชื่อ',
 					content: ''
 				})
 			});
@@ -219,7 +219,7 @@
 	}
 
 	function formatDate(dateStr: string) {
-		return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+		return new Date(dateStr).toLocaleDateString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 	}
 
 	function truncate(text: string, len: number) {
@@ -237,7 +237,7 @@
 			<input
 				bind:value={searchQuery}
 				oninput={onSearchInput}
-				placeholder="Search notes..."
+				placeholder="ค้นหาโน้ต..."
 				class="w-full rounded-lg bg-dark-surface border border-dark-border px-3 py-2 text-sm text-white placeholder-gray-600 pl-8"
 			/>
 			<svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,8 +248,8 @@
 		<!-- Folders -->
 		<div class="card flex-shrink-0 space-y-1">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] uppercase tracking-wider text-gray-600">Folders</span>
-				<button onclick={() => showNewFolder = true} class="text-xs text-brand-primary hover:underline">+ New</button>
+				<span class="text-[10px] uppercase tracking-wider text-gray-600">โฟลเดอร์</span>
+				<button onclick={() => showNewFolder = true} class="text-xs text-brand-primary hover:underline">+ สร้างใหม่</button>
 			</div>
 
 			<!-- All notes -->
@@ -258,7 +258,7 @@
 				class="w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-sm text-left transition-colors
 					{selectedFolderId === null && !showDeleted ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-300 hover:bg-dark-bg/50'}"
 			>
-				<span>📄 All notes</span>
+				<span>📄 โน้ตทั้งหมด</span>
 				<span class="text-xs text-gray-500">{folderNoteCount(null)}</span>
 			</button>
 
@@ -277,7 +277,7 @@
 						<button
 							onclick={() => deleteFolder(folder.id)}
 							class="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 transition-opacity"
-							title="Delete folder"
+							title="ลบโฟลเดอร์"
 						>
 							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
 						</button>
@@ -291,7 +291,7 @@
 				class="w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-sm text-left transition-colors
 					{showDeleted ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-500 hover:bg-dark-bg/50'}"
 			>
-				<span>🗑 Recently deleted</span>
+				<span>🗑 ลบล่าสุด</span>
 				<span class="text-xs text-gray-600">{deletedNotes.length}</span>
 			</button>
 
@@ -300,7 +300,7 @@
 				<div class="flex gap-1 mt-1">
 					<input
 						bind:value={newFolderName}
-						placeholder="Folder name..."
+						placeholder="ชื่อโฟลเดอร์..."
 						class="flex-1 rounded-md bg-dark-bg border border-dark-border px-2 py-1 text-xs text-white"
 						onkeydown={(e) => { if (e.key === 'Enter') createFolder(); }}
 					/>
@@ -346,15 +346,15 @@
 		<div class="card flex-1 overflow-y-auto space-y-1">
 			<div class="flex items-center justify-between mb-2">
 				<span class="text-[10px] uppercase tracking-wider text-gray-600">
-					{showDeleted ? 'Deleted' : searchQuery ? 'Search results' : 'Notes'}
+					{showDeleted ? 'ที่ลบแล้ว' : searchQuery ? 'ผลการค้นหา' : 'โน้ต'}
 				</span>
 				{#if !showDeleted}
-					<button onclick={createNote} disabled={saving} class="text-xs text-brand-primary hover:underline">+ New note</button>
+					<button onclick={createNote} disabled={saving} class="text-xs text-brand-primary hover:underline">+ โน้ตใหม่</button>
 				{/if}
 			</div>
 
 			{#if filteredNotes.length === 0}
-				<div class="text-xs text-gray-600 text-center py-6">No notes</div>
+				<div class="text-xs text-gray-600 text-center py-6">ไม่มีโน้ต</div>
 			{:else}
 				{#each filteredNotes as note}
 					<button
@@ -362,7 +362,7 @@
 						class="w-full text-left rounded-lg px-3 py-2 transition-colors
 							{selectedNoteId === note.id ? 'bg-brand-primary/10 border border-brand-primary/30' : 'hover:bg-dark-bg/50'}"
 					>
-						<div class="text-sm font-medium text-white truncate">{note.title || 'Untitled'}</div>
+						<div class="text-sm font-medium text-white truncate">{note.title || 'ไม่มีชื่อ'}</div>
 						<div class="text-[11px] text-gray-500 mt-0.5">{formatDate(note.updated_at || note.created_at)}</div>
 						{#if !showDeleted}
 							<div class="text-[11px] text-gray-600 mt-0.5 truncate">{truncate(note.content || '', 60)}</div>
@@ -371,7 +371,7 @@
 
 					{#if showDeleted}
 						<div class="flex gap-2 px-3 pb-1">
-							<button onclick={() => restoreNote(note.id)} class="text-[10px] text-green-400 hover:underline">Restore</button>
+							<button onclick={() => restoreNote(note.id)} class="text-[10px] text-green-400 hover:underline">กู้คืน</button>
 						</div>
 					{/if}
 				{/each}
@@ -394,25 +394,25 @@
 			<input
 				bind:value={editTitle}
 				oninput={scheduleSave}
-				placeholder="Note title..."
+				placeholder="ชื่อโน้ต..."
 				class="w-full bg-transparent border-none text-xl font-bold text-white placeholder-gray-600 outline-none mb-3"
 			/>
 
 			<!-- Toolbar -->
 			<div class="flex items-center gap-2 pb-3 border-b border-dark-border mb-3">
 				<span class="text-[10px] text-gray-600">
-					{saving ? 'Saving...' : 'Auto-saved'}
+					{saving ? 'กำลังบันทึก...' : 'บันทึกอัตโนมัติแล้ว'}
 				</span>
 				<div class="flex-1"></div>
 				<button
 					onclick={() => deleteNote(selectedNoteId!)}
 					class="text-xs text-gray-500 hover:text-red-400"
-				>Delete</button>
+				>ลบ</button>
 				<button
 					onclick={saveNote}
 					disabled={saving}
 					class="px-3 py-1 rounded-md bg-brand-primary text-dark-bg text-xs font-medium"
-				>Save</button>
+				>บันทึก</button>
 			</div>
 
 			<!-- Rich text editor -->
@@ -420,7 +420,7 @@
 				<TiptapEditor
 					content={editContent}
 					onupdate={(html) => { editContent = html; scheduleSave(); }}
-					placeholder="Start writing..."
+					placeholder="เริ่มเขียน..."
 				/>
 			</div>
 		{:else}
@@ -428,7 +428,7 @@
 				{#if isSessionsFolder && filteredNotes.length === 0}
 					<EmptyState message="เลือกวันที่แล้วกด 'สร้าง Recap' เพื่อสรุปเทรดตาม Session" />
 				{:else}
-					<EmptyState message="Select a note or create a new one" />
+					<EmptyState message="เลือกโน้ตหรือสร้างโน้ตใหม่" />
 				{/if}
 			</div>
 		{/if}

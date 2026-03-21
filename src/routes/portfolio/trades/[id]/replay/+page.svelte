@@ -442,7 +442,7 @@
 							{trade.type}
 						</span>
 						<span class="text-xs text-gray-500 hidden md:inline">
-							{trade.lot_size} lots
+							{trade.lot_size} ล็อต
 						</span>
 					</div>
 
@@ -463,11 +463,11 @@
 				<!-- Desktop trade info -->
 				<div class="hidden md:flex items-center gap-4 text-sm">
 					<div>
-						<span class="text-gray-500">Entry:</span>
+						<span class="text-gray-500">เข้า:</span>
 						<span class="text-white ml-1">{formatNumber(trade.open_price, 5)}</span>
 					</div>
 					<div>
-						<span class="text-gray-500">Exit:</span>
+						<span class="text-gray-500">ออก:</span>
 						<span class="text-white ml-1">{formatNumber(trade.close_price, 5)}</span>
 					</div>
 					{#if trade.sl}
@@ -493,11 +493,11 @@
 		{#if showMobileInfo && trade}
 			<div class="md:hidden mt-3 grid grid-cols-2 gap-2 text-xs border-t border-dark-border pt-3">
 				<div>
-					<span class="text-gray-500">Entry:</span>
+					<span class="text-gray-500">เข้า:</span>
 					<span class="text-white ml-1">{formatNumber(trade.open_price, 5)}</span>
 				</div>
 				<div>
-					<span class="text-gray-500">Exit:</span>
+					<span class="text-gray-500">ออก:</span>
 					<span class="text-white ml-1">{formatNumber(trade.close_price, 5)}</span>
 				</div>
 				{#if trade.sl}
@@ -517,7 +517,7 @@
 					<span class="ml-1 font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(trade.profit)}</span>
 				</div>
 				<div>
-					<span class="text-gray-500">Duration:</span>
+					<span class="text-gray-500">ระยะเวลา:</span>
 					<span class="text-white ml-1">{getDuration(trade.open_time, trade.close_time)}</span>
 				</div>
 			</div>
@@ -587,19 +587,19 @@
 					{/if}
 
 					{#if hasReachedEntry && !hasReachedExit}
-						<span class="px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary font-medium">IN TRADE</span>
+						<span class="px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary font-medium">กำลังเทรด</span>
 						<span class={currentPnl >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
 							P/L: {formatCurrency(currentPnl)}
 						</span>
 					{:else if hasReachedExit}
 						<span class="px-2 py-0.5 rounded-full {trade.profit >= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'} font-medium">
-							CLOSED
+							ปิดแล้ว
 						</span>
 						<span class={trade.profit >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
 							P/L: {formatCurrency(trade.profit)}
 						</span>
 					{:else}
-						<span class="text-gray-500">PRE-ENTRY</span>
+						<span class="text-gray-500">ก่อนเข้าเทรด</span>
 					{/if}
 
 					{#if hasReachedEntry && pnlData.length > 0}
@@ -619,7 +619,7 @@
 				<!-- P&L curve -->
 				<div class="flex-none border-t border-dark-border/30">
 					<div class="px-4 py-1 flex items-center justify-between">
-						<span class="text-[10px] text-gray-500 uppercase tracking-wider">Unrealized P/L</span>
+						<span class="text-[10px] text-gray-500 uppercase tracking-wider">กำไร/ขาดทุนที่ยังไม่ปิด</span>
 						{#if hasReachedEntry}
 							<span class="text-xs font-medium {currentPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 								{formatCurrency(currentPnl)}
@@ -648,7 +648,7 @@
 					<!-- Transport controls -->
 					<div class="flex items-center gap-1">
 						<!-- Reset -->
-						<button type="button" onclick={reset} class="ctrl-btn" title="Reset (R)">
+						<button type="button" onclick={reset} class="ctrl-btn" title="รีเซ็ต (R)">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
 							</svg>
@@ -669,7 +669,7 @@
 							disabled={totalBars <= 1}
 							class="p-2.5 rounded-xl text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed
 								{isPlaying ? 'bg-brand-primary/20 hover:bg-brand-primary/30 shadow-lg shadow-brand-primary/10' : 'bg-dark-surface hover:bg-dark-hover'}"
-							title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+							title={isPlaying ? 'หยุดชั่วคราว (Space)' : 'เล่น (Space)'}
 						>
 							{#if isPlaying}
 								<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -694,12 +694,12 @@
 
 					<!-- Jump buttons -->
 					<div class="hidden sm:flex items-center gap-1.5">
-						<button type="button" onclick={jumpToEntry} class="jump-btn" title="ไปที่ Entry">
+						<button type="button" onclick={jumpToEntry} class="jump-btn" title="ไปที่จุดเข้า">
 							<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-							Entry
+							จุดเข้า
 						</button>
-						<button type="button" onclick={jumpToExit} class="jump-btn" title="ไปที่ Exit">
-							Exit
+						<button type="button" onclick={jumpToExit} class="jump-btn" title="ไปที่จุดออก">
+							จุดออก
 							<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
 						</button>
 					</div>
@@ -740,9 +740,9 @@
 
 				<!-- Keyboard shortcuts hint -->
 				<div class="hidden md:flex items-center gap-4 mt-2 text-[10px] text-gray-600">
-					<span><kbd class="kbd">Space</kbd> Play/Pause</span>
-					<span><kbd class="kbd">&larr;</kbd><kbd class="kbd">&rarr;</kbd> Step</span>
-					<span><kbd class="kbd">R</kbd> Reset</span>
+					<span><kbd class="kbd">Space</kbd> เล่น/หยุด</span>
+					<span><kbd class="kbd">&larr;</kbd><kbd class="kbd">&rarr;</kbd> เลื่อนทีละแท่ง</span>
+					<span><kbd class="kbd">R</kbd> รีเซ็ต</span>
 				</div>
 			</div>
 		</div>
