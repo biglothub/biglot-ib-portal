@@ -104,7 +104,7 @@
   - DB: user_trade_settings table (new migration)
   - Files: src/routes/settings/trade/+page.svelte (new)
 
-- [ ] [M] TZ-014: Settings — Profile tab
+- [x] [M] TZ-014: Settings — Profile tab
   - Display name, email, avatar
   - Account info (MT5 account, broker, balance)
   - Notification preferences
@@ -295,3 +295,7 @@
 - Task: TZ-013 — Settings — Trade settings tab
 - Result: /settings/trade page with: timezone selector (17 timezones with Thai labels), default TP/SL inputs (pips), per-symbol settings table (add/edit/remove symbols with custom TP/SL/commission), save button with loading state + success/error messages, empty state for no symbols. API: POST /api/settings/trade (rate-limited, validates timezone/values, upserts to user_trade_settings). DB: migration 020 creates user_trade_settings table with RLS policies + updated_at trigger. symbol_settings stored as JSONB array.
 - Next: TZ-014
+### Session 2026-03-21 (continued 9)
+- Task: TZ-014 — Settings — Profile tab
+- Result: Enhanced /settings profile page with: editable display name (inline edit with save/cancel, API validation 2-100 chars), MT5 account info section (account ID, server, broker, account name, status, last sync with sync count), 4 functional notification toggles (push, daily email, trade alerts, weekly recap) with save/cancel and upsert to user_notification_prefs table. API: POST /api/settings/profile (rate-limited, handles update_name + update_notifications actions). Server: +page.server.ts loads client_accounts + user_notification_prefs in parallel.
+- Next: TZ-015
