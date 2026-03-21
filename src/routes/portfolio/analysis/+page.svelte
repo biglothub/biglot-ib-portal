@@ -327,8 +327,11 @@
 
 	<!-- Error -->
 	{#if error}
-		<div class="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20">
-			<p class="text-sm text-red-400">{error}</p>
+		<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+			<span>{error}</span>
+			<button onclick={() => generateAnalysis()} class="ml-3 px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-xs hover:bg-red-500/30 transition-colors shrink-0">
+				ลองใหม่
+			</button>
 		</div>
 	{/if}
 
@@ -364,10 +367,10 @@
 					{:else if section.loading}
 						<!-- Skeleton -->
 						<div class="space-y-2 animate-pulse">
-							<div class="h-3 bg-dark-hover rounded w-3/4"></div>
-							<div class="h-3 bg-dark-hover rounded w-full"></div>
-							<div class="h-3 bg-dark-hover rounded w-5/6"></div>
-							<div class="h-3 bg-dark-hover rounded w-2/3"></div>
+							<div class="h-3 bg-dark-border/30 rounded w-3/4"></div>
+							<div class="h-3 bg-dark-border/30 rounded w-full"></div>
+							<div class="h-3 bg-dark-border/30 rounded w-5/6"></div>
+							<div class="h-3 bg-dark-border/30 rounded w-2/3"></div>
 						</div>
 					{:else if !generating}
 						<p class="text-gray-600 text-center py-4">กดปุ่ม "วิเคราะห์ใหม่" เพื่อเริ่มวิเคราะห์</p>

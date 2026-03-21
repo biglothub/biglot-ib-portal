@@ -71,7 +71,7 @@
 	);
 
 	// Group filtered events by date
-	let groupedByDate = $derived(() => {
+	let groupedByDate = $derived.by(() => {
 		const groups: Record<string, EconomicEvent[]> = {};
 		for (const e of filteredEvents) {
 			const key = e.date || 'Unknown';
@@ -243,16 +243,16 @@
 		<div class="space-y-4">
 			{#each Array(3) as _}
 				<div class="bg-dark-surface border border-dark-border rounded-lg p-4 animate-pulse">
-					<div class="h-5 bg-gray-700/50 rounded w-48 mb-4"></div>
+					<div class="h-5 bg-dark-border/40 rounded w-48 mb-4"></div>
 					<div class="space-y-3">
 						{#each Array(4) as __}
 							<div class="flex gap-4">
-								<div class="h-4 bg-gray-700/50 rounded w-16"></div>
-								<div class="h-4 bg-gray-700/50 rounded w-12"></div>
-								<div class="h-4 bg-gray-700/50 rounded flex-1"></div>
-								<div class="h-4 bg-gray-700/50 rounded w-16"></div>
-								<div class="h-4 bg-gray-700/50 rounded w-16"></div>
-								<div class="h-4 bg-gray-700/50 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/40 rounded w-12"></div>
+								<div class="h-4 bg-dark-border/40 rounded flex-1"></div>
+								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
 							</div>
 						{/each}
 					</div>
@@ -288,7 +288,7 @@
 	{:else}
 		<!-- Events grouped by date -->
 		<div class="space-y-4">
-			{#each groupedByDate() as [date, dayEvents]}
+			{#each groupedByDate as [date, dayEvents]}
 				<div class="bg-dark-surface border border-dark-border rounded-lg overflow-hidden {isToday(date) ? 'ring-1 ring-brand-primary/50' : ''}">
 					<!-- Date Header -->
 					<div class="px-4 py-3 border-b border-dark-border flex items-center gap-2 {isToday(date) ? 'bg-brand-primary/10' : 'bg-white/[0.02]'}">

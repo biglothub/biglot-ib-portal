@@ -53,7 +53,7 @@
 	];
 
 	// Filtered templates
-	let filteredTemplates = $derived(() => {
+	let filteredTemplates = $derived.by(() => {
 		let result = templates;
 		if (searchQuery.trim()) {
 			const q = searchQuery.toLowerCase();
@@ -346,7 +346,7 @@
 				{:else}
 					<div class="space-y-3">
 						{#each playbooks as playbook}
-							<div class="rounded-2xl border border-dark-border bg-dark-bg/20 p-4">
+							<div class="rounded-xl border border-dark-border bg-dark-bg/20 p-4">
 								<div class="flex items-start justify-between gap-3">
 									<div class="min-w-0 flex-1">
 										<div class="flex items-center gap-2 flex-wrap">
@@ -437,11 +437,11 @@
 		</div>
 
 		<!-- Template Grid -->
-		{#if filteredTemplates().length === 0}
+		{#if filteredTemplates.length === 0}
 			<EmptyState message="ยังไม่มีเทมเพลตในหมวดนี้" />
 		{:else}
 			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-				{#each filteredTemplates() as template}
+				{#each filteredTemplates as template}
 					{@const isCloned = clonedTemplateIds.has(template.id)}
 					{@const isOwn = template.author_id === data.playbooks?.[0]?.user_id}
 					<div class="card group hover:border-brand-primary/30 transition-colors">

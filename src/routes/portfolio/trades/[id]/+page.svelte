@@ -66,11 +66,11 @@
 	let optimisticRemovedTagIds = $state<Set<string>>(new Set());
 	let lastSyncedTradeId = $state('');
 
-	const effectiveAssignments = $derived((() => {
+	const effectiveAssignments = $derived.by(() => {
 		const real = (trade?.trade_tag_assignments || [])
 			.filter((a: any) => !optimisticRemovedTagIds.has(a.tag_id));
 		return [...real, ...optimisticAddedTags];
-	})());
+	});
 	const assignedTagIds = $derived(
 		new Set(effectiveAssignments.map((a: any) => a.tag_id))
 	);
@@ -400,7 +400,7 @@
 					{/if}
 				</div>
 				<div class="space-y-4">
-					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
+					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
 						<div class="text-xs text-gray-500">ขั้นตอน Review</div>
 						<div class="mt-3 space-y-2 text-sm">
 							<div class="flex items-center justify-between">
@@ -422,7 +422,7 @@
 						</div>
 					</div>
 
-					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
+					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
 						<div class="text-xs text-gray-500">บันทึกประจำวัน</div>
 						<div class="mt-2 text-sm text-gray-300">
 							{#if dayJournal}
@@ -439,7 +439,7 @@
 						</a>
 					</div>
 
-					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
+					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
 						<div class="text-xs text-gray-500">เกี่ยวข้อง</div>
 						<div class="mt-2 text-sm text-gray-300">
 							{relatedTrades.length} เทรดคู่เดียวกัน • {similarReviewedTrades.length} เทรดที่ review แล้ว
@@ -447,7 +447,7 @@
 					</div>
 
 					{#if qualityScore > 0}
-						<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
+						<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
 							<div class="text-xs text-gray-500 mb-2">Quality Score</div>
 							<QualityScoreBar score={qualityScore} />
 						</div>

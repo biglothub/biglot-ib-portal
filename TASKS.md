@@ -618,7 +618,7 @@
     - Cross-feature: 8 tests — touch target sizes, FAB positioning, consistent bottom sheet styling, md:hidden classes, Thai error messages, content padding
     - All 386 tests pass, build OK
 
-- [ ] [M] QA2-004: QA Cross-page consistency
+- [x] [M] QA2-004: QA Cross-page consistency
   - Same loading skeleton pattern on all pages
   - Same empty state pattern (icon + Thai message + action button)
   - Same error state pattern (error icon + retry button)
@@ -626,6 +626,12 @@
   - Same button styles and sizes
   - Same table/list patterns
   - Fix inconsistencies found
+  - Session: 2026-03-22 — Comprehensive cross-page audit and fixes:
+    - EmptyState component: Added default SVG icon when no emoji passed, added children snippet for action buttons
+    - Skeleton colors: Normalized calendar (bg-gray-700/50 → bg-dark-border/40) and analysis (bg-dark-hover → bg-dark-border/30) to match OverviewSkeleton standard
+    - Error state: Added retry button to analysis page error display
+    - Border radius: Fixed rounded-2xl → rounded-xl on trade detail sub-panels (4 panels) and playbook card for consistency
+    - Verified: Main cards (.card class) consistent, tables consistent, Thai language throughout, btn-primary/btn-secondary defined and used
 
 ### Final Polish
 
