@@ -28,6 +28,7 @@
 	let error = $state('');
 	let lastUpdated = $state('');
 	let tvContainer = $state<HTMLDivElement>();
+	let abortController: AbortController | null = null;
 
 	// --- Markdown renderer (from AiChatMessage) ---
 	function renderMarkdown(text: string): string {
@@ -151,6 +152,12 @@
 	// --- Generate analysis ---
 	async function generateAnalysis() {
 		if (generating) return;
+
+		// Abort any in-progress request
+		abortController?.abort();
+		abortController = new AbortController();
+		const { signal } = abortController;
+
 		generating = true;
 		error = '';
 
@@ -162,7 +169,8 @@
 		try {
 			const res = await fetch('/api/portfolio/analysis', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' }
+				headers: { 'Content-Type': 'application/json' },
+				signal
 			});
 
 			if (!res.ok) {
@@ -229,7 +237,8 @@
 			}
 
 			lastUpdated = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
-		} catch {
+		} catch (err) {
+			if (err instanceof DOMException && err.name === 'AbortError') return;
 			error = 'ไม่สามารถเชื่อมต่อได้ ลองอีกครั้ง';
 		} finally {
 			generating = false;
@@ -252,6 +261,10 @@
 		} else {
 			generateAnalysis();
 		}
+
+		return () => {
+			abortController?.abort();
+		};
 	});
 
 	// --- Section icon SVGs ---

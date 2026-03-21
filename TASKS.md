@@ -440,11 +440,12 @@
   - Files: src/routes/portfolio/trades/+page.svelte
   - ✅ Session 2026-03-22: Added tabindex="0", role="link", aria-label to <tr>; handleRowKeydown for Enter/Space; focus-visible ring; moved onclick to <tr> level with checkbox exclusion; removed duplicate cursor-pointer from <td>
 
-- [ ] [S] FIX-007: Fix analysis streaming — add AbortController
+- [x] [S] FIX-007: Fix analysis streaming — add AbortController
   - AI analysis streaming has no abort signal
   - If user navigates away mid-stream, fetch continues in background
   - Add AbortController, abort on component destroy
   - Files: src/routes/portfolio/analysis/+page.svelte
+  - ✅ Session 2026-03-22: Added AbortController to generateAnalysis(); signal passed to fetch; abort on component destroy via onMount cleanup; abort previous request on re-generate; AbortError silently ignored in catch
 
 - [ ] [S] FIX-008: Fix NotificationBell — add error handling
   - Notification API calls have no try/catch
