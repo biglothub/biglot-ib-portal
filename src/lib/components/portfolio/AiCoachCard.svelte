@@ -149,14 +149,14 @@
 		{#if loading && !coach}
 			<!-- Loading skeleton -->
 			<div class="animate-pulse space-y-3">
-				<div class="h-4 w-full rounded bg-dark-border"></div>
-				<div class="h-4 w-4/5 rounded bg-dark-border"></div>
+				<div class="h-4 w-full rounded bg-dark-border/30"></div>
+				<div class="h-4 w-4/5 rounded bg-dark-border/30"></div>
 				<div class="mt-4 grid grid-cols-2 gap-2">
 					{#each [1, 2, 3, 4] as _}
-						<div class="h-14 rounded-lg bg-dark-border"></div>
+						<div class="h-14 rounded-lg bg-dark-border/20"></div>
 					{/each}
 				</div>
-				<div class="mt-3 h-3 w-1/3 rounded bg-dark-border"></div>
+				<div class="mt-3 h-3 w-1/3 rounded bg-dark-border/50"></div>
 			</div>
 		{:else if error}
 			<div class="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">

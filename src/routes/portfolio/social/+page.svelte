@@ -51,7 +51,7 @@
 	// ─── Derived ──────────────────────────────────────────────────────────────
 	const isOptedIn = $derived(mySettings?.is_public === true);
 
-	const sortedLeaderboard = $derived(() => {
+	const sortedLeaderboard = $derived.by(() => {
 		return [...leaderboard].sort((a, b) => {
 			if (leaderboardSort === 'net_pnl') return b.net_pnl - a.net_pnl;
 			if (leaderboardSort === 'win_rate') return b.win_rate - a.win_rate;
@@ -553,10 +553,10 @@
 											<div class="space-y-2">
 												{#each [1,2] as _}
 													<div class="flex items-start gap-2">
-														<div class="w-7 h-7 rounded-full bg-dark-border animate-pulse shrink-0"></div>
+														<div class="w-7 h-7 rounded-full bg-dark-border/50 animate-pulse shrink-0"></div>
 														<div class="flex-1 space-y-1.5">
-															<div class="h-2.5 w-24 rounded bg-dark-border animate-pulse"></div>
-															<div class="h-2 w-40 rounded bg-dark-border animate-pulse"></div>
+															<div class="h-2.5 w-24 rounded bg-dark-border/50 animate-pulse"></div>
+															<div class="h-2 w-40 rounded bg-dark-border/30 animate-pulse"></div>
 														</div>
 													</div>
 												{/each}
@@ -749,7 +749,7 @@
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-dark-border/50">
-							{#each sortedLeaderboard() as entry, i}
+							{#each sortedLeaderboard as entry, i}
 								<tr class="hover:bg-dark-surface/40 transition-colors">
 									<td class="py-3 pr-2 font-mono text-xs text-gray-400">
 										{rankMedal(i + 1)}

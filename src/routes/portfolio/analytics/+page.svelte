@@ -652,8 +652,8 @@
 					/>
 				{:else}
 					<div class="animate-pulse space-y-3">
-						<div class="h-4 bg-dark-border rounded w-1/3"></div>
-						<div class="h-[280px] bg-dark-border/50 rounded-lg"></div>
+						<div class="h-4 bg-dark-border/50 rounded w-1/3"></div>
+						<div class="h-[280px] bg-dark-border/20 rounded-lg"></div>
 					</div>
 				{/if}
 			</div>
@@ -668,8 +668,8 @@
 					/>
 				{:else}
 					<div class="animate-pulse space-y-3">
-						<div class="h-4 bg-dark-border rounded w-1/3"></div>
-						<div class="h-[280px] bg-dark-border/50 rounded-lg"></div>
+						<div class="h-4 bg-dark-border/50 rounded w-1/3"></div>
+						<div class="h-[280px] bg-dark-border/20 rounded-lg"></div>
 					</div>
 				{/if}
 			</div>
@@ -1384,9 +1384,9 @@
 								{:else if !section?.loading && recapGenerating}
 									<!-- Skeleton -->
 									<div class="space-y-2 animate-pulse">
-										<div class="h-3 bg-dark-border rounded w-3/4"></div>
-										<div class="h-3 bg-dark-border rounded w-1/2"></div>
-										<div class="h-3 bg-dark-border rounded w-5/6"></div>
+										<div class="h-3 bg-dark-border/30 rounded w-3/4"></div>
+										<div class="h-3 bg-dark-border/30 rounded w-1/2"></div>
+										<div class="h-3 bg-dark-border/30 rounded w-5/6"></div>
 									</div>
 								{/if}
 							</div>

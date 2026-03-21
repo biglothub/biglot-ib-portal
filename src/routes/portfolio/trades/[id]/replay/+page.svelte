@@ -571,8 +571,8 @@
 			<!-- Loading skeleton -->
 			{#if loading}
 				<div class="flex-1 flex flex-col gap-2 p-4">
-					<div class="flex-1 rounded-xl bg-dark-surface/50 animate-pulse"></div>
-					<div class="h-32 rounded-xl bg-dark-surface/50 animate-pulse"></div>
+					<div class="flex-1 rounded-xl bg-dark-border/20 animate-pulse"></div>
+					<div class="h-32 rounded-xl bg-dark-border/20 animate-pulse"></div>
 				</div>
 			{/if}
 

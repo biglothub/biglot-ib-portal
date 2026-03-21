@@ -243,16 +243,16 @@
 		<div class="space-y-4">
 			{#each Array(3) as _}
 				<div class="bg-dark-surface border border-dark-border rounded-lg p-4 animate-pulse">
-					<div class="h-5 bg-dark-border/40 rounded w-48 mb-4"></div>
+					<div class="h-5 bg-dark-border/50 rounded w-48 mb-4"></div>
 					<div class="space-y-3">
 						{#each Array(4) as __}
 							<div class="flex gap-4">
-								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
-								<div class="h-4 bg-dark-border/40 rounded w-12"></div>
-								<div class="h-4 bg-dark-border/40 rounded flex-1"></div>
-								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
-								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
-								<div class="h-4 bg-dark-border/40 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/30 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/30 rounded w-12"></div>
+								<div class="h-4 bg-dark-border/30 rounded flex-1"></div>
+								<div class="h-4 bg-dark-border/30 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/30 rounded w-16"></div>
+								<div class="h-4 bg-dark-border/30 rounded w-16"></div>
 							</div>
 						{/each}
 					</div>

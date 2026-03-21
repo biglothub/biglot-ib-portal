@@ -195,8 +195,8 @@
 						<div class="flex items-start gap-3">
 							<div class="flex-1 space-y-2 min-w-0">
 								<div class="h-3 w-4/5 bg-dark-border/50 rounded"></div>
-								<div class="h-3 w-2/3 bg-dark-border/40 rounded"></div>
-								<div class="h-2.5 w-1/3 bg-dark-border/30 rounded"></div>
+								<div class="h-3 w-2/3 bg-dark-border/30 rounded"></div>
+								<div class="h-2.5 w-1/3 bg-dark-border/20 rounded"></div>
 							</div>
 						</div>
 					</div>

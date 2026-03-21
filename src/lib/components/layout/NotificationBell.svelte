@@ -129,10 +129,10 @@
 				<div class="p-4 space-y-3">
 					{#each Array(3) as _}
 						<div class="flex items-start gap-2 animate-pulse">
-							<div class="w-2 h-2 rounded-full bg-dark-border mt-1.5 shrink-0"></div>
+							<div class="w-2 h-2 rounded-full bg-dark-border/50 mt-1.5 shrink-0"></div>
 							<div class="flex-1 space-y-1.5">
-								<div class="h-3.5 bg-dark-border rounded w-3/4"></div>
-								<div class="h-3 bg-dark-border rounded w-1/2"></div>
+								<div class="h-3.5 bg-dark-border/50 rounded w-3/4"></div>
+								<div class="h-3 bg-dark-border/30 rounded w-1/2"></div>
 							</div>
 						</div>
 					{/each}

@@ -372,7 +372,7 @@
 						{#if TradeReplayChart}
 							<svelte:component this={TradeReplayChart} contexts={chartContexts} {trade} onclose={() => showReplay = false} />
 						{:else}
-							<div class="animate-pulse rounded-xl bg-dark-border/50 h-64 flex items-center justify-center text-gray-500 text-sm">กำลังโหลด Replay...</div>
+							<div class="animate-pulse rounded-xl bg-dark-border/20 h-64 flex items-center justify-center text-gray-500 text-sm">กำลังโหลด Replay...</div>
 						{/if}
 					{:else}
 						<MultiTimeframeChart contexts={chartContexts} {trade} />
