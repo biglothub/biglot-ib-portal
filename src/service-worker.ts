@@ -9,8 +9,12 @@ const sw = self as unknown as ServiceWorkerGlobalScope;
 
 const CACHE_NAME = `cache-${version}`;
 const FONT_CACHE = 'google-fonts-v1';
+const DATA_CACHE = 'portfolio-pages-v1';
 
 const PRECACHE_ASSETS = [...build, ...files];
+
+// Portfolio routes to cache for offline use (stale-while-revalidate)
+const PORTFOLIO_ORIGINS = ['/portfolio'];
 
 // Install: precache static assets + offline page
 sw.addEventListener('install', (event) => {
@@ -30,7 +34,7 @@ sw.addEventListener('activate', (event) => {
 			const keys = await caches.keys();
 			await Promise.all(
 				keys
-					.filter((key) => key !== CACHE_NAME && key !== FONT_CACHE)
+					.filter((key) => key !== CACHE_NAME && key !== FONT_CACHE && key !== DATA_CACHE)
 					.map((key) => caches.delete(key))
 			);
 			await sw.clients.claim();
@@ -67,7 +71,17 @@ sw.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// Navigation requests: network-first with offline fallback
+	// Portfolio navigation pages: stale-while-revalidate
+	// Serve cached version immediately, update cache in background
+	if (
+		request.mode === 'navigate' &&
+		PORTFOLIO_ORIGINS.some((prefix) => url.pathname === prefix || url.pathname.startsWith(prefix + '/') || url.pathname.startsWith(prefix + '?'))
+	) {
+		event.respondWith(portfolioStaleWhileRevalidate(request));
+		return;
+	}
+
+	// Other navigation requests: network-first with offline fallback
 	if (request.mode === 'navigate') {
 		event.respondWith(
 			fetch(request).catch(() => caches.match('/offline') as Promise<Response>)
@@ -75,6 +89,33 @@ sw.addEventListener('fetch', (event) => {
 		return;
 	}
 });
+
+/** Stale-while-revalidate: return cached instantly, update cache from network */
+async function portfolioStaleWhileRevalidate(request: Request): Promise<Response> {
+	const cache = await caches.open(DATA_CACHE);
+	const cached = await cache.match(request);
+
+	const networkFetch = fetch(request)
+		.then((response) => {
+			if (response.ok) {
+				cache.put(request, response.clone());
+			}
+			return response;
+		})
+		.catch((): Response | null => null);
+
+	// Return cached immediately if available; otherwise wait for network
+	if (cached) {
+		// Background revalidate — don't await
+		networkFetch.catch(() => undefined);
+		return cached;
+	}
+
+	// No cache: wait for network, fall back to /offline if offline
+	const networkResponse = await networkFetch;
+	if (networkResponse) return networkResponse;
+	return (await caches.match('/offline')) as Response;
+}
 
 async function fontCacheStrategy(request: Request): Promise<Response> {
 	const cached = await caches.match(request);

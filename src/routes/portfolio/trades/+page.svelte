@@ -9,6 +9,7 @@
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
 	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
 	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
+	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
 
 	let { data } = $props();
 	let trades = $derived(data.trades || []);
@@ -365,7 +366,23 @@
 						</div>
 						<span class="text-xs text-gray-500">{group.items.length} เทรด</span>
 					</div>
-					<div class="overflow-x-auto">
+					<!-- Mobile card list (hidden on md+) -->
+				<div class="md:hidden space-y-2 mb-2">
+					{#each group.items as trade}
+						<SwipeableTradeCard
+							{trade}
+							{tags}
+							{playbooks}
+							insights={tradeInsights[trade.id]}
+							score={tradeScores[trade.id]}
+							selected={selectedIds.has(trade.id)}
+							onToggleSelect={() => toggleTrade(trade.id)}
+						/>
+					{/each}
+				</div>
+
+				<!-- Desktop table (hidden on mobile) -->
+				<div class="hidden md:block overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead>
 								<tr class="border-b border-dark-border text-gray-500 text-xs">

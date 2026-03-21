@@ -10,11 +10,66 @@
 	import { adminViewAccountId } from '$lib/stores/adminViewStore';
 	import { displayUnit, type DisplayUnit } from '$lib/stores/displayUnit';
 	import SyncStatusBadge from '$lib/components/portfolio/SyncStatusBadge.svelte';
+	import MobileNav from '$lib/components/layout/MobileNav.svelte';
+	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
 
 	let { data, children } = $props();
 	let { account, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
 	let chatOpen = $state(false);
 	let guideOpen = $state(false);
+
+	// Pull-to-refresh state
+	let pullStartY = $state(0);
+	let pullDelta = $state(0);
+	let isPulling = $state(false);
+	let isRefreshing = $state(false);
+
+	const PULL_THRESHOLD = 72;
+	const MAX_PULL_VISUAL = 90;
+
+	const pullProgress = $derived(Math.min(pullDelta / PULL_THRESHOLD, 1));
+	const pullIndicatorY = $derived(Math.min(pullDelta, MAX_PULL_VISUAL) - MAX_PULL_VISUAL);
+
+	function handleTouchStart(e: TouchEvent) {
+		if (window.scrollY > 0 || isRefreshing) return;
+		pullStartY = e.touches[0].clientY;
+		isPulling = true;
+	}
+
+	function handleTouchMove(e: TouchEvent) {
+		if (!isPulling || isRefreshing) return;
+		const delta = e.touches[0].clientY - pullStartY;
+		if (delta > 0 && window.scrollY === 0) {
+			pullDelta = delta;
+			e.preventDefault();
+		} else {
+			pullDelta = 0;
+		}
+	}
+
+	async function handleTouchEnd() {
+		if (!isPulling) return;
+		isPulling = false;
+		if (pullDelta >= PULL_THRESHOLD) {
+			isRefreshing = true;
+			pullDelta = 0;
+			await invalidate('portfolio:baseData');
+			isRefreshing = false;
+		} else {
+			pullDelta = 0;
+		}
+	}
+
+	$effect(() => {
+		document.addEventListener('touchstart', handleTouchStart, { passive: true });
+		document.addEventListener('touchmove', handleTouchMove, { passive: false });
+		document.addEventListener('touchend', handleTouchEnd, { passive: true });
+		return () => {
+			document.removeEventListener('touchstart', handleTouchStart);
+			document.removeEventListener('touchmove', handleTouchMove);
+			document.removeEventListener('touchend', handleTouchEnd);
+		};
+	});
 
 	let syncingNow = $state(false);
 	let syncError = $state<string | null>(null);
@@ -109,11 +164,79 @@
 		if (base === '/portfolio') return path === '/portfolio';
 		return path.startsWith(base);
 	};
+
+	// Offline / online detection
+	let isOnline = $state(true);
+	let showReconnected = $state(false);
+	let reconnectedTimer: ReturnType<typeof setTimeout> | null = null;
+
+	$effect(() => {
+		isOnline = navigator.onLine;
+
+		function handleOffline() {
+			isOnline = false;
+		}
+
+		async function handleOnline() {
+			isOnline = true;
+			showReconnected = true;
+			if (reconnectedTimer) clearTimeout(reconnectedTimer);
+			reconnectedTimer = setTimeout(() => { showReconnected = false; }, 4000);
+			// Refresh data now that we're back online
+			await invalidate('portfolio:baseData');
+		}
+
+		window.addEventListener('offline', handleOffline);
+		window.addEventListener('online', handleOnline);
+		return () => {
+			window.removeEventListener('offline', handleOffline);
+			window.removeEventListener('online', handleOnline);
+			if (reconnectedTimer) clearTimeout(reconnectedTimer);
+		};
+	});
 </script>
 
 <svelte:head>
 	<title>{isAdminView ? `${account?.client_name || 'Client'} - Admin View` : 'พอร์ตของฉัน'} - IB Portal</title>
 </svelte:head>
+
+<!-- Offline banner -->
+{#if !isOnline}
+	<div class="fixed top-0 inset-x-0 z-50 bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-center gap-2" role="status" aria-live="polite">
+		<svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M8.464 8.464a5 5 0 010 7.072M15.536 8.464a5 5 0 000 7.072M12 12h.01" />
+			<line x1="4" y1="4" x2="20" y2="20" stroke-linecap="round" stroke-width="2" />
+		</svg>
+		<span class="text-xs text-gray-300">ออฟไลน์ — กำลังแสดงข้อมูลที่บันทึกไว้ล่าสุด</span>
+	</div>
+{/if}
+
+<!-- Reconnected toast -->
+{#if showReconnected}
+	<div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-dark-surface border border-green-500/30 rounded-full px-4 py-2 shadow-lg" role="status" aria-live="polite">
+		<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0"></span>
+		<span class="text-xs text-green-400 font-medium whitespace-nowrap">เชื่อมต่อแล้ว — กำลังอัปเดตข้อมูล</span>
+	</div>
+{/if}
+
+<!-- Pull-to-refresh indicator (mobile only) -->
+{#if pullDelta > 0 || isRefreshing}
+	<div
+		class="md:hidden fixed top-0 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-dark-surface border border-dark-border shadow-lg transition-transform duration-150"
+		style="transform: translateX(-50%) translateY({isRefreshing ? '12px' : `${pullIndicatorY + MAX_PULL_VISUAL / 2 - 20}px`})"
+		aria-hidden="true"
+	>
+		<svg
+			class="w-5 h-5 {isRefreshing ? 'animate-spin text-brand-primary' : 'text-gray-400'}"
+			style={!isRefreshing ? `opacity: ${pullProgress}; transform: rotate(${pullProgress * 180}deg)` : ''}
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+		</svg>
+	</div>
+{/if}
 
 {#if isAdminView}
 	<div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3 flex items-center justify-between">
@@ -136,7 +259,10 @@
 	</div>
 {/if}
 
-<div class="space-y-4">
+<div
+	class="space-y-4 pb-16 md:pb-0 transition-transform duration-150 md:!transform-none"
+	style={pullDelta > 0 ? `transform: translateY(${Math.min(pullDelta * 0.3, 24)}px)` : ''}
+>
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 		<h1 class="text-xl font-bold">{isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'}</h1>
 		<div class="flex items-center gap-2 flex-wrap">
@@ -210,8 +336,8 @@
 			MT5: {account.mt5_account_id} @ {account.mt5_server}
 		</div>
 
-		<!-- Tab Navigation -->
-		<div role="tablist" aria-label="หน้าพอร์ต" class="flex gap-1 border-b border-dark-border overflow-x-auto">
+		<!-- Tab Navigation (desktop only) -->
+		<div role="tablist" aria-label="หน้าพอร์ต" class="hidden md:flex gap-1 border-b border-dark-border overflow-x-auto">
 			{#each tabs as tab}
 				<a
 					href={tab.href}
@@ -247,3 +373,11 @@
 {/if}
 
 <PortfolioGuide open={guideOpen} onclose={() => guideOpen = false} />
+
+{#if account}
+	<MobileNav {tabs} {isActive} />
+{/if}
+
+{#if account && !isAdminView}
+	<QuickTradeEntry />
+{/if}
