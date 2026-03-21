@@ -244,11 +244,11 @@
 			<div class="xl:col-span-1">
 				<div class="card sticky top-4">
 					<div class="flex items-center justify-between mb-3">
-						<button onclick={prevMonth} class="p-1 text-gray-400 hover:text-white">
+						<button onclick={prevMonth} aria-label="เดือนที่แล้ว" class="p-1 text-gray-400 hover:text-white">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 						</button>
 						<span class="text-sm font-semibold text-white">{monthNames[calendarMonth]} {calendarYear}</span>
-						<button onclick={nextMonth} class="p-1 text-gray-400 hover:text-white">
+						<button onclick={nextMonth} aria-label="เดือนถัดไป" class="p-1 text-gray-400 hover:text-white">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
 						</button>
 					</div>
@@ -289,7 +289,7 @@
 				<!-- Week navigation -->
 				<div class="card">
 					<div class="flex items-center justify-between">
-						<button onclick={prevWeek} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
+						<button onclick={prevWeek} aria-label="สัปดาห์ที่แล้ว" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 						</button>
 						<div class="text-center">
@@ -298,7 +298,7 @@
 								กำไรสุทธิ: {formatCurrency(weekData.stats.grossPnl)}
 							</p>
 						</div>
-						<button onclick={nextWeek} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
+						<button onclick={nextWeek} aria-label="สัปดาห์ถัดไป" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
 						</button>
 					</div>

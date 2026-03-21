@@ -450,6 +450,8 @@
 					<button
 						type="button"
 						onclick={() => showMobileInfo = !showMobileInfo}
+						aria-label={showMobileInfo ? "ซ่อนข้อมูล" : "แสดงข้อมูล"}
+						aria-expanded={showMobileInfo}
 						class="md:hidden p-1.5 rounded-lg hover:bg-dark-hover text-gray-400"
 					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

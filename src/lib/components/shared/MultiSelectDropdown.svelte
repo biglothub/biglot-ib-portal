@@ -38,6 +38,9 @@
 	<button
 		type="button"
 		onclick={() => (open = !open)}
+		aria-expanded={open}
+		aria-haspopup="listbox"
+		aria-label="{label}{selected.length > 0 ? ` (${selected.length} เลือก)` : ''}"
 		class="w-full flex items-center justify-between gap-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-left
 			{selected.length > 0 ? 'text-white' : 'text-gray-500'}"
 	>
@@ -56,10 +59,12 @@
 	</button>
 
 	{#if open}
-		<div class="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded border border-dark-border bg-dark-card shadow-lg">
+		<div class="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded border border-dark-border bg-dark-card shadow-lg" role="listbox" aria-label={label} aria-multiselectable="true">
 			{#each options as option}
 				<button
 					type="button"
+					role="option"
+					aria-selected={selected.includes(option.value)}
 					onclick={() => toggle(option.value)}
 					class="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-dark-bg/60 text-left
 						{selected.includes(option.value) ? 'text-white' : 'text-gray-400'}"

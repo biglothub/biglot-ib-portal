@@ -118,7 +118,14 @@
 		<h3 class="text-sm font-medium text-gray-400">เช็คลิสต์ประจำวัน</h3>
 		<div class="flex items-center gap-2">
 			<span class="text-xs text-gray-500">{completedCount}/{rules.length}</span>
-			<div class="w-16 h-1.5 rounded-full bg-dark-border overflow-hidden">
+			<div
+				class="w-16 h-1.5 rounded-full bg-dark-border overflow-hidden"
+				role="progressbar"
+				aria-valuenow={completedCount}
+				aria-valuemin={0}
+				aria-valuemax={rules.length}
+				aria-label="ความคืบหน้าเช็คลิสต์"
+			>
 				<div
 					class="h-full rounded-full bg-brand-primary transition-all"
 					style="width: {rules.length > 0 ? (completedCount / rules.length) * 100 : 0}%"
@@ -132,6 +139,9 @@
 		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-2">ทำเอง</div>
 		{#each manualRules as rule}
 			<button
+				role="checkbox"
+				aria-checked={isCompleted(rule.id)}
+				aria-label={rule.name}
 				onclick={() => toggleRule(rule.id)}
 				disabled={saving}
 				class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors

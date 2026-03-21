@@ -135,9 +135,9 @@
 {/if}
 
 <div class="space-y-4">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 		<h1 class="text-xl font-bold">{isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'}</h1>
-		<div class="flex items-center gap-3">
+		<div class="flex items-center gap-2 flex-wrap">
 			{#if account}
 				<SyncStatusBadge lastSyncedAt={account.last_synced_at ?? null} bridgeStatus={bridgeStatus ?? null} />
 				{#if !isAdminView}
@@ -209,10 +209,12 @@
 		</div>
 
 		<!-- Tab Navigation -->
-		<div class="flex gap-1 border-b border-dark-border overflow-x-auto">
+		<div role="tablist" aria-label="หน้าพอร์ต" class="flex gap-1 border-b border-dark-border overflow-x-auto">
 			{#each tabs as tab}
 				<a
 					href={tab.href}
+					role="tab"
+					aria-selected={isActive(tab.base)}
 					data-sveltekit-preload-data="tap"
 					class="px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors
 						{isActive(tab.base)

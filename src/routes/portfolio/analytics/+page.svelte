@@ -3,8 +3,6 @@
 	import { goto } from '$app/navigation';
 	import AnalyticsDashboard from '$lib/components/portfolio/AnalyticsDashboard.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
-	import CumulativePnlChart from '$lib/components/charts/CumulativePnlChart.svelte';
-	import ConfigurableMetricChart from '$lib/components/charts/ConfigurableMetricChart.svelte';
 	import StatsOverviewTable from '$lib/components/reports/StatsOverviewTable.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import HealthScoreCard from '$lib/components/portfolio/HealthScoreCard.svelte';
@@ -15,6 +13,16 @@
 
 	// Sub-tab state from URL
 	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
+
+	// Lazy-load heavy chart components only when their tab is first activated
+	let ConfigurableMetricChart = $state<any>(null);
+	$effect(() => {
+		if (activeTab === 'performance' && !ConfigurableMetricChart) {
+			import('$lib/components/charts/ConfigurableMetricChart.svelte').then(m => {
+				ConfigurableMetricChart = m.default;
+			});
+		}
+	});
 
 	const subTabs = [
 		{ key: 'overview', label: 'ภาพรวม' },
@@ -435,8 +443,8 @@
 	/>
 
 	<!-- Sub-tab navigation + Export -->
-	<div class="flex items-center justify-between gap-3">
-		<div class="flex gap-1 bg-dark-surface/60 rounded-xl p-1 overflow-x-auto backdrop-blur-sm border border-dark-border/30">
+	<div class="flex flex-col sm:flex-row sm:items-center gap-2">
+		<div class="flex gap-1 bg-dark-surface/60 rounded-xl p-1 overflow-x-auto backdrop-blur-sm border border-dark-border/30 flex-1 min-w-0">
 			{#each subTabs as tab}
 				<button
 					class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap
@@ -596,20 +604,36 @@
 		<!-- PERFORMANCE VIEW — Dual Configurable Charts -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 			<div class="card">
-				<ConfigurableMetricChart
-					dailyHistory={calendarDays?.map((d: any) => ({ date: d.date, profit: d.pnl, totalTrades: d.trades })) || []}
-					defaultMetric="net_pnl_cumulative"
-					defaultTimeframe="day"
-					height={280}
-				/>
+				{#if ConfigurableMetricChart}
+					<svelte:component
+						this={ConfigurableMetricChart}
+						dailyHistory={calendarDays?.map((d: any) => ({ date: d.date, profit: d.pnl, totalTrades: d.trades })) || []}
+						defaultMetric="net_pnl_cumulative"
+						defaultTimeframe="day"
+						height={280}
+					/>
+				{:else}
+					<div class="animate-pulse space-y-3">
+						<div class="h-4 bg-dark-border rounded w-1/3"></div>
+						<div class="h-[280px] bg-dark-border/50 rounded-lg"></div>
+					</div>
+				{/if}
 			</div>
 			<div class="card">
-				<ConfigurableMetricChart
-					dailyHistory={calendarDays?.map((d: any) => ({ date: d.date, profit: d.pnl, totalTrades: d.trades })) || []}
-					defaultMetric="win_rate"
-					defaultTimeframe="day"
-					height={280}
-				/>
+				{#if ConfigurableMetricChart}
+					<svelte:component
+						this={ConfigurableMetricChart}
+						dailyHistory={calendarDays?.map((d: any) => ({ date: d.date, profit: d.pnl, totalTrades: d.trades })) || []}
+						defaultMetric="win_rate"
+						defaultTimeframe="day"
+						height={280}
+					/>
+				{:else}
+					<div class="animate-pulse space-y-3">
+						<div class="h-4 bg-dark-border rounded w-1/3"></div>
+						<div class="h-[280px] bg-dark-border/50 rounded-lg"></div>
+					</div>
+				{/if}
 			</div>
 		</div>
 
@@ -645,11 +669,11 @@
 		<!-- CALENDAR YEAR VIEW -->
 		<div class="card">
 			<div class="flex items-center justify-between mb-6">
-				<button onclick={() => calendarYear--} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
+				<button onclick={() => calendarYear--} aria-label="ปีที่แล้ว" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 				</button>
 				<h2 class="text-xl font-bold text-white">{calendarYear}</h2>
-				<button onclick={() => calendarYear++} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
+				<button onclick={() => calendarYear++} aria-label="ปีถัดไป" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
 				</button>
 			</div>
@@ -1233,8 +1257,8 @@
 		<!-- RECAPS & INSIGHTS -->
 		<div class="space-y-6">
 			<!-- Period selector -->
-			<div class="flex items-center justify-between">
-				<div class="flex gap-1.5">
+			<div class="flex flex-wrap items-center gap-2">
+				<div class="flex gap-1.5 flex-wrap">
 					{#each ['last_week', 'this_week', 'last_month', 'this_month'] as period}
 						<button
 							class="px-4 py-2 text-sm rounded-lg border transition-colors {recapPeriod === period ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
@@ -1354,8 +1378,8 @@
 				<h3 class="text-sm font-semibold text-white mb-4">กลุ่ม #1</h3>
 				<div class="space-y-3">
 					<div>
-						<label class="text-xs text-gray-500">สัญลักษณ์</label>
-						<select bind:value={group1Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
+						<label for="g1-symbol" class="text-xs text-gray-500">สัญลักษณ์</label>
+						<select id="g1-symbol" bind:value={group1Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 							<option value="">ทุกสัญลักษณ์</option>
 							{#each availableSymbols as sym}
 								<option value={sym}>{sym}</option>
@@ -1363,8 +1387,8 @@
 						</select>
 					</div>
 					<div>
-						<label class="text-xs text-gray-500">ทิศทาง</label>
-						<select bind:value={group1Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
+						<label for="g1-side" class="text-xs text-gray-500">ทิศทาง</label>
+						<select id="g1-side" bind:value={group1Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 							<option value="">ทุกทิศทาง</option>
 							<option value="BUY">BUY</option>
 							<option value="SELL">SELL</option>
@@ -1376,8 +1400,8 @@
 				<h3 class="text-sm font-semibold text-white mb-4">กลุ่ม #2</h3>
 				<div class="space-y-3">
 					<div>
-						<label class="text-xs text-gray-500">สัญลักษณ์</label>
-						<select bind:value={group2Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
+						<label for="g2-symbol" class="text-xs text-gray-500">สัญลักษณ์</label>
+						<select id="g2-symbol" bind:value={group2Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 							<option value="">ทุกสัญลักษณ์</option>
 							{#each availableSymbols as sym}
 								<option value={sym}>{sym}</option>
@@ -1385,8 +1409,8 @@
 						</select>
 					</div>
 					<div>
-						<label class="text-xs text-gray-500">ทิศทาง</label>
-						<select bind:value={group2Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
+						<label for="g2-side" class="text-xs text-gray-500">ทิศทาง</label>
+						<select id="g2-side" bind:value={group2Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 							<option value="">ทุกทิศทาง</option>
 							<option value="BUY">BUY</option>
 							<option value="SELL">SELL</option>

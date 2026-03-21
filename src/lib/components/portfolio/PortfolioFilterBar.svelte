@@ -139,6 +139,8 @@ import { goto, invalidate } from '$app/navigation';
 	<button
 		type="button"
 		onclick={() => (expanded = !expanded)}
+		aria-expanded={expanded}
+		aria-controls="filter-panel"
 		class="w-full flex items-center justify-between gap-3"
 	>
 		<div class="flex items-center gap-2">
@@ -155,7 +157,7 @@ import { goto, invalidate } from '$app/navigation';
 	</button>
 
 	{#if expanded}
-	<div class="mt-4 space-y-4">
+	<div id="filter-panel" class="mt-4 space-y-4">
 	<div class="flex items-center justify-end gap-2">
 		{#if pageKey === 'trades' || pageKey === 'analytics'}
 			<button type="button" onclick={saveView} class="text-xs text-brand-primary hover:text-brand-primary/80">
@@ -175,11 +177,12 @@ import { goto, invalidate } from '$app/navigation';
 			type="text"
 			bind:value={q}
 			placeholder="ค้นหา symbol, notes, lesson..."
+			aria-label="ค้นหา"
 			class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
 		/>
-		<input type="date" bind:value={from} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-		<input type="date" bind:value={to} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-		<select bind:value={outcome} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
+		<input type="date" bind:value={from} aria-label="วันที่เริ่ม" class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
+		<input type="date" bind:value={to} aria-label="วันที่สิ้นสุด" class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
+		<select bind:value={outcome} aria-label="ผลลัพธ์" class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 			<option value="">ผลลัพธ์ทั้งหมด</option>
 			<option value="win">กำไร</option>
 			<option value="loss">ขาดทุน</option>
@@ -228,19 +231,19 @@ import { goto, invalidate } from '$app/navigation';
 			options={playbooks.map((p: any) => ({ value: p.id, label: p.name }))}
 			bind:selected={playbookIds}
 		/>
-		<select bind:value={durationBucket} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
+		<select bind:value={durationBucket} aria-label="ระยะเวลา" class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 			<option value="">ระยะเวลาทั้งหมด</option>
 			{#each filterOptions.durationBuckets || [] as bucket}
 				<option value={bucket.value}>{bucket.label}</option>
 			{/each}
 		</select>
 		<div class="grid grid-cols-2 gap-3">
-			<select bind:value={hasNotes} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
+			<select bind:value={hasNotes} aria-label="โน้ต" class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 				<option value="">โน้ต: ทั้งหมด</option>
 				<option value="1">มีโน้ต</option>
 				<option value="0">ไม่มีโน้ต</option>
 			</select>
-			<select bind:value={hasAttachments} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
+			<select bind:value={hasAttachments} aria-label="ไฟล์แนบ" class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 				<option value="">ไฟล์แนบ: ทั้งหมด</option>
 				<option value="1">มีไฟล์แนบ</option>
 				<option value="0">ไม่มีไฟล์แนบ</option>

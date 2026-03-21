@@ -133,16 +133,20 @@
 
 {#if open}
 	<!-- Backdrop -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="fixed inset-0 bg-black/40 z-50"
+	<button
+		class="fixed inset-0 bg-black/40 z-50 cursor-default"
 		transition:fade={{ duration: 200 }}
 		onmousedown={onclose}
 		onkeydown={(e) => e.key === 'Escape' && onclose()}
-	></div>
+		tabindex="-1"
+		aria-label="ปิด AI ผู้ช่วย"
+	></button>
 
 	<!-- Panel -->
 	<div
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="ai-chat-title"
 		class="fixed right-0 top-0 h-full w-full sm:w-96 bg-dark-surface border-l border-dark-border z-50 flex flex-col"
 		transition:fly={{ x: 384, duration: 300 }}
 	>
@@ -156,7 +160,7 @@
 					</svg>
 				</div>
 				<div>
-					<h3 class="text-sm font-semibold text-white">AI ผู้ช่วยเทรด</h3>
+					<h3 id="ai-chat-title" class="text-sm font-semibold text-white">AI ผู้ช่วยเทรด</h3>
 					<p class="text-xs text-gray-500">วิเคราะห์ข้อมูลการเทรดของคุณ</p>
 				</div>
 			</div>
@@ -187,7 +191,7 @@
 		</div>
 
 		<!-- Messages -->
-		<div bind:this={messagesContainer} class="flex-1 overflow-y-auto p-4 space-y-3">
+		<div bind:this={messagesContainer} class="flex-1 overflow-y-auto p-4 space-y-3" aria-live="polite" aria-label="ประวัติการสนทนา">
 			{#if messages.length === 0}
 				<!-- Welcome -->
 				<div class="flex flex-col items-center justify-center h-full text-center px-4">

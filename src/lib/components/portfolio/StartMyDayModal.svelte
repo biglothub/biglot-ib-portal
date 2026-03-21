@@ -99,14 +99,13 @@
 
 {#if open}
 	<!-- Backdrop -->
-	<div
-		class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100]"
+	<button
+		class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] cursor-default"
 		onclick={onclose}
-		onkeydown={(e) => e.key === 'Escape' && onclose()}
-		role="button"
 		tabindex="-1"
+		aria-label="ปิด"
 		transition:fade={{ duration: 200 }}
-	></div>
+	></button>
 
 	<!-- Modal -->
 	<div
@@ -114,13 +113,16 @@
 		transition:fade={{ duration: 150 }}
 	>
 		<div
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="start-my-day-title"
 			class="w-full sm:max-w-md max-h-[90vh] bg-dark-surface border border-dark-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
 			transition:fly={{ y: 40, duration: 280 }}
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between px-5 py-4 border-b border-dark-border shrink-0">
 				<div>
-					<h2 class="text-base font-bold text-white">เริ่มต้นวันนี้</h2>
+					<h2 id="start-my-day-title" class="text-base font-bold text-white">เริ่มต้นวันนี้</h2>
 					<p class="text-[11px] text-gray-500 mt-0.5">{today}</p>
 				</div>
 				<button

@@ -229,14 +229,14 @@
 {#if open}
 	<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
 		<!-- Backdrop -->
-		<div class="absolute inset-0 bg-black/60" onclick={close} role="presentation"></div>
+		<button class="absolute inset-0 bg-black/60 cursor-default" onclick={close} tabindex="-1" aria-label="ปิด"></button>
 
 		<!-- Modal -->
-		<div class="relative bg-dark-surface border border-dark-border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto">
+		<div role="dialog" aria-modal="true" aria-labelledby="import-modal-title" class="relative bg-dark-surface border border-dark-border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto">
 			<!-- Header -->
 			<div class="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
 				<div>
-					<h2 class="text-lg font-semibold text-white">Import Trades</h2>
+					<h2 id="import-modal-title" class="text-lg font-semibold text-white">Import Trades</h2>
 					<p class="text-xs text-gray-500 mt-0.5">
 						{#if step === 'upload'}อัพโหลดไฟล์ CSV
 						{:else if step === 'mapping'}จับคู่คอลัมน์
@@ -253,7 +253,7 @@
 					>
 						{showHistory ? 'ซ่อนประวัติ' : 'ประวัติ Import'}
 					</button>
-					<button type="button" onclick={close} class="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+					<button type="button" onclick={close} aria-label="ปิด" class="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
 				</div>
 			</div>
 
