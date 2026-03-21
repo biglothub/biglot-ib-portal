@@ -1,5 +1,6 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
+import { sanitizeSearchQuery } from '$lib/server/validation';
 import { getTradeSession } from '$lib/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
@@ -7,11 +8,6 @@ import type { RequestHandler } from './$types';
 /** Strip HTML tags to get plain text for search indexing */
 function stripHtml(html: string): string {
 	return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-/** Escape special characters that could break PostgREST filter syntax */
-function escapePostgrestValue(str: string): string {
-	return str.replace(/[%_\\]/g, c => '\\' + c).replace(/[,.()"']/g, '');
 }
 
 /** POST: CRUD operations for notebooks */
@@ -184,10 +180,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// ── Search notes ──
 	if (body.action === 'search') {
-		const query = body.query?.trim();
+		const query = typeof body.query === 'string' ? body.query.trim().slice(0, 100) : '';
 		if (!query) return json({ notes: [] });
 
-		const safeQuery = escapePostgrestValue(query);
+		const safeQuery = sanitizeSearchQuery(query);
+		if (!safeQuery) return json({ notes: [] });
+
 		const { data } = await locals.supabase
 			.from('notebook_notes')
 			.select('id, title, content_plain, folder_id, created_at, updated_at')

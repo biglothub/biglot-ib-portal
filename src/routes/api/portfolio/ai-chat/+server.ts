@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/private';
 import { aiTools, executeTool } from '$lib/server/ai-tools';
 import { rateLimit } from '$lib/server/rate-limit';
+import { validateChatMessages } from '$lib/server/validation';
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import type { RequestHandler } from './$types';
@@ -16,27 +17,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const body = await request.json();
-	const userMessages: { role: string; content: string }[] = body.messages;
-
-	if (!Array.isArray(userMessages) || userMessages.length === 0) {
-		return new Response(JSON.stringify({ message: 'Messages required' }), { status: 400 });
+	const result = validateChatMessages(body.messages);
+	if (!result.valid) {
+		return new Response(JSON.stringify({ message: result.error }), { status: result.status });
 	}
-
-	if (userMessages.length > 50) {
-		return new Response(JSON.stringify({ message: 'Too many messages' }), { status: 400 });
-	}
-
-	for (const msg of userMessages) {
-		if (!msg.role || !msg.content || typeof msg.content !== 'string') {
-			return new Response(JSON.stringify({ message: 'Invalid message format' }), { status: 400 });
-		}
-		if (msg.role !== 'user' && msg.role !== 'assistant') {
-			return new Response(JSON.stringify({ message: 'Invalid message role' }), { status: 400 });
-		}
-		if (msg.content.length > 2000) {
-			msg.content = msg.content.slice(0, 2000);
-		}
-	}
+	const userMessages = result.messages;
 
 	const supabase = locals.supabase;
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
