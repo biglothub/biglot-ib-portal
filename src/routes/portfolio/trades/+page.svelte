@@ -171,7 +171,7 @@
 
 	const groupedTrades = $derived.by(() => {
 		if (groupBy === 'none') {
-			return [{ label: 'All Trades', items: trades }];
+			return [{ label: 'เทรดทั้งหมด', items: trades }];
 		}
 
 		const groups = new Map<string, any[]>();
@@ -187,7 +187,7 @@
 						? getTradeSession(trade.close_time).toUpperCase()
 						: playbooks.find((playbook: any) => playbook.id === getTradePlaybookId(trade))?.name ||
 							(trade.trade_tag_assignments || []).find((assignment: any) => assignment.trade_tags?.category === 'setup')?.trade_tags?.name ||
-							'No Setup';
+							'ไม่มี Setup';
 
 			if (!groups.has(label)) groups.set(label, []);
 			groups.get(label)!.push(trade);
@@ -215,7 +215,7 @@
 			class="px-3 py-1.5 text-sm rounded border border-dark-border text-gray-300 hover:text-white hover:border-brand-primary/50 flex items-center gap-1.5"
 		>
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-			Import CSV
+			นำเข้า CSV
 		</button>
 		<button
 			type="button"
@@ -224,7 +224,7 @@
 			class="px-3 py-1.5 text-sm rounded border border-dark-border text-gray-300 hover:text-white hover:border-brand-primary/50 flex items-center gap-1.5 disabled:opacity-50"
 		>
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-			{exportLoading ? 'กำลังดาวน์โหลด...' : 'Export CSV'}
+			{exportLoading ? 'กำลังดาวน์โหลด...' : 'ส่งออก CSV'}
 		</button>
 	</div>
 
@@ -267,7 +267,7 @@
 					<option value="">-- เลือก action --</option>
 					<option value="tag">เพิ่ม Tag</option>
 					<option value="review_status">เปลี่ยนสถานะ Review</option>
-					<option value="export">Export CSV</option>
+					<option value="export">ส่งออก CSV</option>
 				</select>
 
 				{#if bulkAction === 'tag'}
@@ -370,17 +370,17 @@
 							<thead>
 								<tr class="border-b border-dark-border text-gray-500 text-xs">
 									<th class="w-8 py-2"></th>
-									<th class="text-left py-2">Trade</th>
-									<th class="text-left py-2">Review</th>
+									<th class="text-left py-2">เทรด</th>
+									<th class="text-left py-2">รีวิว</th>
 									<th class="text-left py-2">Playbook</th>
-									<th class="text-left py-2">Tags</th>
-									<th class="text-center py-2">Notes</th>
-									<th class="text-center py-2">Files</th>
+									<th class="text-left py-2">แท็ก</th>
+									<th class="text-center py-2">โน้ต</th>
+									<th class="text-center py-2">ไฟล์</th>
 									<th class="text-center py-2">Insights</th>
-									<th class="text-center py-2">Quality</th>
+									<th class="text-center py-2">คุณภาพ</th>
 									<th class="text-center py-2">R</th>
-									<th class="text-right py-2">P/L</th>
-									<th class="text-right py-2">Time</th>
+									<th class="text-right py-2">กำไร/ขาดทุน</th>
+									<th class="text-right py-2">เวลา</th>
 								</tr>
 							</thead>
 							<tbody>

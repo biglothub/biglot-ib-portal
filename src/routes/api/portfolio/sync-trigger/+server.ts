@@ -14,7 +14,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	// Allow at most 1 manual sync trigger per 60 s per user

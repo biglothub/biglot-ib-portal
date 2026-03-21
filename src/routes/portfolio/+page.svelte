@@ -94,7 +94,7 @@
 				tradeCount={totalTrades > 0 ? { wins: winCount, losses: lossCount } : undefined}
 			/>
 			<MetricCard
-				label="Profit Factor"
+				label="อัตราส่วนกำไร"
 				value={kpi.profitFactor >= 999 ? '∞' : formatNumber(kpi.profitFactor)}
 				color={kpi.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}
 				donutPercent={Math.min((kpi.profitFactor / 3) * 100, 100)}
@@ -115,7 +115,7 @@
 				value={formatCurrency(latestStats?.balance || 0)}
 			/>
 			<MetricCard
-				label="Equity"
+				label="มูลค่าพอร์ต"
 				value={formatCurrency(latestStats?.equity || 0)}
 			/>
 			<MetricCard

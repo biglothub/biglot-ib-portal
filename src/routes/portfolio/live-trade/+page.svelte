@@ -188,7 +188,7 @@
 			<!-- Current time -->
 			<div class="rounded-lg bg-dark-surface border border-dark-border px-3 py-1.5 text-center">
 				<div class="text-lg font-mono font-bold text-white tracking-wider">{currentTime}</div>
-				<div class="text-[9px] text-gray-500 -mt-0.5">Bangkok Time</div>
+				<div class="text-[9px] text-gray-500 -mt-0.5">เวลากรุงเทพฯ</div>
 			</div>
 		</div>
 	</div>

@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -37,11 +37,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:saved-views:${profile.id}`, 20, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -85,11 +85,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 export const DELETE: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:saved-views:delete:${profile.id}`, 20, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const { id } = await request.json();

@@ -625,7 +625,7 @@
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.tradeWinRate.toFixed(1)}%</div>
 				</div>
 				<div class="card border-l-2 {kpiMetrics.profitFactor >= 1 ? 'border-l-green-500' : 'border-l-red-500'}">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Profit Factor</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">อัตราส่วนกำไร</div>
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{kpiMetrics.profitFactor >= 999 ? '∞' : formatNumber(kpiMetrics.profitFactor)}</div>
 				</div>
 				<div class="card border-l-2 {kpiMetrics.dayWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
@@ -1269,7 +1269,7 @@
 						{/if}
 					</div>
 					<div class="card">
-						<div class="text-xs text-gray-500">Profit Factor</div>
+						<div class="text-xs text-gray-500">อัตราส่วนกำไร</div>
 						<div class="mt-1 text-2xl font-bold {recapStats.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{formatNumber(recapStats.profitFactor)}</div>
 					</div>
 					<div class="card">
@@ -1424,7 +1424,7 @@
 							{#each [
 								{ label: 'จำนวนเทรด', g1: compareResult.group1.trades, g2: compareResult.group2.trades, fmt: 'num' },
 								{ label: 'อัตราชนะ', g1: compareResult.group1.winRate, g2: compareResult.group2.winRate, fmt: 'pct' },
-								{ label: 'Profit Factor', g1: compareResult.group1.profitFactor, g2: compareResult.group2.profitFactor, fmt: 'num' },
+								{ label: 'อัตราส่วนกำไร', g1: compareResult.group1.profitFactor, g2: compareResult.group2.profitFactor, fmt: 'num' },
 								{ label: 'กำไรสุทธิ', g1: compareResult.group1.netPnl, g2: compareResult.group2.netPnl, fmt: 'cur' },
 								{ label: 'กำไรเฉลี่ย', g1: compareResult.group1.avgPnl, g2: compareResult.group2.avgPnl, fmt: 'cur' },
 							] as m}

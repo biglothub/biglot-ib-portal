@@ -6,11 +6,11 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:journal:${profile.id}`, 30, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);

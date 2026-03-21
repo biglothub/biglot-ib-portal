@@ -18,7 +18,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<h1 class="text-xl font-bold">Admin Dashboard</h1>
+	<h1 class="text-xl font-bold">แดชบอร์ดผู้ดูแล</h1>
 
 	<!-- KPIs -->
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -36,26 +36,26 @@
 	{#if bridgeHealth}
 		<div class="card">
 			<div class="flex items-center justify-between mb-3">
-				<h2 class="text-sm font-medium text-gray-400">Bridge Status</h2>
+				<h2 class="text-sm font-medium text-gray-400">สถานะ Bridge</h2>
 				<div class="flex items-center gap-2">
 					<span class="w-2 h-2 rounded-full {bridgeOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'}"></span>
 					<span class="text-xs {bridgeOnline ? 'text-green-400' : 'text-red-400'}">
-						{bridgeOnline ? 'Online' : 'Offline'}
+						{bridgeOnline ? 'ออนไลน์' : 'ออฟไลน์'}
 					</span>
 				</div>
 			</div>
 			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
 				<div>
-					<p class="text-gray-500 text-xs">Last Heartbeat</p>
+					<p class="text-gray-500 text-xs">Heartbeat ล่าสุด</p>
 					<p class="text-gray-300">{bridgeHealth.last_heartbeat ? timeAgo(bridgeHealth.last_heartbeat) : '-'}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">Last Cycle</p>
+					<p class="text-gray-500 text-xs">รอบล่าสุด</p>
 					<p class="text-gray-300">
 						{#if bridgeHealth.accounts_synced != null}
-							<span class="text-green-400">{bridgeHealth.accounts_synced}</span> ok
+							<span class="text-green-400">{bridgeHealth.accounts_synced}</span> สำเร็จ
 							{#if bridgeHealth.accounts_failed > 0}
-								, <span class="text-red-400">{bridgeHealth.accounts_failed}</span> fail
+								, <span class="text-red-400">{bridgeHealth.accounts_failed}</span> ล้มเหลว
 							{/if}
 						{:else}
 							-
@@ -63,11 +63,11 @@
 					</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">Cycle Time</p>
+					<p class="text-gray-500 text-xs">เวลารอบ</p>
 					<p class="text-gray-300">{bridgeHealth.cycle_duration_ms ? (bridgeHealth.cycle_duration_ms / 1000).toFixed(1) + 's' : '-'}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">Version</p>
+					<p class="text-gray-500 text-xs">เวอร์ชัน</p>
 					<p class="text-gray-300">v{bridgeHealth.version || '-'}</p>
 				</div>
 			</div>

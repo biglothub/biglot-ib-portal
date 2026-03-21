@@ -391,15 +391,15 @@
 						<div class="text-xs text-gray-500">ขั้นตอน Review</div>
 						<div class="mt-3 space-y-2 text-sm">
 							<div class="flex items-center justify-between">
-								<span class="text-gray-400">Playbook</span>
+								<span class="text-gray-400">กลยุทธ์</span>
 								<span class="text-white">{playbooks.find((playbook: any) => playbook.id === selectedPlaybookId)?.name || 'ยังไม่เลือก'}</span>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-gray-400">Notes</span>
+								<span class="text-gray-400">โน้ต</span>
 								<span class="text-white">{noteContent ? 'พร้อม' : 'ว่าง'}</span>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-gray-400">Attachments</span>
+								<span class="text-gray-400">ไฟล์แนบ</span>
 								<span class="text-white">{attachments.length}</span>
 							</div>
 							<div class="flex items-center justify-between">
@@ -410,7 +410,7 @@
 					</div>
 
 					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
-						<div class="text-xs text-gray-500">Notebook</div>
+						<div class="text-xs text-gray-500">บันทึกประจำวัน</div>
 						<div class="mt-2 text-sm text-gray-300">
 							{#if dayJournal}
 								มี journal ของวันที่ {journalDate}
@@ -457,7 +457,7 @@
 
 		<div class="card">
 			<div class="flex items-center justify-between mb-3">
-				<h3 class="text-sm font-medium text-gray-400">Tags</h3>
+				<h3 class="text-sm font-medium text-gray-400">แท็ก</h3>
 				<div class="relative">
 					<button
 						type="button"
@@ -663,8 +663,8 @@
 				</div>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 					<select bind:value={attachmentKind} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-						<option value="link">Link</option>
-						<option value="image_url">Image URL</option>
+						<option value="link">ลิงก์</option>
+						<option value="image_url">URL รูปภาพ</option>
 					</select>
 					<input bind:value={attachmentPath} placeholder="https://..." class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
 					<input bind:value={attachmentCaption} placeholder="คำอธิบาย" class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />

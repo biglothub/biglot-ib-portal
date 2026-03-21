@@ -24,14 +24,14 @@ const EXPORT_COLUMNS = [
 export const GET = async ({ locals, url }: RequestEvent) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return new Response(JSON.stringify({ message: 'Forbidden' }), {
+		return new Response(JSON.stringify({ message: 'ไม่ได้รับอนุญาต' }), {
 			status: 403,
 			headers: { 'Content-Type': 'application/json' }
 		});
 	}
 
 	if (!rateLimit(`portfolio:trades-export:${profile.id}`, 5, 60_000)) {
-		return new Response(JSON.stringify({ message: 'Too many requests' }), {
+		return new Response(JSON.stringify({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }), {
 			status: 429,
 			headers: { 'Content-Type': 'application/json' }
 		});

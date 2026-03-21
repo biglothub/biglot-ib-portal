@@ -56,7 +56,7 @@
 
 	const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 	const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-	const moodLabels = ['Very Low', 'Low', 'Neutral', 'Good', 'Excellent'];
+	const moodLabels = ['แย่มาก', 'แย่', 'ปานกลาง', 'ดี', 'ดีมาก'];
 
 	const calendarDays = $derived(() => {
 		const firstDay = new Date(year, month - 1, 1).getDay();
@@ -173,19 +173,19 @@
 
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
-			<div class="text-xs text-gray-500">Journal Entries</div>
+			<div class="text-xs text-gray-500">รายการ Journal</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{journalSummary?.totalEntries || 0}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Completion Rate</div>
+			<div class="text-xs text-gray-500">อัตราการเขียน</div>
 			<div class="mt-1 text-2xl font-semibold text-green-400">{(journalSummary?.completionRate || 0).toFixed(0)}%</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Current Streak</div>
+			<div class="text-xs text-gray-500">Streak ปัจจุบัน</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{journalSummary?.currentStreak || 0}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Trading Days</div>
+			<div class="text-xs text-gray-500">วันที่เทรด</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{journalSummary?.activeTradingDays || 0}</div>
 		</div>
 	</div>
@@ -248,9 +248,9 @@
 					</h3>
 					<div class="flex items-center gap-3">
 						<select bind:value={completionStatus} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-							<option value="not_started">Not started</option>
-							<option value="in_progress">In progress</option>
-							<option value="complete">Complete</option>
+							<option value="not_started">ยังไม่เริ่ม</option>
+							<option value="in_progress">กำลังเขียน</option>
+							<option value="complete">เสร็จสิ้น</option>
 						</select>
 						{#if saved}
 							<span class="text-xs text-green-400">บันทึกแล้ว</span>
@@ -262,29 +262,29 @@
 				{#if daySummary}
 					<div class="card p-3 flex flex-wrap items-center gap-4 text-sm">
 						<span class="text-gray-400">วันนี้เทรด:</span>
-						<span class="text-white">{daySummary.totalTrades} trades</span>
+						<span class="text-white">{daySummary.totalTrades} เทรด</span>
 						<span class="{daySummary.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-medium">
 							{formatCurrency(daySummary.profit)}
 						</span>
-						<span class="text-gray-400">Reviewed {daySummary.reviewedTrades || 0}/{daySummary.totalTrades}</span>
+						<span class="text-gray-400">รีวิวแล้ว {daySummary.reviewedTrades || 0}/{daySummary.totalTrades}</span>
 					</div>
 				{/if}
 
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Pre-Market Notes</h4>
+						<h4 class="text-xs text-gray-500 mb-2">บันทึกก่อนเทรด</h4>
 						<textarea bind:value={preMarketNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Session Plan</h4>
+						<h4 class="text-xs text-gray-500 mb-2">แผนการเทรด</h4>
 						<textarea bind:value={sessionPlan} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Market Bias</h4>
+						<h4 class="text-xs text-gray-500 mb-2">มุมมองตลาด</h4>
 						<input bind:value={marketBias} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Key Levels</h4>
+						<h4 class="text-xs text-gray-500 mb-2">ระดับราคาสำคัญ</h4>
 						<input bind:value={keyLevels} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 				</div>
@@ -292,7 +292,7 @@
 				<div class="card">
 					<ChecklistEditor
 						items={checklist}
-						label="Checklist"
+						label="รายการตรวจสอบ"
 						placeholder="เช่น Wait for London open confirmation"
 						onchange={(items) => (checklist = items)}
 					/>
@@ -300,7 +300,7 @@
 
 				<div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Mood</h4>
+						<h4 class="text-xs text-gray-500 mb-2">อารมณ์</h4>
 						<div class="flex flex-wrap gap-1.5">
 							{#each moodLabels as label, index}
 								<button
@@ -317,38 +317,38 @@
 						</div>
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Energy</h4>
+						<h4 class="text-xs text-gray-500 mb-2">พลังงาน</h4>
 						<input type="number" min="1" max="5" bind:value={energyScore} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Discipline</h4>
+						<h4 class="text-xs text-gray-500 mb-2">วินัย</h4>
 						<input type="number" min="1" max="5" bind:value={disciplineScore} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Confidence</h4>
+						<h4 class="text-xs text-gray-500 mb-2">ความมั่นใจ</h4>
 						<input type="number" min="1" max="5" bind:value={confidenceScore} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 				</div>
 
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Post-Market Notes</h4>
+						<h4 class="text-xs text-gray-500 mb-2">บันทึกหลังเทรด</h4>
 						<textarea bind:value={postMarketNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">Lessons</h4>
+						<h4 class="text-xs text-gray-500 mb-2">บทเรียน</h4>
 						<textarea bind:value={lessons} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 					</div>
 					<div class="card xl:col-span-2">
-						<h4 class="text-xs text-gray-500 mb-2">Tomorrow Focus</h4>
+						<h4 class="text-xs text-gray-500 mb-2">จุดโฟกัสพรุ่งนี้</h4>
 						<textarea bind:value={tomorrowFocus} rows="3" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 					</div>
 				</div>
 
 				<div class="card">
 					<div class="flex items-center justify-between mb-3">
-						<h4 class="text-xs text-gray-500">Trades of the Day</h4>
-						<span class="text-xs text-gray-500">{dayTrades.length} trades</span>
+						<h4 class="text-xs text-gray-500">เทรดของวัน</h4>
+						<span class="text-xs text-gray-500">{dayTrades.length} เทรด</span>
 					</div>
 					{#if dayTrades.length > 0}
 						<div class="space-y-2">

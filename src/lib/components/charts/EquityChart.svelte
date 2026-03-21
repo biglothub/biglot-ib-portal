@@ -311,8 +311,8 @@
 				<svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
 				</svg>
-				<span class="text-sm">No equity data available yet</span>
-				<span class="text-xs text-gray-500 mt-1">Data will appear after trading activity</span>
+				<span class="text-sm">ยังไม่มีข้อมูล Equity</span>
+				<span class="text-xs text-gray-500 mt-1">ข้อมูลจะแสดงเมื่อมีการเทรด</span>
 			</div>
 		{:else if !hasRangeData}
 			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">

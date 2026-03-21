@@ -166,11 +166,11 @@ function parseTradeRow(
 export const POST = async ({ request, locals }: RequestEvent) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:trades-import:${profile.id}`, 3, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -301,7 +301,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 export const GET = async ({ locals, url }: RequestEvent) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (url.searchParams.get('history') === '1') {

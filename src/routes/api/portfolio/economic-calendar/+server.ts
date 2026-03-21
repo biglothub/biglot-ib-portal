@@ -23,11 +23,11 @@ export interface EconomicEvent {
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const profile = locals.profile;
 	if (!profile) {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:economic-calendar:${profile.id}`, 10, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const week = url.searchParams.get('week') || 'thisweek';

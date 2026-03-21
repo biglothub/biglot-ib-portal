@@ -5,18 +5,18 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (locals.profile?.role !== 'admin') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
 	if (!rateLimit(`admin:ibs:${ip}`, 10, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const { email, full_name, ib_code, company_name } = await request.json();
 
 	if (!email || !full_name || !ib_code) {
-		return json({ message: 'Missing required fields: email, full_name, ib_code' }, { status: 400 });
+		return json({ message: 'กรุณากรอก email, ชื่อ, และรหัส IB' }, { status: 400 });
 	}
 
 	try {
@@ -32,6 +32,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		if (e instanceof AuthSetupError) {
 			return json({ message: e.message }, { status: e.status });
 		}
-		return json({ message: e.message || 'Failed to create Master IB' }, { status: 500 });
+		return json({ message: e.message || 'ไม่สามารถสร้าง Master IB ได้' }, { status: 500 });
 	}
 };

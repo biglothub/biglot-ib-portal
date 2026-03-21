@@ -329,7 +329,7 @@
 					type="button"
 					onclick={reset}
 					class="p-2 rounded-lg hover:bg-dark-hover text-gray-400 hover:text-white transition-colors"
-					title="Reset"
+					title="รีเซ็ต"
 				>
 					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4l3-7 4 14 3-7h4" />

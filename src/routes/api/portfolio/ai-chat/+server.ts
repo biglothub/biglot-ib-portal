@@ -8,7 +8,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return new Response(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
+		return new Response(JSON.stringify({ message: 'ไม่ได้รับอนุญาต' }), { status: 403 });
 	}
 
 	if (!rateLimit(`ai-chat:${profile.id}`, 20, 60_000)) {

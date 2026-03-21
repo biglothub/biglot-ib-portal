@@ -72,7 +72,7 @@
 				</button>
 			{/each}
 			{#if options.length === 0}
-				<div class="px-3 py-2 text-xs text-gray-500">No options</div>
+				<div class="px-3 py-2 text-xs text-gray-500">ไม่มีตัวเลือก</div>
 			{/if}
 		</div>
 	{/if}

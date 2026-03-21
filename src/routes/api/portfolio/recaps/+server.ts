@@ -22,7 +22,7 @@ const SECTION_REGEX = /<<<(PERFORMANCE_SUMMARY|PATTERNS|MISTAKES|STRENGTHS|ACTIO
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -52,7 +52,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return new Response(JSON.stringify({ message: 'Forbidden' }), { status: 403 });
+		return new Response(JSON.stringify({ message: 'ไม่ได้รับอนุญาต' }), { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:recaps:${profile.id}`, 3, 3_600_000)) {

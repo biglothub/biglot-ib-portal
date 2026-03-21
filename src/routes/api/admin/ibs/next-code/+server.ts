@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	if (locals.profile?.role !== 'admin') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	const supabase = createSupabaseServiceClient();

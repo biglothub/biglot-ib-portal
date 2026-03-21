@@ -6,19 +6,19 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || (profile.role !== 'master_ib' && profile.role !== 'admin')) {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
 	if (!rateLimit(`ib:edit:${ip}`, 10, 60_000)) {
-		return json({ message: 'Too many requests โปรดรอสักครู่แล้วลองใหม่' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
 	const body = await request.json();
 	const { client_account_id, client_name, client_email, client_phone, nickname } = body;
 
 	if (!client_account_id || !client_name) {
-		return json({ message: 'Missing required fields' }, { status: 400 });
+		return json({ message: 'กรุณากรอกข้อมูลที่จำเป็น' }, { status: 400 });
 	}
 
 	const trimmedName = client_name.trim();

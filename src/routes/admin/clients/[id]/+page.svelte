@@ -111,7 +111,7 @@
 </script>
 
 <svelte:head>
-	<title>{account.client_name} - Admin View</title>
+	<title>{account.client_name} - ผู้ดูแลระบบ</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -161,25 +161,25 @@
 
 	{#if latestStats}
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-			<MetricCard label="Balance" value={formatCurrency(latestStats.balance)} />
-			<MetricCard label="Equity" value={formatCurrency(latestStats.equity)} />
-			<MetricCard label="Floating P/L" value={formatCurrency(latestStats.floating_pl)}
+			<MetricCard label="ยอดเงิน" value={formatCurrency(latestStats.balance)} />
+			<MetricCard label="มูลค่าพอร์ต" value={formatCurrency(latestStats.equity)} />
+			<MetricCard label="กำไร/ขาดทุนลอย" value={formatCurrency(latestStats.floating_pl)}
 				color={latestStats.floating_pl >= 0 ? 'text-green-400' : 'text-red-400'} />
-			<MetricCard label="Profit" value={formatCurrency(latestStats.profit)}
+			<MetricCard label="กำไร" value={formatCurrency(latestStats.profit)}
 				color={latestStats.profit >= 0 ? 'text-green-400' : 'text-red-400'} />
 		</div>
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-			<MetricCard label="Win Rate" value={formatPercent(latestStats.win_rate).replace('+', '')} />
-			<MetricCard label="Profit Factor" value={formatNumber(latestStats.profit_factor)} />
-			<MetricCard label="Max Drawdown" value={formatPercent(latestStats.max_drawdown)} color="text-red-400" />
-			<MetricCard label="Total Trades" value={String(latestStats.total_trades || 0)} />
+			<MetricCard label="อัตราชนะ" value={formatPercent(latestStats.win_rate).replace('+', '')} />
+			<MetricCard label="อัตราส่วนกำไร" value={formatNumber(latestStats.profit_factor)} />
+			<MetricCard label="ขาดทุนสูงสุด" value={formatPercent(latestStats.max_drawdown)} color="text-red-400" />
+			<MetricCard label="เทรดทั้งหมด" value={String(latestStats.total_trades || 0)} />
 		</div>
 	{:else}
 		<div class="card text-center py-8"><p class="text-gray-500">ยังไม่มีข้อมูล</p></div>
 	{/if}
 
 	<div class="card">
-		<h2 class="text-sm font-medium text-gray-400 mb-4">Open Positions ({openPositions.length})</h2>
+		<h2 class="text-sm font-medium text-gray-400 mb-4">ตำแหน่งที่เปิด ({openPositions.length})</h2>
 		{#if openPositions.length === 0}
 			<EmptyState message="ไม่มี position เปิด" />
 		{:else}
@@ -187,11 +187,11 @@
 				<table class="w-full text-sm">
 					<thead>
 						<tr class="border-b border-dark-border text-gray-500 text-xs">
-							<th class="text-left py-2">Symbol</th>
-							<th class="text-left py-2">Type</th>
-							<th class="text-right py-2">Lots</th>
-							<th class="text-right py-2">Open</th>
-							<th class="text-right py-2">P/L</th>
+							<th class="text-left py-2">สัญลักษณ์</th>
+							<th class="text-left py-2">ประเภท</th>
+							<th class="text-right py-2">ล็อต</th>
+							<th class="text-right py-2">ราคาเปิด</th>
+							<th class="text-right py-2">กำไร/ขาดทุน</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -211,7 +211,7 @@
 	</div>
 
 	<div class="card">
-		<h2 class="text-sm font-medium text-gray-400 mb-4">Recent Trades ({recentTrades.length})</h2>
+		<h2 class="text-sm font-medium text-gray-400 mb-4">เทรดล่าสุด ({recentTrades.length})</h2>
 		{#if recentTrades.length === 0}
 			<EmptyState message="ยังไม่มี trade" />
 		{:else}
@@ -219,11 +219,11 @@
 				<table class="w-full text-sm">
 					<thead>
 						<tr class="border-b border-dark-border text-gray-500 text-xs">
-							<th class="text-left py-2">Symbol</th>
-							<th class="text-left py-2">Type</th>
-							<th class="text-right py-2">Lots</th>
-							<th class="text-right py-2">P/L</th>
-							<th class="text-right py-2">Time</th>
+							<th class="text-left py-2">สัญลักษณ์</th>
+							<th class="text-left py-2">ประเภท</th>
+							<th class="text-right py-2">ล็อต</th>
+							<th class="text-right py-2">กำไร/ขาดทุน</th>
+							<th class="text-right py-2">เวลา</th>
 						</tr>
 					</thead>
 					<tbody>

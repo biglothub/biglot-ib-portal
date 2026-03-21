@@ -107,7 +107,7 @@
 								<h3 class="text-sm font-medium text-white">{account.client_name}</h3>
 								<StatusBadge status={account.status} />
 								{#if account.mt5_validated}
-									<span class="text-green-400 text-xs" title="MT5 Validated">MT5 ✓</span>
+									<span class="text-green-400 text-xs" title="MT5 ยืนยันแล้ว">MT5 ✓</span>
 								{:else if account.mt5_validation_error}
 									<span class="text-red-400 text-xs" title={account.mt5_validation_error}>MT5 ✗</span>
 								{:else}

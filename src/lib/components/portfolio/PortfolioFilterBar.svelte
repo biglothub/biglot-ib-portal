@@ -142,7 +142,7 @@ import { goto, invalidate } from '$app/navigation';
 		class="w-full flex items-center justify-between gap-3"
 	>
 		<div class="flex items-center gap-2">
-			<h3 class="text-sm font-medium text-white">Filters</h3>
+			<h3 class="text-sm font-medium text-white">ตัวกรอง</h3>
 			{#if activeCount > 0 && !expanded}
 				<span class="inline-flex items-center justify-center rounded-full bg-brand-primary/20 text-brand-primary text-[10px] font-semibold px-1.5 py-0.5 min-w-[18px]">
 					{activeCount}
@@ -159,14 +159,14 @@ import { goto, invalidate } from '$app/navigation';
 	<div class="flex items-center justify-end gap-2">
 		{#if pageKey === 'trades' || pageKey === 'analytics'}
 			<button type="button" onclick={saveView} class="text-xs text-brand-primary hover:text-brand-primary/80">
-				Save View
+				บันทึกมุมมอง
 			</button>
 		{/if}
 		<button type="button" onclick={clearFilters} class="text-xs text-gray-400 hover:text-white">
-			Clear
+			ล้าง
 		</button>
 		<button type="button" onclick={() => applyFilters()} class="btn-primary text-sm px-3 py-2">
-			Apply
+			ใช้งาน
 		</button>
 	</div>
 
@@ -174,34 +174,34 @@ import { goto, invalidate } from '$app/navigation';
 		<input
 			type="text"
 			bind:value={q}
-			placeholder="Search symbol, notes, lesson..."
+			placeholder="ค้นหา symbol, notes, lesson..."
 			class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
 		/>
 		<input type="date" bind:value={from} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
 		<input type="date" bind:value={to} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
 		<select bind:value={outcome} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			<option value="">All outcomes</option>
-			<option value="win">Win</option>
-			<option value="loss">Loss</option>
-			<option value="breakeven">Breakeven</option>
+			<option value="">ผลลัพธ์ทั้งหมด</option>
+			<option value="win">กำไร</option>
+			<option value="loss">ขาดทุน</option>
+			<option value="breakeven">เสมอตัว</option>
 		</select>
 
 		<MultiSelectDropdown
-			label="Symbols"
+			label="สัญลักษณ์"
 			options={(filterOptions.symbols || []).map((s: string) => ({ value: s, label: s }))}
 			bind:selected={symbols}
 		/>
 		<MultiSelectDropdown
-			label="Sessions"
+			label="เซสชัน"
 			options={[
-				{ value: 'asian', label: 'Asian' },
-				{ value: 'london', label: 'London' },
-				{ value: 'newyork', label: 'New York' }
+				{ value: 'asian', label: 'เอเชีย' },
+				{ value: 'london', label: 'ลอนดอน' },
+				{ value: 'newyork', label: 'นิวยอร์ก' }
 			]}
 			bind:selected={sessions}
 		/>
 		<MultiSelectDropdown
-			label="Directions"
+			label="ทิศทาง"
 			options={[
 				{ value: 'BUY', label: 'BUY' },
 				{ value: 'SELL', label: 'SELL' }
@@ -209,48 +209,48 @@ import { goto, invalidate } from '$app/navigation';
 			bind:selected={directions}
 		/>
 		<MultiSelectDropdown
-			label="Review Status"
+			label="สถานะรีวิว"
 			options={[
-				{ value: 'unreviewed', label: 'Unreviewed' },
-				{ value: 'in_progress', label: 'In Progress' },
-				{ value: 'reviewed', label: 'Reviewed' }
+				{ value: 'unreviewed', label: 'ยังไม่รีวิว' },
+				{ value: 'in_progress', label: 'กำลังรีวิว' },
+				{ value: 'reviewed', label: 'รีวิวแล้ว' }
 			]}
 			bind:selected={reviewStatus}
 		/>
 
 		<MultiSelectDropdown
-			label="Tags"
+			label="แท็ก"
 			options={tags.map((t: any) => ({ value: t.id, label: t.name }))}
 			bind:selected={tagIds}
 		/>
 		<MultiSelectDropdown
-			label="Playbooks"
+			label="กลยุทธ์"
 			options={playbooks.map((p: any) => ({ value: p.id, label: p.name }))}
 			bind:selected={playbookIds}
 		/>
 		<select bind:value={durationBucket} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-			<option value="">All durations</option>
+			<option value="">ระยะเวลาทั้งหมด</option>
 			{#each filterOptions.durationBuckets || [] as bucket}
 				<option value={bucket.value}>{bucket.label}</option>
 			{/each}
 		</select>
 		<div class="grid grid-cols-2 gap-3">
 			<select bind:value={hasNotes} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-				<option value="">Notes: all</option>
-				<option value="1">Has notes</option>
-				<option value="0">No notes</option>
+				<option value="">โน้ต: ทั้งหมด</option>
+				<option value="1">มีโน้ต</option>
+				<option value="0">ไม่มีโน้ต</option>
 			</select>
 			<select bind:value={hasAttachments} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-				<option value="">Attach: all</option>
-				<option value="1">Has attachments</option>
-				<option value="0">No attachments</option>
+				<option value="">ไฟล์แนบ: ทั้งหมด</option>
+				<option value="1">มีไฟล์แนบ</option>
+				<option value="0">ไม่มีไฟล์แนบ</option>
 			</select>
 		</div>
 	</div>
 
 	{#if savedViews.length > 0}
 		<div class="space-y-2">
-			<div class="text-xs text-gray-500">Saved Views</div>
+			<div class="text-xs text-gray-500">มุมมองที่บันทึก</div>
 			<div class="flex flex-wrap gap-2">
 				{#each savedViews as view}
 					<div class="inline-flex items-center gap-2 rounded-full border border-dark-border bg-dark-bg/40 px-3 py-1.5 text-xs text-gray-300">
