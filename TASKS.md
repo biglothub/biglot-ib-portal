@@ -203,7 +203,7 @@
   - Verify: Trade Replay (chart, controls, P&L curve)
   - Fix ANY issues found. Commit fixes.
 
-- [ ] [M] QA-007: QA Progress & Discipline
+- [x] [M] QA-007: QA Progress & Discipline
   - Verify: Daily Checklist (manual + automated rules)
   - Verify: Progress heatmap (weekly grid)
   - Verify: Streak counter
@@ -417,3 +417,7 @@
 - Task: QA-006 — QA Notebook, Playbook, Calendar, Trade Replay
 - Result: All 4 feature areas verified present and functional (Notebook folders/search/rich text editor/Sessions Recap generation, Playbook templates marketplace browse/clone/publish with stats, Economic Calendar with events/filters/impact levels/week selector, Trade Replay with candlestick chart/transport controls/speed/P&L curve/entry-exit markers). Fixed: translated 70+ English strings to Thai across 6 files — Notebook page (folder labels, search placeholder, note list headers, editor toolbar, save status, empty states, date locale en-US→th-TH), TiptapEditor (9 toolbar tooltips: Bold→ตัวหนา, Italic→ตัวเอียง, etc.), Notebook API (5 error messages + session recap labels/title/stats text), Playbook page (tab labels, editor form labels, library section, performance table headers, template stats, clone/publish text), Calendar page (heading + title), Trade Replay page (status bar labels IN TRADE/CLOSED/PRE-ENTRY→Thai, transport control tooltips, jump buttons, keyboard hints, header labels Entry/Exit/Duration→Thai, Unrealized P/L label). All checks pass: build OK, 127 tests pass.
 - Next: QA-007
+### Session 2026-03-21 (continued 21)
+- Task: QA-007 — QA Progress & Discipline
+- Result: All 4 Progress & Discipline features verified present and functional (Daily Checklist with manual + 5 automated rules including trades_have_sl/journal_complete/max_loss_trade/max_loss_day/trades_linked_playbook, Progress Heatmap 12-week GitHub-style grid with completion rate colors, Streak counter tracking consecutive 100% completion days, Trade Insights engine with 18 trade-level rules + 5 day-level rules + quality score 0-100 with 8 weighted factors). Fixed: translated 50+ English strings to Thai across 10 files — Progress page (4 KPI card labels, 5 goal type descriptions, period/target labels), DailyChecklist (heading, manual/automated labels, add rule button/placeholder, status labels Pending→รอตรวจสอบ/Yes→ผ่าน/No→ไม่ผ่าน), ProgressHeatmap (heading, day labels Sun→อา, month labels Jan→ม.ค., streak label, legend Less/More→น้อย/มาก, tooltip), RulesAnalyticsTable (heading, 5 column headers), InsightsSection (heading, 4 category labels Positive→เชิงบวก), ScoreBreakdown (heading + 6 metric labels), QualityScoreBar (tooltip), checklist.ts (5 default rule names), rules-analytics.ts (3 condition format strings), checklist API (5 error messages), progress API (4 error messages). All checks pass: build OK, 127 tests pass.
+- Next: QA-008

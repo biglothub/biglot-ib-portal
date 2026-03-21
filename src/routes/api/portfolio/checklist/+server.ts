@@ -9,7 +9,7 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -68,16 +68,16 @@ export const GET: RequestHandler = async ({ locals }) => {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:checklist:${profile.id}`, 30, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
 	if (!account) {
-		return json({ message: 'No approved account' }, { status: 404 });
+		return json({ message: 'ไม่พบบัญชีที่อนุมัติ' }, { status: 404 });
 	}
 
 	const body = await request.json();
@@ -102,7 +102,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (body.action === 'toggle') {
 		const { rule_id, date, completed } = body;
 		if (!rule_id || !date) {
-			return json({ message: 'rule_id and date required' }, { status: 400 });
+			return json({ message: 'ต้องระบุ rule_id และ date' }, { status: 400 });
 		}
 
 		const { error } = await locals.supabase
@@ -154,5 +154,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ success: true });
 	}
 
-	return json({ message: 'Unknown action' }, { status: 400 });
+	return json({ message: 'การกระทำไม่ถูกต้อง' }, { status: 400 });
 };

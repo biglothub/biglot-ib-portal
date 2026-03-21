@@ -105,31 +105,31 @@ function evaluateSingleRule(
 export function getDefaultRules(): Array<Omit<ChecklistRule, 'id'> & { name: string; type: 'manual' | 'automated'; automated_check?: string; condition?: Record<string, unknown> }> {
 	return [
 		{
-			name: 'Review market structure',
+			name: 'ตรวจสอบโครงสร้างตลาด',
 			type: 'manual',
 			is_active: true
 		},
 		{
-			name: 'Set daily loss limit',
+			name: 'กำหนดขีดจำกัดขาดทุนรายวัน',
 			type: 'manual',
 			is_active: true
 		},
 		{
-			name: 'All trades have stop loss',
+			name: 'ทุกเทรดมี Stop Loss',
 			type: 'automated',
 			automated_check: 'trades_have_sl',
 			condition: { threshold: 100, unit: 'percent' },
 			is_active: true
 		},
 		{
-			name: 'Journal completed',
+			name: 'เขียน Journal แล้ว',
 			type: 'automated',
 			automated_check: 'journal_complete',
 			condition: {},
 			is_active: true
 		},
 		{
-			name: 'Max loss per trade < $100',
+			name: 'ขาดทุนต่อเทรด < $100',
 			type: 'automated',
 			automated_check: 'max_loss_trade',
 			condition: { max: 100, unit: 'usd' },

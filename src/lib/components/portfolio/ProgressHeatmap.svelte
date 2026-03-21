@@ -7,7 +7,7 @@
 		streak?: number;
 	} = $props();
 
-	const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	const dayLabels = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 	// Group data into weeks (columns)
 	const weeks = $derived((() => {
@@ -50,7 +50,7 @@
 	const monthLabels = $derived((() => {
 		if (!data || data.length === 0) return [];
 		const labels: Array<{ text: string; weekIndex: number }> = [];
-		const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+		const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 		let lastMonth = -1;
 		let dayIndex = 0;
 
@@ -72,11 +72,11 @@
 
 <div class="space-y-3">
 	<div class="flex items-center justify-between">
-		<h3 class="text-sm font-medium text-gray-400">Discipline Tracker</h3>
+		<h3 class="text-sm font-medium text-gray-400">ติดตามวินัย</h3>
 		{#if streak > 0}
 			<div class="flex items-center gap-1.5 text-sm">
 				<span class="text-brand-primary font-bold">{streak}</span>
-				<span class="text-gray-500">day streak</span>
+				<span class="text-gray-500">วันติดต่อกัน</span>
 			</div>
 		{/if}
 	</div>
@@ -110,7 +110,7 @@
 						{#if cell}
 							<div
 								class="w-[12px] h-[12px] rounded-sm {cellColor(cell.rate)}"
-								title="{cell.date}: {cell.rate.toFixed(0)}% complete"
+								title="{cell.date}: สำเร็จ {cell.rate.toFixed(0)}%"
 							></div>
 						{:else}
 							<div class="w-[12px] h-[12px]"></div>
@@ -123,12 +123,12 @@
 
 	<!-- Legend -->
 	<div class="flex items-center gap-2 text-[10px] text-gray-600">
-		<span>Less</span>
+		<span>น้อย</span>
 		<div class="w-[10px] h-[10px] rounded-sm bg-dark-border/30"></div>
 		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/15"></div>
 		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/30"></div>
 		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/50"></div>
 		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/80"></div>
-		<span>More</span>
+		<span>มาก</span>
 	</div>
 </div>

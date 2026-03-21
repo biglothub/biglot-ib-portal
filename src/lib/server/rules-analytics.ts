@@ -104,10 +104,10 @@ export function buildRulesAnalytics(
 }
 
 function formatCondition(rule: ChecklistRule): string {
-	if (rule.type === 'manual') return 'Manual';
+	if (rule.type === 'manual') return 'ทำเอง';
 	const cond = rule.condition || {};
 	if ((cond as any).unit === 'percent') return `${(cond as any).threshold || 100}%`;
 	if ((cond as any).unit === 'usd') return `< $${(cond as any).max || 100}`;
-	if (rule.automated_check === 'journal_complete') return 'Complete';
-	return rule.automated_check || 'Auto';
+	if (rule.automated_check === 'journal_complete') return 'ครบถ้วน';
+	return rule.automated_check || 'อัตโนมัติ';
 }

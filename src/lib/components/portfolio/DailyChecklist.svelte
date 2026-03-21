@@ -105,17 +105,17 @@
 	// Auto rule status label
 	function autoStatusLabel(rule: any) {
 		const val = getAutoValue(rule.id);
-		if (val === undefined || val === null) return 'Pending';
+		if (val === undefined || val === null) return 'รอตรวจสอบ';
 		const cond = rule.condition || {};
 		if (cond.unit === 'percent') return `${val}%`;
 		if (cond.unit === 'usd') return `$${val}`;
-		return val ? 'Yes' : 'No';
+		return val ? 'ผ่าน' : 'ไม่ผ่าน';
 	}
 </script>
 
 <div class="space-y-3">
 	<div class="flex items-center justify-between">
-		<h3 class="text-sm font-medium text-gray-400">Daily Checklist</h3>
+		<h3 class="text-sm font-medium text-gray-400">เช็คลิสต์ประจำวัน</h3>
 		<div class="flex items-center gap-2">
 			<span class="text-xs text-gray-500">{completedCount}/{rules.length}</span>
 			<div class="w-16 h-1.5 rounded-full bg-dark-border overflow-hidden">
@@ -129,7 +129,7 @@
 
 	<!-- Manual Rules -->
 	{#if manualRules.length > 0}
-		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-2">Manual</div>
+		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-2">ทำเอง</div>
 		{#each manualRules as rule}
 			<button
 				onclick={() => toggleRule(rule.id)}
@@ -154,7 +154,7 @@
 
 	<!-- Automated Rules -->
 	{#if automatedRules.length > 0}
-		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-3">Automated</div>
+		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-3">อัตโนมัติ</div>
 		{#each automatedRules as rule}
 			<div class="flex items-center justify-between rounded-xl px-3 py-2.5
 				{isCompleted(rule.id) ? 'bg-green-500/10' : 'bg-dark-bg/30'}">
@@ -181,14 +181,14 @@
 		<div class="flex gap-2">
 			<input
 				bind:value={newRuleName}
-				placeholder="Rule name..."
+				placeholder="ชื่อกฎ..."
 				class="flex-1 rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white placeholder-gray-600"
 				onkeydown={(e) => { if (e.key === 'Enter') addRule(); }}
 			/>
-			<button onclick={addRule} disabled={saving} class="px-3 py-2 rounded-lg bg-brand-primary text-dark-bg text-sm font-medium">Add</button>
-			<button onclick={() => { showAddRule = false; newRuleName = ''; }} class="px-3 py-2 rounded-lg border border-dark-border text-gray-400 text-sm">Cancel</button>
+			<button onclick={addRule} disabled={saving} class="px-3 py-2 rounded-lg bg-brand-primary text-dark-bg text-sm font-medium">เพิ่ม</button>
+			<button onclick={() => { showAddRule = false; newRuleName = ''; }} class="px-3 py-2 rounded-lg border border-dark-border text-gray-400 text-sm">ยกเลิก</button>
 		</div>
 	{:else}
-		<button onclick={() => showAddRule = true} class="text-xs text-brand-primary hover:underline">+ Add rule</button>
+		<button onclick={() => showAddRule = true} class="text-xs text-brand-primary hover:underline">+ เพิ่มกฎ</button>
 	{/if}
 </div>

@@ -19,16 +19,16 @@
 
 {#if analytics.length > 0}
 	<div>
-		<h3 class="text-sm font-medium text-gray-400 mb-3">Rules Performance</h3>
+		<h3 class="text-sm font-medium text-gray-400 mb-3">ประสิทธิภาพกฎ</h3>
 		<div class="overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="border-b border-dark-border text-gray-500 text-xs">
-						<th class="text-left py-2">Rule</th>
-						<th class="text-center py-2">Condition</th>
+						<th class="text-left py-2">กฎ</th>
+						<th class="text-center py-2">เงื่อนไข</th>
 						<th class="text-center py-2">Streak</th>
-						<th class="text-right py-2">Avg P&L (followed)</th>
-						<th class="text-right py-2">Follow Rate</th>
+						<th class="text-right py-2">P&L เฉลี่ย (ทำตาม)</th>
+						<th class="text-right py-2">อัตราปฏิบัติ</th>
 					</tr>
 				</thead>
 				<tbody>

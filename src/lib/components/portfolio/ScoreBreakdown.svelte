@@ -32,34 +32,34 @@
 </script>
 
 <div class="card space-y-5">
-	<h3 class="text-lg font-semibold text-white">Profit Breakdown</h3>
+	<h3 class="text-lg font-semibold text-white">สรุปกำไร/ขาดทุน</h3>
 
 	<!-- Main Profit -->
 	<div class="text-center">
 		<div class="text-4xl font-bold {totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">
 			{formatCurrency(totalProfit)}
 		</div>
-		<div class="text-xs text-gray-500 mt-1">Total Profit</div>
+		<div class="text-xs text-gray-500 mt-1">กำไรรวม</div>
 	</div>
 
 	<!-- Key Metrics -->
 	<div class="grid grid-cols-2 gap-3">
 		<div class="p-3 bg-dark-bg/50 rounded-lg text-center">
-			<div class="text-xs text-gray-400">Profit/Trade</div>
+			<div class="text-xs text-gray-400">กำไร/เทรด</div>
 			<div class="text-lg font-bold {profitPerTrade >= 0 ? 'text-green-400' : 'text-red-400'}">
 				{formatCurrency(profitPerTrade)}
 			</div>
 		</div>
 		<div class="p-3 bg-dark-bg/50 rounded-lg text-center">
-			<div class="text-xs text-gray-400">Total Trades</div>
+			<div class="text-xs text-gray-400">เทรดทั้งหมด</div>
 			<div class="text-lg font-bold text-white">{totalTrades}</div>
 		</div>
 		<div class="p-3 bg-dark-bg/50 rounded-lg text-center">
-			<div class="text-xs text-gray-400">Best Trade</div>
+			<div class="text-xs text-gray-400">เทรดที่ดีที่สุด</div>
 			<div class="text-lg font-bold text-green-400">{formatCurrency(bestTrade)}</div>
 		</div>
 		<div class="p-3 bg-dark-bg/50 rounded-lg text-center">
-			<div class="text-xs text-gray-400">Worst Trade</div>
+			<div class="text-xs text-gray-400">เทรดที่แย่ที่สุด</div>
 			<div class="text-lg font-bold text-red-400">{formatCurrency(worstTrade)}</div>
 		</div>
 	</div>
@@ -67,7 +67,7 @@
 	<!-- Session Contribution -->
 	<div>
 		<div class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
-			Profit by Session
+			กำไรตาม Session
 		</div>
 		<div class="space-y-2">
 			{#each sessions as session}

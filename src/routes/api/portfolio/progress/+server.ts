@@ -10,7 +10,7 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
@@ -33,23 +33,23 @@ export const GET: RequestHandler = async ({ locals }) => {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
-		return json({ message: 'Forbidden' }, { status: 403 });
+		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
 	if (!rateLimit(`portfolio:progress:${profile.id}`, 20, 60_000)) {
-		return json({ message: 'Too many requests' }, { status: 429 });
+		return json({ message: 'คำขอมากเกินไป' }, { status: 429 });
 	}
 
 	const account = await getApprovedPortfolioAccount(locals.supabase);
 	if (!account) {
-		return json({ message: 'No approved account' }, { status: 404 });
+		return json({ message: 'ไม่พบบัญชีที่อนุมัติ' }, { status: 404 });
 	}
 
 	const { goal_type, target_value, period_days, is_active } = await request.json();
 	const validGoalTypes = ['review_completion', 'journal_streak', 'max_rule_breaks', 'profit_factor', 'win_rate'];
 
 	if (!validGoalTypes.includes(goal_type)) {
-		return json({ message: 'Invalid goal_type' }, { status: 400 });
+		return json({ message: 'ประเภทเป้าหมายไม่ถูกต้อง' }, { status: 400 });
 	}
 
 	const payload = {

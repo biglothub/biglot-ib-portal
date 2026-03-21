@@ -9,7 +9,7 @@
 	);
 </script>
 
-<div class="flex items-center gap-1.5" title="Quality Score: {score}/100">
+<div class="flex items-center gap-1.5" title="คะแนนคุณภาพ: {score}/100">
 	<div class="w-14 h-1.5 rounded-full bg-dark-border overflow-hidden">
 		<div class="{color} h-full rounded-full transition-all" style="width: {score}%"></div>
 	</div>

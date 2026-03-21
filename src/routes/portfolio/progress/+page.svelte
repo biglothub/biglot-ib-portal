@@ -51,15 +51,15 @@
 
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
-			<div class="text-xs text-gray-500">Review Rate</div>
+			<div class="text-xs text-gray-500">อัตราการรีวิว</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{(reviewSummary?.reviewRate || 0).toFixed(0)}%</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Reviewed Trades</div>
+			<div class="text-xs text-gray-500">เทรดที่รีวิวแล้ว</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{reviewSummary?.reviewed || 0}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Journal Completion</div>
+			<div class="text-xs text-gray-500">ความสมบูรณ์ของ Journal</div>
 			<div class="mt-1 text-2xl font-semibold text-green-400">{(journalSummary?.completionRate || 0).toFixed(0)}%</div>
 		</div>
 		<div class="card">
@@ -74,11 +74,11 @@
 				<div class="flex items-center justify-between">
 					<div>
 						<h2 class="text-lg font-semibold text-white">{goal.goal_type}</h2>
-						<p class="text-xs text-gray-500">Period: {goal.period_days} days</p>
+						<p class="text-xs text-gray-500">ระยะเวลา: {goal.period_days} วัน</p>
 					</div>
 					<div class="text-right">
 						<div class="text-lg font-semibold text-white">{goal.currentValue.toFixed(1)}</div>
-						<div class="text-xs text-gray-500">target {goal.target_value}</div>
+						<div class="text-xs text-gray-500">เป้าหมาย {goal.target_value}</div>
 					</div>
 				</div>
 				<div class="w-full bg-dark-border rounded-full h-2">
@@ -99,11 +99,11 @@
 					/>
 				</div>
 				<div class="text-xs text-gray-500">
-					{goal.goal_type === 'review_completion' && `Current review rate ${formatPercent(goal.currentValue).replace('+', '')}`}
-					{goal.goal_type === 'journal_streak' && `Current streak ${formatNumber(goal.currentValue, 0)} days`}
-					{goal.goal_type === 'max_rule_breaks' && `Current rule breaks ${formatNumber(goal.currentValue, 0)}`}
-					{goal.goal_type === 'profit_factor' && `Current PF ${formatNumber(goal.currentValue)}`}
-					{goal.goal_type === 'win_rate' && `Current win rate ${formatPercent(goal.currentValue).replace('+', '')}`}
+					{goal.goal_type === 'review_completion' && `อัตราการรีวิวปัจจุบัน ${formatPercent(goal.currentValue).replace('+', '')}`}
+					{goal.goal_type === 'journal_streak' && `Streak ปัจจุบัน ${formatNumber(goal.currentValue, 0)} วัน`}
+					{goal.goal_type === 'max_rule_breaks' && `การทำผิดกฎปัจจุบัน ${formatNumber(goal.currentValue, 0)}`}
+					{goal.goal_type === 'profit_factor' && `PF ปัจจุบัน ${formatNumber(goal.currentValue)}`}
+					{goal.goal_type === 'win_rate' && `อัตราชนะปัจจุบัน ${formatPercent(goal.currentValue).replace('+', '')}`}
 				</div>
 			</div>
 		{/each}
