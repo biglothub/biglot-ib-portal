@@ -17,16 +17,16 @@
 	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
 
 	const subTabs = [
-		{ key: 'overview', label: 'Overview' },
-		{ key: 'performance', label: 'Performance' },
-		{ key: 'calendar', label: 'Calendar' },
-		{ key: 'symbols', label: 'Symbols' },
-		{ key: 'tags', label: 'Tags' },
-		{ key: 'days', label: 'Days' },
-		{ key: 'daytime', label: 'Day & Time' },
-		{ key: 'risk', label: 'Risk' },
-		{ key: 'recaps', label: 'Recaps & Insights' },
-		{ key: 'compare', label: 'Compare' },
+		{ key: 'overview', label: 'ภาพรวม' },
+		{ key: 'performance', label: 'ผลการเทรด' },
+		{ key: 'calendar', label: 'ปฏิทิน' },
+		{ key: 'symbols', label: 'สัญลักษณ์' },
+		{ key: 'tags', label: 'แท็ก' },
+		{ key: 'days', label: 'รายวัน' },
+		{ key: 'daytime', label: 'วัน & เวลา' },
+		{ key: 'risk', label: 'ความเสี่ยง' },
+		{ key: 'recaps', label: 'สรุป & Insights' },
+		{ key: 'compare', label: 'เปรียบเทียบ' },
 	];
 
 	function switchTab(tab: string) {
@@ -140,12 +140,12 @@
 	}
 
 	const categoryLabels: Record<string, string> = {
-		setup: 'Setup',
-		execution: 'Execution',
-		emotion: 'Emotion',
-		mistake: 'Mistake',
-		market_condition: 'Market Condition',
-		custom: 'Custom'
+		setup: 'กลยุทธ์',
+		execution: 'การเข้าเทรด',
+		emotion: 'อารมณ์',
+		mistake: 'ข้อผิดพลาด',
+		market_condition: 'สภาพตลาด',
+		custom: 'กำหนดเอง'
 	};
 
 	const categoryColors: Record<string, string> = {
@@ -451,7 +451,7 @@
 			class="flex items-center gap-1.5 rounded-lg border border-dark-border px-3 py-2 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors disabled:opacity-50 whitespace-nowrap"
 		>
 			<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-			{exporting ? 'Exporting...' : 'Export PDF'}
+			{exporting ? 'กำลังส่งออก...' : 'ส่งออก PDF'}
 		</button>
 	</div>
 
@@ -464,28 +464,28 @@
 		<!-- OVERVIEW (existing analytics) -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 			<div class="card border-l-2 {report.expectancy >= 0 ? 'border-l-green-500' : 'border-l-red-500'}">
-				<div class="text-xs text-gray-500 uppercase tracking-wider">Expectancy</div>
+				<div class="text-xs text-gray-500 uppercase tracking-wider">ค่าคาดหวัง</div>
 				<div class="mt-1.5 text-2xl font-bold {report.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{formatCurrency(report.expectancy)}
 				</div>
 			</div>
 			<div class="card border-l-2 border-l-red-500">
-				<div class="text-xs text-gray-500 uppercase tracking-wider">Rule-break Cost</div>
+				<div class="text-xs text-gray-500 uppercase tracking-wider">ต้นทุนผิดกฎ</div>
 				<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(report.ruleBreakMetrics?.ruleBreakLoss || 0)}</div>
 			</div>
 			<div class="card border-l-2 border-l-green-500">
-				<div class="text-xs text-gray-500 uppercase tracking-wider">Journal Completion</div>
+				<div class="text-xs text-gray-500 uppercase tracking-wider">บันทึกครบ</div>
 				<div class="mt-1.5 text-2xl font-bold text-green-400">{(report.journalSummary?.completionRate || 0).toFixed(0)}%</div>
 			</div>
 			<div class="card border-l-2 border-l-brand-primary">
-				<div class="text-xs text-gray-500 uppercase tracking-wider">Filtered Trades</div>
+				<div class="text-xs text-gray-500 uppercase tracking-wider">เทรดที่กรอง</div>
 				<div class="mt-1.5 text-2xl font-bold text-white">{report.filteredTrades?.length || 0}</div>
 			</div>
 		</div>
 
 		{#if statsOverview && statsOverview.length > 0}
 			<div class="card">
-				<h2 class="text-base font-semibold text-white mb-4">Your Stats</h2>
+				<h2 class="text-base font-semibold text-white mb-4">สถิติของคุณ</h2>
 				<StatsOverviewTable sections={statsOverview} />
 			</div>
 		{/if}
@@ -496,17 +496,17 @@
 
 		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 			<div class="card">
-				<h2 class="text-sm font-semibold text-gray-300 mb-4">Setup / Playbook Performance</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">ผลลัพธ์ตาม Setup / Playbook</h2>
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
-								<th class="text-left py-2.5 font-medium">Setup</th>
-								<th class="text-right py-2.5 font-medium">Trades</th>
-								<th class="text-right py-2.5 font-medium">Win Rate</th>
+								<th class="text-left py-2.5 font-medium">กลยุทธ์</th>
+								<th class="text-right py-2.5 font-medium">เทรด</th>
+								<th class="text-right py-2.5 font-medium">อัตราชนะ</th>
 								<th class="text-right py-2.5 font-medium">PF</th>
-								<th class="text-right py-2.5 font-medium">Expectancy</th>
-								<th class="text-right py-2.5 font-medium">Total P/L</th>
+								<th class="text-right py-2.5 font-medium">ค่าคาดหวัง</th>
+								<th class="text-right py-2.5 font-medium">กำไร/ขาดทุน</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -526,7 +526,7 @@
 			</div>
 
 			<div class="card">
-				<h2 class="text-sm font-semibold text-gray-300 mb-4">Session Breakdown</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">แยกตามเซสชัน</h2>
 				<div class="space-y-3">
 					{#each report.sessionStats || [] as session}
 						<div class="rounded-xl bg-dark-bg/30 px-4 py-3">
@@ -534,7 +534,7 @@
 								<span class="text-white uppercase">{session.session}</span>
 								<span class="{session.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-medium">{formatCurrency(session.profit)}</span>
 							</div>
-							<div class="mt-1 text-xs text-gray-500">{session.trades} trades • {session.winRate.toFixed(0)}% win</div>
+							<div class="mt-1 text-xs text-gray-500">{session.trades} เทรด • ชนะ {session.winRate.toFixed(0)}%</div>
 						</div>
 					{/each}
 				</div>
@@ -543,25 +543,25 @@
 
 		<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 			<div class="card xl:col-span-1">
-				<h2 class="text-sm font-semibold text-gray-300 mb-4">Mistake Cost</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">ต้นทุนจากข้อผิดพลาด</h2>
 				<div class="space-y-2">
 					{#if report.mistakeStats?.length > 0}
 						{#each report.mistakeStats.slice(0, 8) as mistake}
 							<div class="flex items-center justify-between rounded-xl bg-dark-bg/30 px-3 py-3">
 								<div>
 									<div class="text-sm text-white">{mistake.name}</div>
-									<div class="text-[11px] text-gray-500">{mistake.count} tagged trades</div>
+									<div class="text-[11px] text-gray-500">{mistake.count} เทรดที่ติดแท็ก</div>
 								</div>
 								<div class="text-sm font-medium text-red-400">{formatCurrency(mistake.cost)}</div>
 							</div>
 						{/each}
 					{:else}
-						<EmptyState message="ยังไม่มี mistake tags ใน filtered trades" />
+						<EmptyState message="ยังไม่มีแท็กข้อผิดพลาดในเทรดที่กรอง" />
 					{/if}
 				</div>
 			</div>
 			<div class="card xl:col-span-1">
-				<h2 class="text-sm font-semibold text-gray-300 mb-4">Duration Buckets</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">แยกตามระยะเวลาถือ</h2>
 				<div class="space-y-2">
 					{#each report.durationBuckets || [] as bucket}
 						<div class="rounded-xl bg-dark-bg/30 px-3 py-3">
@@ -569,13 +569,13 @@
 								<div class="text-sm text-white uppercase">{bucket.bucket}</div>
 								<div class="{bucket.profit >= 0 ? 'text-green-400' : 'text-red-400'} text-sm font-medium">{formatCurrency(bucket.profit)}</div>
 							</div>
-							<div class="mt-1 text-[11px] text-gray-500">{bucket.count} trades • avg {bucket.avgMinutes} min</div>
+							<div class="mt-1 text-[11px] text-gray-500">{bucket.count} เทรด • เฉลี่ย {bucket.avgMinutes} นาที</div>
 						</div>
 					{/each}
 				</div>
 			</div>
 			<div class="card xl:col-span-1">
-				<h2 class="text-sm font-semibold text-gray-300 mb-4">Progress Goals</h2>
+				<h2 class="text-sm font-semibold text-gray-300 mb-4">เป้าหมายความคืบหน้า</h2>
 				<div class="space-y-3">
 					{#each report.progressSnapshot || [] as goal}
 						<div>
@@ -617,11 +617,11 @@
 		{#if kpiMetrics}
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 				<div class="card border-l-2 {kpiMetrics.netPnl >= 0 ? 'border-l-green-500' : 'border-l-red-500'}">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Net P&L</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">กำไรสุทธิ</div>
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(kpiMetrics.netPnl)}</div>
 				</div>
 				<div class="card border-l-2 {kpiMetrics.tradeWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Trade Win Rate</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">อัตราชนะ</div>
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.tradeWinRate.toFixed(1)}%</div>
 				</div>
 				<div class="card border-l-2 {kpiMetrics.profitFactor >= 1 ? 'border-l-green-500' : 'border-l-red-500'}">
@@ -629,7 +629,7 @@
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{kpiMetrics.profitFactor >= 999 ? '∞' : formatNumber(kpiMetrics.profitFactor)}</div>
 				</div>
 				<div class="card border-l-2 {kpiMetrics.dayWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Day Win Rate</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">อัตราชนะรายวัน</div>
 					<div class="mt-1.5 text-2xl font-bold {kpiMetrics.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.dayWinRate.toFixed(1)}%</div>
 				</div>
 			</div>
@@ -667,7 +667,7 @@
 								{#if cell}
 									<div
 										class="aspect-square flex items-center justify-center text-[10px] rounded {calDayBg(cell.pnl, cell.trades)}"
-										title={cell.trades > 0 ? `${cell.date}: ${formatCurrency(cell.pnl)} (${cell.trades} trades)` : cell.date}
+										title={cell.trades > 0 ? `${cell.date}: ${formatCurrency(cell.pnl)} (${cell.trades} เทรด)` : cell.date}
 									>
 										{cell.day}
 									</div>
@@ -682,16 +682,16 @@
 
 			<!-- Legend -->
 			<div class="mt-6 flex items-center gap-4 text-xs text-gray-500">
-				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/30"></div> Profit</div>
-				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/30"></div> Loss</div>
-				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-dark-bg"></div> No trades</div>
+				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/30"></div> กำไร</div>
+				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/30"></div> ขาดทุน</div>
+				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-dark-bg"></div> ไม่มีเทรด</div>
 			</div>
 		</div>
 
 	{:else if activeTab === 'symbols'}
 		<!-- SYMBOLS BREAKDOWN -->
 		<div class="card">
-			<h2 class="text-lg font-semibold text-white mb-4">Symbol Performance</h2>
+			<h2 class="text-lg font-semibold text-white mb-4">ผลลัพธ์ตามสัญลักษณ์</h2>
 			{#if sortedSymbols.length === 0}
 				<EmptyState message="ไม่พบข้อมูล symbol ใน filter ที่เลือก" />
 			{:else}
@@ -720,13 +720,13 @@
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
-								<th class="text-left py-2.5 font-medium">Symbol</th>
+								<th class="text-left py-2.5 font-medium">สัญลักษณ์</th>
 								{#each [
-									{ key: 'trades', label: 'Trades' },
-									{ key: 'winRate', label: 'Win Rate' },
+									{ key: 'trades', label: 'เทรด' },
+									{ key: 'winRate', label: 'อัตราชนะ' },
 									{ key: 'profitFactor', label: 'PF' },
-									{ key: 'netPnl', label: 'Net P&L' },
-									{ key: 'avgPnl', label: 'Avg P&L' },
+									{ key: 'netPnl', label: 'กำไรสุทธิ' },
+									{ key: 'avgPnl', label: 'เฉลี่ย' },
 								] as col}
 									<th class="text-right py-2.5 font-medium cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleSort(col.key)}>
 										{col.label}
@@ -758,13 +758,13 @@
 		<!-- TAG PERFORMANCE -->
 		<div class="card">
 			<div class="flex items-center justify-between mb-6">
-				<h2 class="text-lg font-semibold text-white">Tag Performance</h2>
+				<h2 class="text-lg font-semibold text-white">ผลลัพธ์ตามแท็ก</h2>
 				<!-- Category filter pills -->
 				<div class="flex gap-1.5 flex-wrap">
 					<button
 						class="px-3 py-1 text-xs rounded-full border transition-colors {tagViewMode === 'all' ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
 						onclick={() => tagViewMode = 'all'}
-					>All</button>
+					>ทั้งหมด</button>
 					{#each Object.entries(categoryLabels) as [key, label]}
 						{#if tagBreakdown?.byCategory?.some((c: any) => c.category === key)}
 							<button
@@ -777,7 +777,7 @@
 			</div>
 
 			{#if !tagBreakdown || tagBreakdown.byTag.length === 0}
-				<EmptyState message="ยังไม่มี tags ใน filtered trades — เพิ่ม tag ให้กับ trades ก่อน" />
+				<EmptyState message="ยังไม่มีแท็กในเทรดที่กรอง — เพิ่มแท็กให้กับเทรดก่อน" />
 			{:else}
 				<!-- Category summary cards -->
 				{#if tagViewMode === 'all' && tagBreakdown.byCategory.length > 0}
@@ -790,7 +790,7 @@
 								<div class="text-xs opacity-70">{categoryLabels[cat.category] || cat.category}</div>
 								<div class="mt-1 flex items-baseline gap-2">
 									<span class="text-xl font-bold">{cat.tagCount}</span>
-									<span class="text-xs opacity-60">tags • {cat.trades} trades</span>
+									<span class="text-xs opacity-60">แท็ก • {cat.trades} เทรด</span>
 								</div>
 								<div class="mt-1 flex items-center gap-3 text-xs">
 									<span>WR {cat.winRate.toFixed(0)}%</span>
@@ -829,14 +829,14 @@
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
-								<th class="text-left py-2.5 font-medium">Tag</th>
-								<th class="text-left py-2.5 font-medium">Category</th>
+								<th class="text-left py-2.5 font-medium">แท็ก</th>
+								<th class="text-left py-2.5 font-medium">หมวดหมู่</th>
 								{#each [
-									{ key: 'trades', label: 'Trades' },
-									{ key: 'winRate', label: 'Win Rate' },
+									{ key: 'trades', label: 'เทรด' },
+									{ key: 'winRate', label: 'อัตราชนะ' },
 									{ key: 'profitFactor', label: 'PF' },
-									{ key: 'netPnl', label: 'Net P&L' },
-									{ key: 'avgPnl', label: 'Avg P&L' },
+									{ key: 'netPnl', label: 'กำไรสุทธิ' },
+									{ key: 'avgPnl', label: 'เฉลี่ย' },
 								] as col}
 									<th class="text-right py-2.5 font-medium cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleTagSort(col.key)}>
 										{col.label}
@@ -877,7 +877,7 @@
 	{:else if activeTab === 'days'}
 		<!-- DAY OF WEEK REPORT -->
 		<div class="card">
-			<h2 class="text-lg font-semibold text-white mb-4">Day of Week Performance</h2>
+			<h2 class="text-lg font-semibold text-white mb-4">ผลลัพธ์ตามวันในสัปดาห์</h2>
 
 			{#if !dayOfWeekReport || dayOfWeekReport.days.length === 0}
 				<EmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับวิเคราะห์รายวัน" />
@@ -885,11 +885,11 @@
 				<!-- Best / Worst Day -->
 				<div class="grid grid-cols-2 gap-4 mb-6">
 					<div class="rounded-xl bg-green-500/10 border border-green-500/20 px-4 py-3">
-						<div class="text-xs text-green-400/70">Best Day</div>
+						<div class="text-xs text-green-400/70">วันที่ดีที่สุด</div>
 						<div class="text-2xl font-bold text-green-400 mt-1">{dayOfWeekReport.bestDay}</div>
 					</div>
 					<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
-						<div class="text-xs text-red-400/70">Worst Day</div>
+						<div class="text-xs text-red-400/70">วันที่แย่ที่สุด</div>
 						<div class="text-2xl font-bold text-red-400 mt-1">{dayOfWeekReport.worstDay}</div>
 					</div>
 				</div>
@@ -920,15 +920,15 @@
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
 								{#each [
-									{ key: 'dayIdx', label: 'Day' },
-									{ key: 'trades', label: 'Trades' },
-									{ key: 'winRate', label: 'Win Rate' },
+									{ key: 'dayIdx', label: 'วัน' },
+									{ key: 'trades', label: 'เทรด' },
+									{ key: 'winRate', label: 'อัตราชนะ' },
 									{ key: 'profitFactor', label: 'PF' },
-									{ key: 'netPnl', label: 'Net P&L' },
-									{ key: 'avgPnl', label: 'Avg P&L' },
-									{ key: 'avgHoldMinutes', label: 'Avg Hold' },
-									{ key: 'bestTrade', label: 'Best' },
-									{ key: 'worstTrade', label: 'Worst' },
+									{ key: 'netPnl', label: 'กำไรสุทธิ' },
+									{ key: 'avgPnl', label: 'เฉลี่ย' },
+									{ key: 'avgHoldMinutes', label: 'ถือเฉลี่ย' },
+									{ key: 'bestTrade', label: 'ดีสุด' },
+									{ key: 'worstTrade', label: 'แย่สุด' },
 								] as col}
 									<th class="{col.key === 'dayIdx' ? 'text-left' : 'text-right'} py-2.5 font-medium cursor-pointer hover:text-gray-300 select-none" onclick={() => toggleDaySort(col.key)}>
 										{col.label}
@@ -963,12 +963,12 @@
 		<!-- DAY & TIME HEATMAP -->
 		<div class="card">
 			<div class="flex items-center justify-between mb-6">
-				<h2 class="text-lg font-semibold text-white">Day & Time Heatmap</h2>
+				<h2 class="text-lg font-semibold text-white">แผนที่ความร้อน วัน & เวลา</h2>
 				<div class="flex gap-1 bg-dark-bg rounded-lg p-1">
 					{#each [
-						{ key: 'pnl', label: 'P&L' },
-						{ key: 'trades', label: 'Trades' },
-						{ key: 'winRate', label: 'Win Rate' },
+						{ key: 'pnl', label: 'กำไร/ขาดทุน' },
+						{ key: 'trades', label: 'เทรด' },
+						{ key: 'winRate', label: 'อัตราชนะ' },
 					] as mode}
 						<button
 							class="px-3 py-1 text-xs font-medium rounded-md transition-all {heatmapMode === mode.key ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
@@ -1003,7 +1003,7 @@
 										{@const cell = getHeatmapCell(dayIdx, hour)}
 										<td
 											class="p-0.5"
-											title={cell ? `${dayName} ${String(hour).padStart(2, '0')}:00 — ${cell.trades} trades, ${formatCurrency(cell.pnl)}, ${cell.winRate.toFixed(0)}% win` : `${dayName} ${String(hour).padStart(2, '0')}:00 — no trades`}
+											title={cell ? `${dayName} ${String(hour).padStart(2, '0')}:00 — ${cell.trades} เทรด, ${formatCurrency(cell.pnl)}, ชนะ ${cell.winRate.toFixed(0)}%` : `${dayName} ${String(hour).padStart(2, '0')}:00 — ไม่มีเทรด`}
 										>
 											<div class="w-full aspect-square rounded-sm min-w-[16px] {heatmapCellColor(cell)}"></div>
 										</td>
@@ -1017,19 +1017,19 @@
 				<!-- Legend -->
 				<div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
 					{#if heatmapMode === 'pnl'}
-						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/60"></div> Profit</div>
-						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/60"></div> Loss</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/60"></div> กำไร</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/60"></div> ขาดทุน</div>
 					{:else if heatmapMode === 'trades'}
-						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/20"></div> Low</div>
-						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/40"></div> Medium</div>
-						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/70"></div> High</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/20"></div> น้อย</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/40"></div> ปานกลาง</div>
+						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500/70"></div> มาก</div>
 					{:else}
 						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/60"></div> >70%</div>
 						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/30"></div> 50-70%</div>
 						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/30"></div> 30-50%</div>
 						<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/60"></div> &lt;30%</div>
 					{/if}
-					<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-dark-bg/20"></div> No trades</div>
+					<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-dark-bg/20"></div> ไม่มีเทรด</div>
 				</div>
 			{/if}
 		</div>
@@ -1044,24 +1044,24 @@
 			<!-- Risk KPI Cards -->
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 				<div class="card border-l-2 border-l-red-500">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Max Drawdown</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">Drawdown สูงสุด</div>
 					<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(riskAnalysis.maxDrawdown)}</div>
 					{#if riskAnalysis.maxDrawdownDate}
 						<div class="text-xs text-gray-500 mt-1">{riskAnalysis.maxDrawdownDate}</div>
 					{/if}
 				</div>
 				<div class="card border-l-2 border-l-amber-500">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Avg Drawdown</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">Drawdown เฉลี่ย</div>
 					<div class="mt-1.5 text-2xl font-bold text-amber-400">{formatCurrency(riskAnalysis.avgDrawdown)}</div>
 					<div class="text-xs text-gray-500 mt-1">{riskAnalysis.drawdownPeriodCount} ช่วง</div>
 				</div>
 				<div class="card border-l-2 border-l-red-400">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Largest Loss</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">ขาดทุนสูงสุด</div>
 					<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(riskAnalysis.largestLoss)}</div>
 				</div>
 				<div class="card border-l-2 border-l-orange-500">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Max Loss Streak</div>
-					<div class="mt-1.5 text-2xl font-bold text-orange-400">{riskAnalysis.maxLossStreak} trades</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">แพ้ติดต่อสูงสุด</div>
+					<div class="mt-1.5 text-2xl font-bold text-orange-400">{riskAnalysis.maxLossStreak} เทรด</div>
 				</div>
 			</div>
 
@@ -1071,16 +1071,16 @@
 					{ label: 'Sharpe Ratio', value: riskAnalysis.sharpeRatio, good: 1, great: 2 },
 					{ label: 'Sortino Ratio', value: riskAnalysis.sortinoRatio, good: 1.5, great: 3 },
 					{ label: 'Calmar Ratio', value: riskAnalysis.calmarRatio, good: 1, great: 3 },
-					{ label: 'Daily Volatility', value: riskAnalysis.dailyVolatility, good: -1, great: -1 },
-					{ label: 'Avg Daily Return', value: riskAnalysis.avgDailyReturn, good: 0, great: 0.1 }
+					{ label: 'ความผันผวนรายวัน', value: riskAnalysis.dailyVolatility, good: -1, great: -1 },
+					{ label: 'ผลตอบแทนเฉลี่ย/วัน', value: riskAnalysis.avgDailyReturn, good: 0, great: 0.1 }
 				] as ratio}
-					{@const color = ratio.label === 'Daily Volatility'
+					{@const color = ratio.label === 'ความผันผวนรายวัน'
 						? 'text-gray-300'
 						: ratio.value >= ratio.great ? 'text-green-400' : ratio.value >= ratio.good ? 'text-amber-400' : 'text-red-400'}
 					<div class="card text-center">
 						<div class="text-xs text-gray-500 uppercase tracking-wider">{ratio.label}</div>
 						<div class="mt-2 text-xl font-bold {color}">
-							{ratio.label.includes('Volatility') || ratio.label.includes('Return')
+							{ratio.label.includes('ผันผวน') || ratio.label.includes('ผลตอบแทน')
 								? `${ratio.value.toFixed(2)}%`
 								: ratio.value.toFixed(2)}
 						</div>
@@ -1090,7 +1090,7 @@
 
 			<!-- Drawdown Chart -->
 			<div class="card">
-				<h3 class="text-sm font-semibold text-white mb-4">Drawdown Chart</h3>
+				<h3 class="text-sm font-semibold text-white mb-4">กราฟ Drawdown</h3>
 				{#if riskAnalysis.drawdownSeries.length === 0}
 					<EmptyState message="ยังไม่มีข้อมูล drawdown" />
 				{:else}
@@ -1130,7 +1130,7 @@
 			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<!-- Drawdown Periods -->
 				<div class="card">
-					<h3 class="text-sm font-semibold text-white mb-4">Drawdown Periods (Top 10)</h3>
+					<h3 class="text-sm font-semibold text-white mb-4">ช่วง Drawdown (10 อันดับ)</h3>
 					{#if riskAnalysis.topDrawdowns.length === 0}
 						<EmptyState message="ไม่พบ drawdown periods" />
 					{:else}
@@ -1139,9 +1139,9 @@
 								<thead>
 									<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
 										<th class="text-left py-2 font-medium">เริ่มต้น</th>
-										<th class="text-right py-2 font-medium">Max DD</th>
+										<th class="text-right py-2 font-medium">DD สูงสุด</th>
 										<th class="text-right py-2 font-medium">ระยะเวลา</th>
-										<th class="text-right py-2 font-medium">Recovery</th>
+										<th class="text-right py-2 font-medium">ฟื้นตัว</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -1166,7 +1166,7 @@
 
 				<!-- R:R Distribution -->
 				<div class="card">
-					<h3 class="text-sm font-semibold text-white mb-4">R:R Distribution</h3>
+					<h3 class="text-sm font-semibold text-white mb-4">การกระจาย R:R</h3>
 					{#if riskAnalysis.totalRRTrades === 0}
 						<EmptyState message="ไม่มีเทรดที่มี Stop Loss สำหรับคำนวณ R:R" />
 					{:else}
@@ -1178,7 +1178,7 @@
 								<div>
 									<div class="flex justify-between text-xs mb-1">
 										<span class="text-gray-400">{bucket.label} R:R</span>
-										<span class="text-gray-300">{bucket.count} trades ({pct.toFixed(0)}%)</span>
+										<span class="text-gray-300">{bucket.count} เทรด ({pct.toFixed(0)}%)</span>
 									</div>
 									<div class="h-5 bg-dark-bg rounded-full overflow-hidden flex">
 										{#if bucket.count > 0}
@@ -1194,8 +1194,8 @@
 									</div>
 									{#if bucket.count > 0}
 										<div class="flex justify-between text-[10px] mt-0.5">
-											<span class="text-green-400">Win {winPct.toFixed(0)}%</span>
-											<span class="text-red-400">Loss {(100 - winPct).toFixed(0)}%</span>
+											<span class="text-green-400">ชนะ {winPct.toFixed(0)}%</span>
+											<span class="text-red-400">แพ้ {(100 - winPct).toFixed(0)}%</span>
 										</div>
 									{/if}
 								</div>
@@ -1211,19 +1211,19 @@
 			<!-- Risk Summary Row -->
 			<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 				<div class="card text-center">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Daily P&L Std Dev</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">ส่วนเบี่ยงเบน P&L/วัน</div>
 					<div class="mt-2 text-lg font-bold text-gray-300">{formatCurrency(riskAnalysis.dailyStdDev)}</div>
 				</div>
 				<div class="card text-center">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Avg Daily P&L</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">กำไรเฉลี่ย/วัน</div>
 					<div class="mt-2 text-lg font-bold {riskAnalysis.dailyMean >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(riskAnalysis.dailyMean)}</div>
 				</div>
 				<div class="card text-center">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">Largest Win</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">ชนะมากสุด</div>
 					<div class="mt-2 text-lg font-bold text-green-400">{formatCurrency(riskAnalysis.largestWin)}</div>
 				</div>
 				<div class="card text-center">
-					<div class="text-xs text-gray-500 uppercase tracking-wider">DD Periods Count</div>
+					<div class="text-xs text-gray-500 uppercase tracking-wider">จำนวนช่วง DD</div>
 					<div class="mt-2 text-lg font-bold text-gray-300">{riskAnalysis.drawdownPeriodCount}</div>
 				</div>
 			</div>
@@ -1251,20 +1251,20 @@
 			{#if recapStats}
 				<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 					<div class="card">
-						<div class="text-xs text-gray-500">Net P&L</div>
+						<div class="text-xs text-gray-500">กำไรสุทธิ</div>
 						<div class="mt-1 text-2xl font-bold {recapStats.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(recapStats.netPnl)}</div>
 						{#if recapPrevStats}
 							<div class="mt-1 text-xs {recapStats.netPnl >= recapPrevStats.netPnl ? 'text-green-400' : 'text-red-400'}">
-								{recapStats.netPnl >= recapPrevStats.netPnl ? '↑' : '↓'} vs {formatCurrency(recapPrevStats.netPnl)}
+								{recapStats.netPnl >= recapPrevStats.netPnl ? '↑' : '↓'} เทียบ {formatCurrency(recapPrevStats.netPnl)}
 							</div>
 						{/if}
 					</div>
 					<div class="card">
-						<div class="text-xs text-gray-500">Win Rate</div>
+						<div class="text-xs text-gray-500">อัตราชนะ</div>
 						<div class="mt-1 text-2xl font-bold {recapStats.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{recapStats.tradeWinRate?.toFixed(1)}%</div>
 						{#if recapPrevStats}
 							<div class="mt-1 text-xs {recapStats.tradeWinRate >= recapPrevStats.tradeWinRate ? 'text-green-400' : 'text-red-400'}">
-								{recapStats.tradeWinRate >= recapPrevStats.tradeWinRate ? '↑' : '↓'} vs {recapPrevStats.tradeWinRate?.toFixed(1)}%
+								{recapStats.tradeWinRate >= recapPrevStats.tradeWinRate ? '↑' : '↓'} เทียบ {recapPrevStats.tradeWinRate?.toFixed(1)}%
 							</div>
 						{/if}
 					</div>
@@ -1273,7 +1273,7 @@
 						<div class="mt-1 text-2xl font-bold {recapStats.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{formatNumber(recapStats.profitFactor)}</div>
 					</div>
 					<div class="card">
-						<div class="text-xs text-gray-500">Trades</div>
+						<div class="text-xs text-gray-500">จำนวนเทรด</div>
 						<div class="mt-1 text-2xl font-bold text-white">{recapStats.totalTrades}</div>
 					</div>
 				</div>
@@ -1351,21 +1351,21 @@
 		<!-- COMPARE TOOL -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			<div class="card">
-				<h3 class="text-sm font-semibold text-white mb-4">Group #1</h3>
+				<h3 class="text-sm font-semibold text-white mb-4">กลุ่ม #1</h3>
 				<div class="space-y-3">
 					<div>
-						<label class="text-xs text-gray-500">Symbol</label>
+						<label class="text-xs text-gray-500">สัญลักษณ์</label>
 						<select bind:value={group1Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
-							<option value="">All symbols</option>
+							<option value="">ทุกสัญลักษณ์</option>
 							{#each availableSymbols as sym}
 								<option value={sym}>{sym}</option>
 							{/each}
 						</select>
 					</div>
 					<div>
-						<label class="text-xs text-gray-500">Side</label>
+						<label class="text-xs text-gray-500">ทิศทาง</label>
 						<select bind:value={group1Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
-							<option value="">All sides</option>
+							<option value="">ทุกทิศทาง</option>
 							<option value="BUY">BUY</option>
 							<option value="SELL">SELL</option>
 						</select>
@@ -1373,21 +1373,21 @@
 				</div>
 			</div>
 			<div class="card">
-				<h3 class="text-sm font-semibold text-white mb-4">Group #2</h3>
+				<h3 class="text-sm font-semibold text-white mb-4">กลุ่ม #2</h3>
 				<div class="space-y-3">
 					<div>
-						<label class="text-xs text-gray-500">Symbol</label>
+						<label class="text-xs text-gray-500">สัญลักษณ์</label>
 						<select bind:value={group2Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
-							<option value="">All symbols</option>
+							<option value="">ทุกสัญลักษณ์</option>
 							{#each availableSymbols as sym}
 								<option value={sym}>{sym}</option>
 							{/each}
 						</select>
 					</div>
 					<div>
-						<label class="text-xs text-gray-500">Side</label>
+						<label class="text-xs text-gray-500">ทิศทาง</label>
 						<select bind:value={group2Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
-							<option value="">All sides</option>
+							<option value="">ทุกทิศทาง</option>
 							<option value="BUY">BUY</option>
 							<option value="SELL">SELL</option>
 						</select>
@@ -1400,33 +1400,33 @@
 			<button
 				onclick={() => { group1Symbol = ''; group1Side = ''; group2Symbol = ''; group2Side = ''; compareResult = null; }}
 				class="px-4 py-2 rounded-lg border border-dark-border text-sm text-gray-400 hover:text-white"
-			>Reset</button>
+			>รีเซ็ต</button>
 			<button
 				onclick={generateCompare}
 				class="px-6 py-2 rounded-lg bg-brand-primary text-dark-bg text-sm font-semibold hover:opacity-90"
-			>Generate Report</button>
+			>สร้างรายงาน</button>
 		</div>
 
 		{#if compareResult}
 			<div class="card">
-				<h3 class="text-sm font-semibold text-white mb-4">Comparison Results</h3>
+				<h3 class="text-sm font-semibold text-white mb-4">ผลการเปรียบเทียบ</h3>
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
 							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
-								<th class="text-left py-2.5 font-medium">Metric</th>
-								<th class="text-right py-2.5 font-medium">Group #1</th>
-								<th class="text-right py-2.5 font-medium">Group #2</th>
-								<th class="text-right py-2.5 font-medium">Diff</th>
+								<th class="text-left py-2.5 font-medium">ตัวชี้วัด</th>
+								<th class="text-right py-2.5 font-medium">กลุ่ม #1</th>
+								<th class="text-right py-2.5 font-medium">กลุ่ม #2</th>
+								<th class="text-right py-2.5 font-medium">ผลต่าง</th>
 							</tr>
 						</thead>
 						<tbody>
 							{#each [
-								{ label: 'Trades', g1: compareResult.group1.trades, g2: compareResult.group2.trades, fmt: 'num' },
-								{ label: 'Win Rate', g1: compareResult.group1.winRate, g2: compareResult.group2.winRate, fmt: 'pct' },
+								{ label: 'จำนวนเทรด', g1: compareResult.group1.trades, g2: compareResult.group2.trades, fmt: 'num' },
+								{ label: 'อัตราชนะ', g1: compareResult.group1.winRate, g2: compareResult.group2.winRate, fmt: 'pct' },
 								{ label: 'Profit Factor', g1: compareResult.group1.profitFactor, g2: compareResult.group2.profitFactor, fmt: 'num' },
-								{ label: 'Net P&L', g1: compareResult.group1.netPnl, g2: compareResult.group2.netPnl, fmt: 'cur' },
-								{ label: 'Avg P&L', g1: compareResult.group1.avgPnl, g2: compareResult.group2.avgPnl, fmt: 'cur' },
+								{ label: 'กำไรสุทธิ', g1: compareResult.group1.netPnl, g2: compareResult.group2.netPnl, fmt: 'cur' },
+								{ label: 'กำไรเฉลี่ย', g1: compareResult.group1.avgPnl, g2: compareResult.group2.avgPnl, fmt: 'cur' },
 							] as m}
 								{@const diff = m.g1 - m.g2}
 								<tr class="border-b border-dark-border/40">

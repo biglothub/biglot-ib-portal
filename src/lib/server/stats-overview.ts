@@ -20,7 +20,7 @@ export function buildStatsOverview(
 	analytics?: { sharpeRatio?: number; sortinoRatio?: number; calmarRatio?: number } | null
 ): StatsSection[] {
 	if (!trades || trades.length === 0) {
-		return [{ title: 'No Data', rows: [{ label: 'Import trades to see your stats', value: '—' }] }];
+		return [{ title: 'ไม่มีข้อมูล', rows: [{ label: 'นำเข้าเทรดเพื่อดูสถิติของคุณ', value: '—' }] }];
 	}
 
 	const profits = trades.map(t => Number(t.profit || 0));
@@ -95,51 +95,51 @@ export function buildStatsOverview(
 
 	return [
 		{
-			title: 'Trade Statistics',
+			title: 'สถิติการเทรด',
 			rows: [
-				{ label: 'Total P&L', value: fmt(netPnl), color: pnlColor(netPnl) },
-				{ label: 'Total Trades', value: String(trades.length) },
-				{ label: 'Winning Trades', value: String(wins.length), color: 'text-green-400' },
-				{ label: 'Losing Trades', value: String(losses.length), color: 'text-red-400' },
-				{ label: 'Breakeven Trades', value: String(trades.length - wins.length - losses.length) },
-				{ label: 'Win Rate', value: fmtPct((wins.length / trades.length) * 100) },
+				{ label: 'กำไร/ขาดทุนสุทธิ', value: fmt(netPnl), color: pnlColor(netPnl) },
+				{ label: 'จำนวนเทรดทั้งหมด', value: String(trades.length) },
+				{ label: 'เทรดที่ชนะ', value: String(wins.length), color: 'text-green-400' },
+				{ label: 'เทรดที่แพ้', value: String(losses.length), color: 'text-red-400' },
+				{ label: 'เทรดเสมอ', value: String(trades.length - wins.length - losses.length) },
+				{ label: 'อัตราชนะ', value: fmtPct((wins.length / trades.length) * 100) },
 				{ label: 'Profit Factor', value: fmtNum(profitFactor) },
-				{ label: 'Expectancy', value: fmt(netPnl / trades.length), color: pnlColor(netPnl) },
-				{ label: 'Avg Winning Trade', value: fmt(wins.length > 0 ? totalWinning / wins.length : 0), color: 'text-green-400' },
-				{ label: 'Avg Losing Trade', value: fmt(losses.length > 0 ? -(totalLosing / losses.length) : 0), color: 'text-red-400' },
-				{ label: 'Largest Win', value: fmt(wins.length > 0 ? wins.reduce((m, v) => v > m ? v : m, -Infinity) : 0), color: 'text-green-400' },
-				{ label: 'Largest Loss', value: fmt(losses.length > 0 ? losses.reduce((m, v) => v < m ? v : m, Infinity) : 0), color: 'text-red-400' },
-				{ label: 'Max Consecutive Wins', value: String(maxConsecWins) },
-				{ label: 'Max Consecutive Losses', value: String(maxConsecLosses) },
-				{ label: 'Avg Daily Volume', value: fmtNum(avgDailyVolume) },
-				{ label: 'Avg Holding Time', value: formatDuration(avgHold) },
-				{ label: 'Total Commissions', value: fmt(totalCommissions) },
-				{ label: 'Total Swap', value: fmt(totalSwap), color: pnlColor(totalSwap) },
+				{ label: 'ค่าคาดหวัง', value: fmt(netPnl / trades.length), color: pnlColor(netPnl) },
+				{ label: 'เฉลี่ยเทรดชนะ', value: fmt(wins.length > 0 ? totalWinning / wins.length : 0), color: 'text-green-400' },
+				{ label: 'เฉลี่ยเทรดแพ้', value: fmt(losses.length > 0 ? -(totalLosing / losses.length) : 0), color: 'text-red-400' },
+				{ label: 'ชนะมากสุด', value: fmt(wins.length > 0 ? wins.reduce((m, v) => v > m ? v : m, -Infinity) : 0), color: 'text-green-400' },
+				{ label: 'แพ้มากสุด', value: fmt(losses.length > 0 ? losses.reduce((m, v) => v < m ? v : m, Infinity) : 0), color: 'text-red-400' },
+				{ label: 'ชนะติดต่อสูงสุด', value: String(maxConsecWins) },
+				{ label: 'แพ้ติดต่อสูงสุด', value: String(maxConsecLosses) },
+				{ label: 'ปริมาณเฉลี่ย/วัน', value: fmtNum(avgDailyVolume) },
+				{ label: 'เวลาถือเฉลี่ย', value: formatDuration(avgHold) },
+				{ label: 'ค่าคอมมิชชั่นรวม', value: fmt(totalCommissions) },
+				{ label: 'ค่า Swap รวม', value: fmt(totalSwap), color: pnlColor(totalSwap) },
 			]
 		},
 		{
-			title: 'Daily Performance',
+			title: 'ผลลัพธ์รายวัน',
 			rows: [
-				{ label: 'Total Trading Days', value: String(dailyHistory.length) },
-				{ label: 'Winning Days', value: String(winDays.length), color: 'text-green-400' },
-				{ label: 'Losing Days', value: String(lossDays.length), color: 'text-red-400' },
-				{ label: 'Breakeven Days', value: String(beDays.length) },
-				{ label: 'Day Win Rate', value: fmtPct(dailyHistory.length > 0 ? (winDays.length / dailyHistory.length) * 100 : 0) },
-				{ label: 'Avg Daily P&L', value: fmt(avgDaily), color: pnlColor(avgDaily) },
-				{ label: 'Best Day P&L', value: bestDay ? fmt(bestDay.profit) : '—', color: 'text-green-400' },
-				{ label: 'Worst Day P&L', value: worstDay ? fmt(worstDay.profit) : '—', color: 'text-red-400' },
+				{ label: 'จำนวนวันเทรด', value: String(dailyHistory.length) },
+				{ label: 'วันที่ชนะ', value: String(winDays.length), color: 'text-green-400' },
+				{ label: 'วันที่แพ้', value: String(lossDays.length), color: 'text-red-400' },
+				{ label: 'วันเสมอ', value: String(beDays.length) },
+				{ label: 'อัตราชนะรายวัน', value: fmtPct(dailyHistory.length > 0 ? (winDays.length / dailyHistory.length) * 100 : 0) },
+				{ label: 'กำไรเฉลี่ย/วัน', value: fmt(avgDaily), color: pnlColor(avgDaily) },
+				{ label: 'วันที่ดีที่สุด', value: bestDay ? fmt(bestDay.profit) : '—', color: 'text-green-400' },
+				{ label: 'วันที่แย่ที่สุด', value: worstDay ? fmt(worstDay.profit) : '—', color: 'text-red-400' },
 			]
 		},
 		{
-			title: 'Monthly Performance',
+			title: 'ผลลัพธ์รายเดือน',
 			rows: [
-				{ label: 'Best Month', value: bestMonth ? `${fmt(bestMonth[1])} (${bestMonth[0]})` : '—', color: 'text-green-400' },
-				{ label: 'Worst Month', value: worstMonth ? `${fmt(worstMonth[1])} (${worstMonth[0]})` : '—', color: 'text-red-400' },
-				{ label: 'Avg Monthly P&L', value: fmt(avgMonthly), color: pnlColor(avgMonthly) },
+				{ label: 'เดือนที่ดีที่สุด', value: bestMonth ? `${fmt(bestMonth[1])} (${bestMonth[0]})` : '—', color: 'text-green-400' },
+				{ label: 'เดือนที่แย่ที่สุด', value: worstMonth ? `${fmt(worstMonth[1])} (${worstMonth[0]})` : '—', color: 'text-red-400' },
+				{ label: 'กำไรเฉลี่ย/เดือน', value: fmt(avgMonthly), color: pnlColor(avgMonthly) },
 			]
 		},
 		{
-			title: 'Risk Metrics',
+			title: 'ตัวชี้วัดความเสี่ยง',
 			rows: [
 				{ label: 'Sharpe Ratio', value: fmtNum(analytics?.sharpeRatio || 0) },
 				{ label: 'Sortino Ratio', value: fmtNum(analytics?.sortinoRatio || 0) },

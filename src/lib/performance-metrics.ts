@@ -103,10 +103,10 @@ export function makeCumulative(series: Array<{ date: string; value: number }>): 
 
 /** Available metrics for the dropdown */
 export const AVAILABLE_METRICS = [
-	{ key: 'net_pnl_cumulative', label: 'Net P&L (Cumulative)', chartType: 'area' as const },
-	{ key: 'net_pnl', label: 'Net P&L', chartType: 'histogram' as const },
-	{ key: 'win_rate', label: 'Win Rate %', chartType: 'area' as const },
+	{ key: 'net_pnl_cumulative', label: 'กำไรสุทธิ (สะสม)', chartType: 'area' as const },
+	{ key: 'net_pnl', label: 'กำไรสุทธิ', chartType: 'histogram' as const },
+	{ key: 'win_rate', label: 'อัตราชนะ %', chartType: 'area' as const },
 	{ key: 'profit_factor', label: 'Profit Factor', chartType: 'area' as const },
-	{ key: 'trade_count', label: 'Trade Count', chartType: 'histogram' as const },
-	{ key: 'avg_win_loss', label: 'Avg Win/Loss', chartType: 'histogram' as const },
+	{ key: 'trade_count', label: 'จำนวนเทรด', chartType: 'histogram' as const },
+	{ key: 'avg_win_loss', label: 'เฉลี่ย ชนะ/แพ้', chartType: 'histogram' as const },
 ];

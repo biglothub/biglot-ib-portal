@@ -23,39 +23,39 @@
 <div class="space-y-6">
 	<!-- Risk-Adjusted Metrics -->
 	<div class="card">
-		<h3 class="text-lg font-semibold text-white mb-5">Risk-Adjusted Metrics</h3>
+		<h3 class="text-lg font-semibold text-white mb-5">ตัวชี้วัดปรับความเสี่ยง</h3>
 		<div class="grid grid-cols-3 gap-4">
 			<div class="text-center">
 				<div class="text-xs text-gray-400 mb-1">Sharpe Ratio</div>
 				<div class="text-2xl font-bold {getRatioColor(analytics.sharpeRatio)}">
 					{formatRatio(analytics.sharpeRatio)}
 				</div>
-				<div class="text-[10px] text-gray-500 mt-1">Risk-adjusted return</div>
+				<div class="text-[10px] text-gray-500 mt-1">ผลตอบแทนปรับความเสี่ยง</div>
 			</div>
 			<div class="text-center">
 				<div class="text-xs text-gray-400 mb-1">Sortino Ratio</div>
 				<div class="text-2xl font-bold {getRatioColor(analytics.sortinoRatio)}">
 					{formatRatio(analytics.sortinoRatio)}
 				</div>
-				<div class="text-[10px] text-gray-500 mt-1">Downside risk only</div>
+				<div class="text-[10px] text-gray-500 mt-1">ความเสี่ยงขาลงเท่านั้น</div>
 			</div>
 			<div class="text-center">
 				<div class="text-xs text-gray-400 mb-1">Calmar Ratio</div>
 				<div class="text-2xl font-bold {getRatioColor(analytics.calmarRatio)}">
 					{formatRatio(analytics.calmarRatio)}
 				</div>
-				<div class="text-[10px] text-gray-500 mt-1">Return / Max DD</div>
+				<div class="text-[10px] text-gray-500 mt-1">ผลตอบแทน / DD สูงสุด</div>
 			</div>
 		</div>
 		<div class="mt-4 grid grid-cols-2 gap-3">
 			<div class="p-3 bg-dark-bg/50 rounded-lg text-center">
-				<div class="text-xs text-gray-400">Avg Daily Return</div>
+				<div class="text-xs text-gray-400">ผลตอบแทนเฉลี่ย/วัน</div>
 				<div class="text-sm font-bold {analytics.avgDailyReturn >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{analytics.avgDailyReturn >= 0 ? '+' : ''}{analytics.avgDailyReturn.toFixed(3)}%
 				</div>
 			</div>
 			<div class="p-3 bg-dark-bg/50 rounded-lg text-center">
-				<div class="text-xs text-gray-400">Daily Volatility</div>
+				<div class="text-xs text-gray-400">ความผันผวนรายวัน</div>
 				<div class="text-sm font-bold text-white">{analytics.dailyVolatility.toFixed(3)}%</div>
 			</div>
 		</div>
@@ -64,7 +64,7 @@
 	<!-- Day of Week Performance -->
 	{#if analytics.dayOfWeekPnL.length > 0}
 		<div class="card">
-			<h3 class="text-lg font-semibold text-white mb-4">Performance by Day</h3>
+			<h3 class="text-lg font-semibold text-white mb-4">ผลลัพธ์ตามวัน</h3>
 			<div class="space-y-2">
 				{#each analytics.dayOfWeekPnL as day}
 					{@const barWidth = (Math.abs(day.profit) / maxDayProfit) * 100}
@@ -92,7 +92,7 @@
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 		{#if analytics.lotDistribution.length > 0}
 			<div class="card">
-				<h3 class="text-sm font-semibold text-white mb-3">Lot Size Distribution</h3>
+				<h3 class="text-sm font-semibold text-white mb-3">การกระจาย Lot Size</h3>
 				<div class="space-y-2">
 					{#each analytics.lotDistribution as lot}
 						{@const barWidth = (lot.count / maxLotCount) * 100}
@@ -110,7 +110,7 @@
 
 		{#if analytics.holdingTimeAnalysis.length > 0}
 			<div class="card">
-				<h3 class="text-sm font-semibold text-white mb-3">Holding Time Analysis</h3>
+				<h3 class="text-sm font-semibold text-white mb-3">วิเคราะห์เวลาถือครอง</h3>
 				<div class="space-y-2">
 					{#each analytics.holdingTimeAnalysis as ht}
 						{@const barWidth = (ht.count / maxHoldCount) * 100}

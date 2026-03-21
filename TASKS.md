@@ -167,7 +167,7 @@
   - Verify: Trade detail page has all sections (review, notes, attachments, insights, chart)
   - Fix ANY issues found. Commit fixes.
 
-- [ ] [L] QA-003: QA Reports — compare with TradeZella reports
+- [x] [L] QA-003: QA Reports — compare with TradeZella reports
   - Read tradezella-explore/GAP_ANALYSIS.md section 5 (Reports)
   - Verify: Performance sub-tab with dual configurable charts
   - Verify: Calendar year view with P&L colors
@@ -401,3 +401,7 @@
 - Task: QA-002 — QA Trade View — compare with TradeZella trade view
 - Result: All 5 trade view features verified present and functional (Quality Score bar column, Insights count badge column, bulk select with checkbox, bulk actions bar with Tag/Review Status/Export CSV, trade detail page with all sections: chart, replay, review, notes, tags, attachments, insights, quality score, execution metrics, related trades). Fixed: translated 30+ English strings to Thai across trade list page (stats cards, group-by options, pagination, bulk action review statuses) and trade detail page (price labels, review workflow, form labels/placeholders, section headings, attachment UI, related trades). Added fallback "—" display for empty insights and quality score cells. All checks pass: build OK, 127 tests pass.
 - Next: QA-003
+### Session 2026-03-21 (continued 17)
+- Task: QA-003 — QA Reports — compare with TradeZella reports
+- Result: All 10 reports sub-tabs verified present and functional (Overview, Performance, Calendar, Symbols, Tags, Days, Day & Time, Risk, Recaps & Insights, Compare). Fixed: translated 80+ English strings to Thai across 4 files — analytics page (sub-tab labels, KPI card labels, table column headers, chart labels, empty states, tooltips, heatmap legends, compare tool labels, session/duration text), stats-overview (section titles, all 30+ stat labels), performance-metrics (metric dropdown labels), AnalyticsDashboard (risk metrics, day performance, lot/holding time headings), ConfigurableMetricChart (empty state). All checks pass: build OK, 127 tests pass.
+- Next: QA-004
