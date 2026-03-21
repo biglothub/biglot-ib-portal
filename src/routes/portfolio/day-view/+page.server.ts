@@ -68,7 +68,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		});
 
 		// Group by day of week
-		const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+		const dayNames = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์'];
 		const dayCards = dayNames.map((name, i) => {
 			const dayDate = new Date(weekStart);
 			dayDate.setDate(dayDate.getDate() + i);

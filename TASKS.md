@@ -178,7 +178,7 @@
   - Verify: Recaps sub-tab (weekly/monthly AI summaries)
   - Fix ANY issues found. Commit fixes.
 
-- [ ] [L] QA-004: QA Day/Week View — compare with TradeZella
+- [x] [L] QA-004: QA Day/Week View — compare with TradeZella
   - Read tradezella-explore/GAP_ANALYSIS.md section 2 (Day View)
   - Verify: Day/Week toggle works
   - Verify: Calendar picker highlights profitable/losing days
@@ -405,3 +405,7 @@
 - Task: QA-003 — QA Reports — compare with TradeZella reports
 - Result: All 10 reports sub-tabs verified present and functional (Overview, Performance, Calendar, Symbols, Tags, Days, Day & Time, Risk, Recaps & Insights, Compare). Fixed: translated 80+ English strings to Thai across 4 files — analytics page (sub-tab labels, KPI card labels, table column headers, chart labels, empty states, tooltips, heatmap legends, compare tool labels, session/duration text), stats-overview (section titles, all 30+ stat labels), performance-metrics (metric dropdown labels), AnalyticsDashboard (risk metrics, day performance, lot/holding time headings), ConfigurableMetricChart (empty state). All checks pass: build OK, 127 tests pass.
 - Next: QA-004
+### Session 2026-03-21 (continued 18)
+- Task: QA-004 — QA Day/Week View — compare with TradeZella
+- Result: All 4 Day/Week View features verified present and functional (Day/Week toggle, calendar picker with profitable/losing day highlights, 7-day week cards with P&L, weekly summary stats with bar chart). Fixed: translated 40+ English strings to Thai across 3 files — day-view page (toggle labels, month names, day labels, stat labels, table headers, date/time locales en-US→th-TH, section headings, button text), day-view server (day names Sun/Mon→อาทิตย์/จันทร์), DayInsightsSection (heading, category labels). All checks pass: build OK, 127 tests pass.
+- Next: QA-005

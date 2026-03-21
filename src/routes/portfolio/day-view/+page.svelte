@@ -14,9 +14,9 @@
 	let calendarYear = $derived(calendarDate.getFullYear());
 	let calendarMonth = $derived(calendarDate.getMonth());
 
-	const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-		'July', 'August', 'September', 'October', 'November', 'December'];
-	const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+	const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+		'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+	const dayLabels = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 	// Build calendar grid
 	const calendarGrid = $derived((() => {
@@ -96,13 +96,13 @@
 
 	function formatDateLabel(dateStr: string) {
 		const d = new Date(dateStr + 'T00:00:00');
-		return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+		return d.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 	}
 
 	function formatWeekRange(start: string, end: string) {
 		const s = new Date(start + 'T00:00:00');
 		const e = new Date(end + 'T00:00:00');
-		return `${s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+		return `${s.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' })} - ${e.toLocaleDateString('th-TH', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 	}
 </script>
 
@@ -113,11 +113,11 @@
 			<button
 				class="px-4 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'day' ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
 				onclick={() => switchView('day')}
-			>Day</button>
+			>รายวัน</button>
 			<button
 				class="px-4 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'week' ? 'bg-dark-bg text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
 				onclick={() => switchView('week')}
-			>Week</button>
+			>รายสัปดาห์</button>
 		</div>
 	</div>
 
@@ -133,23 +133,23 @@
 					{#if daySummary}
 						<div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">P&L</div>
+								<div class="text-xs text-gray-500">กำไร/ขาดทุน</div>
 								<div class="mt-1 text-xl font-bold {daySummary.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 									{formatCurrency(daySummary.pnl)}
 								</div>
 							</div>
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">Trades</div>
+								<div class="text-xs text-gray-500">จำนวน Trade</div>
 								<div class="mt-1 text-xl font-bold text-white">{daySummary.totalTrades}</div>
 							</div>
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">Win Rate</div>
+								<div class="text-xs text-gray-500">อัตราชนะ</div>
 								<div class="mt-1 text-xl font-bold {daySummary.winRate >= 50 ? 'text-green-400' : 'text-amber-400'}">
 									{daySummary.winRate.toFixed(0)}%
 								</div>
 							</div>
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">W / L</div>
+								<div class="text-xs text-gray-500">ชนะ / แพ้</div>
 								<div class="mt-1 text-xl font-bold text-white">
 									<span class="text-green-400">{daySummary.wins}</span>
 									<span class="text-gray-600 mx-1">/</span>
@@ -167,17 +167,17 @@
 					{/if}
 				</div>
 
-				<!-- Mini P&L chart + Add note -->
+				<!-- Mini P&L chart + เพิ่มบันทึก -->
 				{#if intradayCumPnl && intradayCumPnl.length > 1}
 					<div class="card">
 						<div class="flex items-center justify-between mb-2">
-							<h3 class="text-sm font-medium text-gray-400">Intraday P&L</h3>
+							<h3 class="text-sm font-medium text-gray-400">กำไร/ขาดทุนระหว่างวัน</h3>
 							<a
 								href="/portfolio/notebook?linked_date={selectedDate}"
 								class="flex items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
 							>
 								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-								Add note
+								เพิ่มบันทึก
 							</a>
 						</div>
 						<DayMiniPnlChart data={intradayCumPnl} />
@@ -189,14 +189,14 @@
 							class="flex items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
 						>
 							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-							Add note
+							เพิ่มบันทึก
 						</a>
 					</div>
 				{/if}
 
 				<!-- Trade list -->
 				<div class="card">
-					<h3 class="text-sm font-medium text-gray-400 mb-3">Trades</h3>
+					<h3 class="text-sm font-medium text-gray-400 mb-3">รายการ Trade</h3>
 					{#if dayTrades.length === 0}
 						<EmptyState message="ไม่มี trade ในวันนี้" />
 					{:else}
@@ -204,19 +204,19 @@
 							<table class="w-full text-sm">
 								<thead>
 									<tr class="border-b border-dark-border text-gray-500 text-xs">
-										<th class="text-left py-2">Time</th>
-										<th class="text-left py-2">Symbol</th>
-										<th class="text-left py-2">Side</th>
-										<th class="text-right py-2">Lot</th>
-										<th class="text-right py-2">Entry</th>
-										<th class="text-right py-2">Exit</th>
-										<th class="text-right py-2">P&L</th>
+										<th class="text-left py-2">เวลา</th>
+										<th class="text-left py-2">สัญลักษณ์</th>
+										<th class="text-left py-2">ประเภท</th>
+										<th class="text-right py-2">ล็อต</th>
+										<th class="text-right py-2">ราคาเปิด</th>
+										<th class="text-right py-2">ราคาปิด</th>
+										<th class="text-right py-2">กำไร/ขาดทุน</th>
 									</tr>
 								</thead>
 								<tbody>
 									{#each dayTrades as trade}
 										<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
-											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
 											<td class="py-3">
 												<a href="/portfolio/trades/{trade.id}" class="font-medium text-white hover:text-brand-primary">{trade.symbol}</a>
 											</td>
@@ -295,7 +295,7 @@
 						<div class="text-center">
 							<h2 class="text-lg font-semibold text-white">{formatWeekRange(weekData.weekStart, weekData.weekEnd)}</h2>
 							<p class="text-sm {weekData.stats.grossPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
-								Net P&L: {formatCurrency(weekData.stats.grossPnl)}
+								กำไรสุทธิ: {formatCurrency(weekData.stats.grossPnl)}
 							</p>
 						</div>
 						<button onclick={nextWeek} class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-dark-bg/50">
@@ -316,10 +316,10 @@
 								<div class="mt-2 text-lg font-bold {card.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 									{formatCurrency(card.pnl)}
 								</div>
-								<div class="mt-1 text-xs text-gray-500">{card.trades} trade{card.trades !== 1 ? 's' : ''}</div>
+								<div class="mt-1 text-xs text-gray-500">{card.trades} รายการ</div>
 							{:else}
 								<div class="mt-2 text-sm text-gray-600">—</div>
-								<div class="mt-1 text-xs text-gray-600">no trades</div>
+								<div class="mt-1 text-xs text-gray-600">ไม่มี trade</div>
 							{/if}
 						</button>
 					{/each}
@@ -328,14 +328,14 @@
 				<!-- Week stats -->
 				{#if weekData.stats.totalTrades > 0}
 					<div class="card">
-						<h3 class="text-sm font-medium text-gray-400 mb-3">Weekly Summary</h3>
+						<h3 class="text-sm font-medium text-gray-400 mb-3">สรุปประจำสัปดาห์</h3>
 						<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
 							<div>
-								<div class="text-xs text-gray-500">Total Trades</div>
+								<div class="text-xs text-gray-500">จำนวน Trade</div>
 								<div class="text-xl font-bold text-white">{weekData.stats.totalTrades}</div>
 							</div>
 							<div>
-								<div class="text-xs text-gray-500">Win Rate</div>
+								<div class="text-xs text-gray-500">อัตราชนะ</div>
 								<div class="text-xl font-bold {weekData.stats.winRate >= 50 ? 'text-green-400' : 'text-amber-400'}">
 									{weekData.stats.winRate.toFixed(0)}%
 								</div>
@@ -347,7 +347,7 @@
 								</div>
 							</div>
 							<div>
-								<div class="text-xs text-gray-500">W / L</div>
+								<div class="text-xs text-gray-500">ชนะ / แพ้</div>
 								<div class="text-xl font-bold text-white">
 									<span class="text-green-400">{weekData.stats.winners}</span>
 									<span class="text-gray-600 mx-1">/</span>
@@ -360,7 +360,7 @@
 						{#if weekData.dayCards.some((c: any) => c.hasData)}
 							{@const maxPnl = Math.max(...weekData.dayCards.map((c: any) => Math.abs(c.pnl)), 1)}
 							<div class="mt-6">
-								<div class="text-xs text-gray-500 mb-2">Daily P&L</div>
+								<div class="text-xs text-gray-500 mb-2">กำไร/ขาดทุนรายวัน</div>
 								<div class="flex items-end gap-2 h-24">
 									{#each weekData.dayCards as card}
 										<div class="flex-1 flex flex-col items-center justify-end h-full">
@@ -383,7 +383,7 @@
 
 				<!-- Trade list -->
 				<div class="card">
-					<h3 class="text-sm font-medium text-gray-400 mb-3">Trades this week</h3>
+					<h3 class="text-sm font-medium text-gray-400 mb-3">รายการ Trade ประจำสัปดาห์</h3>
 					{#if weekData.trades.length === 0}
 						<EmptyState message="ไม่มี trade ในสัปดาห์นี้" />
 					{:else}
@@ -391,18 +391,18 @@
 							<table class="w-full text-sm">
 								<thead>
 									<tr class="border-b border-dark-border text-gray-500 text-xs">
-										<th class="text-left py-2">Day</th>
-										<th class="text-left py-2">Time</th>
-										<th class="text-left py-2">Symbol</th>
-										<th class="text-left py-2">Side</th>
-										<th class="text-right py-2">P&L</th>
+										<th class="text-left py-2">วัน</th>
+										<th class="text-left py-2">เวลา</th>
+										<th class="text-left py-2">สัญลักษณ์</th>
+										<th class="text-left py-2">ประเภท</th>
+										<th class="text-right py-2">กำไร/ขาดทุน</th>
 									</tr>
 								</thead>
 								<tbody>
 									{#each weekData.trades as trade}
 										<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
-											<td class="py-3 text-gray-400 text-xs">{new Date(trade.close_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
-											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+											<td class="py-3 text-gray-400 text-xs">{new Date(trade.close_time).toLocaleDateString('th-TH', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
+											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
 											<td class="py-3">
 												<a href="/portfolio/trades/{trade.id}" class="font-medium text-white hover:text-brand-primary">{trade.symbol}</a>
 											</td>
