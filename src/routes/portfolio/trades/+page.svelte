@@ -230,23 +230,23 @@
 
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
-			<div class="text-xs text-gray-500">Filtered Trades</div>
+			<div class="text-xs text-gray-500">เทรดที่กรอง</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{total}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Unreviewed</div>
+			<div class="text-xs text-gray-500">ยังไม่ Review</div>
 			<div class="mt-1 text-2xl font-semibold text-amber-300">
 				{trades.filter((trade: any) => getTradeReviewStatus(trade) === 'unreviewed').length}
 			</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Missing Notes</div>
+			<div class="text-xs text-gray-500">ไม่มี Notes</div>
 			<div class="mt-1 text-2xl font-semibold text-brand-300">
 				{trades.filter((trade: any) => (trade.trade_notes || []).length === 0).length}
 			</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Missing Attachments</div>
+			<div class="text-xs text-gray-500">ไม่มีไฟล์แนบ</div>
 			<div class="mt-1 text-2xl font-semibold text-rose-300">
 				{trades.filter((trade: any) => (trade.trade_attachments || []).length === 0).length}
 			</div>
@@ -288,9 +288,9 @@
 						class="bg-dark-bg border border-dark-border rounded px-3 py-1.5 text-sm text-white"
 					>
 						<option value="">-- เลือกสถานะ --</option>
-						<option value="unreviewed">Unreviewed</option>
-						<option value="in_progress">In Progress</option>
-						<option value="reviewed">Reviewed</option>
+						<option value="unreviewed">ยังไม่ Review</option>
+						<option value="in_progress">กำลังดำเนินการ</option>
+						<option value="reviewed">Review แล้ว</option>
 					</select>
 				{/if}
 
@@ -330,14 +330,14 @@
 
 	<div class="flex items-center justify-between gap-3">
 		<div class="text-sm text-gray-400">
-			Page {currentPage}/{Math.max(totalPages, 1)}
+			หน้า {currentPage}/{Math.max(totalPages, 1)}
 		</div>
 		<div class="flex items-center gap-2">
-			<label for="group-by" class="text-xs text-gray-500">Group by</label>
+			<label for="group-by" class="text-xs text-gray-500">จัดกลุ่มตาม</label>
 			<select id="group-by" bind:value={groupBy} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-				<option value="none">None</option>
-				<option value="day">Day</option>
-				<option value="session">Session</option>
+				<option value="none">ไม่จัดกลุ่ม</option>
+				<option value="day">วัน</option>
+				<option value="session">เซสชัน</option>
 				<option value="setup">Setup / Playbook</option>
 			</select>
 		</div>
@@ -363,7 +363,7 @@
 							/>
 							<h3 class="text-sm font-medium text-white">{group.label}</h3>
 						</div>
-						<span class="text-xs text-gray-500">{group.items.length} trades</span>
+						<span class="text-xs text-gray-500">{group.items.length} เทรด</span>
 					</div>
 					<div class="overflow-x-auto">
 						<table class="w-full text-sm">
@@ -440,11 +440,15 @@
 													positive={ins.filter((i: any) => i.category === 'positive').length}
 													negative={ins.filter((i: any) => i.category === 'negative').length}
 												/>
+											{:else}
+												<span class="text-xs text-gray-600">—</span>
 											{/if}
 										</td>
 										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
 											{#if tradeScores[trade.id] !== undefined}
 												<QualityScoreBar score={tradeScores[trade.id]} />
+											{:else}
+												<span class="text-xs text-gray-600">—</span>
 											{/if}
 										</td>
 										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>

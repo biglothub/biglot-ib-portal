@@ -340,11 +340,11 @@
 
 			<div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 				<div>
-					<p class="text-gray-500 text-xs">Open Price</p>
+					<p class="text-gray-500 text-xs">ราคาเปิด</p>
 					<p class="text-white">{formatNumber(trade.open_price, 5)}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">Close Price</p>
+					<p class="text-gray-500 text-xs">ราคาปิด</p>
 					<p class="text-white">{formatNumber(trade.close_price, 5)}</p>
 				</div>
 				<div>
@@ -388,7 +388,7 @@
 				</div>
 				<div class="space-y-4">
 					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
-						<div class="text-xs text-gray-500">Review Workflow</div>
+						<div class="text-xs text-gray-500">ขั้นตอน Review</div>
 						<div class="mt-3 space-y-2 text-sm">
 							<div class="flex items-center justify-between">
 								<span class="text-gray-400">Playbook</span>
@@ -403,7 +403,7 @@
 								<span class="text-white">{attachments.length}</span>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-gray-400">Broken rules</span>
+								<span class="text-gray-400">กฎที่ทำผิด</span>
 								<span class="text-white">{brokenRules.length}</span>
 							</div>
 						</div>
@@ -427,9 +427,9 @@
 					</div>
 
 					<div class="rounded-2xl border border-dark-border bg-dark-bg/30 p-4">
-						<div class="text-xs text-gray-500">Related</div>
+						<div class="text-xs text-gray-500">เกี่ยวข้อง</div>
 						<div class="mt-2 text-sm text-gray-300">
-							{relatedTrades.length} same-symbol trades • {similarReviewedTrades.length} similar reviewed trades
+							{relatedTrades.length} เทรดคู่เดียวกัน • {similarReviewedTrades.length} เทรดที่ review แล้ว
 						</div>
 					</div>
 
@@ -504,7 +504,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
-					<p class="text-xs text-gray-500 mt-1">Capture process, rule breaks, lessons, and next action.</p>
+					<p class="text-xs text-gray-500 mt-1">บันทึกกระบวนการ, กฎที่ผิด, บทเรียน และสิ่งที่จะทำต่อ</p>
 				</div>
 				{#if reviewSaved}
 					<span class="text-xs text-green-400">บันทึก review แล้ว</span>
@@ -513,27 +513,27 @@
 
 			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
 				<select bind:value={reviewStatus} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="unreviewed">Unreviewed</option>
-					<option value="in_progress">In Progress</option>
-					<option value="reviewed">Reviewed</option>
+					<option value="unreviewed">ยังไม่ Review</option>
+					<option value="in_progress">กำลังดำเนินการ</option>
+					<option value="reviewed">Review แล้ว</option>
 				</select>
 				<select bind:value={selectedPlaybookId} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="">No playbook</option>
+					<option value="">ยังไม่เลือก Playbook</option>
 					{#each playbooks as playbook}
 						<option value={playbook.id}>{playbook.name}</option>
 					{/each}
 				</select>
 				<select bind:value={followedPlan} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="">Followed plan?</option>
-					<option value="yes">Yes</option>
-					<option value="no">No</option>
+					<option value="">ทำตามแผนไหม?</option>
+					<option value="yes">ใช่</option>
+					<option value="no">ไม่</option>
 				</select>
 				<input
 					type="number"
 					min="1"
 					max="5"
 					bind:value={confidenceAtEntry}
-					placeholder="Confidence 1-5"
+					placeholder="ความมั่นใจ 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
 				/>
 				<input
@@ -541,7 +541,7 @@
 					min="1"
 					max="5"
 					bind:value={setupQuality}
-					placeholder="Setup quality"
+					placeholder="คุณภาพ Setup 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
 				/>
 				<input
@@ -549,7 +549,7 @@
 					min="1"
 					max="5"
 					bind:value={disciplineScore}
-					placeholder="Discipline"
+					placeholder="วินัย 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
 				/>
 				<input
@@ -557,34 +557,34 @@
 					min="1"
 					max="5"
 					bind:value={executionScore}
-					placeholder="Execution"
+					placeholder="การ Execute 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
 				/>
 			</div>
 
 			<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Entry Reason</h4>
+					<h4 class="text-xs text-gray-500 mb-2">เหตุผลเข้าเทรด</h4>
 					<textarea bind:value={entryReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Exit Reason</h4>
+					<h4 class="text-xs text-gray-500 mb-2">เหตุผลออกเทรด</h4>
 					<textarea bind:value={exitReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Execution Notes</h4>
+					<h4 class="text-xs text-gray-500 mb-2">บันทึกการ Execute</h4>
 					<textarea bind:value={executionNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Risk Notes</h4>
+					<h4 class="text-xs text-gray-500 mb-2">บันทึกความเสี่ยง</h4>
 					<textarea bind:value={riskNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Mistake Summary</h4>
+					<h4 class="text-xs text-gray-500 mb-2">สรุปข้อผิดพลาด</h4>
 					<textarea bind:value={mistakeSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Lesson Summary</h4>
+					<h4 class="text-xs text-gray-500 mb-2">สรุปบทเรียน</h4>
 					<textarea bind:value={lessonSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 			</div>
@@ -593,13 +593,13 @@
 				<div class="card p-4 bg-dark-bg/20">
 					<ChecklistEditor
 						items={brokenRules}
-						label="Broken Rules"
+						label="กฎที่ทำผิด"
 						placeholder="เช่น Overtraded after first loss"
 						onchange={(items) => (brokenRules = items)}
 					/>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">Next Action</h4>
+					<h4 class="text-xs text-gray-500 mb-2">สิ่งที่จะทำต่อ</h4>
 					<textarea bind:value={nextAction} rows="5" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 			</div>
@@ -610,14 +610,14 @@
 				disabled={savingReview}
 				class="btn-primary text-sm py-2 px-6 disabled:opacity-50"
 			>
-				{savingReview ? 'กำลังบันทึก...' : 'บันทึก Structured Review'}
+				{savingReview ? 'กำลังบันทึก...' : 'บันทึก Review'}
 			</button>
 		</div>
 
 		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 			<div class="card">
 				<div class="flex items-center justify-between mb-3">
-					<h3 class="text-sm font-medium text-gray-400">Trade Notes</h3>
+					<h3 class="text-sm font-medium text-gray-400">บันทึก Trade</h3>
 					{#if noteSaved}
 						<span class="text-xs text-green-400">บันทึกแล้ว!</span>
 					{/if}
@@ -658,8 +658,8 @@
 
 			<div class="card space-y-4">
 				<div>
-					<h3 class="text-sm font-medium text-gray-400">Attachments</h3>
-					<p class="text-xs text-gray-500 mt-1">Paste chart links or hosted image URLs for review context.</p>
+					<h3 class="text-sm font-medium text-gray-400">ไฟล์แนบ</h3>
+					<p class="text-xs text-gray-500 mt-1">วาง link กราฟ หรือ URL รูปภาพเพื่อประกอบ review</p>
 				</div>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 					<select bind:value={attachmentKind} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
@@ -667,9 +667,9 @@
 						<option value="image_url">Image URL</option>
 					</select>
 					<input bind:value={attachmentPath} placeholder="https://..." class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-					<input bind:value={attachmentCaption} placeholder="Caption" class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
+					<input bind:value={attachmentCaption} placeholder="คำอธิบาย" class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
 					<button type="button" onclick={saveAttachment} disabled={savingAttachment} class="btn-primary text-sm py-2">
-						{savingAttachment ? 'Saving...' : 'Add Attachment'}
+						{savingAttachment ? 'กำลังบันทึก...' : 'เพิ่มไฟล์แนบ'}
 					</button>
 				</div>
 
@@ -719,7 +719,7 @@
 			</div>
 
 			<div class="card">
-				<h3 class="text-sm font-medium text-gray-400 mb-3">Similar Reviewed Trades</h3>
+				<h3 class="text-sm font-medium text-gray-400 mb-3">เทรดที่ Review แล้วคล้ายกัน</h3>
 				<div class="space-y-2">
 					{#if similarReviewedTrades.length > 0}
 						{#each similarReviewedTrades as similarTrade}
@@ -736,7 +736,7 @@
 						{/each}
 					{:else}
 						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-500">
-							ยังไม่มี similar reviewed trades
+							ยังไม่มีเทรดที่ review แล้วคล้ายกัน
 						</div>
 					{/if}
 				</div>

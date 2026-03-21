@@ -158,7 +158,7 @@
   - Verify: Sync status badge + Sync Now button
   - Fix ANY issues found. Commit fixes.
 
-- [ ] [L] QA-002: QA Trade View — compare with TradeZella trade view
+- [x] [L] QA-002: QA Trade View — compare with TradeZella trade view
   - Read tradezella-explore/GAP_ANALYSIS.md section 3 (Trade View)
   - Verify: Trade table has Quality Score bar column
   - Verify: Trade table has Insights count badge column
@@ -397,3 +397,7 @@
 - Task: QA-001 — QA Dashboard — compare with TradeZella dashboard
 - Result: All 8 dashboard features verified present and functional (KPI cards with donut/gauge/bar, Cumulative P&L chart with timeframe picker, Trading Score Radar with 6 axes, Start My Day button + 3-step modal, Currency switcher $/%/pips, Sync status badge, Sync Now button with cooldown). Fixed: translated 20+ English strings to Thai across 7 files (MetricCard labels, chart titles, tooltips, tab navigation, HealthScoreCard labels, TradingScoreRadar label, Sync Now button). All checks pass: build OK, 127 tests pass.
 - Next: QA-002
+### Session 2026-03-21 (continued 16)
+- Task: QA-002 — QA Trade View — compare with TradeZella trade view
+- Result: All 5 trade view features verified present and functional (Quality Score bar column, Insights count badge column, bulk select with checkbox, bulk actions bar with Tag/Review Status/Export CSV, trade detail page with all sections: chart, replay, review, notes, tags, attachments, insights, quality score, execution metrics, related trades). Fixed: translated 30+ English strings to Thai across trade list page (stats cards, group-by options, pagination, bulk action review statuses) and trade detail page (price labels, review workflow, form labels/placeholders, section headings, attachment UI, related trades). Added fallback "—" display for empty insights and quality score cells. All checks pass: build OK, 127 tests pass.
+- Next: QA-003
