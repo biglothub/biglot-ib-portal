@@ -602,13 +602,21 @@
     - Cross-feature: 3 tests — KPI metrics, rule break counting, journal completion summary
     - BUG FIXED: daily-report/+server.ts used `ruleBreaks.totalBreaks` instead of `ruleBreaks.totalRuleBreaks` (2 occurrences)
 
-- [ ] [L] QA2-003: QA Mobile features (MOB-001 to MOB-005)
+- [x] [L] QA2-003: QA Mobile features (MOB-001 to MOB-005)
   - Test at 375px viewport width
   - Bottom nav: all tabs accessible, active state correct
   - Swipe gestures: left=review, right=tag, smooth animation
   - Pull-to-refresh: indicator shows, data refreshes
   - Offline mode: disconnect network, cached pages load, reconnect toast
   - Quick trade entry: FAB visible, form validates, submit works
+  - Session note: 100 QA tests in mobile-features.test.ts covering all 5 MOB features:
+    - MOB-001: 8 tests — tab split (4 primary + 9 more), active state detection, admin view account_id preservation, more toggle
+    - MOB-002: 12 tests — direction lock (h/v/none), swipe threshold (72px), clamp to MAX_X (90px), hint at 24px, review/tag sheet validation
+    - MOB-003: 9 tests — pullProgress ratio, pullIndicatorY positioning, scroll guard, refresh lifecycle, content translateY (max 24px), rotation
+    - MOB-004: 16 tests — SW URL routing (skip POST/API/auth/supabase), portfolio route matching, same-origin URL validation (cross-origin blocked), offline/online detection, reconnected toast 4s dismiss, offline page Thai content, cache strategy (stale-while-revalidate, network fallback, /offline fallback)
+    - MOB-005: 36 tests — client-side validation (empty/whitespace symbol, non-numeric profit, missing times, close<open), server-side validation (missing fields, invalid type, NaN profit, invalid dates), request body construction (uppercase symbol, lot_size default, advanced fields toggle), rate limiting (20/min, reset after window), form reset, bottom sheet dismiss (blocked while saving, swipe-down 80px threshold), success auto-close 2s, toDatetimeLocal helper, server lot_size defaults
+    - Cross-feature: 8 tests — touch target sizes, FAB positioning, consistent bottom sheet styling, md:hidden classes, Thai error messages, content padding
+    - All 386 tests pass, build OK
 
 - [ ] [M] QA2-004: QA Cross-page consistency
   - Same loading skeleton pattern on all pages
