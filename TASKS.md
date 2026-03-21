@@ -2,7 +2,7 @@
 
 > Last updated: 2026-03-21
 > Active session: none
-> Completed this cycle: 8
+> Completed this cycle: 9
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -120,7 +120,7 @@
 
 ## Advanced Features
 
-- [ ] [L] TZ-016: Economic Calendar integration
+- [x] [L] TZ-016: Economic Calendar integration
   - Fetch events from free API
   - Display: Date, Time, Country, Event, Impact, Actual/Forecast/Previous
   - Filter by country, impact level
@@ -303,3 +303,7 @@
 - Task: TZ-015 — Sessions Recap folder in Notebook
 - Result: Sessions Recap system folder (already auto-created). New `generate_session_recap` API action: fetches trades for a date, groups by session (Asian/London/New York) using getTradeSession(), generates HTML recap with per-session stats (trade count, P&L, win rate, individual trade details). Duplicate detection (409 if recap exists). UI: date picker + "สร้าง Recap" button shown when Sessions Recap folder is selected, loading spinner, error/duplicate messages in Thai. Mobile responsive: sidebar/editor toggle with back button. Empty state prompt in Thai.
 - Next: TZ-016
+### Session 2026-03-21 (continued 11)
+- Task: TZ-016 — Economic Calendar integration
+- Result: New /portfolio/calendar page with Economic Calendar tab. API: GET /api/portfolio/economic-calendar fetches from Forex Factory public JSON feed (rate-limited 10/min, 8s timeout, fallback to empty). UI: week selector (last/this/next week), 4 stats cards (total, high/medium/low impact), search + impact filter + country filter + refresh button, events grouped by date with today highlight, desktop table (time, currency with flag, impact badge, event, forecast/previous/actual) + mobile card layout. Loading skeleton, error state with retry, empty state with filter hint. Thai labels throughout. Dark theme, mobile responsive.
+- Next: TZ-017

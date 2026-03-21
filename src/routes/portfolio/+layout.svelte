@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page, navigating } from '$app/stores';
-	import { beforeNavigate, goto } from '$app/navigation';
+	import { beforeNavigate, goto, invalidate } from '$app/navigation';
 	import { timeAgo } from '$lib/utils';
 	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
 	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
@@ -8,11 +8,48 @@
 	import PortfolioGuide from '$lib/components/portfolio/PortfolioGuide.svelte';
 	import { marketNewsStore } from '$lib/stores/newsStore';
 	import { adminViewAccountId } from '$lib/stores/adminViewStore';
+	import { displayUnit, type DisplayUnit } from '$lib/stores/displayUnit';
+	import SyncStatusBadge from '$lib/components/portfolio/SyncStatusBadge.svelte';
 
 	let { data, children } = $props();
-	let { account, isAdminView, viewAsAccountId } = $derived(data);
+	let { account, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
 	let chatOpen = $state(false);
 	let guideOpen = $state(false);
+
+	let syncingNow = $state(false);
+	let syncError = $state<string | null>(null);
+	let syncCooldown = $state(false);
+
+	async function triggerSync() {
+		if (syncingNow || syncCooldown || isAdminView) return;
+		syncingNow = true;
+		syncError = null;
+		try {
+			const res = await fetch('/api/portfolio/sync-trigger', { method: 'POST' });
+			if (res.status === 429) {
+				syncError = 'กรุณารอ 60 วินาทีก่อน Sync ใหม่';
+			} else if (!res.ok) {
+				const body = await res.json().catch(() => ({}));
+				syncError = body.message || 'เกิดข้อผิดพลาด';
+			} else {
+				// Brief cooldown — prevent button spam while bridge processes the request
+				syncCooldown = true;
+				setTimeout(() => { syncCooldown = false; }, 60_000);
+				// Refresh layout data so badge shows updated state
+				await invalidate('portfolio:baseData');
+			}
+		} catch {
+			syncError = 'ไม่สามารถเชื่อมต่อได้';
+		} finally {
+			syncingNow = false;
+		}
+	}
+
+	const unitOptions: { value: DisplayUnit; label: string }[] = [
+		{ value: 'usd', label: '$' },
+		{ value: 'pct', label: '%' },
+		{ value: 'pips', label: 'p' }
+	];
 
 	/** Build tab href — preserves account_id param for admin view */
 	const tabHref = (base: string) => {
@@ -58,6 +95,7 @@
 		{ base: '/portfolio/analytics', label: 'Reports' },
 		{ base: '/portfolio/playbook', label: 'Playbook' },
 		{ base: '/portfolio/progress', label: 'Progress' },
+		{ base: '/portfolio/calendar', label: 'Calendar' },
 		{ base: '/portfolio/live-trade', label: 'Live Trade' },
 		{ base: '/portfolio/analysis', label: 'Gold Analysis' },
 	];
@@ -100,9 +138,57 @@
 	<div class="flex items-center justify-between">
 		<h1 class="text-xl font-bold">{isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'}</h1>
 		<div class="flex items-center gap-3">
-			{#if account?.last_synced_at}
-				<span class="text-xs text-gray-500">อัพเดท: {timeAgo(account.last_synced_at)}</span>
+			{#if account}
+				<SyncStatusBadge lastSyncedAt={account.last_synced_at ?? null} bridgeStatus={bridgeStatus ?? null} />
+				{#if !isAdminView}
+					<div class="flex flex-col items-end gap-0.5">
+						<button
+							onclick={triggerSync}
+							disabled={syncingNow || syncCooldown}
+							class="flex items-center gap-1.5 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs font-medium transition-colors
+								{syncingNow || syncCooldown
+									? 'text-gray-600 border-gray-700 cursor-not-allowed'
+									: 'text-gray-400 hover:text-white hover:border-brand-primary/40'}"
+							title={syncCooldown ? 'Sync แล้ว — กรุณารอก่อน' : 'Sync ข้อมูลล่าสุด'}
+						>
+							{#if syncingNow}
+								<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+								</svg>
+								<span>กำลัง Sync...</span>
+							{:else}
+								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+								</svg>
+								<span>Sync Now</span>
+							{/if}
+						</button>
+						{#if syncError}
+							<span class="text-xs text-red-400">{syncError}</span>
+						{/if}
+					</div>
+				{/if}
 			{/if}
+			<!-- Display unit switcher -->
+			<div
+				class="flex items-center rounded-lg border border-dark-border overflow-hidden"
+				role="group"
+				aria-label="หน่วยแสดงผล"
+			>
+				{#each unitOptions as opt}
+					<button
+						onclick={() => displayUnit.set(opt.value)}
+						class="px-2.5 py-1.5 text-xs font-medium transition-colors
+							{$displayUnit === opt.value
+								? 'bg-brand-primary/20 text-brand-primary'
+								: 'text-gray-500 hover:text-gray-300 hover:bg-dark-border/40'}"
+						aria-pressed={$displayUnit === opt.value}
+					>
+						{opt.label}
+					</button>
+				{/each}
+			</div>
 			<button
 				onclick={() => guideOpen = true}
 				class="flex items-center gap-1.5 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
