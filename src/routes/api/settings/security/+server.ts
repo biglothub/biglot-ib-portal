@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
-		return json({ message: 'Unauthorized' }, { status: 401 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
 	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
@@ -47,5 +47,5 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ success: true, message: 'เปลี่ยนรหัสผ่านสำเร็จ' });
 	}
 
-	return json({ message: 'Invalid action' }, { status: 400 });
+	return json({ message: 'การกระทำไม่ถูกต้อง' }, { status: 400 });
 };

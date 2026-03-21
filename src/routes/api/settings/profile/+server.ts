@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
-		return json({ message: 'Unauthorized' }, { status: 401 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
 	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
@@ -32,8 +32,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.eq('id', locals.user.id);
 
 		if (error) {
-			console.error('Failed to update profile name:', error);
-			return json({ message: 'ไม่สามารถอัปเดตชื่อได้' }, { status: 500 });
+				return json({ message: 'ไม่สามารถอัปเดตชื่อได้' }, { status: 500 });
 		}
 
 		return json({ success: true, message: 'อัปเดตชื่อสำเร็จ' });
@@ -55,8 +54,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.upsert(payload, { onConflict: 'user_id' });
 
 		if (error) {
-			console.error('Failed to save notification prefs:', error);
-			return json({ message: 'ไม่สามารถบันทึกการตั้งค่าแจ้งเตือนได้' }, { status: 500 });
+				return json({ message: 'ไม่สามารถบันทึกการตั้งค่าแจ้งเตือนได้' }, { status: 500 });
 		}
 
 		return json({ success: true, message: 'บันทึกการตั้งค่าแจ้งเตือนสำเร็จ' });

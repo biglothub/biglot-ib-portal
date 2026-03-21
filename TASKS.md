@@ -186,7 +186,7 @@
   - Verify: Weekly summary stats (trades, win rate, profit factor)
   - Fix ANY issues found. Commit fixes.
 
-- [ ] [L] QA-005: QA Settings pages
+- [x] [L] QA-005: QA Settings pages
   - Verify: Settings layout with sidebar nav (Profile, Security, Trade)
   - Verify: Profile tab (name edit, account info, notification prefs)
   - Verify: Security tab (password change, sessions, 2FA coming soon)
@@ -409,3 +409,7 @@
 - Task: QA-004 — QA Day/Week View — compare with TradeZella
 - Result: All 4 Day/Week View features verified present and functional (Day/Week toggle, calendar picker with profitable/losing day highlights, 7-day week cards with P&L, weekly summary stats with bar chart). Fixed: translated 40+ English strings to Thai across 3 files — day-view page (toggle labels, month names, day labels, stat labels, table headers, date/time locales en-US→th-TH, section headings, button text), day-view server (day names Sun/Mon→อาทิตย์/จันทร์), DayInsightsSection (heading, category labels). All checks pass: build OK, 127 tests pass.
 - Next: QA-005
+### Session 2026-03-21 (continued 19)
+- Task: QA-005 — QA Settings pages
+- Result: All 3 Settings tabs verified present and functional (Profile with editable name/avatar/MT5 account info/notification toggles, Security with password change/OAuth detection/active sessions/2FA coming soon badge/login provider info, Trade Settings with timezone selector/default TP-SL/per-symbol settings table/add-remove symbols). Fixed: translated 10+ English strings to Thai across 6 files — Profile page ("Push Notifications"→"การแจ้งเตือนผ่าน Push", aria-label), Security page ("Authenticator App"→"แอปยืนยันตัวตน"), Security API ("Invalid action"→"การกระทำไม่ถูกต้อง"), Trade API ("Timezone ไม่ถูกต้อง"→"โซนเวลาไม่ถูกต้อง"), all 3 APIs ("Unauthorized"→"ไม่ได้รับอนุญาต"). Removed 3 console.error statements from profile and trade APIs. Fixed type error for master_ibs broker name display. Improved trade settings mobile grid responsiveness (grid-cols-1 sm:grid-cols-2 md:grid-cols-5). All checks pass: build OK, 127 tests pass.
+- Next: QA-006

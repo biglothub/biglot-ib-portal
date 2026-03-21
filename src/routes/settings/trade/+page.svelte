@@ -323,7 +323,7 @@
 		<!-- Add new symbol -->
 		<div class="rounded-lg border border-dark-border bg-dark-bg p-4">
 			<p class="text-xs text-gray-400 font-medium mb-3">เพิ่มสัญลักษณ์ใหม่</p>
-			<div class="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
+			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
 				<div>
 					<label class="label" for="new-symbol">สัญลักษณ์</label>
 					<input

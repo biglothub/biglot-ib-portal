@@ -90,6 +90,14 @@
 		}
 	}
 
+	function getBrokerName(account: typeof clientAccount): string {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const ibs = (account as any)?.master_ibs;
+		if (!ibs) return '-';
+		if (Array.isArray(ibs)) return ibs[0]?.company_name || '-';
+		return ibs.company_name || '-';
+	}
+
 	function formatSyncDate(dateStr: string | null): string {
 		if (!dateStr) return 'ยังไม่เคยซิงค์';
 		const d = new Date(dateStr);
@@ -254,7 +262,7 @@
 				<div class="rounded-lg bg-dark-bg p-4">
 					<p class="text-xs text-gray-500 mb-1">โบรกเกอร์</p>
 					<p class="text-sm text-white">
-						{clientAccount.master_ibs?.company_name || '-'}
+						{getBrokerName(clientAccount)}
 					</p>
 				</div>
 				<div class="rounded-lg bg-dark-bg p-4">
@@ -303,7 +311,7 @@
 			<!-- Push Notifications -->
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="text-sm text-white">Push Notifications</p>
+					<p class="text-sm text-white">การแจ้งเตือนผ่าน Push</p>
 					<p class="text-xs text-gray-500">รับแจ้งเตือนผ่านเบราว์เซอร์</p>
 				</div>
 				<button
@@ -311,7 +319,7 @@
 					class="w-11 h-6 rounded-full transition-colors relative {pushEnabled ? 'bg-brand-primary' : 'bg-dark-bg border border-dark-border'}"
 					role="switch"
 					aria-checked={pushEnabled}
-					aria-label="Push Notifications"
+					aria-label="การแจ้งเตือนผ่าน Push"
 				>
 					<div class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform {pushEnabled ? 'left-[22px]' : 'left-0.5'}"></div>
 				</button>

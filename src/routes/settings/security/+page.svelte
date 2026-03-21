@@ -279,7 +279,7 @@
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
 					</svg>
 					<div>
-						<p class="text-sm text-white">Authenticator App</p>
+						<p class="text-sm text-white">แอปยืนยันตัวตน</p>
 						<p class="text-xs text-gray-500">ใช้แอปเช่น Google Authenticator หรือ Authy</p>
 					</div>
 				</div>

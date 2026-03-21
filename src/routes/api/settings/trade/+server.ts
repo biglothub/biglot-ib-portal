@@ -31,7 +31,7 @@ const VALID_TIMEZONES = [
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
-		return json({ message: 'Unauthorized' }, { status: 401 });
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
 	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
@@ -44,7 +44,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// Validate timezone
 	if (timezone && !VALID_TIMEZONES.includes(timezone)) {
-		return json({ message: 'Timezone ไม่ถูกต้อง' }, { status: 400 });
+		return json({ message: 'โซนเวลาไม่ถูกต้อง' }, { status: 400 });
 	}
 
 	// Validate symbol_settings
@@ -84,7 +84,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		.upsert(payload, { onConflict: 'user_id' });
 
 	if (error) {
-		console.error('Failed to save trade settings:', error);
 		return json({ message: 'ไม่สามารถบันทึกการตั้งค่าได้' }, { status: 500 });
 	}
 
