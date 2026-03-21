@@ -2,7 +2,7 @@
 
 > Last updated: 2026-03-21
 > Active session: none
-> Completed this cycle: 9
+> Completed this cycle: 10
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -126,7 +126,7 @@
   - Filter by country, impact level
   - Files: src/routes/portfolio/calendar/+page.svelte (new)
 
-- [ ] [XL] TZ-017: Strategy Templates marketplace
+- [x] [XL] TZ-017: Strategy Templates marketplace
   - "Shared with me" tab in playbook page
   - Browse community templates with performance stats
   - Clone template to own playbooks
@@ -307,3 +307,7 @@
 - Task: TZ-016 — Economic Calendar integration
 - Result: New /portfolio/calendar page with Economic Calendar tab. API: GET /api/portfolio/economic-calendar fetches from Forex Factory public JSON feed (rate-limited 10/min, 8s timeout, fallback to empty). UI: week selector (last/this/next week), 4 stats cards (total, high/medium/low impact), search + impact filter + country filter + refresh button, events grouped by date with today highlight, desktop table (time, currency with flag, impact badge, event, forecast/previous/actual) + mobile card layout. Loading skeleton, error state with retry, empty state with filter hint. Thai labels throughout. Dark theme, mobile responsive.
 - Next: TZ-017
+### Session 2026-03-21 (continued 12)
+- Task: TZ-017 — Strategy Templates marketplace
+- Result: DB migration 021 creates playbook_templates + playbook_template_clones tables with RLS (public read for published, author CRUD, clone tracking with unique constraint). API: GET/POST/DELETE /api/portfolio/templates (browse/publish/unpublish, rate-limited, performance stats snapshot at publish time), POST /api/portfolio/templates/clone (creates playbook copy, increments clone_count, dedup via unique constraint). UI: Playbook page refactored with "My Playbooks" / "Community Templates" tabs. Community tab: search, category filter (9 categories), sort (popular/newest/win_rate), template cards with stats grid (trades/win rate/P&L), rules preview badges, clone button with loading state + "Clone แล้ว" indicator. Publish modal on own playbooks with category selector. Thai labels, dark theme, mobile responsive.
+- Next: TZ-018
