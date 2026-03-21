@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
@@ -8,6 +8,7 @@
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
 	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
+	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
 
 	let { data } = $props();
 	let trades = $derived(data.trades || []);
@@ -24,7 +25,143 @@
 	let tradeExecutionMetrics: Record<string, any> = $derived(data.tradeExecutionMetrics || {});
 
 	let groupBy = $state<'none' | 'day' | 'session' | 'setup'>('day');
+	let showImportModal = $state(false);
+	let exportLoading = $state(false);
 	const totalPages = $derived(Math.ceil(total / pageSize));
+
+	// --- Bulk selection state ---
+	let selectedIds = $state<Set<string>>(new Set());
+	let bulkAction = $state<'tag' | 'review_status' | 'export' | ''>('');
+	let bulkTagId = $state('');
+	let bulkReviewStatus = $state('');
+	let bulkLoading = $state(false);
+	let bulkError = $state('');
+
+	const selectionCount = $derived(selectedIds.size);
+
+	function toggleTrade(id: string) {
+		const next = new Set(selectedIds);
+		if (next.has(id)) next.delete(id);
+		else next.add(id);
+		selectedIds = next;
+	}
+
+	function isGroupAllSelected(items: any[]) {
+		return items.length > 0 && items.every((t) => selectedIds.has(t.id));
+	}
+
+	function toggleGroupAll(items: any[]) {
+		const next = new Set(selectedIds);
+		if (isGroupAllSelected(items)) {
+			items.forEach((t) => next.delete(t.id));
+		} else {
+			items.forEach((t) => next.add(t.id));
+		}
+		selectedIds = next;
+	}
+
+	function clearSelection() {
+		selectedIds = new Set();
+		bulkAction = '';
+		bulkTagId = '';
+		bulkReviewStatus = '';
+		bulkError = '';
+	}
+
+	async function applyBulkAction() {
+		if (selectionCount === 0) return;
+		if (bulkAction === 'tag' && !bulkTagId) {
+			bulkError = 'กรุณาเลือก Tag';
+			return;
+		}
+		if (bulkAction === 'review_status' && !bulkReviewStatus) {
+			bulkError = 'กรุณาเลือกสถานะ';
+			return;
+		}
+
+		bulkLoading = true;
+		bulkError = '';
+
+		try {
+			const res = await fetch('/api/portfolio/trades/bulk', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					trade_ids: Array.from(selectedIds),
+					action: bulkAction,
+					payload: bulkAction === 'tag' ? { tag_id: bulkTagId } : { review_status: bulkReviewStatus }
+				})
+			});
+
+			if (!res.ok) {
+				const err = await res.json();
+				bulkError = err.message || 'เกิดข้อผิดพลาด';
+				return;
+			}
+
+			clearSelection();
+			await invalidate('portfolio:baseData');
+		} catch {
+			bulkError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+		} finally {
+			bulkLoading = false;
+		}
+	}
+
+	function exportSelectedCsv() {
+		const selected = trades.filter((t: any) => selectedIds.has(t.id));
+		if (selected.length === 0) return;
+
+		const header = ['Symbol', 'Type', 'Lots', 'Open Price', 'Close Price', 'Profit', 'Close Time', 'Review Status', 'Tags'];
+		const rows = selected.map((t: any) => [
+			t.symbol,
+			t.type,
+			t.lot_size,
+			t.open_price,
+			t.close_price,
+			t.profit,
+			t.close_time,
+			getTradeReviewStatus(t),
+			(t.trade_tag_assignments || []).map((a: any) => a.trade_tags?.name).filter(Boolean).join('|')
+		]);
+
+		const csv = [header, ...rows]
+			.map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+			.join('\n');
+
+		const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `trades_export_${new Date().toISOString().slice(0, 10)}.csv`;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	async function exportAllCsv() {
+		exportLoading = true;
+		try {
+			const params = new URLSearchParams(window.location.search);
+			const from = params.get('from') || '';
+			const to = params.get('to') || '';
+			const exportParams = new URLSearchParams();
+			if (from) exportParams.set('from', from);
+			if (to) exportParams.set('to', to);
+
+			const res = await fetch(`/api/portfolio/trades/export?${exportParams.toString()}`);
+			if (!res.ok) return;
+
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `trades_export_${new Date().toISOString().slice(0, 10)}.csv`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			exportLoading = false;
+		}
+	}
 
 	function goToPage(pageNumber: number) {
 		const params = new URLSearchParams(window.location.search);
@@ -70,6 +207,27 @@
 		pageKey="trades"
 	/>
 
+	<!-- Import / Export buttons -->
+	<div class="flex items-center justify-end gap-2">
+		<button
+			type="button"
+			onclick={() => showImportModal = true}
+			class="px-3 py-1.5 text-sm rounded border border-dark-border text-gray-300 hover:text-white hover:border-brand-primary/50 flex items-center gap-1.5"
+		>
+			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+			Import CSV
+		</button>
+		<button
+			type="button"
+			onclick={exportAllCsv}
+			disabled={exportLoading}
+			class="px-3 py-1.5 text-sm rounded border border-dark-border text-gray-300 hover:text-white hover:border-brand-primary/50 flex items-center gap-1.5 disabled:opacity-50"
+		>
+			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+			{exportLoading ? 'กำลังดาวน์โหลด...' : 'Export CSV'}
+		</button>
+	</div>
+
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
 			<div class="text-xs text-gray-500">Filtered Trades</div>
@@ -95,6 +253,81 @@
 		</div>
 	</div>
 
+	<!-- Bulk action bar -->
+	{#if selectionCount > 0}
+		<div class="sticky top-0 z-20 bg-dark-surface border border-brand-primary/40 rounded-lg px-4 py-3 flex flex-wrap items-center gap-3 shadow-lg">
+			<span class="text-sm font-medium text-brand-primary">เลือกแล้ว {selectionCount} trade</span>
+
+			<div class="flex items-center gap-2 flex-wrap flex-1">
+				<!-- Action picker -->
+				<select
+					bind:value={bulkAction}
+					class="bg-dark-bg border border-dark-border rounded px-3 py-1.5 text-sm text-white"
+				>
+					<option value="">-- เลือก action --</option>
+					<option value="tag">เพิ่ม Tag</option>
+					<option value="review_status">เปลี่ยนสถานะ Review</option>
+					<option value="export">Export CSV</option>
+				</select>
+
+				{#if bulkAction === 'tag'}
+					<select
+						bind:value={bulkTagId}
+						class="bg-dark-bg border border-dark-border rounded px-3 py-1.5 text-sm text-white"
+					>
+						<option value="">-- เลือก Tag --</option>
+						{#each tags as tag}
+							<option value={tag.id}>{tag.name} ({tag.category})</option>
+						{/each}
+					</select>
+				{/if}
+
+				{#if bulkAction === 'review_status'}
+					<select
+						bind:value={bulkReviewStatus}
+						class="bg-dark-bg border border-dark-border rounded px-3 py-1.5 text-sm text-white"
+					>
+						<option value="">-- เลือกสถานะ --</option>
+						<option value="unreviewed">Unreviewed</option>
+						<option value="in_progress">In Progress</option>
+						<option value="reviewed">Reviewed</option>
+					</select>
+				{/if}
+
+				{#if bulkAction === 'export'}
+					<button
+						type="button"
+						onclick={exportSelectedCsv}
+						class="px-4 py-1.5 text-sm rounded bg-brand-primary text-dark-bg font-medium hover:bg-brand-primary/80"
+					>
+						ดาวน์โหลด CSV
+					</button>
+				{:else if bulkAction}
+					<button
+						type="button"
+						onclick={applyBulkAction}
+						disabled={bulkLoading}
+						class="px-4 py-1.5 text-sm rounded bg-brand-primary text-dark-bg font-medium hover:bg-brand-primary/80 disabled:opacity-50"
+					>
+						{bulkLoading ? 'กำลังบันทึก...' : 'บันทึก'}
+					</button>
+				{/if}
+
+				{#if bulkError}
+					<span class="text-xs text-red-400">{bulkError}</span>
+				{/if}
+			</div>
+
+			<button
+				type="button"
+				onclick={clearSelection}
+				class="text-xs text-gray-400 hover:text-white ml-auto"
+			>
+				ยกเลิกการเลือก
+			</button>
+		</div>
+	{/if}
+
 	<div class="flex items-center justify-between gap-3">
 		<div class="text-sm text-gray-400">
 			Page {currentPage}/{Math.max(totalPages, 1)}
@@ -119,13 +352,24 @@
 			{#each groupedTrades as group}
 				<div class="card">
 					<div class="flex items-center justify-between gap-3 mb-4">
-						<h3 class="text-sm font-medium text-white">{group.label}</h3>
+						<div class="flex items-center gap-3">
+							<!-- Group select-all checkbox -->
+							<input
+								type="checkbox"
+								checked={isGroupAllSelected(group.items)}
+								onchange={() => toggleGroupAll(group.items)}
+								class="w-4 h-4 rounded border-dark-border bg-dark-bg accent-brand-primary cursor-pointer"
+								aria-label="เลือก trade ทั้งหมดในกลุ่มนี้"
+							/>
+							<h3 class="text-sm font-medium text-white">{group.label}</h3>
+						</div>
 						<span class="text-xs text-gray-500">{group.items.length} trades</span>
 					</div>
 					<div class="overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead>
 								<tr class="border-b border-dark-border text-gray-500 text-xs">
+									<th class="w-8 py-2"></th>
 									<th class="text-left py-2">Trade</th>
 									<th class="text-left py-2">Review</th>
 									<th class="text-left py-2">Playbook</th>
@@ -142,20 +386,34 @@
 							<tbody>
 								{#each group.items as trade}
 									<tr
-										class="border-b border-dark-border/40 hover:bg-dark-border/20 cursor-pointer"
-										onclick={() => goto(`/portfolio/trades/${trade.id}`)}
+										class="border-b border-dark-border/40 hover:bg-dark-border/20 {selectedIds.has(trade.id) ? 'bg-brand-primary/5' : ''}"
 									>
-										<td class="py-3">
+										<!-- Checkbox cell — stops row click propagation -->
+										<td class="py-3 pr-2" onclick={(e) => e.stopPropagation()}>
+											<input
+												type="checkbox"
+												checked={selectedIds.has(trade.id)}
+												onchange={() => toggleTrade(trade.id)}
+												class="w-4 h-4 rounded border-dark-border bg-dark-bg accent-brand-primary cursor-pointer"
+												aria-label="เลือก trade {trade.symbol}"
+											/>
+										</td>
+										<td
+											class="py-3 cursor-pointer"
+											onclick={() => goto(`/portfolio/trades/${trade.id}`)}
+										>
 											<div class="font-medium text-white">{trade.symbol}</div>
 											<div class="text-[11px] text-gray-500">
 												{trade.type} • {trade.lot_size} lots • {formatNumber(trade.open_price, 5)} → {formatNumber(trade.close_price, 5)}
 											</div>
 										</td>
-										<td class="py-3"><ReviewStatusBadge status={getTradeReviewStatus(trade)} /></td>
-										<td class="py-3 text-gray-300">
+										<td class="py-3 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+											<ReviewStatusBadge status={getTradeReviewStatus(trade)} />
+										</td>
+										<td class="py-3 text-gray-300 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
 											{playbooks.find((playbook: any) => playbook.id === getTradePlaybookId(trade))?.name || '-'}
 										</td>
-										<td class="py-3">
+										<td class="py-3 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
 											<div class="flex flex-wrap gap-1">
 												{#each (trade.trade_tag_assignments || []).slice(0, 3) as assignment}
 													{#if assignment.trade_tags}
@@ -168,9 +426,13 @@
 												{/each}
 											</div>
 										</td>
-										<td class="py-3 text-center text-gray-300">{(trade.trade_notes || []).length || '—'}</td>
-										<td class="py-3 text-center text-gray-300">{(trade.trade_attachments || []).length || '—'}</td>
-										<td class="py-3 text-center">
+										<td class="py-3 text-center text-gray-300 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+											{(trade.trade_notes || []).length || '—'}
+										</td>
+										<td class="py-3 text-center text-gray-300 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+											{(trade.trade_attachments || []).length || '—'}
+										</td>
+										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
 											{#if tradeInsights[trade.id]}
 												{@const ins = tradeInsights[trade.id]}
 												<InsightBadge
@@ -180,25 +442,27 @@
 												/>
 											{/if}
 										</td>
-										<td class="py-3 text-center">
+										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
 											{#if tradeScores[trade.id] !== undefined}
 												<QualityScoreBar score={tradeScores[trade.id]} />
 											{/if}
 										</td>
-										<td class="py-3 text-center">
-										{#if tradeExecutionMetrics[trade.id]?.rMultiple != null}
-											{@const r = tradeExecutionMetrics[trade.id].rMultiple}
-											<span class="text-xs font-mono {r >= 1 ? 'text-green-400' : r >= 0 ? 'text-amber-400' : 'text-red-400'}">
-												{r >= 0 ? '+' : ''}{r.toFixed(1)}R
-											</span>
-										{:else}
-											<span class="text-xs text-gray-600">—</span>
-										{/if}
-									</td>
-									<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
+										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+											{#if tradeExecutionMetrics[trade.id]?.rMultiple != null}
+												{@const r = tradeExecutionMetrics[trade.id].rMultiple}
+												<span class="text-xs font-mono {r >= 1 ? 'text-green-400' : r >= 0 ? 'text-amber-400' : 'text-red-400'}">
+													{r >= 0 ? '+' : ''}{r.toFixed(1)}R
+												</span>
+											{:else}
+												<span class="text-xs text-gray-600">—</span>
+											{/if}
+										</td>
+										<td class="py-3 text-right font-medium cursor-pointer {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
 											{formatCurrency(trade.profit)}
 										</td>
-										<td class="py-3 text-right text-gray-500">{formatDateTime(trade.close_time)}</td>
+										<td class="py-3 text-right text-gray-500 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+											{formatDateTime(trade.close_time)}
+										</td>
 									</tr>
 								{/each}
 							</tbody>
@@ -244,3 +508,5 @@
 		{/if}
 	{/if}
 </div>
+
+<TradeImportModal bind:open={showImportModal} />

@@ -140,11 +140,85 @@
   - Requires historical bar data
   - Files: src/routes/portfolio/trades/[id]/replay/+page.svelte (new)
 
-- [ ] [M] TZ-019: Import/Export trade history
+- [x] [M] TZ-019: Import/Export trade history
   - Export: CSV download of filtered trades
   - Import: CSV upload with column mapping
   - Import history log
   - Files: src/routes/api/portfolio/trades/export/, src/routes/api/portfolio/trades/import/
+
+## QA Round — Verify Built Features Match TradeZella
+
+- [ ] [L] QA-001: QA Dashboard — compare with TradeZella dashboard
+  - Read tradezella-explore/GAP_ANALYSIS.md section 1 (Dashboard)
+  - Verify: KPI cards (Net P&L, Win%, Profit Factor, Day Win%, Avg Win/Loss) all present and styled
+  - Verify: Cumulative P&L chart works with real data shape
+  - Verify: Trading Score Radar has 6 axes
+  - Verify: "Start My Day" button works, opens modal with checklist
+  - Verify: Currency switcher ($, %, pips) toggles all values
+  - Verify: Sync status badge + Sync Now button
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [L] QA-002: QA Trade View — compare with TradeZella trade view
+  - Read tradezella-explore/GAP_ANALYSIS.md section 3 (Trade View)
+  - Verify: Trade table has Quality Score bar column
+  - Verify: Trade table has Insights count badge column
+  - Verify: Bulk select with checkbox works (select all, individual)
+  - Verify: Bulk actions bar (Tag, Review Status, Export CSV) works
+  - Verify: Trade detail page has all sections (review, notes, attachments, insights, chart)
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [L] QA-003: QA Reports — compare with TradeZella reports
+  - Read tradezella-explore/GAP_ANALYSIS.md section 5 (Reports)
+  - Verify: Performance sub-tab with dual configurable charts
+  - Verify: Calendar year view with P&L colors
+  - Verify: Symbols breakdown table
+  - Verify: Compare tool (2 groups)
+  - Verify: Tags breakdown sub-tab
+  - Verify: Risk analysis sub-tab (drawdown chart, ratios)
+  - Verify: Recaps sub-tab (weekly/monthly AI summaries)
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [L] QA-004: QA Day/Week View — compare with TradeZella
+  - Read tradezella-explore/GAP_ANALYSIS.md section 2 (Day View)
+  - Verify: Day/Week toggle works
+  - Verify: Calendar picker highlights profitable/losing days
+  - Verify: Week view shows 7-day cards with P&L
+  - Verify: Weekly summary stats (trades, win rate, profit factor)
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [L] QA-005: QA Settings pages
+  - Verify: Settings layout with sidebar nav (Profile, Security, Trade)
+  - Verify: Profile tab (name edit, account info, notification prefs)
+  - Verify: Security tab (password change, sessions, 2FA coming soon)
+  - Verify: Trade settings (PT/SL defaults, timezone, commission per symbol)
+  - Verify: All forms have validation, loading states, success/error messages
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [L] QA-006: QA Notebook, Playbook, Calendar
+  - Verify: Notebook folders (All, Daily Journal, Trade Notes, Sessions Recap, My Notes)
+  - Verify: Rich text editor works (bold, italic, lists, links)
+  - Verify: Search across notes
+  - Verify: Playbook templates marketplace (browse, clone, publish)
+  - Verify: Economic Calendar (events, filters, impact levels)
+  - Verify: Trade Replay (chart, controls, P&L curve)
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [M] QA-007: QA Progress & Discipline
+  - Verify: Daily Checklist (manual + automated rules)
+  - Verify: Progress heatmap (weekly grid)
+  - Verify: Streak counter
+  - Verify: Trade Insights engine (10 rules, quality score)
+  - Fix ANY issues found. Commit fixes.
+
+- [ ] [L] QA-008: Full app QA — loading skeletons, empty states, mobile
+  - Go through EVERY page and verify:
+  - Loading skeleton exists and looks good
+  - Empty state shows helpful Thai message
+  - Mobile layout works (no overflow, readable text, touch targets)
+  - No console.log in code
+  - No hardcoded English strings (should be Thai)
+  - All charts render correctly with 0, 1, and many data points
+  - Fix ALL issues found. Commit fixes.
 
 ## Polish & Quality
 
@@ -315,3 +389,7 @@
 - Task: TZ-018 — Trade Replay (Pro feature)
 - Result: Dedicated full-page replay at /portfolio/trades/[id]/replay. Server loader fetches trade + chart contexts in parallel. UI: full-height layout with candlestick chart (lightweight-charts) + P&L area curve showing unrealized P&L during trade. Transport controls: play/pause, step forward/backward, reset, scrubber slider. Speed controls (1x/2x/5x/10x). Timeframe switcher for multi-TF chart data. Jump-to-entry/exit buttons. Entry price line + SL/TP price lines appear at entry. Entry/exit arrow markers. Status bar with OHLC, trade phase (PRE-ENTRY/IN TRADE/CLOSED), current P/L, max/min P/L. Keyboard shortcuts (Space=play, arrows=step, R=reset). Trade detail page updated with "Quick Replay" (inline) + "Full Replay" (dedicated page) links. Loading skeleton, empty states, mobile responsive with collapsible info panel. Thai labels, dark theme.
 - Next: TZ-019
+### Session 2026-03-21 (continued 14)
+- Task: TZ-019 — Import/Export trade history
+- Result: Export: GET /api/portfolio/trades/export (rate-limited 5/min, returns CSV with 16 columns including pips/commission/swap/SL/TP/tags/review status, date filtering, BOM for Excel). Import: POST /api/portfolio/trades/import (rate-limited 3/min, max 500 rows, CSV parsing with RFC 4180 quote handling, auto-detect column mapping via 30+ aliases like Entry Price=open_price/PnL=profit, custom column_map override, row-level validation with typed errors, batch insert, filename tracking). Import history: GET /api/portfolio/trades/import?history=1 returns last 20 imports. DB: migration 022 creates trade_import_logs table with RLS. UI: TradeImportModal.svelte (4-step wizard: upload→mapping→preview→result), import history panel with status badges, Thai labels. Trades page: Import/Export buttons above stats cards, Export All downloads server-generated CSV.
+- Next: QA-001
