@@ -432,12 +432,13 @@
   - Audit: grep -r 'Math\.\(max\|min\)(\.\.\.' src/
   - Files: src/lib/server/portfolio.ts
 
-- [ ] [M] FIX-006: Fix keyboard accessibility on trade rows
+- [x] [M] FIX-006: Fix keyboard accessibility on trade rows
   - Trade table rows are not keyboard navigable
   - Add tabindex="0" to interactive rows
   - Add onkeydown handler (Enter/Space → navigate to trade detail)
   - Add visible focus ring styles
   - Files: src/routes/portfolio/trades/+page.svelte
+  - ✅ Session 2026-03-22: Added tabindex="0", role="link", aria-label to <tr>; handleRowKeydown for Enter/Space; focus-visible ring; moved onclick to <tr> level with checkbox exclusion; removed duplicate cursor-pointer from <td>
 
 - [ ] [S] FIX-007: Fix analysis streaming — add AbortController
   - AI analysis streaming has no abort signal

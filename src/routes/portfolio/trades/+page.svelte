@@ -170,6 +170,13 @@
 		goto(`/portfolio/trades?${params.toString()}`);
 	}
 
+	function handleRowKeydown(e: KeyboardEvent, tradeId: string) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			goto(`/portfolio/trades/${tradeId}`);
+		}
+	}
+
 	const groupedTrades = $derived.by(() => {
 		if (groupBy === 'none') {
 			return [{ label: 'เทรดทั้งหมด', items: trades }];
@@ -403,10 +410,19 @@
 							<tbody>
 								{#each group.items as trade}
 									<tr
-										class="border-b border-dark-border/40 hover:bg-dark-border/20 {selectedIds.has(trade.id) ? 'bg-brand-primary/5' : ''}"
+										tabindex="0"
+										role="link"
+										aria-label="ดูรายละเอียด trade {trade.symbol} กำไร {formatCurrency(trade.profit)}"
+										class="border-b border-dark-border/40 hover:bg-dark-border/20 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 focus-visible:ring-offset-dark-bg rounded {selectedIds.has(trade.id) ? 'bg-brand-primary/5' : ''}"
+										onclick={(e) => {
+											const target = e.target as HTMLElement;
+											if (target.closest('input[type="checkbox"]') || target.closest('td.checkbox-cell')) return;
+											goto(`/portfolio/trades/${trade.id}`);
+										}}
+										onkeydown={(e) => handleRowKeydown(e, trade.id)}
 									>
 										<!-- Checkbox cell — stops row click propagation -->
-										<td class="py-3 pr-2" onclick={(e) => e.stopPropagation()}>
+										<td class="py-3 pr-2 checkbox-cell" onclick={(e) => e.stopPropagation()}>
 											<input
 												type="checkbox"
 												checked={selectedIds.has(trade.id)}
@@ -415,22 +431,19 @@
 												aria-label="เลือก trade {trade.symbol}"
 											/>
 										</td>
-										<td
-											class="py-3 cursor-pointer"
-											onclick={() => goto(`/portfolio/trades/${trade.id}`)}
-										>
+										<td class="py-3">
 											<div class="font-medium text-white">{trade.symbol}</div>
 											<div class="text-[11px] text-gray-500">
 												{trade.type} • {trade.lot_size} lots • {formatNumber(trade.open_price, 5)} → {formatNumber(trade.close_price, 5)}
 											</div>
 										</td>
-										<td class="py-3 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3">
 											<ReviewStatusBadge status={getTradeReviewStatus(trade)} />
 										</td>
-										<td class="py-3 text-gray-300 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-gray-300">
 											{playbooks.find((playbook: any) => playbook.id === getTradePlaybookId(trade))?.name || '-'}
 										</td>
-										<td class="py-3 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3">
 											<div class="flex flex-wrap gap-1">
 												{#each (trade.trade_tag_assignments || []).slice(0, 3) as assignment}
 													{#if assignment.trade_tags}
@@ -443,13 +456,13 @@
 												{/each}
 											</div>
 										</td>
-										<td class="py-3 text-center text-gray-300 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-center text-gray-300">
 											{(trade.trade_notes || []).length || '—'}
 										</td>
-										<td class="py-3 text-center text-gray-300 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-center text-gray-300">
 											{(trade.trade_attachments || []).length || '—'}
 										</td>
-										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-center">
 											{#if tradeInsights[trade.id]}
 												{@const ins = tradeInsights[trade.id]}
 												<InsightBadge
@@ -461,14 +474,14 @@
 												<span class="text-xs text-gray-600">—</span>
 											{/if}
 										</td>
-										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-center">
 											{#if tradeScores[trade.id] !== undefined}
 												<QualityScoreBar score={tradeScores[trade.id]} />
 											{:else}
 												<span class="text-xs text-gray-600">—</span>
 											{/if}
 										</td>
-										<td class="py-3 text-center cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-center">
 											{#if tradeExecutionMetrics[trade.id]?.rMultiple != null}
 												{@const r = tradeExecutionMetrics[trade.id].rMultiple}
 												<span class="text-xs font-mono {r >= 1 ? 'text-green-400' : r >= 0 ? 'text-amber-400' : 'text-red-400'}">
@@ -478,10 +491,10 @@
 												<span class="text-xs text-gray-600">—</span>
 											{/if}
 										</td>
-										<td class="py-3 text-right font-medium cursor-pointer {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 											{formatCurrency(trade.profit)}
 										</td>
-										<td class="py-3 text-right text-gray-500 cursor-pointer" onclick={() => goto(`/portfolio/trades/${trade.id}`)}>
+										<td class="py-3 text-right text-gray-500">
 											{formatDateTime(trade.close_time)}
 										</td>
 									</tr>
