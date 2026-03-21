@@ -85,7 +85,7 @@
 
 ## Settings System
 
-- [ ] [L] TZ-011: Settings page — layout + navigation
+- [x] [L] TZ-011: Settings page — layout + navigation
   - Create /settings route with sidebar nav
   - Tabs: Profile, Security, Trade Settings
   - Dark theme layout pattern
@@ -283,3 +283,7 @@
 - Task: TZ-010 — Reports — Risk analysis sub-tab
 - Result: New "Risk" sub-tab in analytics with: 4 KPI cards (Max Drawdown, Avg Drawdown, Largest Loss, Max Loss Streak), 5 risk-adjusted ratios (Sharpe/Sortino/Calmar/Daily Volatility/Avg Daily Return) with color-coded thresholds, SVG drawdown chart with area fill, top 10 drawdown periods table with recovery tracking, R:R distribution histogram with win/loss breakdown per bucket, daily P&L stats row. Server-side buildRiskAnalysis() computes drawdown series, drawdown periods, R:R distribution, consecutive loss streaks.
 - Next: TZ-011
+### Session 2026-03-21 (continued 6)
+- Task: TZ-011 — Settings page — layout + navigation
+- Result: /settings route with layout.server.ts (auth guard), layout.svelte (sidebar nav with Profile/Security/Trade Settings tabs, mobile dropdown, user info card), +page.svelte (Profile tab: avatar, name, email, role, account info, notification prefs placeholder). Settings link added to Sidebar for all roles.
+- Next: TZ-012
