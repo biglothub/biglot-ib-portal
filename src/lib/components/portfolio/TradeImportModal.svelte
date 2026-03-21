@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import { fade, fly } from 'svelte/transition';
 
 	let { open = $bindable(false) } = $props();
 
@@ -229,10 +230,10 @@
 {#if open}
 	<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
 		<!-- Backdrop -->
-		<button class="absolute inset-0 bg-black/60 cursor-default" onclick={close} tabindex="-1" aria-label="ปิด"></button>
+		<button transition:fade={{ duration: 200 }} class="absolute inset-0 bg-black/60 cursor-default" onclick={close} tabindex="-1" aria-label="ปิด"></button>
 
 		<!-- Modal -->
-		<div role="dialog" aria-modal="true" aria-labelledby="import-modal-title" class="relative bg-dark-surface border border-dark-border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto">
+		<div transition:fly={{ y: 30, duration: 250 }} role="dialog" aria-modal="true" aria-labelledby="import-modal-title" class="relative bg-dark-surface border border-dark-border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto">
 			<!-- Header -->
 			<div class="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
 				<div>

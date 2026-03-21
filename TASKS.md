@@ -655,16 +655,18 @@
   - Tables scroll horizontally or convert to cards
   - Notes: Fixed NotificationBell dropdown overflow (w-80 → responsive calc), AnalyticsDashboard 3-col grid → 1-col on mobile, EquityChart stats → 1-col on mobile, calendar p-8 → p-4 sm:p-8, increased touch targets on calendar nav buttons (p-1 → p-2) across MiniCalendar/TradingCalendar/day-view/journal, increased filter control text sizes (text-[10px] → text-xs in MultiSelectDropdown/ActiveFilterChips), improved DateRangePresets button padding, RangeInput touch targets, analytics heatmap toggle padding, ScreenshotAnnotator responsive min-width
 
-- [ ] [S] POLISH2-004: Remove any remaining console.log
+- [x] [S] POLISH2-004: Remove any remaining console.log
   - grep -r 'console\.log' src/ — remove all
   - Keep console.error for actual error reporting
+  - Notes: Already clean — no console.log/debug/warn/info found in src/. Only console.error retained for error reporting.
 
-- [ ] [M] POLISH2-005: Animation & transition polish
+- [x] [M] POLISH2-005: Animation & transition polish
   - Page transitions smooth
   - Modal open/close animated
   - Hover states on all interactive elements
   - Focus rings visible for keyboard nav
   - Chart animations smooth
+  - Notes: Added focus-visible rings to all .btn-* classes in app.css (brand-400 for primary/secondary, red-400 for danger, green-400 for success) with ring-offset for dark bg. Added fade/fly transitions to 12 modals: TradeImportModal, JournalTemplates, QuickTradeEntry (backdrop fade + CSS slide-up), TradingCalendar (fade+scale), SwipeableTradeCard (2 bottom sheets with fade+slide-up), playbook publish modal, admin approvals reject modal, admin IB add modal, admin client delete/edit modals, IB client edit/cancel modals. Added fade to Sidebar mobile backdrop and MobileNav drawer backdrop. Added animate-slide-up and animate-dropdown-in CSS keyframes to Tailwind config. Applied animate-dropdown-in to MultiSelectDropdown. All patterns follow canonical fade(200ms) + fly(y:30, 250ms) established by PortfolioGuide/StartMyDayModal.
 
 ---
 

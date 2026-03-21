@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidate } from '$app/navigation';
+	import { fade } from 'svelte/transition';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import InsightBadge from '$lib/components/portfolio/InsightBadge.svelte';
@@ -329,6 +330,7 @@
 	<!-- Backdrop -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
+		transition:fade={{ duration: 200 }}
 		class="fixed inset-0 bg-black/60 z-50"
 		role="presentation"
 		onclick={() => {
@@ -339,7 +341,7 @@
 
 	<!-- Sheet -->
 	<div
-		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl p-5 space-y-4 pb-safe"
+		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl p-5 space-y-4 pb-safe animate-slide-up"
 	>
 		<!-- Handle bar -->
 		<div class="flex justify-center mb-1">
@@ -404,6 +406,7 @@
 	<!-- Backdrop -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
+		transition:fade={{ duration: 200 }}
 		class="fixed inset-0 bg-black/60 z-50"
 		role="presentation"
 		onclick={() => {
@@ -414,7 +417,7 @@
 
 	<!-- Sheet -->
 	<div
-		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl p-5 space-y-4 pb-safe"
+		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl p-5 space-y-4 pb-safe animate-slide-up"
 	>
 		<!-- Handle bar -->
 		<div class="flex justify-center mb-1">

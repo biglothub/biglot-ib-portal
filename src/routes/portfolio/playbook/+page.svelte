@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import { fade, fly } from 'svelte/transition';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency } from '$lib/utils';
@@ -561,13 +562,14 @@
 	<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
 		<!-- Backdrop -->
 		<button
+			transition:fade={{ duration: 200 }}
 			type="button"
 			class="absolute inset-0 bg-black/60 backdrop-blur-sm"
 			onclick={() => showPublishModal = false}
 			aria-label="ปิด"
 		></button>
 		<!-- Modal -->
-		<div class="relative w-full max-w-md rounded-2xl border border-dark-border bg-dark-surface p-6 space-y-4 shadow-2xl">
+		<div transition:fly={{ y: 30, duration: 250 }} class="relative w-full max-w-md rounded-2xl border border-dark-border bg-dark-surface p-6 space-y-4 shadow-2xl">
 			<h3 class="text-lg font-semibold text-white">เผยแพร่เป็นเทมเพลตชุมชน</h3>
 			<p class="text-sm text-gray-400">
 				Playbook ของคุณจะถูกแชร์ให้ผู้ใช้คนอื่นดูและคัดลอกได้ สถิติผลงานจะถูกบันทึกจากข้อมูลปัจจุบัน

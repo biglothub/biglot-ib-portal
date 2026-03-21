@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import { fade, fly } from 'svelte/transition';
 
 	// Helper: today's datetime-local string in local timezone
 	function toDatetimeLocal(d: Date): string {
@@ -169,6 +170,7 @@
 {#if open}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
+		transition:fade={{ duration: 200 }}
 		class="md:hidden fixed inset-0 z-50 bg-black/60"
 		onclick={closeModal}
 		aria-hidden="true"
@@ -177,7 +179,7 @@
 	<!-- Bottom sheet -->
 	<div
 		bind:this={sheetEl}
-		class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark-surface rounded-t-2xl shadow-2xl"
+		class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark-surface rounded-t-2xl shadow-2xl animate-slide-up"
 		style="transform: translateY({dragDelta}px); transition: {isDragging ? 'none' : 'transform 0.2s ease'}"
 		role="dialog"
 		aria-label="บันทึกเทรด"

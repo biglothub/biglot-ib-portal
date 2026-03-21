@@ -23,10 +23,20 @@ export default {
           '50%': { width: '70%', opacity: '1' },
           '90%': { width: '95%', opacity: '1' },
           '100%': { width: '95%', opacity: '1' }
+        },
+        'slide-up': {
+          from: { transform: 'translateY(100%)' },
+          to: { transform: 'translateY(0)' }
+        },
+        'dropdown-in': {
+          from: { opacity: '0', transform: 'translateY(-4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' }
         }
       },
       animation: {
-        'progress-bar': 'progress-bar 2s ease-in-out infinite'
+        'progress-bar': 'progress-bar 2s ease-in-out infinite',
+        'slide-up': 'slide-up 0.3s ease-out',
+        'dropdown-in': 'dropdown-in 0.15s ease-out'
       },
       colors: {
         dark: {

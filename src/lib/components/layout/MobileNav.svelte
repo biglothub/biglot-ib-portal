@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	import { page } from '$app/stores';
 
 	interface Tab {
@@ -31,6 +32,7 @@
 <!-- Bottom drawer backdrop -->
 {#if moreOpen}
 	<button
+		transition:fade={{ duration: 200 }}
 		class="md:hidden fixed inset-0 z-40 bg-black/50"
 		aria-label="ปิดเมนู"
 		onclick={closeMore}
@@ -40,7 +42,7 @@
 <!-- "More" slide-up drawer -->
 {#if moreOpen}
 	<div
-		class="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl shadow-2xl"
+		class="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl shadow-2xl animate-slide-up"
 		role="dialog"
 		aria-label="เมนูเพิ่มเติม"
 	>

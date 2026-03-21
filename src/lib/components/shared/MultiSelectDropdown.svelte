@@ -123,7 +123,7 @@
 	</button>
 
 	{#if open}
-		<div class="absolute z-50 mt-1 w-full rounded border border-dark-border bg-dark-card shadow-lg" role="listbox" aria-label={label} aria-multiselectable="true">
+		<div class="absolute z-50 mt-1 w-full rounded border border-dark-border bg-dark-card shadow-lg animate-dropdown-in" role="listbox" aria-label={label} aria-multiselectable="true">
 			{#if searchable}
 				<div class="sticky top-0 bg-dark-card border-b border-dark-border p-1.5">
 					<input

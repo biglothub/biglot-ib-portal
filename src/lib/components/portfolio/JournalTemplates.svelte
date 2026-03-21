@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fade, fly } from 'svelte/transition';
+
 	interface DayTrade {
 		symbol: string;
 		type: string;
@@ -110,6 +112,7 @@
 {#if open}
 	<!-- backdrop -->
 	<button
+		transition:fade={{ duration: 200 }}
 		type="button"
 		class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
 		onclick={handleClose}
@@ -123,7 +126,7 @@
 		aria-modal="true"
 		aria-labelledby="template-modal-title"
 	>
-		<div class="w-full max-w-2xl rounded-2xl bg-dark-surface border border-dark-border shadow-2xl">
+		<div transition:fly={{ y: 30, duration: 250 }} class="w-full max-w-2xl rounded-2xl bg-dark-surface border border-dark-border shadow-2xl">
 			<!-- header -->
 			<div class="flex items-center justify-between px-6 py-4 border-b border-dark-border">
 				<div>

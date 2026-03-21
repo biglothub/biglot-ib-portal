@@ -3,6 +3,7 @@
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatDateTime } from '$lib/utils';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { fade, fly } from 'svelte/transition';
 
 	let { data } = $props();
 	let { accounts, statusFilter } = $derived(data);
@@ -160,8 +161,8 @@
 
 <!-- Reject Modal -->
 {#if rejectingId}
-	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-		<div class="card max-w-md w-full">
+	<div transition:fade={{ duration: 200 }} class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div transition:fly={{ y: 30, duration: 250 }} class="card max-w-md w-full">
 			<h3 class="text-lg font-medium mb-4">ปฏิเสธลูกค้า</h3>
 			<div class="mb-4">
 				<label for="reason" class="label">เหตุผล (ไม่บังคับ)</label>

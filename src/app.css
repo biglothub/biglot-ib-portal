@@ -15,19 +15,19 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg;
   }
 
   .btn-secondary {
-    @apply bg-dark-surface hover:bg-dark-hover text-gray-300 font-medium py-2 px-4 rounded-lg border border-dark-border transition-colors;
+    @apply bg-dark-surface hover:bg-dark-hover text-gray-300 font-medium py-2 px-4 rounded-lg border border-dark-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg;
   }
 
   .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg;
   }
 
   .btn-success {
-    @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg;
   }
 
   .card {

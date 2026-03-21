@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { fade } from 'svelte/transition';
 	import SidebarNews from './SidebarNews.svelte';
 
 	let { profile, collapsed = $bindable(false) } = $props();
@@ -49,6 +50,7 @@
 <!-- Backdrop -->
 {#if mobileOpen}
 	<button
+		transition:fade={{ duration: 200 }}
 		aria-label="Close navigation"
 		class="md:hidden fixed inset-0 bg-black/50 z-30"
 		onclick={() => mobileOpen = false}

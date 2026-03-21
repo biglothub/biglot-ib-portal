@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
+	import { fade, fly } from 'svelte/transition';
 	import MetricCard from '$lib/components/shared/MetricCard.svelte';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
@@ -386,8 +387,8 @@
 
 <!-- Edit Modal -->
 {#if editing}
-	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-		<div class="card max-w-lg w-full">
+	<div transition:fade={{ duration: 200 }} class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div transition:fly={{ y: 30, duration: 250 }} class="card max-w-lg w-full">
 			<h3 class="text-lg font-medium mb-4">แก้ไขข้อมูลลูกค้า</h3>
 			<form onsubmit={(e) => { e.preventDefault(); handleEdit(); }} class="space-y-4">
 				<div>
@@ -424,8 +425,8 @@
 
 <!-- Cancel Confirm Modal -->
 {#if showCancelConfirm}
-	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-		<div class="card max-w-md w-full">
+	<div transition:fade={{ duration: 200 }} class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div transition:fly={{ y: 30, duration: 250 }} class="card max-w-md w-full">
 			<h3 class="text-lg font-medium mb-2">ยืนยันการยกเลิก</h3>
 			<p class="text-sm text-gray-400 mb-4">
 				ต้องการยกเลิกลูกค้า <span class="text-white font-medium">{account.client_name}</span> หรือไม่?

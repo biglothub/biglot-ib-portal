@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fade, scale } from 'svelte/transition';
+
 	interface DayData {
 		date: string;
 		profit: number;
@@ -315,6 +317,7 @@
 <!-- Day Detail Modal -->
 {#if showDayModal && selectedDay?.data}
 	<div
+		transition:fade={{ duration: 200 }}
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
 		onclick={closeDayModal}
 		onkeydown={(e) => e.key === 'Escape' && closeDayModal()}
@@ -324,6 +327,7 @@
 	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
+			transition:scale={{ start: 0.95, duration: 200 }}
 			class="bg-dark-surface rounded-xl shadow-2xl max-w-sm w-full overflow-hidden border border-dark-border"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}

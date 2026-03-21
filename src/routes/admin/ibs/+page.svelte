@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { fade, fly } from 'svelte/transition';
 
 	let { data } = $props();
 	let { ibs } = $derived(data);
@@ -98,8 +99,8 @@
 
 <!-- Add IB Modal -->
 {#if showAddModal}
-	<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-		<div class="card max-w-md w-full">
+	<div transition:fade={{ duration: 200 }} class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+		<div transition:fly={{ y: 30, duration: 250 }} class="card max-w-md w-full">
 			<h3 class="text-lg font-medium mb-4">เพิ่ม Master IB</h3>
 
 			{#if error}
