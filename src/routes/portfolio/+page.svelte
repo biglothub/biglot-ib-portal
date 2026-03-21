@@ -10,8 +10,11 @@
 	import OverviewSkeleton from '$lib/components/portfolio/OverviewSkeleton.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
-	import { formatCurrency, formatDateTime, formatNumber, formatPercent } from '$lib/utils';
+	import StartMyDayModal from '$lib/components/portfolio/StartMyDayModal.svelte';
+	import { formatCurrency, formatDateTime, formatNumber, formatPercent, formatPnl } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
+	import { displayUnit } from '$lib/stores/displayUnit';
+	import { marketNewsStore } from '$lib/stores/newsStore';
 	let { data } = $props();
 	let {
 		latestStats,
@@ -29,8 +32,15 @@
 		ruleBreakMetrics,
 		journalSummary,
 		kpiMetrics,
-		healthScore
+		healthScore,
+		checklistRules,
+		checklistCompletions,
+		checklistDoneToday,
+		todayJournal,
+		today
 	} = $derived(data);
+
+	let startMyDayOpen = $state(false);
 	let safeCommandCenter = $derived(commandCenter || {
 		today: { pnl: 0, trades: 0, reviewedTrades: 0, completedJournal: false },
 		reviewSummary: { unreviewed: 0 },
@@ -72,7 +82,7 @@
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 			<MetricCard
 				label="Net P&L"
-				value={formatCurrency(kpi.netPnl)}
+				value={formatPnl(kpi.netPnl, $displayUnit, latestStats?.balance)}
 				color={kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}
 				subValue={totalTrades > 0 ? `${totalTrades} trades` : ''}
 			/>
@@ -113,13 +123,13 @@
 				value={kpi.avgWinLossRatio >= 999 ? '∞' : formatNumber(kpi.avgWinLossRatio, 2)}
 				color={kpi.avgWinLossRatio >= 1 ? 'text-green-400' : 'text-red-400'}
 				barData={kpi.avgWin > 0 || kpi.avgLoss > 0 ? {
-					left: { value: formatCurrency(kpi.avgWin), color: 'text-green-400' },
-					right: { value: formatCurrency(-kpi.avgLoss), color: 'text-red-400' }
+					left: { value: formatPnl(kpi.avgWin, $displayUnit, latestStats?.balance), color: 'text-green-400' },
+					right: { value: formatPnl(-kpi.avgLoss, $displayUnit, latestStats?.balance), color: 'text-red-400' }
 				} : undefined}
 			/>
 			<MetricCard
 				label="Expectancy"
-				value={formatCurrency(totalTrades > 0 ? kpi.netPnl / totalTrades : 0)}
+				value={formatPnl(totalTrades > 0 ? kpi.netPnl / totalTrades : 0, $displayUnit, latestStats?.balance)}
 				color={kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}
 			/>
 		</div>
@@ -159,51 +169,51 @@
 			</div>
 			<div class="card xl:col-span-1 space-y-4">
 				<div>
-					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Today</p>
-					<h2 class="mt-1 text-lg font-semibold text-white">What needs attention</h2>
+					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">วันนี้</p>
+					<h2 class="mt-1 text-lg font-semibold text-white">สิ่งที่ต้องดูแล</h2>
 				</div>
 				<div class="grid grid-cols-2 gap-3">
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-						<div class="text-xs text-gray-500">Day P/L</div>
+						<div class="text-xs text-gray-500">P/L วันนี้</div>
 						<div class="mt-1 text-lg font-semibold {safeCommandCenter.today.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
-							{formatCurrency(safeCommandCenter.today.pnl || 0)}
+							{formatPnl(safeCommandCenter.today.pnl || 0, $displayUnit, latestStats?.balance)}
 						</div>
 					</div>
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-						<div class="text-xs text-gray-500">Trades</div>
+						<div class="text-xs text-gray-500">จำนวนเทรด</div>
 						<div class="mt-1 text-lg font-semibold text-white">{safeCommandCenter.today.trades || 0}</div>
 					</div>
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-						<div class="text-xs text-gray-500">Reviewed</div>
+						<div class="text-xs text-gray-500">รีวิวแล้ว</div>
 						<div class="mt-1 text-lg font-semibold text-white">{safeCommandCenter.today.reviewedTrades || 0}</div>
 					</div>
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-						<div class="text-xs text-gray-500">Journal</div>
+						<div class="text-xs text-gray-500">บันทึก</div>
 						<div class="mt-1 text-lg font-semibold {safeCommandCenter.today.completedJournal ? 'text-green-400' : 'text-amber-300'}">
-							{safeCommandCenter.today.completedJournal ? 'Complete' : 'Pending'}
+							{safeCommandCenter.today.completedJournal ? 'เสร็จแล้ว' : 'รอบันทึก'}
 						</div>
 					</div>
 				</div>
 				<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4 text-sm text-gray-300">
 					<div class="flex items-center justify-between">
-						<span>Review queue</span>
-						<span class="font-semibold text-white">{safeCommandCenter.reviewSummary.unreviewed || 0} open</span>
+						<span>คิวรีวิว</span>
+						<span class="font-semibold text-white">{safeCommandCenter.reviewSummary.unreviewed || 0} รายการ</span>
 					</div>
 					<div class="mt-2 flex items-center justify-between">
-						<span>Journal completion</span>
+						<span>บันทึก Journal</span>
 						<span class="font-semibold text-white">{(journalSummary?.completionRate || 0).toFixed(0)}%</span>
 					</div>
 					<div class="mt-2 flex items-center justify-between">
-						<span>Active playbooks</span>
+						<span>Playbook ที่ใช้งาน</span>
 						<span class="font-semibold text-white">{safeCommandCenter.activePlaybooks || 0}</span>
 					</div>
 				</div>
 				<div class="grid grid-cols-2 gap-3 text-sm">
 					<a href="/portfolio/trades" class="rounded-xl border border-dark-border px-3 py-3 text-center text-gray-300 hover:text-white hover:border-brand-primary/40">
-						Open review inbox
+						เปิดคิวรีวิว
 					</a>
 					<a href="/portfolio/journal" class="rounded-xl border border-dark-border px-3 py-3 text-center text-gray-300 hover:text-white hover:border-brand-primary/40">
-						Open notebook
+						เปิดสมุดบันทึก
 					</a>
 				</div>
 			</div>
@@ -211,8 +221,8 @@
 			<div class="card xl:col-span-1">
 				<div class="flex items-start justify-between gap-3">
 					<div>
-						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Review Pipeline</p>
-						<h2 class="mt-1 text-lg font-semibold text-white">Unreviewed trades</h2>
+						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">คิวรีวิว</p>
+						<h2 class="mt-1 text-lg font-semibold text-white">เทรดที่ยังไม่ได้รีวิว</h2>
 					</div>
 					<a href="/portfolio/trades" class="text-xs text-brand-primary">ดูทั้งหมด</a>
 				</div>
@@ -244,18 +254,18 @@
 			<div class="card xl:col-span-1">
 				<div class="flex items-start justify-between gap-3">
 					<div>
-						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Rule Breaks</p>
-						<h2 class="mt-1 text-lg font-semibold text-white">Cost of mistakes</h2>
+						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">การผิดกฎ</p>
+						<h2 class="mt-1 text-lg font-semibold text-white">ต้นทุนความผิดพลาด</h2>
 					</div>
 					<a href="/portfolio/analytics" class="text-xs text-brand-primary">เปิด report</a>
 				</div>
 				<div class="mt-4 grid grid-cols-2 gap-3">
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-						<div class="text-xs text-gray-500">Broken rules</div>
+						<div class="text-xs text-gray-500">กฎที่ผิด</div>
 						<div class="mt-1 text-2xl font-semibold text-white">{safeRuleBreakMetrics.totalRuleBreaks || 0}</div>
 					</div>
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-						<div class="text-xs text-gray-500">Loss from breaks</div>
+						<div class="text-xs text-gray-500">ขาดทุนจากการผิดกฎ</div>
 						<div class="mt-1 text-2xl font-semibold text-red-400">{formatCurrency(safeRuleBreakMetrics.ruleBreakLoss || 0)}</div>
 					</div>
 				</div>
@@ -272,7 +282,7 @@
 						{/each}
 					{:else}
 						<div class="rounded-xl border border-dashed border-dark-border px-3 py-4 text-center text-sm text-gray-500">
-							No rule breaks captured yet.
+							ยังไม่มีการผิดกฎที่บันทึกไว้
 						</div>
 					{/if}
 				</div>
@@ -283,10 +293,10 @@
 			<div class="card">
 				<div class="flex items-center justify-between">
 					<div>
-						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Setup Performance</p>
-						<h2 class="mt-1 text-lg font-semibold text-white">What is working</h2>
+						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">ผลงาน Setup</p>
+						<h2 class="mt-1 text-lg font-semibold text-white">อะไรที่ใช้ได้ผล</h2>
 					</div>
-					<a href="/portfolio/playbook" class="text-xs text-brand-primary">manage playbooks</a>
+					<a href="/portfolio/playbook" class="text-xs text-brand-primary">จัดการ playbook</a>
 				</div>
 				<div class="mt-4 space-y-2">
 					{#if safeSetupPerformance.length > 0}
@@ -313,10 +323,10 @@
 			<div class="card">
 				<div class="flex items-center justify-between">
 					<div>
-						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Live Exposure</p>
-						<h2 class="mt-1 text-lg font-semibold text-white">Open positions</h2>
+						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">ความเสี่ยงปัจจุบัน</p>
+						<h2 class="mt-1 text-lg font-semibold text-white">ออเดอร์ที่เปิดอยู่</h2>
 					</div>
-					<span class="text-xs text-gray-500">{openPositions.length} open</span>
+					<span class="text-xs text-gray-500">{openPositions.length} รายการ</span>
 				</div>
 				{#if openPositions.length === 0}
 					<div class="mt-4">
@@ -344,8 +354,8 @@
 
 			<div class="card">
 				<div>
-					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Trading Calendar</p>
-					<h2 class="mt-1 text-lg font-semibold text-white mb-3">Monthly activity</h2>
+					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">ปฏิทินเทรด</p>
+					<h2 class="mt-1 text-lg font-semibold text-white mb-3">กิจกรรมรายเดือน</h2>
 				</div>
 				<MiniCalendar {dailyHistory} />
 			</div>
@@ -354,10 +364,10 @@
 		<div class="card">
 			<div class="flex items-center justify-between gap-3">
 				<div>
-					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">Latest Closures</p>
-					<h2 class="mt-1 text-lg font-semibold text-white">Recent trades in current filter</h2>
+					<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">ปิดล่าสุด</p>
+					<h2 class="mt-1 text-lg font-semibold text-white">เทรดล่าสุดตาม filter ที่เลือก</h2>
 				</div>
-				<a href="/portfolio/trades" class="text-xs text-brand-primary">Open inbox</a>
+				<a href="/portfolio/trades" class="text-xs text-brand-primary">ดูทั้งหมด</a>
 			</div>
 			{#if recentTrades.length === 0}
 				<div class="mt-4">
@@ -396,4 +406,36 @@
 		</div>
 
 	</div>
+
+	<!-- Start My Day floating button -->
+	<button
+		onclick={() => startMyDayOpen = true}
+		class="fixed bottom-24 right-6 z-50 flex items-center gap-2 rounded-full shadow-lg px-4 py-3 text-sm font-semibold transition-all hover:scale-105 active:scale-95
+			{checklistDoneToday
+			? 'bg-green-500 text-white shadow-green-500/30'
+			: 'bg-brand-primary text-dark-bg shadow-brand-primary/30'}"
+		aria-label="เริ่มต้นวันนี้"
+	>
+		{#if checklistDoneToday}
+			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+			</svg>
+		{:else}
+			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+			</svg>
+		{/if}
+		<span class="hidden sm:inline">{checklistDoneToday ? 'พร้อมเทรด' : 'เริ่มต้นวันนี้'}</span>
+	</button>
 {/if}
+
+<StartMyDayModal
+	open={startMyDayOpen}
+	onclose={() => startMyDayOpen = false}
+	checklistRules={checklistRules || []}
+	checklistCompletions={checklistCompletions || []}
+	checklistDoneToday={checklistDoneToday || false}
+	{todayJournal}
+	marketNews={$marketNewsStore}
+	{today}
+/>

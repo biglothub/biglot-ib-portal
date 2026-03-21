@@ -23,3 +23,13 @@ tradezella-explore/explore*.py
 
 # Reports
 QA_REPORT.md
+
+# Automation loop files
+.auto-dev.lock
+.auto-dev.log
+.auto-test.lock
+.auto-test.log
+.dev-context.md
+.dev-metrics.json
+.dev-server.log
+.dev-server.pid

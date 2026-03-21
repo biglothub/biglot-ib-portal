@@ -100,6 +100,32 @@ export function timeAgo(dateStr: string | null | undefined): string {
 	return formatDate(dateStr);
 }
 
+/**
+ * Format a P&L value according to the active display unit.
+ * - 'usd'  → formatCurrency (default)
+ * - 'pct'  → value / balance * 100, shown as "±X.XX%"
+ * - 'pips' → value * 10, shown as "±X.X p"  (rough approximation: 1 USD ≈ 10 pips)
+ *
+ * Falls back to formatCurrency when balance is required but unavailable.
+ */
+export function formatPnl(
+	value: number | null | undefined,
+	unit: import('./stores/displayUnit').DisplayUnit,
+	balance?: number | null
+): string {
+	if (value == null) return '-';
+	if (unit === 'pct') {
+		if (!balance) return formatCurrency(value);
+		const pct = (value / balance) * 100;
+		return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+	}
+	if (unit === 'pips') {
+		const pips = value * 10;
+		return `${pips >= 0 ? '+' : ''}${pips.toFixed(1)} p`;
+	}
+	return formatCurrency(value);
+}
+
 export function getStatusColor(status: string): string {
 	switch (status) {
 		case 'approved': return 'text-green-400';

@@ -76,13 +76,14 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 		.then((res) => res.data || []);
 
 	// Critical data loads in parallel (not blocked by news)
-	const [tagsRes, baseData] = await Promise.all([
+	const [tagsRes, baseData, bridgeHealthRes] = await Promise.all([
 		supabase
 			.from('trade_tags')
 			.select('*')
 			.eq('user_id', effectiveUserId)
 			.order('category', { ascending: true }),
-		fetchPortfolioBaseData(supabase, account.id, effectiveUserId)
+		fetchPortfolioBaseData(supabase, account.id, effectiveUserId),
+		supabase.from('bridge_health').select('status, last_heartbeat').eq('id', 'singleton').maybeSingle()
 	]);
 
 	return {
@@ -93,6 +94,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 		savedViews: baseData?.savedViews ?? [],
 		userId: effectiveUserId,
 		marketNews: marketNewsPromise,
+		bridgeStatus: (bridgeHealthRes.data?.status as string | null) ?? null,
 		isAdminView,
 		viewAsAccountId: isAdminView ? locals.viewAsAccountId : null
 	};

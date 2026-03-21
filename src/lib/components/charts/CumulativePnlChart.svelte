@@ -189,7 +189,7 @@
 
 		{#if !data || data.length === 0}
 			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
-				No cumulative P&L data available yet
+				ยังไม่มีข้อมูล Cumulative P&L
 			</div>
 		{:else if filteredData.length === 0}
 			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">

@@ -10,6 +10,8 @@ import {
 import { calculateHealthScore } from '$lib/server/insights/engine';
 import type { PageServerLoad } from './$types';
 
+const TODAY = () => new Date().toISOString().split('T')[0];
+
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
 	const { account, baseData, tags = [], playbooks = [] } = parentData;
@@ -34,7 +36,9 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const thirtyDaysAgo = new Date();
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-	const [latestStatsRes, equityRes, openPositionsRes] = await Promise.all([
+	const today = TODAY();
+
+	const [latestStatsRes, equityRes, openPositionsRes, checklistRulesRes, checklistCompletionsRes, todayJournalRes] = await Promise.all([
 		supabase
 			.from('daily_stats')
 			.select('*')
@@ -52,7 +56,27 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			.from('open_positions')
 			.select('*')
 			.eq('client_account_id', account.id)
-			.order('open_time', { ascending: false })
+			.order('open_time', { ascending: false }),
+		supabase
+			.from('checklist_rules')
+			.select('*')
+			.eq('client_account_id', account.id)
+			.eq('user_id', parentData.userId)
+			.eq('is_active', true)
+			.order('sort_order', { ascending: true }),
+		supabase
+			.from('checklist_completions')
+			.select('*')
+			.eq('client_account_id', account.id)
+			.eq('user_id', parentData.userId)
+			.eq('date', today),
+		supabase
+			.from('trade_journals')
+			.select('id, date, completion_status, mood, notes')
+			.eq('client_account_id', account.id)
+			.eq('user_id', parentData.userId)
+			.eq('date', today)
+			.maybeSingle()
 	]);
 
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);
@@ -91,6 +115,11 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		floatingPL: snapshot.floating_pl || 0
 	}));
 
+	const checklistRules = checklistRulesRes.data || [];
+	const checklistCompletions = checklistCompletionsRes.data || [];
+	const checklistDoneToday = checklistRules.length > 0 &&
+		checklistRules.every((r: any) => checklistCompletions.some((c: any) => c.rule_id === r.id && c.completed));
+
 	return {
 		latestStats: latestStatsRes.data || null,
 		openPositions: openPositionsRes.data || [],
@@ -109,6 +138,11 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		journalSummary: report.journalSummary,
 		reviewSummary,
 		kpiMetrics,
-		healthScore: calculateHealthScore(kpiMetrics)
+		healthScore: calculateHealthScore(kpiMetrics),
+		checklistRules,
+		checklistCompletions,
+		checklistDoneToday,
+		todayJournal: todayJournalRes.data || null,
+		today
 	};
 };
