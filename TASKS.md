@@ -2,7 +2,7 @@
 
 > Last updated: 2026-03-21
 > Active session: none
-> Completed this cycle: 10
+> Completed this cycle: 11
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -133,7 +133,7 @@
   - DB: playbook_templates table
   - Files: src/routes/portfolio/playbook/
 
-- [ ] [XL] TZ-018: Trade Replay (Pro feature)
+- [x] [XL] TZ-018: Trade Replay (Pro feature)
   - Replay trade on chart with entry/exit markers
   - Speed controls (1x, 2x, 5x, pause)
   - P&L curve during replay
@@ -311,3 +311,7 @@
 - Task: TZ-017 — Strategy Templates marketplace
 - Result: DB migration 021 creates playbook_templates + playbook_template_clones tables with RLS (public read for published, author CRUD, clone tracking with unique constraint). API: GET/POST/DELETE /api/portfolio/templates (browse/publish/unpublish, rate-limited, performance stats snapshot at publish time), POST /api/portfolio/templates/clone (creates playbook copy, increments clone_count, dedup via unique constraint). UI: Playbook page refactored with "My Playbooks" / "Community Templates" tabs. Community tab: search, category filter (9 categories), sort (popular/newest/win_rate), template cards with stats grid (trades/win rate/P&L), rules preview badges, clone button with loading state + "Clone แล้ว" indicator. Publish modal on own playbooks with category selector. Thai labels, dark theme, mobile responsive.
 - Next: TZ-018
+### Session 2026-03-21 (continued 13)
+- Task: TZ-018 — Trade Replay (Pro feature)
+- Result: Dedicated full-page replay at /portfolio/trades/[id]/replay. Server loader fetches trade + chart contexts in parallel. UI: full-height layout with candlestick chart (lightweight-charts) + P&L area curve showing unrealized P&L during trade. Transport controls: play/pause, step forward/backward, reset, scrubber slider. Speed controls (1x/2x/5x/10x). Timeframe switcher for multi-TF chart data. Jump-to-entry/exit buttons. Entry price line + SL/TP price lines appear at entry. Entry/exit arrow markers. Status bar with OHLC, trade phase (PRE-ENTRY/IN TRADE/CLOSED), current P/L, max/min P/L. Keyboard shortcuts (Space=play, arrows=step, R=reset). Trade detail page updated with "Quick Replay" (inline) + "Full Replay" (dedicated page) links. Loading skeleton, empty states, mobile responsive with collapsible info panel. Thai labels, dark theme.
+- Next: TZ-019

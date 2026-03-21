@@ -364,14 +364,25 @@
 					{:else}
 						<TradeContextChart contexts={chartContexts} {trade} />
 						{#if chartContexts?.length > 0}
-							<button
-								type="button"
-								onclick={() => showReplay = true}
-								class="mt-2 text-xs text-brand-primary hover:text-brand-primary/80 flex items-center gap-1.5 transition-colors"
-							>
-								<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-								Replay Trade
-							</button>
+							<div class="mt-2 flex items-center gap-4">
+								<button
+									type="button"
+									onclick={() => showReplay = true}
+									class="text-xs text-brand-primary hover:text-brand-primary/80 flex items-center gap-1.5 transition-colors"
+								>
+									<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+									Quick Replay
+								</button>
+								<a
+									href="/portfolio/trades/{trade.id}/replay"
+									class="text-xs text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors"
+								>
+									<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+									</svg>
+									Full Replay
+								</a>
+							</div>
 						{/if}
 					{/if}
 				</div>
