@@ -98,6 +98,8 @@
 		{ base: '/portfolio/calendar', label: 'ปฏิทิน' },
 		{ base: '/portfolio/live-trade', label: 'เทรดสด' },
 		{ base: '/portfolio/analysis', label: 'วิเคราะห์ทอง' },
+		{ base: '/portfolio/multi-account', label: 'มัลติบัญชี' },
+		{ base: '/portfolio/social', label: 'สังคม' },
 	];
 
 	const tabs = $derived(tabDefs.map(t => ({ href: tabHref(t.base), base: t.base, label: t.label })));

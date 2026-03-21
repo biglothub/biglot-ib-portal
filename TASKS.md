@@ -1,8 +1,8 @@
 # IB-Portal Task Board — TradeZella Feature Parity
 
 > Last updated: 2026-03-21
-> Active session: QA-001
-> Completed this cycle: 12
+> Active session: ADV-008
+> Completed this cycle: 15
 
 ## Status Legend
 - [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
@@ -226,57 +226,65 @@
 - [x] [S] POLISH-002: Audit mobile responsiveness
 - [x] [M] POLISH-003: Performance audit — lazy load charts
 - [x] [M] POLISH-004: Accessibility audit (ARIA, keyboard nav)
-- [ ] [S] POLISH-005: Remove console.log from production code
+- [x] [S] POLISH-005: Remove console.log from production code
 
 ## Phase 2 — Beyond TradeZella (Competitive Advantage)
 
-- [ ] [L] ADV-001: AI Trade Coach — personalized suggestions based on patterns
+- [x] [L] ADV-001: AI Trade Coach — personalized suggestions based on patterns
   - Analyze last 30 days: win rate by session, common mistakes, best setups
   - Generate daily coaching message on dashboard
   - "Your win rate drops 40% after 2pm — consider stopping earlier"
   - Use existing OpenAI API + trade data
   - Files: src/routes/api/portfolio/ai-coach/+server.ts (new), src/lib/components/portfolio/AiCoachCard.svelte (new)
+  - Session note: POST endpoint analyzes 30d trades (session/hour/rule/setup stats), calls gpt-4o-mini with json_object response_format. Component has 24h localStorage cache + rate-limited refresh. Integrated into dashboard above recent trades table.
 
-- [ ] [L] ADV-002: Risk Calculator widget
+- [x] [L] ADV-002: Risk Calculator widget
   - Position size calculator: account balance, risk %, stop loss distance
   - Show recommended lot size + potential P&L
   - Save presets per symbol
   - Files: src/lib/components/portfolio/RiskCalculator.svelte (new)
+  - Session note: Pure client-side calculator. Inputs: symbol, account balance (auto-filled from latestStats.balance), risk % slider (0.1–5%), SL pips, TP pips, pip value. Outputs: lot size, risk amount, potential profit, R:R ratio with color coding. Presets saved per symbol in localStorage. Integrated into dashboard alongside AiCoachCard in a 2-column grid.
 
-- [ ] [M] ADV-003: Trade Correlation Matrix
+- [x] [M] ADV-003: Trade Correlation Matrix
   - Heatmap showing correlation between symbols traded
   - Identify over-exposure to correlated pairs
   - Files: src/routes/portfolio/analytics/ (new sub-tab)
+  - Session note: Pearson r correlation on daily P&L per symbol pair. Server-side buildCorrelationMatrix() added to +page.server.ts. Client: new "ความสัมพันธ์" sub-tab with color-coded matrix (red=high positive/risky, blue=negative/hedge, gray=no correlation), hover tooltip, top pairs ranked list with warning badge for r≥0.7.
 
-- [ ] [L] ADV-004: Performance Alerts system
+- [x] [L] ADV-004: Performance Alerts system
   - Configurable alerts: "notify when daily loss > $X", "win rate drops below Y%"
   - Push notification via existing web-push infrastructure
   - Alert rules CRUD
   - Files: src/routes/settings/alerts/+page.svelte (new), src/routes/api/portfolio/alerts/
+  - Session note: DB migration 023_performance_alerts.sql (5 alert types: daily_loss, daily_profit_target, win_rate_drop, drawdown, loss_streak). CRUD API at /api/portfolio/alerts (GET/POST/DELETE). Evaluation engine at /api/portfolio/alerts/evaluate (computes metrics from daily_stats + trades, 1h cooldown per alert, fires push via shared $lib/server/push.ts utility). Settings page at /settings/alerts with add/toggle/delete UI. "ตรวจสอบตอนนี้" button for on-demand evaluation. Added tab to settings layout sidebar.
 
-- [ ] [M] ADV-005: Trade Screenshot annotation
+- [x] [M] ADV-005: Trade Screenshot annotation
   - Upload chart screenshot to trade
   - Draw arrows, circles, text annotations on image
   - Canvas-based editor
   - Files: src/lib/components/portfolio/ScreenshotAnnotator.svelte (new)
+  - Session note: Canvas modal with 5 tools (arrow, circle, rectangle, pen, text), 8 preset colors, line-width slider, undo/clear. Image upload via file input → HTMLImage on canvas, max 1280px wide. Export as PNG blob → FormData POST to /api/portfolio/trades/[id]/attachments/upload → Supabase Storage bucket 'trade-screenshots' (private, signed 10-year URLs). Stored as kind='screenshot'. Trade detail page shows inline image previews for screenshots and image_url attachments. New migration 024 creates storage bucket + RLS + expands kind check constraint.
 
-- [ ] [L] ADV-006: Multi-account portfolio view
+- [x] [L] ADV-006: Multi-account portfolio view
   - Dashboard showing all accounts side by side
   - Combined P&L across accounts
   - Account comparison metrics
   - Files: src/routes/portfolio/multi-account/+page.svelte (new)
+  - Session note: Server loads ALL approved accounts via RLS (no user_id filter needed — Supabase filters by auth.uid()), computes per-account summary (netPnl, winRate, profitFactor, balance, todayPnl, maxDrawdown) via parallel queries. Page shows: combined summary banner (5 metrics), side-by-side bar chart comparing Net P&L, card grid per account, full comparison table. Single-account state shows "only one account" helper. Admin view blocked with message.
 
-- [ ] [M] ADV-007: Trade Journal Templates
+- [x] [M] ADV-007: Trade Journal Templates
   - Pre-built journal templates: Pre-market, Post-market, Weekly review
   - Template picker when creating new journal entry
   - Auto-fill sections based on today's trades
   - Files: src/lib/components/portfolio/JournalTemplates.svelte (new)
+  - Session note: Modal with 3 template cards (ก่อนเปิดตลาด, หลังปิดตลาด, ทบทวนรายสัปดาห์). Post-market template auto-fills postMarketNotes with wins/losses/P&L/symbols from dayTrades. "ใช้ Template" button in journal editor header opens modal. Applying template overwrites only fields defined by that template. Radio selection UI, color-coded cards per template type.
 
-- [ ] [L] ADV-008: Social Trading Feed
+- [x] [L] ADV-008: Social Trading Feed
   - Share trades/insights with other users (opt-in)
   - Like, comment on shared trades
   - Leaderboard by P&L, win rate, consistency
   - Files: src/routes/portfolio/social/+page.svelte (new), DB: social_posts table
+  - Session note: DB migration 025 — social_settings (opt-in), social_posts (3 types: insight/trade_share/milestone), social_likes (toggle), social_comments. Triggers keep likes_count/comments_count in sync. SECURITY DEFINER function get_social_leaderboard() bypasses trades RLS for cross-user stats. 5 API endpoints under /api/portfolio/social (feed CRUD, like toggle, comments CRUD, leaderboard GET, settings upsert). Page at /portfolio/social with Feed + Leaderboard tabs, opt-in banner, create post form, like/comment UI, mini leaderboard sidebar. Tab added to portfolio layout nav.
 
 - [ ] [M] ADV-009: Automated Daily Report email
   - End-of-day summary email: P&L, trades, rule breaks, checklist status
@@ -329,6 +337,17 @@
 - [x] INFRA-004: Tests for server/portfolio.ts (29 tests, 127 total)
 
 ## Session Notes
+### Session 2026-03-21 (ADV-008)
+- Task: ADV-008 — Social Trading Feed
+- Result: Migration 025 (social_settings, social_posts, social_likes, social_comments + triggers + leaderboard SECURITY DEFINER fn). 5 API route groups under /api/portfolio/social. Page /portfolio/social: Feed tab (opt-in banner, create post form, post cards with like/comment, load-more) + Leaderboard tab (Net P&L/Win Rate/PF sort). Tab added to layout nav. 127 tests pass, build OK.
+- Next: ADV-009
+
+### Session 2026-03-21 (ADV-006)
+- Task: ADV-006 — Multi-account portfolio view
+- Result: New route /portfolio/multi-account. Server-side per-account KPI computation. Combined summary banner, P&L comparison bar chart, account card grid, comparison table. Tab added to layout nav.
+- Next: ADV-007
+
+
 ### Session 2026-03-21
 - Task: INFRA-003 — Write tests for src/lib/portfolio.ts
 - Result: 63 tests written, 98 total tests pass
