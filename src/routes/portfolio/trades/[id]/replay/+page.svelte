@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { formatCurrency, formatNumber, formatDateTime } from '$lib/utils';
-	import type { IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
+	import type { IChartApi, ISeriesApi, SeriesMarker, Time, AreaData, WhitespaceData } from 'lightweight-charts';
 	import type { TradeChartContext, TradeChartBar } from '$lib/types';
 
 	const BASE_INTERVAL_MS = 400;
@@ -16,10 +16,10 @@
 	// Chart refs
 	let mainContainer = $state<HTMLDivElement>(undefined!);
 	let pnlContainer = $state<HTMLDivElement>(undefined!);
-	let mainChart: IChartApi | null;
-	let mainSeries: ISeriesApi<'Candlestick'> | null;
-	let pnlChart: IChartApi | null;
-	let pnlSeries: ISeriesApi<'Line'> | null;
+	let mainChart: IChartApi | null = null;
+	let mainSeries: ISeriesApi<'Candlestick'> | null = null;
+	let pnlChart: IChartApi | null = null;
+	let pnlSeries: ISeriesApi<'Area'> | null = null;
 	let slLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
 	let tpLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
 	let entryLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
@@ -136,7 +136,7 @@
 		const markers: SeriesMarker<Time>[] = [];
 		if (hasReachedEntry) {
 			markers.push({
-				time: entryTimestamp,
+				time: entryTimestamp as unknown as Time,
 				position: trade.type === 'BUY' ? 'belowBar' : 'aboveBar',
 				color: '#22c55e',
 				shape: trade.type === 'BUY' ? 'arrowUp' : 'arrowDown',
@@ -145,7 +145,7 @@
 		}
 		if (hasReachedExit) {
 			markers.push({
-				time: exitTimestamp,
+				time: exitTimestamp as unknown as Time,
 				position: trade.type === 'BUY' ? 'aboveBar' : 'belowBar',
 				color: '#f97316',
 				shape: trade.type === 'BUY' ? 'arrowDown' : 'arrowUp',
@@ -184,7 +184,9 @@
 
 		// P&L chart
 		if (pnlChart && pnlSeries && pnlData.length > 0) {
-			pnlSeries.setData(pnlData);
+			pnlSeries.setData(
+				pnlData.map((d) => ({ time: d.time as unknown as Time, value: d.value }))
+			);
 			pnlChart.timeScale().fitContent();
 		} else if (pnlChart && pnlSeries) {
 			pnlSeries.setData([]);

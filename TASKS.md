@@ -778,12 +778,13 @@
   - Files: src/routes/portfolio/+layout.server.ts, src/routes/portfolio/+layout.svelte, src/lib/components/portfolio/AccountSwitcher.svelte (new)
   - Session: 2026-03-22 — Layout server loads all approved accounts, supports account_id URL param for selection. AccountSwitcher component shows avatar + name + MT5 ID, dropdown with checkmark on active. Single account = info badge only. Tab navigation and beforeNavigate preserve account_id across pages. Fixed pre-existing type error with AccountRow type alias.
 
-- [ ] [L] ENHANCE-003: Trade Replay feature
-  - Play/pause/speed controls (1x, 2x, 5x) on multi-TF chart
+- [x] [L] ENHANCE-003: Trade Replay feature
+  - Play/pause/speed controls (0.5x, 1x, 2x, 5x) on multi-TF chart
   - Progressive candle reveal with entry/exit markers
   - P&L curve overlay during replay
   - Leverage existing MultiTimeframeChart component
-  - Files: src/routes/portfolio/trades/[id]/+page.svelte, new ReplayControls.svelte
+  - Files: src/lib/components/portfolio/TradeReplayChart.svelte, src/routes/portfolio/trades/[id]/replay/+page.svelte
+  - Session: 2026-03-22 — Enhanced TradeReplayChart inline component with P&L curve overlay (golden line on separate price scale, toggle on/off), step backward, skip to entry/exit buttons, keyboard shortcuts (Space/arrows/Home/End), scrubber entry/exit markers, 5x speed option, fullscreen mode prop. Fixed pre-existing type errors in replay page (Time casting, Area vs Line series type). Replay page has full-screen experience with separate P&L area chart, mobile info panel, max/min P&L tracking. Both inline (quick replay) and full page (dedicated replay) are production-ready.
 
 - [ ] [M] ENHANCE-004: E2E tests with Playwright
   - Install Playwright
