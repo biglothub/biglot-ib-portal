@@ -179,7 +179,7 @@
 					<!-- Avatar -->
 					<div class="flex-shrink-0">
 						{#if coach.avatar_url}
-							<img src={coach.avatar_url} alt={coach.name} class="w-9 h-9 rounded-full object-cover border border-dark-border" />
+							<img src={coach.avatar_url} alt={coach.name} width="36" height="36" loading="lazy" class="w-9 h-9 rounded-full object-cover border border-dark-border" />
 						{:else}
 							<div class="w-9 h-9 rounded-full bg-dark-hover border border-dark-border flex items-center justify-center">
 								<span class="text-xs text-gray-500">{coach.name.charAt(6) || '?'}</span>

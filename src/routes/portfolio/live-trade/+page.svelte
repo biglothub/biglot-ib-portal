@@ -123,6 +123,9 @@
 								<img
 									src={coach.avatar_url}
 									alt={coach.name}
+									width="44"
+									height="44"
+									loading="lazy"
 									class="relative w-11 h-11 rounded-full object-cover border-2 transition-all duration-500
 										{live ? coach.color_border : 'border-dark-border'}"
 								/>

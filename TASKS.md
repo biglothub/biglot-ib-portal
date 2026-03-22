@@ -816,11 +816,23 @@
   - Verify 386+ tests still pass
   - Session: 2026-03-22 — All 386 tests pass, build succeeds. Reduced svelte-check errors from 205 to 1 (known web-push declaration). Fixed: a11y labels in admin/coaches, removed deprecated onFID from web-vitals, modernized Sentry vite config, fixed Profile type in hooks.server.ts, added Supabase type casts in server/portfolio.ts, fixed chart component type errors (6 files), fixed Svelte component type errors (20+ files), fixed test factory types, added missing PortfolioFilterOptions fields, synced settings page state with $effect.
 
-- [ ] [M] QA3-002: Performance audit — Lighthouse score
+- [x] [M] QA3-002: Performance audit — Lighthouse score
   - Run Lighthouse on all main pages
   - Target: Performance > 90, Accessibility > 90
   - Fix any issues found
   - Document scores
+  - Session: 2026-03-22 — Full code-level performance audit across 4 categories (images/assets, bundle/imports, accessibility, SSR/data loading). Fixed 15 issues:
+    - **Fonts**: Made Google Fonts non-render-blocking (media="print" + onload pattern), removed unused weight 300 (saves 2 font file requests per family)
+    - **Security headers**: Added X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy to all responses
+    - **SEO**: Added meta description to app.html
+    - **Bundle**: Moved DOMPurify to separate $lib/sanitize.ts (was polluting every chunk via $lib/utils barrel import — 60+ files affected). Changed Sentry from `import *` to named imports in both hooks files for better tree-shaking
+    - **CLS**: Added width/height attributes to all 11 img tags across Sidebar, coaches, social, live-trade, settings, MarketNewsFeed
+    - **Loading**: Added loading="lazy" to 6 below-fold images (coaches, social avatars)
+    - **Accessibility**: Added aria-label to NotificationBell button and Sync button
+    - **Data loading**: Removed redundant daily_stats DB query in dashboard (already in baseData)
+    - **Preloading**: Changed body preload-data from "hover" to "tap" to avoid speculative expensive DB queries
+    - **Favicon**: Removed oversized icon-192/icon-512 from generic favicon links (handled by manifest.json)
+    - Documented remaining optimization opportunities: lazy-load TiptapEditor/AiChatPanel/analytics tabs, add CSP header, N+1 in multi-account, correlation matrix caching
 
 ---
 

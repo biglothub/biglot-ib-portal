@@ -249,6 +249,8 @@
 							<img
 								src={article.image_url}
 								alt=""
+								width="80"
+								height="56"
 								class="w-20 h-14 rounded-lg object-cover flex-shrink-0 bg-dark-bg"
 								loading="lazy"
 								onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}

@@ -289,6 +289,7 @@
 								{syncingNow || syncCooldown
 									? 'text-gray-600 border-gray-700 cursor-not-allowed'
 									: 'text-gray-400 hover:text-white hover:border-brand-primary/40'}"
+							aria-label={syncCooldown ? 'Sync แล้ว — กรุณารอก่อน' : 'Sync ข้อมูลล่าสุด'}
 							title={syncCooldown ? 'Sync แล้ว — กรุณารอก่อน' : 'Sync ข้อมูลล่าสุด'}
 						>
 							{#if syncingNow}

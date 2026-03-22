@@ -1,9 +1,9 @@
-import * as Sentry from '@sentry/sveltekit';
+import { init, handleErrorWithSentry } from '@sentry/sveltekit';
 import { env } from '$env/dynamic/public';
 import { initWebVitals } from '$lib/web-vitals';
 
 if (env.PUBLIC_SENTRY_DSN) {
-	Sentry.init({
+	init({
 		dsn: env.PUBLIC_SENTRY_DSN,
 		environment: env.PUBLIC_SENTRY_ENVIRONMENT || 'production',
 		tracesSampleRate: 0.2,
@@ -14,4 +14,4 @@ if (env.PUBLIC_SENTRY_DSN) {
 
 initWebVitals();
 
-export const handleError = Sentry.handleErrorWithSentry();
+export const handleError = handleErrorWithSentry();

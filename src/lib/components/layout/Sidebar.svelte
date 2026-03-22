@@ -139,7 +139,7 @@
 		{#if collapsed}
 			<div class="flex justify-center" title={profile?.full_name}>
 				{#if profile?.avatar_url}
-					<img src={profile.avatar_url} alt={profile.full_name} class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
+					<img src={profile.avatar_url} alt={profile.full_name} width="32" height="32" class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
 				{:else}
 					<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
 						{profile?.full_name?.charAt(0) || '?'}
@@ -149,7 +149,7 @@
 		{:else}
 			<div class="flex items-center gap-3">
 				{#if profile?.avatar_url}
-					<img src={profile.avatar_url} alt={profile.full_name} class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
+					<img src={profile.avatar_url} alt={profile.full_name} width="32" height="32" class="w-8 h-8 rounded-full object-cover" referrerpolicy="no-referrer" />
 				{:else}
 					<div class="w-8 h-8 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-sm font-medium">
 						{profile?.full_name?.charAt(0) || '?'}

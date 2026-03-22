@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/sveltekit';
+import { init, sentryHandle, handleErrorWithSentry } from '@sentry/sveltekit';
 import { env } from '$env/dynamic/private';
 import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/server/supabase';
 import { validateEnv } from '$lib/server/env';
@@ -8,7 +8,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 validateEnv();
 
 if (env.SENTRY_DSN) {
-	Sentry.init({
+	init({
 		dsn: env.SENTRY_DSN,
 		environment: env.SENTRY_ENVIRONMENT || 'production',
 		tracesSampleRate: 0.2
@@ -155,5 +155,14 @@ const cacheHandle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle = sequence(Sentry.sentryHandle(), authHandle, cacheHandle);
-export const handleError = Sentry.handleErrorWithSentry();
+const securityHandle: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+	return response;
+};
+
+export const handle = sequence(sentryHandle(), authHandle, cacheHandle, securityHandle);
+export const handleError = handleErrorWithSentry();

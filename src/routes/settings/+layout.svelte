@@ -102,6 +102,8 @@
 							<img
 								src={profile.avatar_url}
 								alt={profile.full_name}
+								width="40"
+								height="40"
 								class="w-10 h-10 rounded-full object-cover"
 								referrerpolicy="no-referrer"
 							/>

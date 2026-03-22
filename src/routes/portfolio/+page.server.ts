@@ -39,14 +39,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 
 	const today = TODAY();
 
-	const [latestStatsRes, equityRes, openPositionsRes, checklistRulesRes, checklistCompletionsRes, todayJournalRes] = await Promise.all([
-		supabase
-			.from('daily_stats')
-			.select('*')
-			.eq('client_account_id', account.id)
-			.order('date', { ascending: false })
-			.limit(1)
-			.single(),
+	const [equityRes, openPositionsRes, checklistRulesRes, checklistCompletionsRes, todayJournalRes] = await Promise.all([
 		supabase
 			.from('equity_snapshots')
 			.select('timestamp, balance, equity, floating_pl')
@@ -125,7 +118,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		checklistRules.every((r: ChecklistRuleRow) => checklistCompletions.some((c: ChecklistCompletionRow) => c.rule_id === r.id && c.completed));
 
 	return {
-		latestStats: latestStatsRes.data || null,
+		latestStats: baseData.dailyStats[baseData.dailyStats.length - 1] || null,
 		openPositions: openPositionsRes.data || [],
 		recentTrades: trades.slice(0, 8),
 		analytics: report.analytics,

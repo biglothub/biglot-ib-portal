@@ -102,6 +102,7 @@
 <div class="notification-bell relative">
 	<button
 		class="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-hover transition-colors"
+		aria-label="การแจ้งเตือน"
 		onclick={(e) => { e.stopPropagation(); open = !open; }}
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

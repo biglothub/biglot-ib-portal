@@ -480,7 +480,7 @@
 								<div class="flex items-start justify-between gap-3">
 									<div class="flex items-center gap-3 min-w-0">
 										{#if post.avatar_url}
-											<img src={post.avatar_url} alt={post.display_name} class="w-9 h-9 rounded-full shrink-0 object-cover" />
+											<img src={post.avatar_url} alt={post.display_name} width="36" height="36" loading="lazy" class="w-9 h-9 rounded-full shrink-0 object-cover" />
 										{:else}
 											<div class="w-9 h-9 rounded-full {avatarColor(post.user_id)} flex items-center justify-center text-xs font-bold text-white shrink-0">
 												{avatarInitials(post.display_name)}
@@ -585,7 +585,7 @@
 												{#each cmts.list as comment (comment.id)}
 													<div class="flex items-start gap-2">
 														{#if comment.avatar_url}
-															<img src={comment.avatar_url} alt={comment.display_name} class="w-7 h-7 rounded-full shrink-0 object-cover" />
+															<img src={comment.avatar_url} alt={comment.display_name} width="28" height="28" loading="lazy" class="w-7 h-7 rounded-full shrink-0 object-cover" />
 														{:else}
 															<div class="w-7 h-7 rounded-full {avatarColor(comment.user_id)} flex items-center justify-center text-xs font-bold text-white shrink-0">
 																{avatarInitials(comment.display_name)}
@@ -676,7 +676,7 @@
 								<div class="flex items-center gap-2.5">
 									<span class="text-xs font-mono w-5 text-center text-gray-500">{rankMedal(i + 1)}</span>
 									{#if entry.avatar_url}
-										<img src={entry.avatar_url} alt={entry.display_name} class="w-7 h-7 rounded-full object-cover shrink-0" />
+										<img src={entry.avatar_url} alt={entry.display_name} width="28" height="28" loading="lazy" class="w-7 h-7 rounded-full object-cover shrink-0" />
 									{:else}
 										<div class="w-7 h-7 rounded-full {avatarColor(entry.user_id)} flex items-center justify-center text-xs font-bold text-white shrink-0">
 											{avatarInitials(entry.display_name)}
@@ -776,7 +776,7 @@
 									<td class="py-3">
 										<div class="flex items-center gap-2.5">
 											{#if entry.avatar_url}
-												<img src={entry.avatar_url} alt={entry.display_name} class="w-8 h-8 rounded-full object-cover shrink-0" />
+												<img src={entry.avatar_url} alt={entry.display_name} width="32" height="32" loading="lazy" class="w-8 h-8 rounded-full object-cover shrink-0" />
 											{:else}
 												<div class="w-8 h-8 rounded-full {avatarColor(entry.user_id)} flex items-center justify-center text-xs font-bold text-white shrink-0">
 													{avatarInitials(entry.display_name)}

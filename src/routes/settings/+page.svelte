@@ -143,6 +143,8 @@
 				<img
 					src={profile.avatar_url}
 					alt={profile.full_name}
+					width="80"
+					height="80"
 					class="w-20 h-20 rounded-full object-cover ring-2 ring-dark-border"
 					referrerpolicy="no-referrer"
 				/>
