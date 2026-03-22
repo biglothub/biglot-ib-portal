@@ -1,7 +1,7 @@
 ## Phase: POLISH (Consistency & Final Touch)
 
 ### Step 1: Pick Task
-Read TASKS.md. Pick the FIRST unchecked task ([ ]) with prefix POLISH-.
+Read TASKS.md. Pick the FIRST unchecked task ([ ]) with prefix POLISH-, POLISH2-, or POLISH3-.
 Mark it [~] (in progress).
 
 ### Step 2: Understand the Polish Task

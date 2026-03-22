@@ -1,7 +1,8 @@
 ## Phase: BUILD (Feature Implementation)
 
 ### Step 1: Pick Task
-Read TASKS.md. Pick the FIRST unchecked task ([ ]) with prefix TZ-, INFRA-, ADV-, or MOB-.
+Read TASKS.md. Pick the FIRST unchecked BUILD-type task ([ ]) — any prefix that is NOT QA/QA2/QA3 or POLISH/POLISH2/POLISH3.
+Common prefixes: CLEAN-, DEPLOY-, SCALE-, ENHANCE-, SEC-, FIX-, FEAT-, TZ-, INFRA-, ADV-, MOB-.
 Mark it [~] (in progress).
 
 ### Step 2: Research (SPEND TIME HERE)

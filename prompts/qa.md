@@ -1,7 +1,7 @@
 ## Phase: QA (Quality Assurance)
 
 ### Step 1: Pick Task
-Read TASKS.md. Pick the FIRST unchecked task ([ ]) with prefix QA-.
+Read TASKS.md. Pick the FIRST unchecked task ([ ]) with prefix QA-, QA2-, or QA3-.
 Mark it [~] (in progress).
 
 ### Step 2: Understand the QA Task
