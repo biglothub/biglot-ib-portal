@@ -11,8 +11,9 @@
 		strengths: { content: '', loading: false },
 		action_plan: { content: '', loading: false },
 	});
-	let recapStats = $state<Record<string, any> | null>(null);
-	let recapPrevStats = $state<Record<string, any> | null>(null);
+	type RecapStats = { netPnl: number; tradeWinRate: number; profitFactor: number; totalTrades: number };
+	let recapStats = $state<RecapStats | null>(null);
+	let recapPrevStats = $state<RecapStats | null>(null);
 	let recapTimestamp = $state('');
 
 	function getRecapPeriodDates(period: string): { start: string; end: string; type: string } {
@@ -187,7 +188,7 @@
 			{#each ['last_week', 'this_week', 'last_month', 'this_month'] as period}
 				<button
 					class="px-4 py-2 text-sm rounded-lg border transition-colors {recapPeriod === period ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
-					onclick={() => { recapPeriod = period as any; recapStats = null; recapTimestamp = ''; for (const k of Object.keys(recapSections)) recapSections[k] = { content: '', loading: false }; }}
+					onclick={() => { recapPeriod = period as typeof recapPeriod; recapStats = null; recapTimestamp = ''; for (const k of Object.keys(recapSections)) recapSections[k] = { content: '', loading: false }; }}
 				>{recapPeriodLabels[period]}</button>
 			{/each}
 		</div>

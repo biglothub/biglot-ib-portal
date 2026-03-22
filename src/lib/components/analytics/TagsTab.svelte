@@ -1,9 +1,10 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { TagBreakdown, TagBreakdownItem, TagCategoryBreakdownItem } from '$lib/types';
 
 	let { tagBreakdown } = $props<{
-		tagBreakdown: Record<string, any> | null | undefined;
+		tagBreakdown: TagBreakdown | null | undefined;
 	}>();
 
 	let tagSort = $state<{ key: string; asc: boolean }>({ key: 'netPnl', asc: false });
@@ -11,8 +12,8 @@
 
 	const sortedTags = $derived.by(() => {
 		let arr = [...(tagBreakdown?.byTag || [])];
-		if (tagViewMode !== 'all') arr = arr.filter((t: any) => t.category === tagViewMode);
-		arr.sort((a: any, b: any) => {
+		if (tagViewMode !== 'all') arr = arr.filter((t: TagBreakdownItem) => t.category === tagViewMode);
+		arr.sort((a: TagBreakdownItem, b: TagBreakdownItem) => {
 			const va = a[tagSort.key] ?? 0;
 			const vb = b[tagSort.key] ?? 0;
 			return tagSort.asc ? va - vb : vb - va;
@@ -55,7 +56,7 @@
 				onclick={() => tagViewMode = 'all'}
 			>ทั้งหมด</button>
 			{#each Object.entries(categoryLabels) as [key, label]}
-				{#if tagBreakdown?.byCategory?.some((c: any) => c.category === key)}
+				{#if tagBreakdown?.byCategory?.some((c: TagCategoryBreakdownItem) => c.category === key)}
 					<button
 						class="px-3 py-1 text-xs rounded-full border transition-colors {tagViewMode === key ? 'bg-brand-primary/20 text-brand-primary border-brand-primary/40' : 'text-gray-400 border-dark-border hover:text-gray-300'}"
 						onclick={() => tagViewMode = key}
@@ -91,7 +92,7 @@
 		{/if}
 
 		<!-- Bar chart — top tags by P&L -->
-		{@const maxAbsTagPnl = sortedTags.reduce((max: number, t: any) => { const v = Math.abs(t.netPnl); return v > max ? v : max; }, 1)}
+		{@const maxAbsTagPnl = sortedTags.reduce((max: number, t: TagBreakdownItem) => { const v = Math.abs(t.netPnl); return v > max ? v : max; }, 1)}
 		<div class="space-y-2 mb-6">
 			{#each sortedTags.slice(0, 10) as tag}
 				<div class="flex items-center gap-3">

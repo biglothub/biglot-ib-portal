@@ -1,14 +1,15 @@
 <script lang="ts">
 	import HealthScoreCard from '$lib/components/portfolio/HealthScoreCard.svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { Component } from 'svelte';
 
 	let { calendarDays, kpiMetrics, healthScore } = $props<{
 		calendarDays: Array<{ date: string; pnl: number; trades: number }> | null | undefined;
-		kpiMetrics: Record<string, any> | null | undefined;
+		kpiMetrics: ReturnType<typeof import('$lib/server/portfolio').buildKpiMetrics> | null | undefined;
 		healthScore: { score: number } | null | undefined;
 	}>();
 
-	let ConfigurableMetricChart = $state<any>(null);
+	let ConfigurableMetricChart = $state<Component | null>(null);
 	$effect(() => {
 		if (!ConfigurableMetricChart) {
 			import('$lib/components/charts/ConfigurableMetricChart.svelte').then(m => {

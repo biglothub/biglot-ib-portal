@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency } from '$lib/utils';
+	import type { IChartApi, ISeriesApi, MouseEventParams } from 'lightweight-charts';
 
 	let {
 		equitySnapshots = [],
@@ -13,10 +14,10 @@
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
-	let chart: any;
-	let equitySeries: any;
-	let balanceSeries: any;
-	let floatingZoneSeries: any;
+	let chart: IChartApi | null;
+	let equitySeries: ISeriesApi<'Line'> | null;
+	let balanceSeries: ISeriesApi<'Line'> | null;
+	let floatingZoneSeries: ISeriesApi<'Area'> | null;
 
 	let currentTimeframe = $state('1M');
 	let tooltipVisible = $state(false);
@@ -193,7 +194,7 @@
 					priceLineStyle: LineStyle.Dashed
 				});
 
-				chart.subscribeCrosshairMove((param: any) => {
+				chart.subscribeCrosshairMove((param: MouseEventParams) => {
 					if (!param || !param.time || !param.point) {
 						tooltipVisible = false;
 						return;

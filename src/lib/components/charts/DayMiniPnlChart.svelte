@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency } from '$lib/utils';
+	import type { IChartApi, ISeriesApi, MouseEventParams } from 'lightweight-charts';
 
 	let {
 		data = [],
@@ -11,8 +12,8 @@
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
-	let chart: any;
-	let areaSeries: any;
+	let chart: IChartApi | null;
+	let areaSeries: ISeriesApi<'Area'> | null;
 	let tooltipVisible = $state(false);
 	let tooltipX = $state(0);
 	let tooltipY = $state(0);
@@ -65,7 +66,7 @@
 				crosshairMarkerBackgroundColor: '#22c55e'
 			});
 
-			chart.subscribeCrosshairMove((param: any) => {
+			chart.subscribeCrosshairMove((param: MouseEventParams) => {
 				if (!param?.time || !param?.point) { tooltipVisible = false; return; }
 				const val = param.seriesData.get(areaSeries);
 				if (val) { tooltipVisible = true; tooltipX = param.point.x; tooltipY = param.point.y; tooltipValue = val.value; }

@@ -1,16 +1,17 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { DayOfWeekReport, DayOfWeekItem } from '$lib/types';
 
 	let { dayOfWeekReport } = $props<{
-		dayOfWeekReport: Record<string, any> | null | undefined;
+		dayOfWeekReport: DayOfWeekReport | null | undefined;
 	}>();
 
 	let daySort = $state<{ key: string; asc: boolean }>({ key: 'dayIdx', asc: true });
 
 	const sortedDays = $derived.by(() => {
 		const arr = [...(dayOfWeekReport?.days || [])];
-		arr.sort((a: any, b: any) => {
+		arr.sort((a: DayOfWeekItem, b: DayOfWeekItem) => {
 			const va = a[daySort.key] ?? 0;
 			const vb = b[daySort.key] ?? 0;
 			return daySort.asc ? va - vb : vb - va;
@@ -51,9 +52,9 @@
 		</div>
 
 		<!-- Bar chart -->
-		{@const maxAbsDayPnl = sortedDays.reduce((max: number, d: any) => { const v = Math.abs(d.netPnl); return v > max ? v : max; }, 1)}
+		{@const maxAbsDayPnl = sortedDays.reduce((max: number, d: DayOfWeekItem) => { const v = Math.abs(d.netPnl); return v > max ? v : max; }, 1)}
 		<div class="space-y-2 mb-6">
-			{#each dayOfWeekReport.days.sort((a: any, b: any) => a.dayIdx - b.dayIdx) as day}
+			{#each dayOfWeekReport.days.sort((a: DayOfWeekItem, b: DayOfWeekItem) => a.dayIdx - b.dayIdx) as day}
 				<div class="flex items-center gap-3">
 					<div class="w-10 text-sm font-semibold text-gray-300 shrink-0">{day.day}</div>
 					<div class="flex-1 flex items-center">

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { Trade } from '$lib/types';
 
 	let { filteredTrades } = $props<{
-		filteredTrades: any[];
+		filteredTrades: Trade[];
 	}>();
 
 	let group1Symbol = $state('');
@@ -11,26 +12,26 @@
 	let group2Side = $state('');
 	let compareResult = $state<{ group1: Record<string, number>; group2: Record<string, number> } | null>(null);
 
-	const availableSymbols = $derived([...new Set((filteredTrades || []).map((t: any) => t.symbol))].sort());
+	const availableSymbols = $derived([...new Set((filteredTrades || []).map((t: Trade) => t.symbol))].sort());
 
 	function generateCompare() {
 		if (!filteredTrades) return;
 		const trades = filteredTrades;
 
 		const filterGroup = (sym: string, side: string) => {
-			return trades.filter((t: any) => {
+			return trades.filter((t: Trade) => {
 				if (sym && t.symbol !== sym) return false;
 				if (side && t.type !== side) return false;
 				return true;
 			});
 		};
 
-		const calcGroupStats = (groupTrades: any[]) => {
-			const wins = groupTrades.filter((t: any) => Number(t.profit) > 0);
-			const losses = groupTrades.filter((t: any) => Number(t.profit) < 0);
-			const totalW = wins.reduce((s: number, t: any) => s + Number(t.profit), 0);
-			const totalL = Math.abs(losses.reduce((s: number, t: any) => s + Number(t.profit), 0));
-			const netPnl = groupTrades.reduce((s: number, t: any) => s + Number(t.profit), 0);
+		const calcGroupStats = (groupTrades: Trade[]) => {
+			const wins = groupTrades.filter((t: Trade) => Number(t.profit) > 0);
+			const losses = groupTrades.filter((t: Trade) => Number(t.profit) < 0);
+			const totalW = wins.reduce((s: number, t: Trade) => s + Number(t.profit), 0);
+			const totalL = Math.abs(losses.reduce((s: number, t: Trade) => s + Number(t.profit), 0));
+			const netPnl = groupTrades.reduce((s: number, t: Trade) => s + Number(t.profit), 0);
 			return {
 				trades: groupTrades.length,
 				wins: wins.length,

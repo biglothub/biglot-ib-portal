@@ -3,10 +3,11 @@
 	import StatsOverviewTable from '$lib/components/reports/StatsOverviewTable.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatPercent, formatNumber } from '$lib/utils';
+	import type { StatsSection } from '$lib/types';
 
 	let { report, statsOverview } = $props<{
-		report: Record<string, any>;
-		statsOverview: any[] | null | undefined;
+		report: Record<string, unknown>;
+		statsOverview: StatsSection[] | null | undefined;
 	}>();
 </script>
 

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { formatNumber } from '$lib/utils';
+	import type { IChartApi, ISeriesApi, SeriesMarker, Time, MouseEventParams } from 'lightweight-charts';
+	import type { Trade } from '$lib/types';
 
 	interface Bar {
 		time: number;
@@ -17,8 +19,8 @@
 	}
 
 	interface ChartInstance {
-		chart: any;
-		series: any;
+		chart: IChartApi | null;
+		series: ISeriesApi<'Candlestick'> | null;
 		tf: string;
 	}
 
@@ -27,7 +29,7 @@
 		trade
 	}: {
 		contexts?: ChartContext[];
-		trade: any;
+		trade: Trade;
 	} = $props();
 
 	// Timeframe display labels
@@ -59,7 +61,7 @@
 	const instances: ChartInstance[] = [];
 	let isSyncing = false;
 
-	function syncCrosshair(fromChart: any, time: unknown) {
+	function syncCrosshair(fromChart: IChartApi, time: unknown) {
 		if (isSyncing) return;
 		isSyncing = true;
 		instances.forEach(({ chart, series }) => {
@@ -79,8 +81,8 @@
 
 	// Svelte action: initialises a lightweight-charts candlestick chart inside `container`
 	function chartPanel(container: HTMLDivElement, ctx: ChartContext) {
-		let chart: any = null;
-		let series: any = null;
+		let chart: IChartApi | null = null;
+		let series: ISeriesApi<'Candlestick'> | null = null;
 		let instance: ChartInstance | null = null;
 		let ro: ResizeObserver | null = null;
 		let destroyed = false;
@@ -150,7 +152,7 @@
 			// Entry / exit markers
 			const entryTime = Math.floor(new Date(trade.open_time).getTime() / 1000);
 			const exitTime = Math.floor(new Date(trade.close_time).getTime() / 1000);
-			const markers: any[] = [];
+			const markers: SeriesMarker<Time>[] = [];
 			if (entryTime) {
 				markers.push({
 					time: entryTime as any,
@@ -198,7 +200,7 @@
 			instance = { chart, series, tf: ctx.timeframe };
 			instances.push(instance);
 
-			chart.subscribeCrosshairMove((param: any) => {
+			chart.subscribeCrosshairMove((param: MouseEventParams) => {
 				syncCrosshair(chart, param?.time);
 			});
 

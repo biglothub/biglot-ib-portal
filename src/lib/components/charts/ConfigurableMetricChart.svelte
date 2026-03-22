@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
 	import { buildPerformanceMetricSeries, makeCumulative, AVAILABLE_METRICS } from '$lib/performance-metrics';
+	import type { IChartApi, ISeriesApi, MouseEventParams } from 'lightweight-charts';
 
 	let {
 		dailyHistory = [],
@@ -16,8 +17,8 @@
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
-	let chart: any;
-	let series: any;
+	let chart: IChartApi | null;
+	let series: ISeriesApi<'Histogram'> | ISeriesApi<'Area'> | null;
 	let selectedMetric = $state(defaultMetric);
 	let selectedTimeframe = $state(defaultTimeframe);
 
@@ -34,14 +35,14 @@
 
 	const metricConfig = $derived(AVAILABLE_METRICS.find(m => m.key === selectedMetric) || AVAILABLE_METRICS[0]);
 
-	const chartData = $derived((() => {
+	const chartData = $derived.by(() => {
 		if (!dailyHistory || dailyHistory.length === 0) return [];
 		let data = buildPerformanceMetricSeries(dailyHistory, selectedMetric as any, selectedTimeframe as any);
 		if (selectedMetric === 'net_pnl_cumulative') {
 			data = makeCumulative(buildPerformanceMetricSeries(dailyHistory, 'net_pnl', selectedTimeframe as any));
 		}
 		return data;
-	})());
+	});
 
 	function updateChart() {
 		if (!chart || !chartContainer) return;
@@ -105,7 +106,7 @@
 					handleScale: { mouseWheel: true, pinch: true }
 				});
 
-				chart.subscribeCrosshairMove((param: any) => {
+				chart.subscribeCrosshairMove((param: MouseEventParams) => {
 					if (!param || !param.time || !param.point || !series) { tooltipVisible = false; return; }
 					const val = param.seriesData.get(series);
 					if (val) {

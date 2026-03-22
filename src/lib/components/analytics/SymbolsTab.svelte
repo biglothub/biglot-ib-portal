@@ -1,16 +1,17 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { SymbolBreakdownItem } from '$lib/types';
 
 	let { symbolBreakdown } = $props<{
-		symbolBreakdown: any[];
+		symbolBreakdown: SymbolBreakdownItem[];
 	}>();
 
 	let symbolSort = $state<{ key: string; asc: boolean }>({ key: 'netPnl', asc: false });
 
 	const sortedSymbols = $derived.by(() => {
 		const arr = [...(symbolBreakdown || [])];
-		arr.sort((a: any, b: any) => {
+		arr.sort((a: SymbolBreakdownItem, b: SymbolBreakdownItem) => {
 			const va = a[symbolSort.key] ?? 0;
 			const vb = b[symbolSort.key] ?? 0;
 			return symbolSort.asc ? va - vb : vb - va;
@@ -31,7 +32,7 @@
 		<EmptyState message="ไม่พบข้อมูล symbol ใน filter ที่เลือก" />
 	{:else}
 		<!-- Top symbols bar chart -->
-		{@const maxAbsPnl = sortedSymbols.reduce((max: number, s: any) => { const v = Math.abs(s.netPnl); return v > max ? v : max; }, 1)}
+		{@const maxAbsPnl = sortedSymbols.reduce((max: number, s: SymbolBreakdownItem) => { const v = Math.abs(s.netPnl); return v > max ? v : max; }, 1)}
 		<div class="space-y-2 mb-6">
 			{#each sortedSymbols.slice(0, 8) as sym}
 				<div class="flex items-center gap-3">

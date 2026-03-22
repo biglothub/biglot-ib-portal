@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency } from '$lib/utils';
+	import type { IChartApi, ISeriesApi, MouseEventParams } from 'lightweight-charts';
 
 	let {
 		dailyHistory = [],
@@ -11,8 +12,8 @@
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
-	let chart: any;
-	let histSeries: any;
+	let chart: IChartApi | null;
+	let histSeries: ISeriesApi<'Histogram'> | null;
 
 	let currentTimeframe = $state('1M');
 	let tooltipVisible = $state(false);
@@ -30,7 +31,7 @@
 
 	const selectedDays = $derived(timeframes.find(t => t.label === currentTimeframe)?.days || 30);
 
-	const filteredData = $derived((() => {
+	const filteredData = $derived.by(() => {
 		if (!dailyHistory || dailyHistory.length === 0) return [];
 		const cutoff = new Date();
 		cutoff.setDate(cutoff.getDate() - selectedDays);
@@ -38,7 +39,7 @@
 		return selectedDays >= 9999
 			? dailyHistory
 			: dailyHistory.filter(d => d.date >= cutoffStr);
-	})());
+	});
 
 	function updateChartData() {
 		if (!chart || !histSeries) return;
@@ -105,7 +106,7 @@
 					priceFormat: { type: 'price', precision: 2, minMove: 0.01 }
 				});
 
-				chart.subscribeCrosshairMove((param: any) => {
+				chart.subscribeCrosshairMove((param: MouseEventParams) => {
 					if (!param || !param.time || !param.point) {
 						tooltipVisible = false;
 						return;

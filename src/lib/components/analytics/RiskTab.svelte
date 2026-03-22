@@ -3,7 +3,7 @@
 	import { formatCurrency, formatNumber } from '$lib/utils';
 
 	let { riskAnalysis } = $props<{
-		riskAnalysis: Record<string, any> | null | undefined;
+		riskAnalysis: Record<string, unknown> | null | undefined;
 	}>();
 </script>
 

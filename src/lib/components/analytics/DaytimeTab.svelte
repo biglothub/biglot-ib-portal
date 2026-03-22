@@ -1,9 +1,10 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency } from '$lib/utils';
+	import type { DayTimeHeatmap, HeatmapCell } from '$lib/types';
 
 	let { dayTimeHeatmap } = $props<{
-		dayTimeHeatmap: Record<string, any> | null | undefined;
+		dayTimeHeatmap: DayTimeHeatmap | null | undefined;
 	}>();
 
 	let heatmapMode = $state<'trades' | 'pnl' | 'winRate'>('pnl');
@@ -11,10 +12,10 @@
 	const hourLabels = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
 
 	function getHeatmapCell(day: number, hour: number) {
-		return dayTimeHeatmap?.cells?.find((c: any) => c.day === day && c.hour === hour) || null;
+		return dayTimeHeatmap?.cells?.find((c: HeatmapCell) => c.day === day && c.hour === hour) || null;
 	}
 
-	function heatmapCellColor(cell: any): string {
+	function heatmapCellColor(cell: HeatmapCell | null): string {
 		if (!cell || cell.trades === 0) return 'bg-dark-bg/20';
 		if (heatmapMode === 'trades') {
 			const max = dayTimeHeatmap?.maxTrades || 1;
@@ -56,7 +57,7 @@
 			] as mode}
 				<button
 					class="px-3 py-1.5 text-xs font-medium rounded-md transition-all {heatmapMode === mode.key ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
-					onclick={() => heatmapMode = mode.key as any}
+					onclick={() => heatmapMode = mode.key as 'trades' | 'pnl' | 'winRate'}
 				>{mode.label}</button>
 			{/each}
 		</div>
