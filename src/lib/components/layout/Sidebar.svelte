@@ -11,6 +11,7 @@
 		{ href: '/admin', label: 'Dashboard', icon: '📊', exact: true },
 		{ href: '/admin/approvals', label: 'อนุมัติลูกค้า', icon: '✅', exact: false },
 		{ href: '/admin/ibs', label: 'Master IBs', icon: '👥', exact: false },
+		{ href: '/admin/coaches', label: 'จัดการโค้ช', icon: '🎓', exact: false },
 	];
 
 	const ibLinks = [

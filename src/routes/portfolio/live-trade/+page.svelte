@@ -1,134 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
 
-	const coaches = [
-		{
-			name: 'COACH PING',
-			time: '05:00-07:00',
-			startHour: 5,
-			endHour: 7,
-			channel: 'Gold with Ping',
-			color: 'from-pink-500 to-rose-400',
-			colorBorder: 'border-pink-500/30',
-			colorText: 'text-pink-400',
-			colorBg: 'bg-pink-500/10',
-			youtube: '@goldwithping',
-			avatar: '/coaches/ping.png',
-			glow: '236,72,153'
-		},
-		{
-			name: 'COACH BALL',
-			time: '07:00-10:00',
-			startHour: 7,
-			endHour: 10,
-			channel: 'Trader10X',
-			color: 'from-orange-500 to-amber-400',
-			colorBorder: 'border-orange-500/30',
-			colorText: 'text-orange-400',
-			colorBg: 'bg-orange-500/10',
-			youtube: '@trader10-x',
-			avatar: '/coaches/ball.png',
-			glow: '249,115,22'
-		},
-		{
-			name: 'COACH PU',
-			time: '10:00-12:00',
-			startHour: 10,
-			endHour: 12,
-			channel: 'Pu MoneyMind',
-			color: 'from-yellow-500 to-amber-300',
-			colorBorder: 'border-yellow-500/30',
-			colorText: 'text-yellow-400',
-			colorBg: 'bg-yellow-500/10',
-			youtube: '@PuMoneyMind',
-			avatar: '/coaches/pu.png',
-			glow: '234,179,8'
-		},
-		{
-			name: 'COACH CZECH',
-			time: '12:00-14:00',
-			startHour: 12,
-			endHour: 14,
-			channel: 'ALL Time High',
-			color: 'from-green-500 to-emerald-400',
-			colorBorder: 'border-green-500/30',
-			colorText: 'text-green-400',
-			colorBg: 'bg-green-500/10',
-			youtube: '@alltimehigh.official',
-			avatar: '/coaches/czech.png',
-			glow: '34,197,94'
-		},
-		{
-			name: 'COACH FUTURE',
-			time: '14:00-16:00',
-			startHour: 14,
-			endHour: 16,
-			channel: 'Trade the Future',
-			color: 'from-teal-500 to-cyan-400',
-			colorBorder: 'border-teal-500/30',
-			colorText: 'text-teal-400',
-			colorBg: 'bg-teal-500/10',
-			youtube: '@tradethefuturebyfuture',
-			avatar: '/coaches/future.png',
-			glow: '20,184,166'
-		},
-		{
-			name: 'COACH JHEE',
-			time: '16:00-19:00',
-			startHour: 16,
-			endHour: 19,
-			channel: 'Jhee Aroonwan',
-			color: 'from-blue-500 to-indigo-400',
-			colorBorder: 'border-blue-500/30',
-			colorText: 'text-blue-400',
-			colorBg: 'bg-blue-500/10',
-			youtube: '@jheearoonwan',
-			avatar: '/coaches/jhee.png',
-			glow: '59,130,246'
-		},
-		{
-			name: 'COACH ICZ',
-			time: '19:00-21:00',
-			startHour: 19,
-			endHour: 21,
-			channel: 'เทรดทองกับท่านสุดต๋าล',
-			color: 'from-purple-500 to-violet-400',
-			colorBorder: 'border-purple-500/30',
-			colorText: 'text-purple-400',
-			colorBg: 'bg-purple-500/10',
-			youtube: '@portgoldtrader',
-			avatar: '/coaches/icz.png',
-			glow: '168,85,247'
-		},
-		{
-			name: 'COACH DUK',
-			time: '21:00-23:00',
-			startHour: 21,
-			endHour: 23,
-			channel: 'PIDFAH',
-			color: 'from-pink-500 to-fuchsia-400',
-			colorBorder: 'border-pink-500/30',
-			colorText: 'text-pink-400',
-			colorBg: 'bg-pink-500/10',
-			youtube: '@Pidfah',
-			avatar: '/coaches/duk.png',
-			glow: '217,70,239'
-		},
-		{
-			name: 'COACH MAY',
-			time: '23:00-02:00',
-			startHour: 23,
-			endHour: 26,
-			channel: 'Mayday Channel',
-			color: 'from-red-500 to-rose-400',
-			colorBorder: 'border-red-500/30',
-			colorText: 'text-red-400',
-			colorBg: 'bg-red-500/10',
-			youtube: '@MC.Maydaychannel',
-			avatar: '/coaches/may.png',
-			glow: '239,68,68'
-		}
-	];
+	let { data }: { data: PageData } = $props();
+
+	const coaches = $derived(data.coaches);
 
 	function getBangkokHour(): number {
 		const now = new Date();
@@ -164,7 +40,7 @@
 
 	let liveCoachIndex = $derived.by(() => {
 		void tick;
-		return coaches.findIndex((c) => isLive(c.startHour, c.endHour));
+		return coaches.findIndex((c) => isLive(c.start_hour, c.end_hour));
 	});
 </script>
 
@@ -194,80 +70,100 @@
 	</div>
 
 	<!-- Coach list -->
-	<div class="space-y-3">
-		{#each coaches as coach, i}
-			{@const live = i === liveCoachIndex}
-			<div
-				class="live-card relative rounded-2xl border transition-all duration-500
-					{live
-						? `${coach.colorBorder} ${coach.colorBg}`
-						: 'border-dark-border bg-dark-surface hover:bg-dark-hover'}"
-				style={live ? `--glow-rgb: ${coach.glow}` : ''}
-				class:is-live={live}
-			>
-				{#if live}
-					<div class="absolute -top-2.5 right-4">
-						<span class="inline-flex items-center gap-1.5 rounded-full bg-green-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-							<span class="relative flex h-1.5 w-1.5">
-								<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-								<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+	{#if coaches.length === 0}
+		<!-- Empty state -->
+		<div class="flex flex-col items-center justify-center py-16 text-center">
+			<div class="w-16 h-16 rounded-2xl bg-dark-surface border border-dark-border flex items-center justify-center mb-4">
+				<svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+				</svg>
+			</div>
+			<h3 class="text-sm font-medium text-gray-400 mb-1">ยังไม่มีตารางโค้ช</h3>
+			<p class="text-xs text-gray-600 max-w-xs">ตาราง Live Trade จะแสดงเมื่อแอดมินเพิ่มข้อมูลโค้ชในระบบ</p>
+		</div>
+	{:else}
+		<div class="space-y-3">
+			{#each coaches as coach, i}
+				{@const live = i === liveCoachIndex}
+				<div
+					class="live-card relative rounded-2xl border transition-all duration-500
+						{live
+							? `${coach.color_border} ${coach.color_bg}`
+							: 'border-dark-border bg-dark-surface hover:bg-dark-hover'}"
+					style={live ? `--glow-rgb: ${coach.glow_rgb}` : ''}
+					class:is-live={live}
+				>
+					{#if live}
+						<div class="absolute -top-2.5 right-4">
+							<span class="inline-flex items-center gap-1.5 rounded-full bg-green-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+								<span class="relative flex h-1.5 w-1.5">
+									<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+									<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+								</span>
+								Live
 							</span>
-							Live
-						</span>
-					</div>
-				{/if}
-
-				<div class="flex items-center gap-4 p-4">
-					<!-- Coach badge -->
-					<div class="flex-shrink-0 w-28">
-						<div class="rounded-xl bg-gradient-to-r {coach.color} px-3 py-2 text-center">
-							<div class="text-[10px] font-bold text-white tracking-wider">{coach.name}</div>
-							<div class="text-[10px] text-white/80">{coach.time}</div>
 						</div>
-					</div>
+					{/if}
 
-					<!-- Avatar -->
-					<div class="flex-shrink-0 relative">
-						{#if live}
-							<div class="absolute -inset-1 rounded-full animate-pulse-ring" style="background: rgba({coach.glow}, 0.25)"></div>
-						{/if}
-						<img
-							src={coach.avatar}
-							alt={coach.name}
-							class="relative w-11 h-11 rounded-full object-cover border-2 transition-all duration-500
-								{live ? coach.colorBorder : 'border-dark-border'}"
-						/>
-					</div>
-
-					<!-- Channel info -->
-					<div class="flex-1 min-w-0">
-						<h3 class="text-sm font-semibold truncate transition-colors duration-500 {live ? 'text-white' : 'text-gray-300'}">{coach.channel}</h3>
-						<a
-							href="https://www.youtube.com/{coach.youtube}"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="inline-flex items-center gap-1.5 mt-1.5 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[11px] text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors"
-						>
-							<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-								<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-							</svg>
-							{coach.youtube}
-						</a>
-					</div>
-
-					<!-- Time display -->
-					<div class="flex-shrink-0 text-right hidden sm:block">
-						<div class="text-sm font-mono transition-colors duration-500 {live ? coach.colorText : 'text-gray-500'}">
-							{coach.time}
+					<div class="flex items-center gap-4 p-4">
+						<!-- Coach badge -->
+						<div class="flex-shrink-0 w-28">
+							<div class="rounded-xl bg-gradient-to-r {coach.color_gradient} px-3 py-2 text-center">
+								<div class="text-[10px] font-bold text-white tracking-wider">{coach.name}</div>
+								<div class="text-[10px] text-white/80">{coach.time_display}</div>
+							</div>
 						</div>
-						{#if live}
-							<div class="text-[10px] {coach.colorText} mt-0.5 font-medium">กำลัง Live</div>
-						{/if}
+
+						<!-- Avatar -->
+						<div class="flex-shrink-0 relative">
+							{#if live}
+								<div class="absolute -inset-1 rounded-full animate-pulse-ring" style="background: rgba({coach.glow_rgb}, 0.25)"></div>
+							{/if}
+							{#if coach.avatar_url}
+								<img
+									src={coach.avatar_url}
+									alt={coach.name}
+									class="relative w-11 h-11 rounded-full object-cover border-2 transition-all duration-500
+										{live ? coach.color_border : 'border-dark-border'}"
+								/>
+							{:else}
+								<div class="relative w-11 h-11 rounded-full border-2 flex items-center justify-center bg-dark-surface transition-all duration-500
+									{live ? coach.color_border : 'border-dark-border'}">
+									<span class="text-xs font-bold text-gray-400">{coach.name.charAt(6) || '?'}</span>
+								</div>
+							{/if}
+						</div>
+
+						<!-- Channel info -->
+						<div class="flex-1 min-w-0">
+							<h3 class="text-sm font-semibold truncate transition-colors duration-500 {live ? 'text-white' : 'text-gray-300'}">{coach.channel_name}</h3>
+							<a
+								href="https://www.youtube.com/{coach.youtube_handle}"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="inline-flex items-center gap-1.5 mt-1.5 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[11px] text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+							>
+								<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+									<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+								</svg>
+								{coach.youtube_handle}
+							</a>
+						</div>
+
+						<!-- Time display -->
+						<div class="flex-shrink-0 text-right hidden sm:block">
+							<div class="text-sm font-mono transition-colors duration-500 {live ? coach.color_text : 'text-gray-500'}">
+								{coach.time_display}
+							</div>
+							{#if live}
+								<div class="text-[10px] {coach.color_text} mt-0.5 font-medium">กำลัง Live</div>
+							{/if}
+						</div>
 					</div>
 				</div>
-			</div>
-		{/each}
-	</div>
+			{/each}
+		</div>
+	{/if}
 </div>
 
 <style>

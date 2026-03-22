@@ -800,11 +800,12 @@
   - Files: static/favicon.ico, static/manifest.json, src/app.html
   - Session: 2026-03-22 — Generated favicon.ico (multi-size: 16x16, 32x32, 48x48), favicon-16x16.png, and favicon-32x32.png from existing icon-512.png source. Updated manifest.json to include 7 icons (16x16, 32x32, 180x180, 192x192, 512x512, plus maskable variants). Updated app.html with proper sized favicon links (.ico + 4 PNG sizes). Kept existing apple-touch-icon.png (180x180), icon-192/512, and maskable icons unchanged.
 
-- [ ] [M] ENHANCE-006: Coach schedule from database
+- [x] [M] ENHANCE-006: Coach schedule from database
   - Current: hardcoded coach list in live-trade page
   - Create coaches table in Supabase
   - Admin UI to manage coach schedule
   - Files: src/routes/portfolio/live-trade/+page.svelte, supabase/migrations/ (new)
+  - Session: 2026-03-22 — Created coaches table migration (027_coaches.sql) with RLS policies and seed data for 9 coaches. Built server-side loader (+page.server.ts) for live-trade page. Replaced hardcoded coach array with database-driven data, added empty state and avatar fallback. Created admin CRUD API (/api/admin/coaches) with POST/PUT/DELETE endpoints. Built admin coaches management page (/admin/coaches) with add/edit modal, color preset selector, preview, active/inactive toggle, and delete confirmation. Added sidebar link for admin coaches.
 
 ### Final QA
 
