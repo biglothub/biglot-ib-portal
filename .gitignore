@@ -39,3 +39,9 @@ QA_REPORT.md
 .dev-server.log.*
 .dev-server.pid
 .dev-session-sha
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

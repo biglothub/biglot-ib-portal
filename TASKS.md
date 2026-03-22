@@ -786,11 +786,12 @@
   - Files: src/lib/components/portfolio/TradeReplayChart.svelte, src/routes/portfolio/trades/[id]/replay/+page.svelte
   - Session: 2026-03-22 — Enhanced TradeReplayChart inline component with P&L curve overlay (golden line on separate price scale, toggle on/off), step backward, skip to entry/exit buttons, keyboard shortcuts (Space/arrows/Home/End), scrubber entry/exit markers, 5x speed option, fullscreen mode prop. Fixed pre-existing type errors in replay page (Time casting, Area vs Line series type). Replay page has full-screen experience with separate P&L area chart, mobile info panel, max/min P&L tracking. Both inline (quick replay) and full page (dedicated replay) are production-ready.
 
-- [ ] [M] ENHANCE-004: E2E tests with Playwright
+- [x] [M] ENHANCE-004: E2E tests with Playwright
   - Install Playwright
   - Critical flows: login, view dashboard, open trade, create journal, filter trades
   - Run in CI pipeline
   - Files: tests/e2e/ (new), playwright.config.ts (new)
+  - Session: 2026-03-22 — Installed @playwright/test, created playwright.config.ts with chromium+mobile projects and webServer auto-start. Created 4 E2E test files: login.spec.ts (9 tests: page render, Google button, email/password form, field validation, loading state, URL error params), auth-redirects.spec.ts (8 tests: unauthenticated redirects for /, /portfolio, /trades, /journal, /analytics, /admin, /ib, login accessibility), health.spec.ts (2 tests: API response fields and status), mobile.spec.ts (2 tests: mobile viewport rendering and form usability). Added test:e2e and test:e2e:ui scripts to package.json. Updated CI pipeline with Playwright browser install, E2E test step with env vars, and report artifact upload. Added Playwright output dirs to .gitignore. Total: 21 E2E tests across 4 spec files.
 
 - [ ] [S] ENHANCE-005: Add favicon + PWA manifest icons
   - Generate favicon set (16x16, 32x32, 180x180, 512x512)
