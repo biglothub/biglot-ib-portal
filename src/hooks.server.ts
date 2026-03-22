@@ -13,7 +13,7 @@ if (env.SENTRY_DSN) {
 	});
 }
 
-const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline'];
+const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline', '/api/health'];
 
 // In-memory profile cache — avoids DB query on every request
 const profileCache = new Map<string, { profile: Profile; timestamp: number }>();

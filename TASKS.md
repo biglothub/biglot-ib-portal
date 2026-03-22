@@ -721,11 +721,12 @@
   - Files: .github/workflows/ci.yml (new)
   - Session: 2026-03-22 — Created .github/workflows/ci.yml. Pipeline: checkout → setup Node 24 with npm cache → npm ci → svelte-kit sync → svelte-check (continue-on-error due to 277 pre-existing type errors) → vitest run → vite build. Runs on push to main and PRs. Concurrency group cancels in-progress runs. Build step uses placeholder env vars for PUBLIC_ variables. 10-minute timeout.
 
-- [ ] [M] DEPLOY-004: Add health check endpoint
+- [x] [M] DEPLOY-004: Add health check endpoint
   - GET /api/health — returns 200 + Supabase connectivity check
   - Include: server uptime, DB connection status, last sync time
   - For uptime monitoring (UptimeRobot, Betterstack)
   - Files: src/routes/api/health/+server.ts (new)
+  - Session: 2026-03-22 — Created GET /api/health endpoint with DB connectivity check (latency_ms), server uptime, last bridge sync time. Added to PUBLIC_ROUTES. Updated docker-compose healthcheck to use /api/health. Returns 200/503 based on DB status.
 
 - [ ] [S] DEPLOY-005: Add environment validation on startup
   - Check all required env vars exist on server start
