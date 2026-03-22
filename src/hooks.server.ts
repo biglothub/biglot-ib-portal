@@ -1,9 +1,13 @@
 import * as Sentry from '@sentry/sveltekit';
 import { env } from '$env/dynamic/private';
 import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/server/supabase';
+import { validateEnv } from '$lib/server/env';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import type { Profile } from '$lib/types';
+
+// Validate environment variables on startup — fail fast if required vars are missing
+validateEnv();
 
 if (env.SENTRY_DSN) {
 	Sentry.init({

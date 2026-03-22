@@ -728,11 +728,12 @@
   - Files: src/routes/api/health/+server.ts (new)
   - Session: 2026-03-22 — Created GET /api/health endpoint with DB connectivity check (latency_ms), server uptime, last bridge sync time. Added to PUBLIC_ROUTES. Updated docker-compose healthcheck to use /api/health. Returns 200/503 based on DB status.
 
-- [ ] [S] DEPLOY-005: Add environment validation on startup
+- [x] [S] DEPLOY-005: Add environment validation on startup
   - Check all required env vars exist on server start
   - Fail fast with clear error message if missing
   - Required: SUPABASE_URL, SUPABASE_ANON_KEY, OPENAI_API_KEY, etc.
   - Files: src/lib/server/env.ts (new), import in hooks.server.ts
+  - Session: 2026-03-22 — Created validateEnv() in src/lib/server/env.ts. Checks OPENAI_API_KEY as required (throws on missing), warns for 9 optional vars (MT5_ENCRYPTION_KEY, RESEND_*, SENTRY_*, VAPID_*, PUBLIC_APP_URL). Static vars (PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY) validated by SvelteKit at build time. Called from hooks.server.ts on startup.
 
 ### Scaling & Performance
 
