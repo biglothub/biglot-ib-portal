@@ -707,11 +707,12 @@
   - Files: svelte.config.js, package.json, Dockerfile (new)
   - Session: 2026-03-22 — Replaced adapter-auto with adapter-node, created multi-stage Dockerfile (deps → build → production with non-root user), docker-compose.yml with healthcheck, and .dockerignore. Build outputs to /build with Node.js entry point.
 
-- [ ] [M] DEPLOY-002: Add Sentry error tracking
+- [x] [M] DEPLOY-002: Add Sentry error tracking
   - Install @sentry/sveltekit
   - Configure client-side + server-side error capture
   - Add source maps upload for stack traces
   - Files: src/hooks.client.ts, src/hooks.server.ts, vite.config.ts
+  - Session: 2026-03-22 — Installed @sentry/sveltekit v10.45.0. Created hooks.client.ts with client-side init (tracing + replay on error). Integrated sentryHandle() into hooks.server.ts via sequence(). Added sentrySvelteKit vite plugin with conditional source map upload (disabled when no auth token). All env vars use $env/dynamic to make Sentry fully optional — app works without any Sentry config.
 
 - [ ] [L] DEPLOY-003: Add GitHub Actions CI/CD pipeline
   - Workflow: lint → type-check → test → build → deploy

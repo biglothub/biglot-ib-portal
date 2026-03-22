@@ -28,6 +28,7 @@
 		"vitest": "^4.1.0"
 	},
 	"dependencies": {
+		"@sentry/sveltekit": "^10.45.0",
 		"@supabase/ssr": "^0.5.2",
 		"@supabase/supabase-js": "^2.86.0",
 		"@tiptap/core": "^3.20.1",

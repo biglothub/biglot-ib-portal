@@ -1,6 +1,17 @@
+import * as Sentry from '@sentry/sveltekit';
+import { env } from '$env/dynamic/private';
 import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/server/supabase';
 import { redirect, type Handle } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
 import type { Profile } from '$lib/types';
+
+if (env.SENTRY_DSN) {
+	Sentry.init({
+		dsn: env.SENTRY_DSN,
+		environment: env.SENTRY_ENVIRONMENT || 'production',
+		tracesSampleRate: 0.2
+	});
+}
 
 const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline'];
 
@@ -8,7 +19,7 @@ const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback',
 const profileCache = new Map<string, { profile: Profile; timestamp: number }>();
 const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export const handle: Handle = async ({ event, resolve }) => {
+const authHandle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient(event);
 
 	event.locals.safeGetSession = async () => {
@@ -108,3 +119,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	});
 };
+
+export const handle = sequence(Sentry.sentryHandle(), authHandle);
+export const handleError = Sentry.handleErrorWithSentry();
