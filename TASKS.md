@@ -756,10 +756,11 @@
   - Files: src/lib/server/query-logger.ts (new), src/lib/server/supabase.ts
   - Session: 2026-03-22 — Created withQueryLogging() wrapper using recursive Proxy on Supabase client's from() method. Intercepts .then() at any chain depth to measure total query time. Dev mode: color-coded console logs for all queries (green OK / red SLOW). Production: structured JSON logs only for slow queries (>500ms threshold). Applied to both createSupabaseServerClient and createSupabaseServiceClient.
 
-- [ ] [S] SCALE-004: Add cache headers for static assets
+- [x] [S] SCALE-004: Add cache headers for static assets
   - Configure immutable cache headers for hashed assets
   - Set appropriate Cache-Control for API responses
   - Files: svelte.config.js, hooks.server.ts
+  - Session: 2026-03-22 — Added cacheHandle middleware in hooks.server.ts with three tiers: (1) immutable 1-year cache for Vite-hashed assets in /_app/immutable/, (2) 1-day cache with 7-day stale-while-revalidate for other static assets (images, fonts, favicon), (3) private no-cache for API responses and HTML pages. Individual endpoints can override defaults.
 
 ### Feature Enhancements
 

@@ -124,5 +124,37 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	});
 };
 
-export const handle = sequence(Sentry.sentryHandle(), authHandle);
+const cacheHandle: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	const path = event.url.pathname;
+
+	// Immutable hashed assets (Vite-built JS/CSS/fonts in _app/immutable/)
+	if (path.startsWith('/_app/immutable/')) {
+		response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+		return response;
+	}
+
+	// Other static assets (favicon, manifest, images in /static)
+	if (path.startsWith('/_app/') || path.match(/\.(ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf|eot)$/)) {
+		response.headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+		return response;
+	}
+
+	// API responses — no cache by default, individual endpoints can override
+	if (path.startsWith('/api/')) {
+		if (!response.headers.has('Cache-Control')) {
+			response.headers.set('Cache-Control', 'private, no-cache');
+		}
+		return response;
+	}
+
+	// HTML pages — always revalidate for fresh data
+	if (!response.headers.has('Cache-Control')) {
+		response.headers.set('Cache-Control', 'private, no-cache');
+	}
+
+	return response;
+};
+
+export const handle = sequence(Sentry.sentryHandle(), authHandle, cacheHandle);
 export const handleError = Sentry.handleErrorWithSentry();
