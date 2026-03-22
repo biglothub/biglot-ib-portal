@@ -744,10 +744,11 @@
   - Files: src/lib/server/rate-limit.ts
   - Session: 2026-03-22 — Rewrote rate-limit.ts using @upstash/redis + @upstash/ratelimit with lazy-initialized Redis client and per-config Ratelimit instance caching. Falls back to in-memory Map when UPSTASH_REDIS_REST_URL/TOKEN not set or Redis errors. Made rateLimit() async (Promise<boolean>), updated all 59 call sites across 48 API route files and 2 test files. Added UPSTASH env vars to env.ts validation and .env.example.
 
-- [ ] [M] SCALE-002: Add Web Vitals tracking
+- [x] [M] SCALE-002: Add Web Vitals tracking
   - Track LCP, CLS, FID/INP metrics
   - Report to analytics endpoint or console in dev
-  - Files: src/routes/+layout.svelte
+  - Files: src/hooks.client.ts, src/lib/web-vitals.ts, src/routes/api/vitals/+server.ts
+  - Session: 2026-03-22 — Added web-vitals package with batched reporting. Client module (src/lib/web-vitals.ts) collects CLS, FID, LCP, INP, TTFB via dynamic import, batches metrics in a queue, and flushes via sendBeacon on visibility change or after 5s delay. API endpoint (src/routes/api/vitals/+server.ts) validates incoming batches and logs metrics — human-readable in dev, structured JSON in production for log aggregation. Initialized in hooks.client.ts.
 
 - [ ] [M] SCALE-003: Add database query performance logging
   - Log slow queries (>500ms) with query details

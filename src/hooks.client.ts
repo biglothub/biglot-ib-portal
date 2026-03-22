@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/sveltekit';
 import { env } from '$env/dynamic/public';
+import { initWebVitals } from '$lib/web-vitals';
 
 if (env.PUBLIC_SENTRY_DSN) {
 	Sentry.init({
@@ -10,5 +11,7 @@ if (env.PUBLIC_SENTRY_DSN) {
 		replaysOnErrorSampleRate: 1.0
 	});
 }
+
+initWebVitals();
 
 export const handleError = Sentry.handleErrorWithSentry();
