@@ -793,11 +793,12 @@
   - Files: tests/e2e/ (new), playwright.config.ts (new)
   - Session: 2026-03-22 — Installed @playwright/test, created playwright.config.ts with chromium+mobile projects and webServer auto-start. Created 4 E2E test files: login.spec.ts (9 tests: page render, Google button, email/password form, field validation, loading state, URL error params), auth-redirects.spec.ts (8 tests: unauthenticated redirects for /, /portfolio, /trades, /journal, /analytics, /admin, /ib, login accessibility), health.spec.ts (2 tests: API response fields and status), mobile.spec.ts (2 tests: mobile viewport rendering and form usability). Added test:e2e and test:e2e:ui scripts to package.json. Updated CI pipeline with Playwright browser install, E2E test step with env vars, and report artifact upload. Added Playwright output dirs to .gitignore. Total: 21 E2E tests across 4 spec files.
 
-- [ ] [S] ENHANCE-005: Add favicon + PWA manifest icons
+- [x] [S] ENHANCE-005: Add favicon + PWA manifest icons
   - Generate favicon set (16x16, 32x32, 180x180, 512x512)
   - Update manifest.json with proper icons
   - Add apple-touch-icon
   - Files: static/favicon.ico, static/manifest.json, src/app.html
+  - Session: 2026-03-22 — Generated favicon.ico (multi-size: 16x16, 32x32, 48x48), favicon-16x16.png, and favicon-32x32.png from existing icon-512.png source. Updated manifest.json to include 7 icons (16x16, 32x32, 180x180, 192x192, 512x512, plus maskable variants). Updated app.html with proper sized favicon links (.ico + 4 PNG sizes). Kept existing apple-touch-icon.png (180x180), icon-192/512, and maskable icons unchanged.
 
 - [ ] [M] ENHANCE-006: Coach schedule from database
   - Current: hardcoded coach list in live-trade page
