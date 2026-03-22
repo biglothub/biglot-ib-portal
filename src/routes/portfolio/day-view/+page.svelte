@@ -29,7 +29,7 @@
 
 		for (let d = 1; d <= daysInMonth; d++) {
 			const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-			const dayData = calendarDays?.find((cd: any) => cd.date === dateStr);
+			const dayData = calendarDays?.find((cd: { date: string; pnl: number; trades: number }) => cd.date === dateStr);
 			grid.push({
 				date: dateStr,
 				day: d,
@@ -357,8 +357,8 @@
 						</div>
 
 						<!-- Daily P&L bar chart (simple CSS bars) -->
-						{#if weekData.dayCards.some((c: any) => c.hasData)}
-							{@const maxPnl = weekData.dayCards.reduce((max: number, c: any) => { const v = Math.abs(c.pnl); return v > max ? v : max; }, 1)}
+						{#if weekData.dayCards.some((c: { hasData: boolean; pnl: number; day: string }) => c.hasData)}
+							{@const maxPnl = weekData.dayCards.reduce((max: number, c: { hasData: boolean; pnl: number; day: string }) => { const v = Math.abs(c.pnl); return v > max ? v : max; }, 1)}
 							<div class="mt-6">
 								<div class="text-xs text-gray-500 mb-2">กำไร/ขาดทุนรายวัน</div>
 								<div class="flex items-end gap-2 h-24">

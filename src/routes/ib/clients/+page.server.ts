@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const approvedClients = (clients || []).filter(c => c.status === 'approved');
 	const clientIds = approvedClients.map(c => c.id);
 
-	let statsMap: Record<string, any> = {};
+	let statsMap: Record<string, { client_account_id: string; date: string; balance: number; equity: number; profit: number; win_rate: number; total_trades: number; max_drawdown: number }> = {};
 	if (clientIds.length > 0) {
 		const { data: stats } = await supabase
 			.from('daily_stats')

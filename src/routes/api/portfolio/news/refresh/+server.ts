@@ -26,10 +26,10 @@ export const POST: RequestHandler = async ({ locals }) => {
 	try {
 		const result = await refreshNews();
 		return new Response(JSON.stringify(result), { status: 200 });
-	} catch (err: any) {
+	} catch (err: unknown) {
 		console.error('News refresh error:', err);
 		return new Response(
-			JSON.stringify({ message: 'Failed to refresh news', error: err.message }),
+			JSON.stringify({ message: 'Failed to refresh news', error: err instanceof Error ? err.message : 'Unknown error' }),
 			{ status: 500 }
 		);
 	}

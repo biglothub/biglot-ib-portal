@@ -1,6 +1,7 @@
 import { buildDailyHistory, buildKpiMetrics } from '$lib/server/portfolio';
 import { evaluateDayInsights } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
+import type { Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, url }) => {
@@ -30,23 +31,23 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	const selectedDate = dateParam || today;
 
 	// Day View: filter trades by selected date
-	const dayTrades = trades.filter((t: any) => {
+	const dayTrades = trades.filter((t: Trade) => {
 		const tradeDate = toThaiDateString(t.close_time);
 		return tradeDate === selectedDate;
 	});
 
 	// Day summary
-	const wins = dayTrades.filter((t: any) => Number(t.profit || 0) > 0);
-	const losses = dayTrades.filter((t: any) => Number(t.profit || 0) < 0);
-	const dayPnl = dayTrades.reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
+	const wins = dayTrades.filter((t: Trade) => Number(t.profit || 0) > 0);
+	const losses = dayTrades.filter((t: Trade) => Number(t.profit || 0) < 0);
+	const dayPnl = dayTrades.reduce((sum: number, t: Trade) => sum + Number(t.profit || 0), 0);
 	const daySummary = dayTrades.length > 0 ? {
 		pnl: dayPnl,
 		totalTrades: dayTrades.length,
 		wins: wins.length,
 		losses: losses.length,
 		winRate: dayTrades.length > 0 ? (wins.length / dayTrades.length) * 100 : 0,
-		bestTrade: wins.length > 0 ? wins.reduce((max: number, t: any) => { const v = Number(t.profit); return v > max ? v : max; }, -Infinity) : 0,
-		worstTrade: losses.length > 0 ? losses.reduce((min: number, t: any) => { const v = Number(t.profit); return v < min ? v : min; }, Infinity) : 0,
+		bestTrade: wins.length > 0 ? wins.reduce((max: number, t: Trade) => { const v = Number(t.profit); return v > max ? v : max; }, -Infinity) : 0,
+		worstTrade: losses.length > 0 ? losses.reduce((min: number, t: Trade) => { const v = Number(t.profit); return v < min ? v : min; }, Infinity) : 0,
 	} : null;
 
 	// Week View: get the week containing selectedDate
@@ -62,7 +63,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		const weekStartStr = weekStart.toISOString().split('T')[0];
 		const weekEndStr = weekEnd.toISOString().split('T')[0];
 
-		const weekTrades = trades.filter((t: any) => {
+		const weekTrades = trades.filter((t: Trade) => {
 			const d = toThaiDateString(t.close_time);
 			return d >= weekStartStr && d <= weekEndStr;
 		});
@@ -73,8 +74,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 			const dayDate = new Date(weekStart);
 			dayDate.setDate(dayDate.getDate() + i);
 			const dayStr = dayDate.toISOString().split('T')[0];
-			const dayTr = weekTrades.filter((t: any) => toThaiDateString(t.close_time) === dayStr);
-			const pnl = dayTr.reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
+			const dayTr = weekTrades.filter((t: Trade) => toThaiDateString(t.close_time) === dayStr);
+			const pnl = dayTr.reduce((sum: number, t: Trade) => sum + Number(t.profit || 0), 0);
 			return {
 				day: name,
 				date: dayStr,
@@ -84,11 +85,11 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 			};
 		});
 
-		const weekWins = weekTrades.filter((t: any) => Number(t.profit || 0) > 0);
-		const weekLosses = weekTrades.filter((t: any) => Number(t.profit || 0) < 0);
-		const weekPnl = weekTrades.reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
-		const totalWinning = weekWins.reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
-		const totalLosing = Math.abs(weekLosses.reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0));
+		const weekWins = weekTrades.filter((t: Trade) => Number(t.profit || 0) > 0);
+		const weekLosses = weekTrades.filter((t: Trade) => Number(t.profit || 0) < 0);
+		const weekPnl = weekTrades.reduce((sum: number, t: Trade) => sum + Number(t.profit || 0), 0);
+		const totalWinning = weekWins.reduce((sum: number, t: Trade) => sum + Number(t.profit || 0), 0);
+		const totalLosing = Math.abs(weekLosses.reduce((sum: number, t: Trade) => sum + Number(t.profit || 0), 0));
 
 		weekData = {
 			weekStart: weekStartStr,
@@ -102,7 +103,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 				profitFactor: totalLosing > 0 ? totalWinning / totalLosing : 0,
 				winners: weekWins.length,
 				losers: weekLosses.length,
-				commissions: weekTrades.reduce((sum: number, t: any) => sum + Math.abs(Number(t.commission || 0)), 0)
+				commissions: weekTrades.reduce((sum: number, t: Trade) => sum + Math.abs(Number(t.commission || 0)), 0)
 			}
 		};
 	}
@@ -112,8 +113,8 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	if (dayTrades.length > 0) {
 		let cumPnl = 0;
 		intradayCumPnl = [...dayTrades]
-			.sort((a: any, b: any) => new Date(a.close_time).getTime() - new Date(b.close_time).getTime())
-			.map((t: any) => {
+			.sort((a: Trade, b: Trade) => new Date(a.close_time).getTime() - new Date(b.close_time).getTime())
+			.map((t: Trade) => {
 				cumPnl += Number(t.profit || 0);
 				return { time: Math.floor(new Date(t.close_time).getTime() / 1000), value: cumPnl };
 			});

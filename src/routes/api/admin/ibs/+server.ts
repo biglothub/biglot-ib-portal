@@ -28,10 +28,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		});
 
 		return json({ success: true, userId: user.id, tempPassword });
-	} catch (e: any) {
+	} catch (e: unknown) {
 		if (e instanceof AuthSetupError) {
 			return json({ message: e.message }, { status: e.status });
 		}
-		return json({ message: e.message || 'ไม่สามารถสร้าง Master IB ได้' }, { status: 500 });
+		return json({ message: e instanceof Error ? e.message : 'ไม่สามารถสร้าง Master IB ได้' }, { status: 500 });
 	}
 };

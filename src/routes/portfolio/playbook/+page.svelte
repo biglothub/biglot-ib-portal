@@ -4,6 +4,9 @@
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency } from '$lib/utils';
+	import type { Playbook, TradeTag } from '$lib/types';
+
+	type PlaybookTemplate = { id: string; name: string; description?: string; category: string; author_id?: string; author_name?: string; total_trades: number; win_rate: number; net_pnl: number; clone_count: number; rating_sum?: number; rating_count?: number; entry_criteria?: string[]; exit_criteria?: string[]; risk_rules?: string[] };
 
 	let { data } = $props();
 	let playbooks = $derived(data.playbooks || []);
@@ -58,17 +61,17 @@
 		let result = templates;
 		if (searchQuery.trim()) {
 			const q = searchQuery.toLowerCase();
-			result = result.filter((t: any) =>
+			result = result.filter((t: PlaybookTemplate) =>
 				t.name?.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q)
 			);
 		}
 		if (filterCategory !== 'all') {
-			result = result.filter((t: any) => t.category === filterCategory);
+			result = result.filter((t: PlaybookTemplate) => t.category === filterCategory);
 		}
 		return result;
 	});
 
-	function editPlaybook(playbook: any) {
+	function editPlaybook(playbook: Playbook) {
 		editingId = playbook.id;
 		name = playbook.name || '';
 		description = playbook.description || '';
@@ -237,7 +240,7 @@
 		return categories.find(c => c.value === value)?.label || value;
 	}
 
-	function getRatingStars(template: any) {
+	function getRatingStars(template: PlaybookTemplate) {
 		if (!template.rating_count) return 0;
 		return Math.round((template.rating_sum / template.rating_count) * 10) / 10;
 	}
@@ -288,7 +291,7 @@
 				<textarea bind:value={description} rows="3" placeholder="คำอธิบาย" class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"></textarea>
 				<select bind:value={setupTagId} class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 					<option value="">ไม่มี Setup Tag</option>
-					{#each tags.filter((tag: any) => tag.category === 'setup') as tag}
+					{#each tags.filter((tag: TradeTag) => tag.category === 'setup') as tag}
 						<option value={tag.id}>{tag.name}</option>
 					{/each}
 				</select>

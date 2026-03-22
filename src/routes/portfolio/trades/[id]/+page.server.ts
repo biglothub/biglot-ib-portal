@@ -1,6 +1,7 @@
 import { fetchTradeChartContext } from '$lib/server/portfolio';
 import { evaluateTradeInsights, calculateQualityScore, calculateExecutionMetrics } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
+import type { Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, params, locals }) => {
@@ -63,28 +64,32 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		similarQuery
 	]);
 
-	const similarReviewedTrades = (similarReviewRes.data || []).filter((item: any) =>
+	type SimilarTradeRow = {
+		trade_reviews?: Array<{ playbook_id?: string | null }>;
+		trade_tag_assignments?: Array<{ tag_id: string }>;
+	};
+	const similarReviewedTrades = (similarReviewRes.data as SimilarTradeRow[] || []).filter((item) =>
 		currentPlaybookId
 			? item.trade_reviews?.[0]?.playbook_id === currentPlaybookId
-			: (item.trade_tag_assignments || []).some((assignment: any) =>
-					(trade.trade_tag_assignments || []).some((current: any) => current.tag_id === assignment.tag_id)
+			: (item.trade_tag_assignments || []).some((assignment) =>
+					(trade.trade_tag_assignments || []).some((current) => current.tag_id === assignment.tag_id)
 				)
 	).slice(0, 5);
 
 	// Compute insights for this trade using all related trades as context
-	const allTradesForContext = [...(relatedTradesRes.data || []), trade];
+	const allTradesForContext = [...(relatedTradesRes.data as Trade[] || []), trade];
 	const insights = evaluateTradeInsights(trade, allTradesForContext);
 
 	// Build context for quality score
-	const symbolTrades = allTradesForContext.filter((t: any) => t.symbol === trade.symbol);
-	const symbolWins = symbolTrades.filter((t: any) => Number(t.profit || 0) > 0);
-	const symbolLosses = symbolTrades.filter((t: any) => Number(t.profit || 0) < 0);
+	const symbolTrades = allTradesForContext.filter((t: Trade) => t.symbol === trade.symbol);
+	const symbolWins = symbolTrades.filter((t: Trade) => Number(t.profit || 0) > 0);
+	const symbolLosses = symbolTrades.filter((t: Trade) => Number(t.profit || 0) < 0);
 	const qualityScore = calculateQualityScore(trade, {
 		allTrades: allTradesForContext,
 		symbolTrades,
-		avgSymbolWin: symbolWins.length > 0 ? symbolWins.reduce((s: number, t: any) => s + Number(t.profit || 0), 0) / symbolWins.length : 0,
-		avgSymbolLoss: symbolLosses.length > 0 ? Math.abs(symbolLosses.reduce((s: number, t: any) => s + Number(t.profit || 0), 0)) / symbolLosses.length : 0,
-		avgSymbolHoldMinutes: symbolTrades.length > 0 ? symbolTrades.reduce((s: number, t: any) => s + (new Date(t.close_time).getTime() - new Date(t.open_time).getTime()) / 60000, 0) / symbolTrades.length : 0,
+		avgSymbolWin: symbolWins.length > 0 ? symbolWins.reduce((s: number, t: Trade) => s + Number(t.profit || 0), 0) / symbolWins.length : 0,
+		avgSymbolLoss: symbolLosses.length > 0 ? Math.abs(symbolLosses.reduce((s: number, t: Trade) => s + Number(t.profit || 0), 0)) / symbolLosses.length : 0,
+		avgSymbolHoldMinutes: symbolTrades.length > 0 ? symbolTrades.reduce((s: number, t: Trade) => s + (new Date(t.close_time).getTime() - new Date(t.open_time).getTime()) / 60000, 0) / symbolTrades.length : 0,
 	});
 
 	const executionMetrics = calculateExecutionMetrics(trade);

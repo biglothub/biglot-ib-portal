@@ -129,8 +129,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				}
 
 				send({ type: 'done' });
-			} catch (err: any) {
-				send({ type: 'error', message: err.message || 'AI error' });
+			} catch (err: unknown) {
+				send({ type: 'error', message: err instanceof Error ? err.message : 'AI error' });
 			} finally {
 				controller.close();
 			}
@@ -146,7 +146,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	});
 };
 
-function buildSystemPrompt(account: any, stats: any): string {
+interface AccountContext {
+	client_name: string;
+	mt5_account_id: string;
+	mt5_server: string;
+}
+
+interface StatsContext {
+	date: string;
+	balance: number | null;
+	equity: number | null;
+	profit: number | null;
+	win_rate: number | null;
+	profit_factor: number | null;
+	max_drawdown: number | null;
+	total_trades: number | null;
+}
+
+function buildSystemPrompt(account: AccountContext, stats: StatsContext | null): string {
 	const statsContext = stats
 		? `
 ข้อมูลล่าสุด (วันที่ ${stats.date}):

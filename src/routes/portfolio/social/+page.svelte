@@ -14,19 +14,24 @@
 	let activeTab = $state<Tab>('feed');
 	let leaderboardSort = $state<LeaderboardSort>('net_pnl');
 
-	// Feed state
-	let posts = $state<SocialPost[]>(data.initialPosts);
+	// ─── Derived from server data (reactive on navigation) ───────────────────
+	const serverPosts = $derived(data.initialPosts);
+	const serverSettings = $derived(data.mySettings);
+	const leaderboard = $derived(data.leaderboard);
+
+	// Feed state (locally mutable, synced from server on navigation)
+	let posts = $state<SocialPost[]>([]);
 	let loadingMore = $state(false);
-	let hasMore = $state(data.initialPosts.length === 20);
+	let hasMore = $state(false);
 
 	// Settings state
-	let mySettings = $state<SocialSettings | null>(data.mySettings);
-	let showSettingsForm = $state(!data.mySettings?.is_public);
+	let mySettings = $state<SocialSettings | null>(null);
+	let showSettingsForm = $state(true);
 	let settingsForm = $state({
-		display_name: data.mySettings?.display_name ?? '',
-		bio: data.mySettings?.bio ?? '',
-		is_public: data.mySettings?.is_public ?? false,
-		client_account_id: data.mySettings?.client_account_id ?? ''
+		display_name: '',
+		bio: '',
+		is_public: false,
+		client_account_id: ''
 	});
 	let savingSettings = $state(false);
 	let settingsError = $state('');
@@ -45,8 +50,22 @@
 	let newCommentText = $state<Record<string, string>>({});
 	let submittingComment = $state<Record<string, boolean>>({});
 
-	// Leaderboard state
-	let leaderboard = $state<LeaderboardEntry[]>(data.leaderboard);
+	// ─── Sync server data on navigation ──────────────────────────────────────
+	$effect(() => {
+		posts = serverPosts;
+		hasMore = serverPosts.length === 20;
+	});
+
+	$effect(() => {
+		mySettings = serverSettings;
+		showSettingsForm = !serverSettings?.is_public;
+		settingsForm = {
+			display_name: serverSettings?.display_name ?? '',
+			bio: serverSettings?.bio ?? '',
+			is_public: serverSettings?.is_public ?? false,
+			client_account_id: serverSettings?.client_account_id ?? ''
+		};
+	});
 
 	// ─── Derived ──────────────────────────────────────────────────────────────
 	const isOptedIn = $derived(mySettings?.is_public === true);

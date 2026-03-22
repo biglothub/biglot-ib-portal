@@ -3,6 +3,8 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { formatCurrency, formatNumber, formatDateTime } from '$lib/utils';
+	import type { IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
+	import type { TradeChartContext, TradeChartBar } from '$lib/types';
 
 	const BASE_INTERVAL_MS = 400;
 	const SPEEDS = [1, 2, 5, 10] as const;
@@ -14,13 +16,13 @@
 	// Chart refs
 	let mainContainer = $state<HTMLDivElement>(undefined!);
 	let pnlContainer = $state<HTMLDivElement>(undefined!);
-	let mainChart: any;
-	let mainSeries: any;
-	let pnlChart: any;
-	let pnlSeries: any;
-	let slLine: any = null;
-	let tpLine: any = null;
-	let entryLine: any = null;
+	let mainChart: IChartApi | null;
+	let mainSeries: ISeriesApi<'Candlestick'> | null;
+	let pnlChart: IChartApi | null;
+	let pnlSeries: ISeriesApi<'Line'> | null;
+	let slLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
+	let tpLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
+	let entryLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
 	let intervalId: ReturnType<typeof setInterval> | null = null;
 
 	// State
@@ -32,13 +34,13 @@
 	let showMobileInfo = $state(false);
 
 	let availableTimeframes = $derived(
-		(chartContexts || []).map((c: any) => c.timeframe)
+		(chartContexts || []).map((c: TradeChartContext) => c.timeframe)
 	);
 	let currentContext = $derived(
-		(chartContexts || []).find((c: any) => c.timeframe === selectedTimeframe) || chartContexts?.[0] || null
+		(chartContexts || []).find((c: TradeChartContext) => c.timeframe === selectedTimeframe) || chartContexts?.[0] || null
 	);
 	let allBars = $derived(
-		(currentContext?.bars || []).map((bar: any) => ({
+		(currentContext?.bars || []).map((bar: TradeChartBar) => ({
 			time: bar.time,
 			open: bar.open,
 			high: bar.high,
@@ -131,7 +133,7 @@
 		mainSeries.setData(visibleBars);
 
 		// Entry/exit markers
-		const markers: any[] = [];
+		const markers: SeriesMarker<Time>[] = [];
 		if (hasReachedEntry) {
 			markers.push({
 				time: entryTimestamp,

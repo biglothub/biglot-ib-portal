@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
 import { fetchPortfolioBaseData } from '$lib/server/portfolio';
+import type { ClientAccount } from '$lib/types';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
@@ -27,7 +28,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	const supabase = isAdminView ? createSupabaseServiceClient() : locals.supabase;
 	const effectiveUserId = isAdminView ? locals.viewAsUserId! : locals.profile!.id;
 
-	let account: any;
+	let account: ClientAccount | null;
 
 	if (isAdminView) {
 		// Admin viewing: load specific account by ID

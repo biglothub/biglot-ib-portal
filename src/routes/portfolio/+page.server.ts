@@ -8,6 +8,7 @@ import {
 	buildReviewSummary
 } from '$lib/server/portfolio';
 import { calculateHealthScore } from '$lib/server/insights/engine';
+import type { DailyJournal, DailyStats, Playbook, Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 const TODAY = () => new Date().toISOString().split('T')[0];
@@ -89,7 +90,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const latestDay = dailyHistory[dailyHistory.length - 1] || null;
 	const latestStats = baseData.dailyStats[baseData.dailyStats.length - 1] || null;
 	const recentCompletedJournal = baseData.journals
-		.filter((j: any) => j.completion_status === 'complete')
+		.filter((j: DailyJournal) => j.completion_status === 'complete')
 		.slice(-1)[0] || null;
 
 	const commandCenter = {
@@ -104,21 +105,24 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		journalSummary: report.journalSummary,
 		setupPerformance: report.setupPerformance.slice(0, 4),
 		ruleBreakMetrics: report.ruleBreakMetrics,
-		unreviewedTrades: trades.filter((t: any) => getTradeReviewStatus(t) !== 'reviewed').slice(0, 6),
-		activePlaybooks: playbooks.filter((p: any) => p.is_active).length
+		unreviewedTrades: trades.filter((t: Trade) => getTradeReviewStatus(t) !== 'reviewed').slice(0, 6),
+		activePlaybooks: playbooks.filter((p: Playbook) => p.is_active).length
 	};
 
-	const equitySnapshots = (equityRes.data || []).map((snapshot: any) => ({
+	type EquitySnapshotRow = { timestamp: string; balance: number; equity: number; floating_pl: number | null };
+	const equitySnapshots = (equityRes.data as EquitySnapshotRow[] || []).map((snapshot) => ({
 		time: Math.floor(new Date(snapshot.timestamp).getTime() / 1000),
 		balance: snapshot.balance,
 		equity: snapshot.equity,
 		floatingPL: snapshot.floating_pl || 0
 	}));
 
-	const checklistRules = checklistRulesRes.data || [];
-	const checklistCompletions = checklistCompletionsRes.data || [];
+	type ChecklistRuleRow = { id: string };
+	type ChecklistCompletionRow = { rule_id: string; completed: boolean };
+	const checklistRules = (checklistRulesRes.data as ChecklistRuleRow[]) || [];
+	const checklistCompletions = (checklistCompletionsRes.data as ChecklistCompletionRow[]) || [];
 	const checklistDoneToday = checklistRules.length > 0 &&
-		checklistRules.every((r: any) => checklistCompletions.some((c: any) => c.rule_id === r.id && c.completed));
+		checklistRules.every((r: ChecklistRuleRow) => checklistCompletions.some((c: ChecklistCompletionRow) => c.rule_id === r.id && c.completed));
 
 	return {
 		latestStats: latestStatsRes.data || null,
@@ -126,7 +130,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		recentTrades: trades.slice(0, 8),
 		analytics: report.analytics,
 		dailyHistory,
-		equityCurve: baseData.dailyStats.map((day: any) => day.equity as number),
+		equityCurve: baseData.dailyStats.map((day: DailyStats) => day.equity),
 		equitySnapshots,
 		commandCenter,
 		filterState,

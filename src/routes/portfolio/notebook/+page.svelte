@@ -2,6 +2,7 @@
 	import { invalidate } from '$app/navigation';
 	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import type { NotebookFolder, NotebookNote } from '$lib/types';
 
 	let { data } = $props();
 	let folders = $derived(data.folders || []);
@@ -12,7 +13,7 @@
 	let showDeleted = $state(false);
 	let selectedNoteId = $state<string | null>(null);
 	let searchQuery = $state('');
-	let searchResults = $state<any[]>([]);
+	let searchResults = $state<NotebookNote[]>([]);
 	let isSearching = $state(false);
 
 	// New note state
@@ -29,7 +30,7 @@
 
 	// Detect sessions recap folder
 	const isSessionsFolder = $derived(
-		folders.find((f: any) => f.id === selectedFolderId && f.system_type === 'sessions') != null
+		folders.find((f: NotebookFolder) => f.id === selectedFolderId && f.system_type === 'sessions') != null
 	);
 
 	// Filtered notes by folder
@@ -37,12 +38,12 @@
 		if (showDeleted) return deletedNotes;
 		if (searchQuery && searchResults.length > 0) return searchResults;
 		if (selectedFolderId === null) return notes;
-		return notes.filter((n: any) => n.folder_id === selectedFolderId);
+		return notes.filter((n: NotebookNote) => n.folder_id === selectedFolderId);
 	});
 
 	// Selected note
 	const selectedNote = $derived(
-		notes.find((n: any) => n.id === selectedNoteId) || null
+		notes.find((n: NotebookNote) => n.id === selectedNoteId) || null
 	);
 
 	// Load note into editor
@@ -56,7 +57,7 @@
 	// Folder counts
 	function folderNoteCount(folderId: string | null) {
 		if (folderId === null) return notes.length;
-		return notes.filter((n: any) => n.folder_id === folderId).length;
+		return notes.filter((n: NotebookNote) => n.folder_id === folderId).length;
 	}
 
 	// Auto-save debounce

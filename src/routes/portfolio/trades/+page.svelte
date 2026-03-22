@@ -8,6 +8,7 @@
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
 	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
+	import type { Trade, TradeTagAssignment, Playbook } from '$lib/types';
 	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
 	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
 
@@ -47,11 +48,11 @@
 		selectedIds = next;
 	}
 
-	function isGroupAllSelected(items: any[]) {
+	function isGroupAllSelected(items: Trade[]) {
 		return items.length > 0 && items.every((t) => selectedIds.has(t.id));
 	}
 
-	function toggleGroupAll(items: any[]) {
+	function toggleGroupAll(items: Trade[]) {
 		const next = new Set(selectedIds);
 		if (isGroupAllSelected(items)) {
 			items.forEach((t) => next.delete(t.id));
@@ -110,11 +111,11 @@
 	}
 
 	function exportSelectedCsv() {
-		const selected = trades.filter((t: any) => selectedIds.has(t.id));
+		const selected = trades.filter((t: Trade) => selectedIds.has(t.id));
 		if (selected.length === 0) return;
 
 		const header = ['Symbol', 'Type', 'Lots', 'Open Price', 'Close Price', 'Profit', 'Close Time', 'Review Status', 'Tags'];
-		const rows = selected.map((t: any) => [
+		const rows = selected.map((t: Trade) => [
 			t.symbol,
 			t.type,
 			t.lot_size,
@@ -123,7 +124,7 @@
 			t.profit,
 			t.close_time,
 			getTradeReviewStatus(t),
-			(t.trade_tag_assignments || []).map((a: any) => a.trade_tags?.name).filter(Boolean).join('|')
+			(t.trade_tag_assignments || []).map((a: TradeTagAssignment) => a.trade_tags?.name).filter(Boolean).join('|')
 		]);
 
 		const csv = [header, ...rows]
@@ -193,8 +194,8 @@
 						})
 					: groupBy === 'session'
 						? getTradeSession(trade.close_time).toUpperCase()
-						: playbooks.find((playbook: any) => playbook.id === getTradePlaybookId(trade))?.name ||
-							(trade.trade_tag_assignments || []).find((assignment: any) => assignment.trade_tags?.category === 'setup')?.trade_tags?.name ||
+						: playbooks.find((playbook: Playbook) => playbook.id === getTradePlaybookId(trade))?.name ||
+							(trade.trade_tag_assignments || []).find((assignment: TradeTagAssignment) => assignment.trade_tags?.category === 'setup')?.trade_tags?.name ||
 							'ไม่มี Setup';
 
 			if (!groups.has(label)) groups.set(label, []);
@@ -244,19 +245,19 @@
 		<div class="card">
 			<div class="text-xs text-gray-500">ยังไม่ Review</div>
 			<div class="mt-1 text-2xl font-semibold text-amber-300">
-				{trades.filter((trade: any) => getTradeReviewStatus(trade) === 'unreviewed').length}
+				{trades.filter((trade: Trade) => getTradeReviewStatus(trade) === 'unreviewed').length}
 			</div>
 		</div>
 		<div class="card">
 			<div class="text-xs text-gray-500">ไม่มี Notes</div>
 			<div class="mt-1 text-2xl font-semibold text-brand-300">
-				{trades.filter((trade: any) => (trade.trade_notes || []).length === 0).length}
+				{trades.filter((trade: Trade) => (trade.trade_notes || []).length === 0).length}
 			</div>
 		</div>
 		<div class="card">
 			<div class="text-xs text-gray-500">ไม่มีไฟล์แนบ</div>
 			<div class="mt-1 text-2xl font-semibold text-rose-300">
-				{trades.filter((trade: any) => (trade.trade_attachments || []).length === 0).length}
+				{trades.filter((trade: Trade) => (trade.trade_attachments || []).length === 0).length}
 			</div>
 		</div>
 	</div>
@@ -441,7 +442,7 @@
 											<ReviewStatusBadge status={getTradeReviewStatus(trade)} />
 										</td>
 										<td class="py-3 text-gray-300">
-											{playbooks.find((playbook: any) => playbook.id === getTradePlaybookId(trade))?.name || '-'}
+											{playbooks.find((playbook: Playbook) => playbook.id === getTradePlaybookId(trade))?.name || '-'}
 										</td>
 										<td class="py-3">
 											<div class="flex flex-wrap gap-1">
@@ -467,8 +468,8 @@
 												{@const ins = tradeInsights[trade.id]}
 												<InsightBadge
 													count={ins.length}
-													positive={ins.filter((i: any) => i.category === 'positive').length}
-													negative={ins.filter((i: any) => i.category === 'negative').length}
+													positive={ins.filter((i: { category: string }) => i.category === 'positive').length}
+													negative={ins.filter((i: { category: string }) => i.category === 'negative').length}
 												/>
 											{:else}
 												<span class="text-xs text-gray-600">—</span>

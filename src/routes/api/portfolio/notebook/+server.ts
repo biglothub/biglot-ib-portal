@@ -43,7 +43,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.eq('user_id', profile.id)
 			.eq('type', 'system');
 
-		const existingTypes = new Set((existing || []).map((f: any) => f.system_type));
+		const existingTypes = new Set((existing || []).map((f: { system_type: string }) => f.system_type));
 		const toCreate = systemFolders.filter(f => !existingTypes.has(f.system_type));
 
 		if (toCreate.length > 0) {

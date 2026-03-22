@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const approvedClients = (clients || []).filter(c => c.status === 'approved');
 	const clientIds = approvedClients.map(c => c.id);
 
-	let statsMap: Record<string, any> = {};
+	let statsMap: Record<string, { client_account_id: string; date: string; balance: number; equity: number; profit: number; win_rate: number; total_trades: number; max_drawdown: number }> = {};
 	if (clientIds.length > 0) {
 		const { data: stats } = await supabase
 			.from('daily_stats')
@@ -46,8 +46,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	}
 
-	const totalBalance = Object.values(statsMap).reduce((sum: number, s: any) => sum + (s.balance || 0), 0);
-	const totalProfit = Object.values(statsMap).reduce((sum: number, s: any) => sum + (s.profit || 0), 0);
+	const totalBalance = Object.values(statsMap).reduce((sum: number, s: { balance?: number; profit?: number }) => sum + (s.balance || 0), 0);
+	const totalProfit = Object.values(statsMap).reduce((sum: number, s: { balance?: number; profit?: number }) => sum + (s.profit || 0), 0);
 
 	return {
 		clients: clients || [],

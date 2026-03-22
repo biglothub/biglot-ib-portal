@@ -11,7 +11,7 @@
 	let { account, latestStats, equityData, openPositions, recentTrades } = $derived(data);
 
 	const chartSnapshots = $derived(
-		(equityData || []).map((d: any) => ({
+		(equityData || []).map((d: { timestamp: string; equity: number; balance?: number; floating_pl?: number }) => ({
 			time: Math.floor(new Date(d.timestamp).getTime() / 1000),
 			balance: d.balance || d.equity,
 			equity: d.equity,

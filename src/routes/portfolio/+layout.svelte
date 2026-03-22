@@ -7,6 +7,7 @@
 	import PortfolioSkeleton from '$lib/components/portfolio/PortfolioSkeleton.svelte';
 	import PortfolioGuide from '$lib/components/portfolio/PortfolioGuide.svelte';
 	import { marketNewsStore } from '$lib/stores/newsStore';
+	import type { MarketNewsArticle } from '$lib/types';
 	import { adminViewAccountId } from '$lib/stores/adminViewStore';
 	import { displayUnit, type DisplayUnit } from '$lib/stores/displayUnit';
 	import SyncStatusBadge from '$lib/components/portfolio/SyncStatusBadge.svelte';
@@ -133,10 +134,10 @@
 	// marketNews may be a streamed promise or already resolved array
 	$effect(() => {
 		const news = data.marketNews;
-		if (news && typeof (news as any).then === 'function') {
-			(news as any).then((articles: any[]) => marketNewsStore.set(articles || []));
+		if (news && typeof (news as Promise<MarketNewsArticle[]>).then === 'function') {
+			(news as Promise<MarketNewsArticle[]>).then((articles: MarketNewsArticle[]) => marketNewsStore.set(articles || []));
 		} else {
-			marketNewsStore.set((news as any[]) || []);
+			marketNewsStore.set((news as MarketNewsArticle[]) || []);
 		}
 		return () => marketNewsStore.set([]);
 	});

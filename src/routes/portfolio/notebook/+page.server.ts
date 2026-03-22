@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
@@ -47,7 +48,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 };
 
 /** Create system folders if they don't exist */
-async function fetch_internal_ensure_folders(supabase: any, accountId: string, userId: string) {
+async function fetch_internal_ensure_folders(supabase: SupabaseClient, accountId: string, userId: string) {
 	const systemFolders = [
 		{ name: 'Trade Notes', system_type: 'trade_notes', icon: '📊', sort_order: 0 },
 		{ name: 'Daily Journal', system_type: 'daily_journal', icon: '📅', sort_order: 1 },
@@ -61,7 +62,7 @@ async function fetch_internal_ensure_folders(supabase: any, accountId: string, u
 		.eq('user_id', userId)
 		.eq('type', 'system');
 
-	const existingTypes = new Set((existing || []).map((f: any) => f.system_type));
+	const existingTypes = new Set((existing || []).map((f: { system_type: string }) => f.system_type));
 	const toCreate = systemFolders.filter(f => !existingTypes.has(f.system_type));
 
 	if (toCreate.length > 0) {

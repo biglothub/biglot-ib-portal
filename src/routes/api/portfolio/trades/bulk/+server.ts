@@ -40,10 +40,11 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		return json({ message: tradeError.message }, { status: 500 });
 	}
 
+	type TradeWithAccount = { id: string; client_accounts?: { user_id: string } | null };
 	const ownedIds = new Set(
-		(trades ?? [])
-			.filter((t: any) => t.client_accounts?.user_id === profile.id)
-			.map((t: any) => t.id)
+		(trades ?? [] as TradeWithAccount[])
+			.filter((t: TradeWithAccount) => t.client_accounts?.user_id === profile.id)
+			.map((t: TradeWithAccount) => t.id)
 	);
 
 	const unauthorised = trade_ids.filter((id: string) => !ownedIds.has(id));

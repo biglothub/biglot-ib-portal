@@ -12,7 +12,7 @@ import {
 } from '$lib/server/portfolio';
 import { buildStatsOverview } from '$lib/server/stats-overview';
 import { calculateHealthScore } from '$lib/server/insights/engine';
-import type { Trade } from '$lib/types';
+import type { Trade, PortfolioSavedView } from '$lib/types';
 import type { AnalyticsResult } from '$lib/analytics';
 import type { PageServerLoad } from './$types';
 
@@ -340,7 +340,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		},
 		tags,
 		playbooks,
-		savedViews: savedViews.filter((view: any) => view.page === 'analytics'),
+		savedViews: savedViews.filter((view: PortfolioSavedView) => view.page === 'analytics'),
 		symbolBreakdown,
 		tagBreakdown,
 		dayOfWeekReport,

@@ -9,6 +9,7 @@
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import ExecutionMetricsCard from '$lib/components/portfolio/ExecutionMetricsCard.svelte';
 	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
+	import type { TradeTagAssignment, TradeTag, Playbook } from '$lib/types';
 
 	let { data } = $props();
 	let { trade, relatedTrades, chartContexts, dayJournal, playbooks } = $derived(data);
@@ -68,13 +69,13 @@
 
 	const effectiveAssignments = $derived.by(() => {
 		const real = (trade?.trade_tag_assignments || [])
-			.filter((a: any) => !optimisticRemovedTagIds.has(a.tag_id));
+			.filter((a: TradeTagAssignment) => !optimisticRemovedTagIds.has(a.tag_id));
 		return [...real, ...optimisticAddedTags];
 	});
 	const assignedTagIds = $derived(
-		new Set(effectiveAssignments.map((a: any) => a.tag_id))
+		new Set(effectiveAssignments.map((a: TradeTagAssignment) => a.tag_id))
 	);
-	const availableTags = $derived(tags.filter((tag: any) => !assignedTagIds.has(tag.id)));
+	const availableTags = $derived(tags.filter((tag: TradeTag) => !assignedTagIds.has(tag.id)));
 	const review = $derived(trade?.trade_reviews?.[0] || null);
 	const journalDate = $derived(
 		trade ? toThaiDateString(trade.close_time) : ''
@@ -195,7 +196,7 @@
 		actionError = '';
 
 		// Optimistic: show tag immediately
-		const tag = tags.find((t: any) => t.id === tagId);
+		const tag = tags.find((t: TradeTag) => t.id === tagId);
 		if (tag) {
 			optimisticAddedTags = [...optimisticAddedTags, {
 				id: `optimistic-${tagId}`,
@@ -370,7 +371,7 @@
 				<div class="xl:col-span-2">
 					{#if showReplay && chartContexts?.length > 0}
 						{#if TradeReplayChart}
-							<svelte:component this={TradeReplayChart} contexts={chartContexts} {trade} onclose={() => showReplay = false} />
+							<TradeReplayChart contexts={chartContexts} {trade} onclose={() => showReplay = false} />
 						{:else}
 							<div class="animate-pulse rounded-xl bg-dark-border/20 h-64 flex items-center justify-center text-gray-500 text-sm">กำลังโหลด Replay...</div>
 						{/if}
@@ -405,7 +406,7 @@
 						<div class="mt-3 space-y-2 text-sm">
 							<div class="flex items-center justify-between">
 								<span class="text-gray-400">กลยุทธ์</span>
-								<span class="text-white">{playbooks.find((playbook: any) => playbook.id === selectedPlaybookId)?.name || 'ยังไม่เลือก'}</span>
+								<span class="text-white">{playbooks.find((playbook: Playbook) => playbook.id === selectedPlaybookId)?.name || 'ยังไม่เลือก'}</span>
 							</div>
 							<div class="flex items-center justify-between">
 								<span class="text-gray-400">โน้ต</span>

@@ -14,6 +14,17 @@ export interface EconomicEvent {
 	actual: string;
 }
 
+interface RawEconomicEvent {
+	title?: string;
+	country?: string;
+	date?: string;
+	time?: string;
+	impact?: string;
+	forecast?: string;
+	previous?: string;
+	actual?: string;
+}
+
 /**
  * GET /api/portfolio/economic-calendar
  *
@@ -47,9 +58,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			return json({ events: [], source: 'unavailable' });
 		}
 
-		const rawEvents: any[] = await response.json();
+		const rawEvents: RawEconomicEvent[] = await response.json();
 
-		const events: EconomicEvent[] = rawEvents.map((e: any, i: number) => ({
+		const events: EconomicEvent[] = rawEvents.map((e: RawEconomicEvent, i: number) => ({
 			id: `${e.date}-${i}`,
 			title: e.title || '',
 			country: e.country || '',

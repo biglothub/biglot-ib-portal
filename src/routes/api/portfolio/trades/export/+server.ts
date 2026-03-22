@@ -1,6 +1,7 @@
 import { rateLimit } from '$lib/server/rate-limit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import type { RequestEvent } from '@sveltejs/kit';
+import type { Trade, TradeTagAssignment } from '$lib/types';
 
 const EXPORT_COLUMNS = [
 	'Symbol',
@@ -70,13 +71,13 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 	const from = url.searchParams.get('from');
 	const to = url.searchParams.get('to');
 	if (from) {
-		filtered = filtered.filter((t: any) => t.close_time >= from);
+		filtered = filtered.filter((t: Trade) => t.close_time >= from);
 	}
 	if (to) {
-		filtered = filtered.filter((t: any) => t.close_time <= to + 'T23:59:59');
+		filtered = filtered.filter((t: Trade) => t.close_time <= to + 'T23:59:59');
 	}
 
-	const rows = filtered.map((t: any) => [
+	const rows = filtered.map((t: Trade) => [
 		t.symbol,
 		t.type,
 		t.lot_size,
@@ -93,14 +94,14 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 		t.position_id,
 		(t.trade_reviews || [])[0]?.review_status || 'unreviewed',
 		(t.trade_tag_assignments || [])
-			.map((a: any) => a.trade_tags?.name)
+			.map((a: TradeTagAssignment) => a.trade_tags?.name)
 			.filter(Boolean)
 			.join('|')
 	]);
 
 	const csvContent = [EXPORT_COLUMNS, ...rows]
 		.map((row) =>
-			row.map((cell: any) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')
+			row.map((cell: string | number | null | undefined) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')
 		)
 		.join('\n');
 

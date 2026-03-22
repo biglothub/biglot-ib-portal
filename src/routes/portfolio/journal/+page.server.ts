@@ -5,6 +5,7 @@ import {
 	buildJournalCompletionSummary
 } from '$lib/server/portfolio';
 import { toThaiDateString } from '$lib/utils';
+import type { DailyJournal, Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
@@ -33,8 +34,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 
 	const filteredTrades = applyPortfolioFilters(baseData.trades, filterState);
 	const dailyHistory = buildDailyHistory(filteredTrades);
-	const selectedJournal = baseData.journals.find((journal: any) => journal.date === selectedDate) || null;
-	const dayTrades = filteredTrades.filter((trade: any) => {
+	const selectedJournal = baseData.journals.find((journal: DailyJournal) => journal.date === selectedDate) || null;
+	const dayTrades = filteredTrades.filter((trade: Trade) => {
 		return toThaiDateString(trade.close_time) === selectedDate;
 	});
 

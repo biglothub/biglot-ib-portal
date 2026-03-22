@@ -2,6 +2,7 @@
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency, timeAgo } from '$lib/utils';
+	import type { ClientAccount } from '$lib/types';
 
 	let { data } = $props();
 	let { clients, statsMap } = $derived(data);
@@ -9,7 +10,7 @@
 	let filter = $state('all');
 
 	const filteredClients = $derived(
-		filter === 'all' ? clients : clients.filter((c: any) => c.status === filter)
+		filter === 'all' ? clients : clients.filter((c: ClientAccount) => c.status === filter)
 	);
 
 	const tabs = [
@@ -41,7 +42,7 @@
 				{tab.label}
 				{#if tab.value !== 'all'}
 					<span class="ml-1 text-xs opacity-70">
-						({clients.filter((c: any) => c.status === tab.value).length})
+						({clients.filter((c: ClientAccount) => c.status === tab.value).length})
 					</span>
 				{/if}
 			</button>

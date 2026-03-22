@@ -8,6 +8,9 @@
 	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
+	import type { DailyJournal } from '$lib/types';
+
+	type DailyHistoryItem = { date: string; profit: number; totalTrades: number; reviewedTrades?: number };
 
 	let { data } = $props();
 	let journals = $derived(data.journals || []);
@@ -95,8 +98,8 @@
 			days.push({ day: 0, date: '', hasJournal: false });
 		}
 
-		const journalMap = new Map((journals || []).map((journal: any) => [journal.date, journal]));
-		const dailyMap = new Map(dailyHistory.map((item: any) => [item.date, item]));
+		const journalMap = new Map((journals || []).map((journal: DailyJournal) => [journal.date, journal]));
+		const dailyMap = new Map(dailyHistory.map((item: DailyHistoryItem) => [item.date, item]));
 
 		for (let day = 1; day <= daysInMonth; day++) {
 			const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -296,7 +299,7 @@
 					</div>
 				</div>
 
-				{@const daySummary = dailyHistory.find((item: any) => item.date === selectedDate)}
+				{@const daySummary = dailyHistory.find((item: DailyHistoryItem) => item.date === selectedDate)}
 				{#if daySummary}
 					<div class="card p-3 flex flex-wrap items-center gap-4 text-sm">
 						<span class="text-gray-400">วันนี้เทรด:</span>

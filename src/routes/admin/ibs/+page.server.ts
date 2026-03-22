@@ -1,5 +1,6 @@
 import { createSupabaseServiceClient } from '$lib/server/supabase';
 import type { PageServerLoad } from './$types';
+import type { ClientAccount } from '$lib/types';
 
 export const load: PageServerLoad = async () => {
 	const supabase = createSupabaseServiceClient();
@@ -15,8 +16,8 @@ export const load: PageServerLoad = async () => {
 
 	const ibList = (ibs || []).map(ib => ({
 		...ib,
-		approvedCount: ib.client_accounts?.filter((c: any) => c.status === 'approved').length || 0,
-		pendingCount: ib.client_accounts?.filter((c: any) => c.status === 'pending').length || 0,
+		approvedCount: ib.client_accounts?.filter((c: ClientAccount) => c.status === 'approved').length || 0,
+		pendingCount: ib.client_accounts?.filter((c: ClientAccount) => c.status === 'pending').length || 0,
 		totalCount: ib.client_accounts?.length || 0
 	}));
 

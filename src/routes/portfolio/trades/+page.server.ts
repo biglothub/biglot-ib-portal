@@ -1,6 +1,7 @@
 import { applyPortfolioFilters, parsePortfolioFilters } from '$lib/portfolio';
 import { buildFilterOptions } from '$lib/server/portfolio';
 import { evaluateAllInsights, calculateAllQualityScores, calculateAllExecutionMetrics } from '$lib/server/insights/engine';
+import type { PortfolioSavedView } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 const PAGE_SIZE = 25;
@@ -58,7 +59,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		filterOptions: buildFilterOptions(baseData.trades, playbooks),
 		tags,
 		playbooks,
-		savedViews: savedViews.filter((view: any) => view.page === 'trades'),
+		savedViews: savedViews.filter((view: PortfolioSavedView) => view.page === 'trades'),
 		tradeInsights,
 		tradeScores,
 		tradeExecutionMetrics

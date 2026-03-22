@@ -61,9 +61,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				payload
 			);
 			sent++;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			// Remove expired/invalid subscriptions
-			if (err.statusCode === 410 || err.statusCode === 404) {
+			if (typeof err === 'object' && err !== null && 'statusCode' in err &&
+				(err.statusCode === 410 || err.statusCode === 404)) {
 				staleEndpoints.push(sub.endpoint);
 			}
 		}

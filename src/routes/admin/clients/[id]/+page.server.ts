@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			.limit(50)
 	]);
 
-	const getValue = (res: PromiseSettledResult<any>) =>
+	const getValue = (res: PromiseSettledResult<{ data: unknown; error: unknown }>) =>
 		res.status === 'fulfilled' ? res.value.data : null;
 
 	const account = getValue(accountRes);

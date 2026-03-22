@@ -211,8 +211,8 @@ export const POST: RequestHandler = async ({ locals }) => {
 					);
 
 				send({ type: 'done' });
-			} catch (err: any) {
-				send({ type: 'error', message: err.message || 'AI error' });
+			} catch (err: unknown) {
+				send({ type: 'error', message: err instanceof Error ? err.message : 'AI error' });
 			} finally {
 				controller.close();
 			}

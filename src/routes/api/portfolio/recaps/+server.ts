@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import type { TradeTagAssignment } from '$lib/types';
 import {
 	buildDailyHistory,
 	buildKpiMetrics,
@@ -133,7 +134,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const mistakeStats: { name: string; count: number; cost: number }[] = [];
 	for (const trade of periodTrades) {
 		const mistakeTags = (trade.trade_tag_assignments || []).filter(
-			(a: any) => a.trade_tags?.category === 'mistake'
+			(a: TradeTagAssignment) => a.trade_tags?.category === 'mistake'
 		);
 		for (const a of mistakeTags) {
 			const name = a.trade_tags?.name || 'Mistake';
@@ -300,8 +301,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					}, { onConflict: 'user_id,client_account_id,period_type,period_start' });
 
 				send({ type: 'done' });
-			} catch (err: any) {
-				send({ type: 'error', message: err.message || 'AI error' });
+			} catch (err: unknown) {
+				send({ type: 'error', message: err instanceof Error ? err.message : 'AI error' });
 			} finally {
 				controller.close();
 			}
