@@ -1,5 +1,12 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { theme, type ThemeMode } from '$lib/stores/theme.svelte';
+
+	const themeOptions: { value: ThemeMode; label: string; desc: string }[] = [
+		{ value: 'dark', label: 'มืด', desc: 'พื้นหลังสีเข้ม' },
+		{ value: 'light', label: 'สว่าง', desc: 'พื้นหลังสีอ่อน' },
+		{ value: 'system', label: 'ระบบ', desc: 'ตามการตั้งค่าอุปกรณ์' }
+	];
 
 	let { data } = $props();
 	let { profile } = $derived(data);
@@ -238,6 +245,67 @@
 		<p class="text-xs text-gray-600 mt-4">
 			อีเมลและรูปโปรไฟล์จะซิงค์จากบัญชี Google ของคุณ หากต้องการเปลี่ยนแปลง กรุณาอัปเดตที่บัญชี Google
 		</p>
+	</div>
+
+	<!-- Theme Settings -->
+	<div class="rounded-xl border border-dark-border bg-dark-surface p-6">
+		<div class="flex items-center gap-2 mb-4">
+			<svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+			</svg>
+			<h2 class="text-lg font-semibold">ธีม</h2>
+		</div>
+
+		<div class="grid grid-cols-3 gap-3">
+			{#each themeOptions as opt}
+				<button
+					onclick={() => theme.set(opt.value)}
+					class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all
+						{theme.mode === opt.value
+							? 'border-brand-primary bg-brand-primary/5'
+							: 'border-dark-border hover:border-gray-500'}"
+				>
+					<!-- Theme preview -->
+					<div class="w-full aspect-[4/3] rounded-lg overflow-hidden border border-dark-border">
+						{#if opt.value === 'dark'}
+							<div class="w-full h-full bg-[#0a0a0a] p-2 flex flex-col gap-1">
+								<div class="h-1.5 w-8 rounded bg-gray-700"></div>
+								<div class="h-1.5 w-12 rounded bg-gray-800"></div>
+								<div class="flex-1 rounded bg-[#141414] mt-1"></div>
+							</div>
+						{:else if opt.value === 'light'}
+							<div class="w-full h-full bg-[#f8fafc] p-2 flex flex-col gap-1">
+								<div class="h-1.5 w-8 rounded bg-gray-300"></div>
+								<div class="h-1.5 w-12 rounded bg-gray-200"></div>
+								<div class="flex-1 rounded bg-white mt-1 border border-gray-200"></div>
+							</div>
+						{:else}
+							<div class="w-full h-full flex">
+								<div class="w-1/2 bg-[#0a0a0a] p-1.5 flex flex-col gap-0.5">
+									<div class="h-1 w-5 rounded bg-gray-700"></div>
+									<div class="flex-1 rounded bg-[#141414] mt-0.5"></div>
+								</div>
+								<div class="w-1/2 bg-[#f8fafc] p-1.5 flex flex-col gap-0.5">
+									<div class="h-1 w-5 rounded bg-gray-300"></div>
+									<div class="flex-1 rounded bg-white mt-0.5 border border-gray-200"></div>
+								</div>
+							</div>
+						{/if}
+					</div>
+
+					<div class="text-center">
+						<p class="text-sm font-medium {theme.mode === opt.value ? 'text-brand-primary' : 'text-white'}">{opt.label}</p>
+						<p class="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+					</div>
+
+					{#if theme.mode === opt.value}
+						<svg class="w-4 h-4 text-brand-primary" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+						</svg>
+					{/if}
+				</button>
+			{/each}
+		</div>
 	</div>
 
 	<!-- MT5 Account Info -->

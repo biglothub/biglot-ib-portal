@@ -4,6 +4,7 @@
 	import { onNavigate } from '$app/navigation';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import NotificationBell from '$lib/components/layout/NotificationBell.svelte';
+	import ThemeToggle from '$lib/components/layout/ThemeToggle.svelte';
 	import UpdateNotification from '$lib/components/layout/UpdateNotification.svelte';
 	import InstallPrompt from '$lib/components/layout/InstallPrompt.svelte';
 	import PushPermission from '$lib/components/layout/PushPermission.svelte';
@@ -41,7 +42,8 @@
 		<Sidebar {profile} bind:collapsed={sidebarCollapsed} />
 
 		<div class="flex-1 flex flex-col overflow-hidden">
-			<header class="h-12 shrink-0 flex items-center justify-end px-4 border-b border-dark-border">
+			<header class="h-12 shrink-0 flex items-center justify-end gap-1 px-4 border-b border-dark-border">
+				<ThemeToggle />
 				<NotificationBell userId={profile!.id} />
 			</header>
 			<main class="flex-1 overflow-auto">

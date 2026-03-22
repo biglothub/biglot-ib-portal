@@ -2,9 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  background-color: #0a0a0a;
+/* Theme CSS custom properties */
+:root {
+  --c-bg: #f8fafc;
+  --c-surface: #ffffff;
+  --c-border: #e2e8f0;
+  --c-hover: #f1f5f9;
+  color-scheme: light;
+  background-color: var(--c-bg);
+}
+
+:root.dark {
+  --c-bg: #0a0a0a;
+  --c-surface: #141414;
+  --c-border: #262626;
+  --c-hover: #1a1a1a;
   color-scheme: dark;
+  background-color: var(--c-bg);
 }
 
 body {
@@ -19,7 +33,8 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-dark-surface hover:bg-dark-hover text-gray-300 font-medium py-2 px-4 rounded-lg border border-dark-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg;
+    @apply bg-dark-surface hover:bg-dark-hover font-medium py-2 px-4 rounded-lg border border-dark-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-bg;
+    color: var(--c-text-secondary);
   }
 
   .btn-danger {
@@ -39,12 +54,79 @@ body {
   }
 
   .input {
-    @apply bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors w-full;
+    @apply bg-dark-bg border border-dark-border rounded-lg px-3 py-2 placeholder-gray-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors w-full;
+    color: var(--c-text-primary);
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-400 mb-1;
+    @apply block text-sm font-medium mb-1;
+    color: var(--c-text-secondary);
   }
+}
+
+/* ===== Light-mode text overrides =====
+   The app was built dark-first with hardcoded text-white / text-gray-*.
+   These rules invert text semantics in light mode without touching every file. */
+
+:root {
+  --c-text-primary: #0f172a;
+  --c-text-secondary: #64748b;
+  --c-text-muted: #94a3b8;
+}
+:root.dark {
+  --c-text-primary: #ffffff;
+  --c-text-secondary: #9ca3af;
+  --c-text-muted: #6b7280;
+}
+
+/* Base body text color for light mode */
+:root:not(.dark) body {
+  color: var(--c-text-primary);
+}
+
+/* Light-mode text inversion */
+:root:not(.dark) .text-white {
+  color: var(--c-text-primary);
+}
+
+/* Gray text → secondary/muted in light mode */
+:root:not(.dark) .text-gray-300,
+:root:not(.dark) .text-gray-400 {
+  color: var(--c-text-secondary);
+}
+:root:not(.dark) .text-gray-500,
+:root:not(.dark) .text-gray-600 {
+  color: var(--c-text-muted);
+}
+
+/* Hover states in light mode */
+:root:not(.dark) .hover\:text-white:hover {
+  color: var(--c-text-primary) !important;
+}
+
+/* Preserve white text on colored buttons/badges in light mode */
+:root:not(.dark) .btn-primary,
+:root:not(.dark) .btn-danger,
+:root:not(.dark) .btn-success,
+:root:not(.dark) .bg-brand-600,
+:root:not(.dark) .bg-brand-primary,
+:root:not(.dark) .bg-red-600,
+:root:not(.dark) .bg-red-500,
+:root:not(.dark) .bg-green-600,
+:root:not(.dark) .bg-green-500 {
+  color: #ffffff !important;
+}
+
+/* Google sign-in button: keep dark text on white bg */
+:root:not(.dark) .bg-white {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+/* Light mode shadow for surfaces */
+:root:not(.dark) .card,
+:root:not(.dark) .bg-dark-surface {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 /* View Transitions — smooth page swap */

@@ -764,11 +764,12 @@
 
 ### Feature Enhancements
 
-- [ ] [M] ENHANCE-001: Dark/Light theme toggle
+- [x] [M] ENHANCE-001: Dark/Light theme toggle
   - Add theme store (dark/light/system)
   - Toggle button in settings + header
   - CSS variables for theme colors via Tailwind dark: prefix
-  - Files: src/lib/stores/theme.ts (new), tailwind.config.ts, src/routes/settings/+page.svelte
+  - Files: src/lib/stores/theme.svelte.ts (new), src/lib/components/layout/ThemeToggle.svelte (new), tailwind.config.ts, src/app.css, src/app.html, src/routes/+layout.svelte, src/routes/settings/+page.svelte
+  - Session: 2026-03-22 — CSS variables for dark-bg/surface/border/hover, light-mode text overrides, theme store with Svelte 5 runes, dropdown toggle in header, visual theme picker in settings, flash-free init via inline script, system preference detection
 
 - [ ] [M] ENHANCE-002: Account switcher dropdown in header
   - Show current account name in header

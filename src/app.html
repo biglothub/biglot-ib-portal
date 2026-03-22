@@ -47,7 +47,20 @@
 	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 	%sveltekit.head%
 	<script>
-		document.documentElement.classList.add('dark');
+		(function() {
+			var stored = localStorage.getItem('ib-portal-theme');
+			var mode = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'dark';
+			var dark = mode === 'system'
+				? window.matchMedia('(prefers-color-scheme: dark)').matches
+				: mode === 'dark';
+			if (dark) {
+				document.documentElement.classList.add('dark');
+			} else {
+				document.documentElement.classList.remove('dark');
+			}
+			var meta = document.querySelector('meta[name="theme-color"]');
+			if (meta) meta.setAttribute('content', dark ? '#0a0a0a' : '#f8fafc');
+		})();
 	</script>
 </head>
 

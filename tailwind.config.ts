@@ -40,10 +40,10 @@ export default {
       },
       colors: {
         dark: {
-          bg: '#0a0a0a',
-          surface: '#141414',
-          border: '#262626',
-          hover: '#1a1a1a',
+          bg: 'var(--c-bg)',
+          surface: 'var(--c-surface)',
+          border: 'var(--c-border)',
+          hover: 'var(--c-hover)',
         },
         brand: {
           primary: '#C9A84C',
