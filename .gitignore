@@ -27,9 +27,15 @@ QA_REPORT.md
 # Automation loop files
 .auto-dev.lock
 .auto-dev.log
+.auto-dev.log.*
+.auto-dev.jsonl
+.auto-dev.jsonl.*
 .auto-test.lock
 .auto-test.log
 .dev-context.md
 .dev-metrics.json
+.dev-resume.json
 .dev-server.log
+.dev-server.log.*
 .dev-server.pid
+.dev-session-sha
