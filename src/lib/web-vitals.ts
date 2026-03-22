@@ -62,10 +62,9 @@ function reportMetric(metric: Metric) {
 }
 
 export async function initWebVitals() {
-	const { onCLS, onFID, onLCP, onINP, onTTFB } = await import('web-vitals');
+	const { onCLS, onLCP, onINP, onTTFB } = await import('web-vitals');
 
 	onCLS(reportMetric);
-	onFID(reportMetric);
 	onLCP(reportMetric);
 	onINP(reportMetric);
 	onTTFB(reportMetric);

@@ -814,7 +814,7 @@
 								</div>
 								<div class="text-right">
 									<div class="text-sm font-medium {similarTrade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(similarTrade.profit)}</div>
-									<ReviewStatusBadge status={similarTrade.trade_reviews?.[0]?.review_status || 'unreviewed'} />
+									<ReviewStatusBadge status={(similarTrade.trade_reviews?.[0]?.review_status || 'unreviewed') as import('$lib/types').ReviewStatus} />
 								</div>
 							</a>
 						{/each}

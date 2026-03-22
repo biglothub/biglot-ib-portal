@@ -13,7 +13,7 @@ import {
 	getTradeDurationBucket,
 	applyPortfolioFilters
 } from '../portfolio';
-import type { PortfolioFilterState, Trade, TradeReview } from '$lib/types';
+import type { PortfolioFilterState, Trade, TradeAttachment, TradeNote, TradeReview } from '$lib/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -67,6 +67,33 @@ function makeReview(overrides: Partial<TradeReview> = {}): TradeReview {
 		reviewed_at: null,
 		created_at: '2024-01-15T10:00:00Z',
 		updated_at: '2024-01-15T10:00:00Z',
+		...overrides
+	};
+}
+
+function makeNote(overrides: Partial<TradeNote> = {}): TradeNote {
+	return {
+		id: 'note-1',
+		trade_id: 'trade-1',
+		user_id: 'user-1',
+		content: '',
+		rating: null,
+		created_at: '2024-01-15T10:00:00Z',
+		updated_at: '2024-01-15T10:00:00Z',
+		...overrides
+	};
+}
+
+function makeAttachment(overrides: Partial<TradeAttachment> = {}): TradeAttachment {
+	return {
+		id: 'att-1',
+		trade_id: 'trade-1',
+		user_id: 'user-1',
+		kind: 'image_url',
+		storage_path: '/img.png',
+		caption: '',
+		sort_order: 0,
+		created_at: '2024-01-15T10:00:00Z',
 		...overrides
 	};
 }
@@ -262,7 +289,7 @@ describe('getTradeReviewStatus', () => {
 
 describe('getTradeNotes', () => {
 	it('returns trade_notes array', () => {
-		const notes = [{ id: 'n1', content: 'hello' }];
+		const notes = [makeNote({ id: 'n1', content: 'hello' })];
 		expect(getTradeNotes(makeTrade({ trade_notes: notes }))).toBe(notes);
 	});
 
@@ -273,7 +300,7 @@ describe('getTradeNotes', () => {
 
 describe('getTradeAttachments', () => {
 	it('returns trade_attachments array', () => {
-		const att = [{ id: 'a1', storage_path: '/img.png' }];
+		const att = [makeAttachment({ id: 'a1', storage_path: '/img.png' })];
 		expect(getTradeAttachments(makeTrade({ trade_attachments: att }))).toBe(att);
 	});
 
@@ -479,7 +506,7 @@ describe('applyPortfolioFilters', () => {
 
 	describe('hasNotes filter', () => {
 		it('true: keeps only trades with notes', () => {
-			const withNote = makeTrade({ id: '1', trade_notes: [{ id: 'n1', content: 'note' }] });
+			const withNote = makeTrade({ id: '1', trade_notes: [makeNote({ id: 'n1', content: 'note' })] });
 			const noNote = makeTrade({ id: '2' });
 			const result = applyPortfolioFilters([withNote, noNote], { ...emptyFilters, hasNotes: true });
 			expect(result).toHaveLength(1);
@@ -487,7 +514,7 @@ describe('applyPortfolioFilters', () => {
 		});
 
 		it('false: keeps only trades without notes', () => {
-			const withNote = makeTrade({ id: '1', trade_notes: [{ id: 'n1', content: 'note' }] });
+			const withNote = makeTrade({ id: '1', trade_notes: [makeNote({ id: 'n1', content: 'note' })] });
 			const noNote = makeTrade({ id: '2' });
 			const result = applyPortfolioFilters([withNote, noNote], { ...emptyFilters, hasNotes: false });
 			expect(result).toHaveLength(1);
@@ -496,7 +523,7 @@ describe('applyPortfolioFilters', () => {
 
 		it('null: does not filter', () => {
 			const trades = [
-				makeTrade({ id: '1', trade_notes: [{ id: 'n1', content: 'note' }] }),
+				makeTrade({ id: '1', trade_notes: [makeNote({ id: 'n1', content: 'note' })] }),
 				makeTrade({ id: '2' })
 			];
 			expect(applyPortfolioFilters(trades, { ...emptyFilters, hasNotes: null })).toHaveLength(2);
@@ -507,7 +534,7 @@ describe('applyPortfolioFilters', () => {
 		it('true: keeps only trades with attachments', () => {
 			const withAtt = makeTrade({
 				id: '1',
-				trade_attachments: [{ id: 'a1', storage_path: '/img.png' }]
+				trade_attachments: [makeAttachment({ id: 'a1', storage_path: '/img.png' })]
 			});
 			const noAtt = makeTrade({ id: '2' });
 			const result = applyPortfolioFilters([withAtt, noAtt], { ...emptyFilters, hasAttachments: true });
@@ -518,7 +545,7 @@ describe('applyPortfolioFilters', () => {
 		it('false: keeps only trades without attachments', () => {
 			const withAtt = makeTrade({
 				id: '1',
-				trade_attachments: [{ id: 'a1', storage_path: '/img.png' }]
+				trade_attachments: [makeAttachment({ id: 'a1', storage_path: '/img.png' })]
 			});
 			const noAtt = makeTrade({ id: '2' });
 			const result = applyPortfolioFilters([withAtt, noAtt], { ...emptyFilters, hasAttachments: false });

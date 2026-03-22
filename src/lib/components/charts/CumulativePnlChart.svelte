@@ -117,8 +117,8 @@
 						tooltipVisible = false;
 						return;
 					}
-					const val = param.seriesData.get(areaSeries);
-					if (val) {
+					const val = areaSeries ? param.seriesData.get(areaSeries) as { value?: number } | undefined : undefined;
+					if (val && val.value !== undefined) {
 						tooltipVisible = true;
 						tooltipX = param.point.x;
 						tooltipY = param.point.y;
@@ -145,7 +145,7 @@
 			intersectionObserver.disconnect();
 			resizeObserver?.disconnect();
 			chart?.remove();
-			chart = undefined;
+			chart = null;
 		};
 	});
 

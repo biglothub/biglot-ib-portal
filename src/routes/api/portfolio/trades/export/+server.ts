@@ -67,7 +67,7 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 	}
 
 	// Apply date filters if provided
-	let filtered = trades ?? [];
+	let filtered = (trades ?? []) as unknown as Trade[];
 	const from = url.searchParams.get('from');
 	const to = url.searchParams.get('to');
 	if (from) {

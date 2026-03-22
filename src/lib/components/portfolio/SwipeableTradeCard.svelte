@@ -37,9 +37,9 @@
 	let errorMsg = $state('');
 
 	// --- Derived ---
-	const reviewStatus = $derived(getTradeReviewStatus(trade));
+	const reviewStatus = $derived(getTradeReviewStatus(trade as unknown as Trade));
 	const playbookName = $derived(
-		playbooks.find((p) => p.id === getTradePlaybookId(trade))?.name ?? ''
+		playbooks.find((p) => p.id === getTradePlaybookId(trade as unknown as Trade))?.name ?? ''
 	);
 
 	// --- Svelte action: non-passive touchmove for horizontal swipe ---

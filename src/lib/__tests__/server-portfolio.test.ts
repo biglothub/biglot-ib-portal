@@ -8,7 +8,7 @@ function makeTrade(overrides: Record<string, unknown> = {}) {
 		id: 'trade-1',
 		client_account_id: 'acc-1',
 		symbol: 'EURUSD',
-		type: 'BUY',
+		type: 'BUY' as const,
 		lot_size: 0.1,
 		open_price: 1.1,
 		close_price: 1.105,

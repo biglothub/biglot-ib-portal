@@ -65,10 +65,10 @@
 		if (isSyncing) return;
 		isSyncing = true;
 		instances.forEach(({ chart, series }) => {
-			if (chart === fromChart) return;
+			if (!chart || chart === fromChart) return;
 			try {
-				if (time !== undefined && time !== null) {
-					chart.setCrosshairPosition(0, time, series);
+				if (time !== undefined && time !== null && series) {
+					chart.setCrosshairPosition(0, time as import('lightweight-charts').Time, series);
 				} else {
 					chart.clearCrosshairPosition();
 				}
@@ -201,7 +201,7 @@
 			instances.push(instance);
 
 			chart.subscribeCrosshairMove((param: MouseEventParams) => {
-				syncCrosshair(chart, param?.time);
+				if (chart) syncCrosshair(chart, param?.time);
 			});
 
 			// Respond to container size changes (grid ↔ focus toggle resizes the DOM)

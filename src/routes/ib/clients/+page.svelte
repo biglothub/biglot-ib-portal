@@ -5,7 +5,8 @@
 	import type { ClientAccount } from '$lib/types';
 
 	let { data } = $props();
-	let { clients, statsMap } = $derived(data);
+	let { clients: rawClients, statsMap } = $derived(data);
+	const clients = $derived((rawClients as ClientAccount[]) || []);
 
 	let filter = $state('all');
 

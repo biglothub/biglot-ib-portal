@@ -78,7 +78,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	}
 };
 
-function mapImpact(impact: string): EconomicEvent['impact'] {
+function mapImpact(impact: string | undefined): EconomicEvent['impact'] {
 	if (!impact) return 'Low';
 	const lower = impact.toLowerCase();
 	if (lower === 'high' || lower === 'red') return 'High';

@@ -108,8 +108,8 @@
 
 				chart.subscribeCrosshairMove((param: MouseEventParams) => {
 					if (!param || !param.time || !param.point || !series) { tooltipVisible = false; return; }
-					const val = param.seriesData.get(series);
-					if (val) {
+					const val = param.seriesData.get(series) as { value?: number } | undefined;
+					if (val && val.value !== undefined) {
 						tooltipVisible = true;
 						tooltipX = param.point.x;
 						tooltipY = param.point.y;
@@ -125,7 +125,7 @@
 
 		intersectionObserver.observe(chartContainer);
 
-		return () => { destroyed = true; intersectionObserver.disconnect(); resizeObserver?.disconnect(); chart?.remove(); chart = undefined; };
+		return () => { destroyed = true; intersectionObserver.disconnect(); resizeObserver?.disconnect(); chart?.remove(); chart = null; };
 	});
 
 	$effect(() => {

@@ -65,19 +65,23 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 	]);
 
 	type SimilarTradeRow = {
-		trade_reviews?: Array<{ playbook_id?: string | null }>;
+		id: string;
+		symbol: string;
+		close_time: string;
+		profit: number;
+		trade_reviews?: Array<{ playbook_id?: string | null; review_status?: string | null }>;
 		trade_tag_assignments?: Array<{ tag_id: string }>;
 	};
 	const similarReviewedTrades = (similarReviewRes.data as SimilarTradeRow[] || []).filter((item) =>
 		currentPlaybookId
 			? item.trade_reviews?.[0]?.playbook_id === currentPlaybookId
 			: (item.trade_tag_assignments || []).some((assignment) =>
-					(trade.trade_tag_assignments || []).some((current) => current.tag_id === assignment.tag_id)
+					(trade.trade_tag_assignments || []).some((current: { tag_id: string }) => current.tag_id === assignment.tag_id)
 				)
 	).slice(0, 5);
 
 	// Compute insights for this trade using all related trades as context
-	const allTradesForContext = [...(relatedTradesRes.data as Trade[] || []), trade];
+	const allTradesForContext = [...((relatedTradesRes.data as unknown as Trade[]) || []), trade];
 	const insights = evaluateTradeInsights(trade, allTradesForContext);
 
 	// Build context for quality score

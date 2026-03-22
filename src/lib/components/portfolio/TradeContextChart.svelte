@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
-	import type { IChartApi, ISeriesApi } from 'lightweight-charts';
+	import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 	import type { Trade, TradeChartContext, TradeChartBar } from '$lib/types';
 
 	let {
@@ -24,9 +24,9 @@
 	);
 
 	function renderChart() {
-		if (!chart || !series || !currentContext) return;
+		if (!chart || !series || !currentContext || !trade) return;
 		const bars = (currentContext.bars || []).map((bar: TradeChartBar) => ({
-			time: bar.time,
+			time: bar.time as unknown as Time,
 			open: bar.open,
 			high: bar.high,
 			low: bar.low,
@@ -35,14 +35,14 @@
 		series.setData(bars);
 		series.setMarkers([
 			{
-				time: Math.floor(new Date(trade.open_time).getTime() / 1000),
+				time: Math.floor(new Date(trade.open_time).getTime() / 1000) as unknown as Time,
 				position: 'belowBar',
 				color: '#22c55e',
 				shape: 'arrowUp',
 				text: `Entry ${formatNumber(trade.open_price, 5)}`
 			},
 			{
-				time: Math.floor(new Date(trade.close_time).getTime() / 1000),
+				time: Math.floor(new Date(trade.close_time).getTime() / 1000) as unknown as Time,
 				position: 'aboveBar',
 				color: '#f97316',
 				shape: 'arrowDown',
@@ -156,7 +156,7 @@
 			<div class="flex flex-wrap gap-4">
 				<span>Window: {new Date(currentContext.window_start).toLocaleString('th-TH')}</span>
 				<span>{new Date(currentContext.window_end).toLocaleString('th-TH')}</span>
-				<span>P/L: <span class={trade?.profit >= 0 ? 'text-green-400' : 'text-red-400'}>{formatCurrency(trade?.profit)}</span></span>
+				<span>P/L: <span class={(trade?.profit ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}>{formatCurrency(trade?.profit ?? 0)}</span></span>
 			</div>
 		</div>
 		<div bind:this={container} class="w-full"></div>

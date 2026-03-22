@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			year: new Date().getFullYear(),
 			month: new Date().getMonth() + 1,
 			filterState: parsePortfolioFilters(url.searchParams),
-			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [] },
+			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null },
 			dayTrades: []
 		};
 	}

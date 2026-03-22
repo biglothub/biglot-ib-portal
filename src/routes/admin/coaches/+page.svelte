@@ -313,7 +313,7 @@
 
 				<!-- Color preset -->
 				<div>
-					<label class="label">สีธีม</label>
+					<span class="label">สีธีม</span>
 					<div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-1">
 						{#each COLOR_PRESETS as preset, i}
 							<button
@@ -331,7 +331,7 @@
 
 				<!-- Preview -->
 				<div>
-					<label class="label">ตัวอย่าง</label>
+					<span class="label">ตัวอย่าง</span>
 					<div class="mt-1 rounded-xl bg-gradient-to-r {COLOR_PRESETS[form.color_preset]?.gradient ?? COLOR_PRESETS[5].gradient} px-4 py-2.5 text-center">
 						<div class="text-xs font-bold text-white tracking-wider">{form.name || 'COACH NAME'}</div>
 						<div class="text-xs text-white/80">{form.time_display || '00:00-00:00'}</div>

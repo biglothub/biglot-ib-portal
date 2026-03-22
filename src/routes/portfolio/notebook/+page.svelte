@@ -5,9 +5,9 @@
 	import type { NotebookFolder, NotebookNote } from '$lib/types';
 
 	let { data } = $props();
-	let folders = $derived(data.folders || []);
-	let notes = $derived(data.notes || []);
-	let deletedNotes = $derived(data.deletedNotes || []);
+	let folders = $derived((data.folders as NotebookFolder[]) || []);
+	let notes = $derived((data.notes as NotebookNote[]) || []);
+	let deletedNotes = $derived((data.deletedNotes as NotebookNote[]) || []);
 
 	let selectedFolderId = $state<string | null>(null); // null = "All notes"
 	let showDeleted = $state(false);
@@ -34,7 +34,7 @@
 	);
 
 	// Filtered notes by folder
-	const filteredNotes = $derived.by(() => {
+	const filteredNotes = $derived.by((): NotebookNote[] => {
 		if (showDeleted) return deletedNotes;
 		if (searchQuery && searchResults.length > 0) return searchResults;
 		if (selectedFolderId === null) return notes;

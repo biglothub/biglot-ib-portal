@@ -14,8 +14,8 @@
 		let arr = [...(tagBreakdown?.byTag || [])];
 		if (tagViewMode !== 'all') arr = arr.filter((t: TagBreakdownItem) => t.category === tagViewMode);
 		arr.sort((a: TagBreakdownItem, b: TagBreakdownItem) => {
-			const va = a[tagSort.key] ?? 0;
-			const vb = b[tagSort.key] ?? 0;
+			const va = (a as unknown as Record<string, number>)[tagSort.key] ?? 0;
+			const vb = (b as unknown as Record<string, number>)[tagSort.key] ?? 0;
 			return tagSort.asc ? va - vb : vb - va;
 		});
 		return arr;

@@ -14,6 +14,7 @@ import type {
 	Playbook,
 	PortfolioBaseData,
 	PortfolioFilterState,
+	PortfolioSavedView,
 	ProgressGoal,
 	Trade
 } from '$lib/types';
@@ -91,12 +92,12 @@ export async function fetchPortfolioBaseData(
 	};
 
 	return {
-		trades: getData(tradesRes, 'trades'),
-		dailyStats: getData(dailyStatsRes, 'dailyStats'),
-		journals: getData(journalsRes, 'journals'),
-		playbooks: getData(playbooksRes, 'playbooks'),
-		savedViews: getData(savedViewsRes, 'savedViews'),
-		progressGoals: mergeDefaultProgressGoals(getData(progressGoalsRes, 'progressGoals'), accountId, userId),
+		trades: getData(tradesRes, 'trades') as unknown as Trade[],
+		dailyStats: getData(dailyStatsRes, 'dailyStats') as unknown as DailyStats[],
+		journals: getData(journalsRes, 'journals') as unknown as DailyJournal[],
+		playbooks: getData(playbooksRes, 'playbooks') as unknown as Playbook[],
+		savedViews: getData(savedViewsRes, 'savedViews') as unknown as PortfolioSavedView[],
+		progressGoals: mergeDefaultProgressGoals(getData(progressGoalsRes, 'progressGoals') as unknown as ProgressGoal[], accountId, userId),
 		warnings
 	};
 }

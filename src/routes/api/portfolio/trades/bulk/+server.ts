@@ -42,7 +42,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 
 	type TradeWithAccount = { id: string; client_accounts?: { user_id: string } | null };
 	const ownedIds = new Set(
-		(trades ?? [] as TradeWithAccount[])
+		((trades ?? []) as unknown as TradeWithAccount[])
 			.filter((t: TradeWithAccount) => t.client_accounts?.user_id === profile.id)
 			.map((t: TradeWithAccount) => t.id)
 	);

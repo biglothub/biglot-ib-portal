@@ -12,8 +12,8 @@
 	const sortedSymbols = $derived.by(() => {
 		const arr = [...(symbolBreakdown || [])];
 		arr.sort((a: SymbolBreakdownItem, b: SymbolBreakdownItem) => {
-			const va = a[symbolSort.key] ?? 0;
-			const vb = b[symbolSort.key] ?? 0;
+			const va = (a as unknown as Record<string, number>)[symbolSort.key] ?? 0;
+			const vb = (b as unknown as Record<string, number>)[symbolSort.key] ?? 0;
 			return symbolSort.asc ? va - vb : vb - va;
 		});
 		return arr;

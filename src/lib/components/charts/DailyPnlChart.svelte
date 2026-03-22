@@ -111,8 +111,8 @@
 						tooltipVisible = false;
 						return;
 					}
-					const val = param.seriesData.get(histSeries);
-					if (val) {
+					const val = histSeries ? param.seriesData.get(histSeries) as { value?: number } | undefined : undefined;
+					if (val && val.value !== undefined) {
 						const matchDay = filteredData.find(d => d.date === param.time);
 						tooltipVisible = true;
 						tooltipX = param.point.x;
@@ -141,7 +141,7 @@
 			intersectionObserver.disconnect();
 			resizeObserver?.disconnect();
 			chart?.remove();
-			chart = undefined;
+			chart = null;
 		};
 	});
 

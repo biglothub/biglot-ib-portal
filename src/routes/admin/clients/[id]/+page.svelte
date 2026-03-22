@@ -6,8 +6,29 @@
 	import { fade, fly } from 'svelte/transition';
 	import { goto, invalidateAll } from '$app/navigation';
 
+	type ClientAccount = {
+		id: string;
+		client_name: string;
+		client_email?: string;
+		client_phone?: string;
+		nickname?: string;
+		mt5_account_id: string;
+		mt5_server: string;
+		status: string;
+		last_synced_at?: string | null;
+		master_ibs?: { ib_code: string; profiles?: { full_name: string } | null } | null;
+		[key: string]: unknown;
+	};
+	type LatestStats = { balance: number; equity: number; floating_pl: number; profit: number; win_rate: number; profit_factor: number; max_drawdown: number; total_trades: number };
+	type OpenPosition = { symbol: string; type: string; lot_size: number; open_price: number; current_profit?: number | null; [key: string]: unknown };
+	type RecentTrade = { id: string; symbol: string; type: string; lot_size: number; profit: number; close_time: string; [key: string]: unknown };
+
 	let { data } = $props();
-	let { account, latestStats, openPositions, recentTrades } = $derived(data);
+	let { account, latestStats: rawLatestStats, openPositions, recentTrades } = $derived(data);
+	const typedAccount = $derived(account as ClientAccount);
+	const latestStats = $derived(rawLatestStats as LatestStats | null);
+	const typedPositions = $derived((openPositions as OpenPosition[]) || []);
+	const typedTrades = $derived((recentTrades as RecentTrade[]) || []);
 
 	// Edit state
 	let editing = $state(false);
@@ -29,12 +50,12 @@
 	let deleteReason = $state('');
 
 	function openEdit() {
-		editName = account.client_name || '';
-		editEmail = account.client_email || '';
-		editPhone = account.client_phone || '';
-		editNickname = account.nickname || '';
-		editMt5AccountId = account.mt5_account_id || '';
-		editMt5Server = account.mt5_server || '';
+		editName = typedAccount.client_name || '';
+		editEmail = (typedAccount.client_email as string) || '';
+		editPhone = (typedAccount.client_phone as string) || '';
+		editNickname = (typedAccount.nickname as string) || '';
+		editMt5AccountId = typedAccount.mt5_account_id || '';
+		editMt5Server = typedAccount.mt5_server || '';
 		editMt5Password = '';
 		editError = '';
 		editSuccess = '';
@@ -48,7 +69,7 @@
 
 		try {
 			const payload: Record<string, string> = {
-				client_account_id: account.id,
+				client_account_id: typedAccount.id,
 				client_name: editName,
 				client_email: editEmail,
 				client_phone: editPhone,
@@ -91,7 +112,7 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					client_account_id: account.id,
+					client_account_id: typedAccount.id,
 					reason: deleteReason
 				})
 			});
@@ -112,7 +133,7 @@
 </script>
 
 <svelte:head>
-	<title>{account.client_name} - ผู้ดูแลระบบ</title>
+	<title>{typedAccount.client_name} - ผู้ดูแลระบบ</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -121,24 +142,24 @@
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
 			<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
-				{account.client_name.charAt(0)}
+				{typedAccount.client_name.charAt(0)}
 			</div>
 			<div>
 				<div class="flex items-center gap-2">
-					<h1 class="text-lg font-bold">{account.client_name}</h1>
-					<StatusBadge status={account.status} />
+					<h1 class="text-lg font-bold">{typedAccount.client_name}</h1>
+					<StatusBadge status={typedAccount.status} />
 				</div>
 				<p class="text-xs text-gray-500">
-					MT5: {account.mt5_account_id} @ {account.mt5_server}
-					| IB: {account.master_ibs?.profiles?.full_name} ({account.master_ibs?.ib_code})
-					{#if account.last_synced_at}
-						| Sync: {timeAgo(account.last_synced_at)}
+					MT5: {typedAccount.mt5_account_id} @ {typedAccount.mt5_server}
+					| IB: {typedAccount.master_ibs?.profiles?.full_name} ({typedAccount.master_ibs?.ib_code})
+					{#if typedAccount.last_synced_at}
+						| Sync: {timeAgo(typedAccount.last_synced_at as string)}
 					{/if}
 				</p>
 			</div>
 		</div>
 		<div class="flex gap-2">
-			<a href="/portfolio?account_id={account.id}" class="btn-primary text-sm flex items-center gap-1.5">
+			<a href="/portfolio?account_id={typedAccount.id}" class="btn-primary text-sm flex items-center gap-1.5">
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -180,8 +201,8 @@
 	{/if}
 
 	<div class="card">
-		<h2 class="text-sm font-medium text-gray-400 mb-4">ตำแหน่งที่เปิด ({openPositions.length})</h2>
-		{#if openPositions.length === 0}
+		<h2 class="text-sm font-medium text-gray-400 mb-4">ตำแหน่งที่เปิด ({typedPositions.length})</h2>
+		{#if typedPositions.length === 0}
 			<EmptyState message="ไม่มี position เปิด" />
 		{:else}
 			<div class="overflow-x-auto">
@@ -196,7 +217,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each openPositions as pos}
+						{#each typedPositions as pos}
 							<tr class="border-b border-dark-border/50">
 								<td class="py-2 text-white">{pos.symbol}</td>
 								<td class="py-2"><span class="text-xs px-1.5 py-0.5 rounded {pos.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">{pos.type}</span></td>
@@ -212,8 +233,8 @@
 	</div>
 
 	<div class="card">
-		<h2 class="text-sm font-medium text-gray-400 mb-4">เทรดล่าสุด ({recentTrades.length})</h2>
-		{#if recentTrades.length === 0}
+		<h2 class="text-sm font-medium text-gray-400 mb-4">เทรดล่าสุด ({typedTrades.length})</h2>
+		{#if typedTrades.length === 0}
 			<EmptyState message="ยังไม่มี trade" />
 		{:else}
 			<div class="overflow-x-auto">
@@ -228,7 +249,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each recentTrades as trade}
+						{#each typedTrades as trade}
 							<tr class="border-b border-dark-border/50">
 								<td class="py-2 text-white">{trade.symbol}</td>
 								<td class="py-2"><span class="text-xs px-1.5 py-0.5 rounded {trade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">{trade.type}</span></td>
@@ -250,7 +271,7 @@
 		<div transition:fly={{ y: 30, duration: 250 }} class="card max-w-md w-full">
 			<h3 class="text-lg font-medium text-red-400 mb-2">ยืนยันการลบลูกค้า</h3>
 			<p class="text-sm text-gray-400 mb-4">
-				ต้องการลบ <span class="text-white font-medium">{account.client_name}</span> (MT5: {account.mt5_account_id}) หรือไม่?
+				ต้องการลบ <span class="text-white font-medium">{typedAccount.client_name}</span> (MT5: {typedAccount.mt5_account_id}) หรือไม่?
 				ข้อมูลทั้งหมดรวมถึง stats, trades, positions จะถูกลบออกจากระบบ
 			</p>
 			<div class="mb-4">

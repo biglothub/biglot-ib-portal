@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			equitySnapshots: [],
 			commandCenter: null,
 			filterState: parsePortfolioFilters(url.searchParams),
-			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [] }
+			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null }
 		};
 	}
 

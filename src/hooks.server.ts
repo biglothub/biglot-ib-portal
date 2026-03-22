@@ -4,8 +4,6 @@ import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/se
 import { validateEnv } from '$lib/server/env';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import type { Profile } from '$lib/types';
-
 // Validate environment variables on startup — fail fast if required vars are missing
 validateEnv();
 
@@ -19,8 +17,9 @@ if (env.SENTRY_DSN) {
 
 const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline', '/api/health'];
 
+type CachedProfile = NonNullable<App.Locals['profile']>;
 // In-memory profile cache — avoids DB query on every request
-const profileCache = new Map<string, { profile: Profile; timestamp: number }>();
+const profileCache = new Map<string, { profile: CachedProfile; timestamp: number }>();
 const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 const authHandle: Handle = async ({ event, resolve }) => {
@@ -49,7 +48,7 @@ const authHandle: Handle = async ({ event, resolve }) => {
 				.select('id, email, full_name, role, avatar_url')
 				.eq('id', user.id)
 				.single();
-			event.locals.profile = profile;
+			event.locals.profile = profile as CachedProfile | null;
 
 			if (profile) {
 				profileCache.set(user.id, { profile, timestamp: now });

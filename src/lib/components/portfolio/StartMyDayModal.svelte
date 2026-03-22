@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { fly, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import type { ChecklistRule, ChecklistCompletion, DailyJournal, MarketNewsArticle } from '$lib/types';
+	import type { ChecklistRule, ChecklistCompletion, DailyJournal } from '$lib/types';
+
+type MarketNewsArticle = {
+	impact?: string;
+	title?: string;
+	headline?: string;
+	summary?: string;
+	[key: string]: unknown;
+};
 
 	let {
 		open = false,
@@ -56,7 +64,7 @@
 		if (existing >= 0) {
 			localCompletions[existing] = { ...localCompletions[existing], completed: nowCompleted };
 		} else {
-			localCompletions = [...localCompletions, { rule_id: ruleId, completed: nowCompleted, date: today }];
+			localCompletions = [...localCompletions, { rule_id: ruleId, completed: nowCompleted, date: today } as ChecklistCompletion];
 		}
 
 		saving = true;

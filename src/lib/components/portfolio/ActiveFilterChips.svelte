@@ -4,7 +4,7 @@
 
 	let {
 		filters,
-		filterOptions = {},
+		filterOptions = {} as PortfolioFilterOptions,
 		tags = [],
 		playbooks = [],
 		onremove,

@@ -561,10 +561,10 @@
 <StartMyDayModal
 	open={startMyDayOpen}
 	onclose={() => startMyDayOpen = false}
-	checklistRules={checklistRules || []}
-	checklistCompletions={checklistCompletions || []}
+	checklistRules={(checklistRules as any) || []}
+	checklistCompletions={(checklistCompletions as any) || []}
 	checklistDoneToday={checklistDoneToday || false}
-	{todayJournal}
-	marketNews={$marketNewsStore}
+	todayJournal={(todayJournal as any) || null}
+	marketNews={($marketNewsStore as any) || []}
 	{today}
 />

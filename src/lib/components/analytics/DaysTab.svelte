@@ -12,8 +12,8 @@
 	const sortedDays = $derived.by(() => {
 		const arr = [...(dayOfWeekReport?.days || [])];
 		arr.sort((a: DayOfWeekItem, b: DayOfWeekItem) => {
-			const va = a[daySort.key] ?? 0;
-			const vb = b[daySort.key] ?? 0;
+			const va = (a as unknown as Record<string, number>)[daySort.key] ?? 0;
+			const vb = (b as unknown as Record<string, number>)[daySort.key] ?? 0;
 			return daySort.asc ? va - vb : vb - va;
 		});
 		return arr;

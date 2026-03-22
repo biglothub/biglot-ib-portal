@@ -71,7 +71,7 @@
 		if (data.length === 0) {
 			equitySeries.setData([]);
 			balanceSeries.setData([]);
-			floatingZoneSeries.setData([]);
+			if (floatingZoneSeries) floatingZoneSeries.setData([]);
 			tooltipVisible = false;
 			return;
 		}
@@ -93,7 +93,7 @@
 			value: d.equity,
 			color: d.floatingPL >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'
 		}));
-		floatingZoneSeries.setData(zoneData);
+		if (floatingZoneSeries) floatingZoneSeries.setData(zoneData);
 
 		chart.timeScale().fitContent();
 	}
@@ -164,7 +164,7 @@
 					lineColor: 'transparent',
 					topColor: 'rgba(16, 185, 129, 0.15)',
 					bottomColor: 'rgba(239, 68, 68, 0.15)',
-					lineWidth: 0,
+					lineWidth: 0 as unknown as import('lightweight-charts').LineWidth,
 					crosshairMarkerVisible: false
 				});
 
@@ -199,9 +199,9 @@
 						tooltipVisible = false;
 						return;
 					}
-					const eqVal = param.seriesData.get(equitySeries);
-					const balVal = param.seriesData.get(balanceSeries);
-					if (eqVal && balVal) {
+					const eqVal = equitySeries ? param.seriesData.get(equitySeries) as { value?: number } | undefined : undefined;
+					const balVal = balanceSeries ? param.seriesData.get(balanceSeries) as { value?: number } | undefined : undefined;
+					if (eqVal && eqVal.value !== undefined && balVal && balVal.value !== undefined) {
 						tooltipVisible = true;
 						tooltipX = param.point.x;
 						tooltipY = param.point.y;
@@ -230,7 +230,7 @@
 			intersectionObserver.disconnect();
 			resizeObserver?.disconnect();
 			chart?.remove();
-			chart = undefined;
+			chart = null;
 		};
 	});
 

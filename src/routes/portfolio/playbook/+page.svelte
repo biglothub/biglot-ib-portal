@@ -242,7 +242,7 @@
 
 	function getRatingStars(template: PlaybookTemplate) {
 		if (!template.rating_count) return 0;
-		return Math.round((template.rating_sum / template.rating_count) * 10) / 10;
+		return Math.round(((template.rating_sum ?? 0) / template.rating_count) * 10) / 10;
 	}
 </script>
 

@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			page: 1,
 			pageSize: PAGE_SIZE,
 			filters: parsePortfolioFilters(url.searchParams),
-			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [] },
+			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null },
 			tags: [],
 			playbooks: [],
 			savedViews: [],

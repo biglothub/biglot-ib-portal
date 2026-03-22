@@ -19,11 +19,24 @@
 	let savingName = $state(false);
 	let nameMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
+	// Sync nameValue when data changes (e.g. after invalidation)
+	$effect(() => {
+		nameValue = data.profile?.full_name || '';
+	});
+
 	// Notification prefs state
 	let pushEnabled = $state(data.notificationPrefs?.push_enabled ?? false);
 	let dailyEmailEnabled = $state(data.notificationPrefs?.daily_email_enabled ?? false);
 	let tradeAlertsEnabled = $state(data.notificationPrefs?.trade_alerts_enabled ?? false);
 	let weeklyRecapEnabled = $state(data.notificationPrefs?.weekly_recap_enabled ?? false);
+
+	// Sync notification prefs when data changes
+	$effect(() => {
+		pushEnabled = data.notificationPrefs?.push_enabled ?? false;
+		dailyEmailEnabled = data.notificationPrefs?.daily_email_enabled ?? false;
+		tradeAlertsEnabled = data.notificationPrefs?.trade_alerts_enabled ?? false;
+		weeklyRecapEnabled = data.notificationPrefs?.weekly_recap_enabled ?? false;
+	});
 	let savingNotifs = $state(false);
 	let notifsMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 

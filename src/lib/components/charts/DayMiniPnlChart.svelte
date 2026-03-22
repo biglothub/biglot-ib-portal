@@ -31,7 +31,7 @@
 			topColor,
 			crosshairMarkerBackgroundColor: lineColor
 		});
-		areaSeries.setData(chartData);
+		areaSeries.setData(chartData.map(d => ({ ...d, time: d.time as unknown as import('lightweight-charts').Time })));
 		chart.timeScale().fitContent();
 	}
 
@@ -68,8 +68,8 @@
 
 			chart.subscribeCrosshairMove((param: MouseEventParams) => {
 				if (!param?.time || !param?.point) { tooltipVisible = false; return; }
-				const val = param.seriesData.get(areaSeries);
-				if (val) { tooltipVisible = true; tooltipX = param.point.x; tooltipY = param.point.y; tooltipValue = val.value; }
+				const val = areaSeries ? param.seriesData.get(areaSeries) as { value?: number } | undefined : undefined;
+				if (val && val.value !== undefined) { tooltipVisible = true; tooltipX = param.point.x; tooltipY = param.point.y; tooltipValue = val.value; }
 			});
 
 			observer = new ResizeObserver(() => { chart?.applyOptions({ width: chartContainer.clientWidth }); });

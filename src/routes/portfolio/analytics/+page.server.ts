@@ -303,7 +303,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	if (!account || !locals.profile || !baseData) {
 		return {
 			filterState: parsePortfolioFilters(url.searchParams),
-			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [] },
+			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null },
 			report: null,
 			tags: [],
 			playbooks: [],

@@ -7,11 +7,34 @@
 	import EquityChart from '$lib/components/charts/EquityChart.svelte';
 	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
 
+	type ClientAccount = {
+		id: string;
+		client_name: string;
+		client_email?: string;
+		client_phone?: string;
+		nickname?: string;
+		mt5_account_id: string;
+		mt5_server: string;
+		status: string;
+		last_synced_at?: string | null;
+		rejection_reason?: string | null;
+		mt5_validation_error?: string | null;
+		[key: string]: unknown;
+	};
+	type LatestStats = { balance: number; equity: number; floating_pl: number; profit: number; win_rate: number; profit_factor: number; max_drawdown: number; total_trades: number };
+	type EquityDataItem = { timestamp: string; equity: number; balance?: number; floating_pl?: number };
+	type OpenPosition = { symbol: string; type: string; lot_size: number; open_price: number; current_price?: number | null; current_profit?: number | null; [key: string]: unknown };
+	type RecentTrade = { id: string; symbol: string; type: string; lot_size: number; open_price: number; close_price: number; profit: number; close_time: string; [key: string]: unknown };
+
 	let { data } = $props();
-	let { account, latestStats, equityData, openPositions, recentTrades } = $derived(data);
+	let { account, latestStats: rawLatestStats, equityData: rawEquityData, openPositions, recentTrades } = $derived(data);
+	const typedAccount = $derived(account as ClientAccount);
+	const latestStats = $derived(rawLatestStats as LatestStats | null);
+	const typedPositions = $derived((openPositions as OpenPosition[]) || []);
+	const typedTrades = $derived((recentTrades as RecentTrade[]) || []);
 
 	const chartSnapshots = $derived(
-		(equityData || []).map((d: { timestamp: string; equity: number; balance?: number; floating_pl?: number }) => ({
+		((rawEquityData as EquityDataItem[]) || []).map((d: EquityDataItem) => ({
 			time: Math.floor(new Date(d.timestamp).getTime() / 1000),
 			balance: d.balance || d.equity,
 			equity: d.equity,
@@ -43,18 +66,18 @@
 	let cancelError = $state('');
 
 	$effect(() => {
-		if (!account?.id || syncedAccountId === account.id) return;
-		syncedAccountId = account.id;
-		mt5AccountId = account.mt5_account_id || '';
+		if (!typedAccount?.id || syncedAccountId === typedAccount.id) return;
+		syncedAccountId = typedAccount.id;
+		mt5AccountId = typedAccount.mt5_account_id || '';
 		mt5Password = '';
-		mt5Server = account.mt5_server || '';
+		mt5Server = typedAccount.mt5_server || '';
 	});
 
 	function openEdit() {
-		editName = account.client_name || '';
-		editEmail = account.client_email || '';
-		editPhone = account.client_phone || '';
-		editNickname = account.nickname || '';
+		editName = typedAccount.client_name || '';
+		editEmail = (typedAccount.client_email as string) || '';
+		editPhone = (typedAccount.client_phone as string) || '';
+		editNickname = (typedAccount.nickname as string) || '';
 		editError = '';
 		editSuccess = '';
 		editing = true;
@@ -69,7 +92,7 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					client_account_id: account.id,
+					client_account_id: typedAccount.id,
 					client_name: editName,
 					client_email: editEmail,
 					client_phone: editPhone,
@@ -101,7 +124,7 @@
 			const res = await fetch('/api/ib/clients/cancel', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ client_account_id: account.id })
+				body: JSON.stringify({ client_account_id: typedAccount.id })
 			});
 
 			if (!res.ok) {
@@ -127,7 +150,7 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					client_account_id: account.id,
+					client_account_id: typedAccount.id,
 					mt5_account_id: mt5AccountId,
 					mt5_investor_password: mt5Password,
 					mt5_server: mt5Server
@@ -148,12 +171,12 @@
 		}
 	}
 
-	const canEdit = $derived(account.status !== 'suspended');
-	const canCancel = $derived(account.status === 'pending' || account.status === 'rejected');
+	const canEdit = $derived(typedAccount.status !== 'suspended');
+	const canCancel = $derived(typedAccount.status === 'pending' || typedAccount.status === 'rejected');
 </script>
 
 <svelte:head>
-	<title>{account.client_name} - พอร์ตโฟลิโอ</title>
+	<title>{typedAccount.client_name} - พอร์ตโฟลิโอ</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -163,17 +186,17 @@
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
 			<div class="w-12 h-12 rounded-full bg-brand-600/20 flex items-center justify-center text-brand-400 text-lg font-medium">
-				{account.client_name.charAt(0)}
+				{typedAccount.client_name.charAt(0)}
 			</div>
 			<div>
 				<div class="flex items-center gap-2">
-					<h1 class="text-lg font-bold">{account.client_name}</h1>
-					<StatusBadge status={account.status} />
+					<h1 class="text-lg font-bold">{typedAccount.client_name}</h1>
+					<StatusBadge status={typedAccount.status} />
 				</div>
 				<p class="text-xs text-gray-500">
-					MT5: {account.mt5_account_id} @ {account.mt5_server}
-					{#if account.last_synced_at}
-						 | Sync: {timeAgo(account.last_synced_at)}
+					MT5: {typedAccount.mt5_account_id} @ {typedAccount.mt5_server}
+					{#if typedAccount.last_synced_at}
+						 | Sync: {timeAgo(typedAccount.last_synced_at as string)}
 					{/if}
 				</p>
 			</div>
@@ -198,18 +221,18 @@
 		</div>
 	{/if}
 
-	{#if account.status === 'rejected'}
+	{#if typedAccount.status === 'rejected'}
 		<!-- Rejection Info -->
 		<div class="card border-red-500/30">
 			<h2 class="text-sm font-medium text-red-400 mb-3">บัญชีถูกปฏิเสธ</h2>
-			{#if account.rejection_reason}
+			{#if typedAccount.rejection_reason}
 				<div class="bg-red-500/10 rounded-lg p-3 mb-3">
-					<p class="text-sm text-gray-300"><span class="text-red-400 font-medium">เหตุผล:</span> {account.rejection_reason}</p>
+					<p class="text-sm text-gray-300"><span class="text-red-400 font-medium">เหตุผล:</span> {typedAccount.rejection_reason as string}</p>
 				</div>
 			{/if}
-			{#if account.mt5_validation_error}
+			{#if typedAccount.mt5_validation_error}
 				<div class="bg-yellow-500/10 rounded-lg p-3 mb-3">
-					<p class="text-sm text-gray-300"><span class="text-yellow-400 font-medium">MT5 Error:</span> {account.mt5_validation_error}</p>
+					<p class="text-sm text-gray-300"><span class="text-yellow-400 font-medium">MT5 Error:</span> {typedAccount.mt5_validation_error as string}</p>
 				</div>
 			{/if}
 		</div>
@@ -298,9 +321,9 @@
 		<!-- Open Positions -->
 		<div class="card">
 			<h2 class="text-sm font-medium text-gray-400 mb-4">
-				ตำแหน่งที่เปิด ({openPositions.length})
+				ตำแหน่งที่เปิด ({typedPositions.length})
 			</h2>
-			{#if openPositions.length === 0}
+			{#if typedPositions.length === 0}
 				<EmptyState message="ไม่มี position เปิดอยู่" icon="📭" />
 			{:else}
 				<div class="overflow-x-auto">
@@ -316,7 +339,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each openPositions as pos}
+							{#each typedPositions as pos}
 								<tr class="border-b border-dark-border/50">
 									<td class="py-2 text-white font-medium">{pos.symbol}</td>
 									<td class="py-2">
@@ -341,9 +364,9 @@
 		<!-- Recent Trades -->
 		<div class="card">
 			<h2 class="text-sm font-medium text-gray-400 mb-4">
-				เทรดล่าสุด ({recentTrades.length})
+				เทรดล่าสุด ({typedTrades.length})
 			</h2>
-			{#if recentTrades.length === 0}
+			{#if typedTrades.length === 0}
 				<EmptyState message="ยังไม่มี trade" icon="📊" />
 			{:else}
 				<div class="overflow-x-auto">
@@ -360,7 +383,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each recentTrades as trade}
+							{#each typedTrades as trade}
 								<tr class="border-b border-dark-border/50">
 									<td class="py-2 text-white">{trade.symbol}</td>
 									<td class="py-2">
@@ -429,7 +452,7 @@
 		<div transition:fly={{ y: 30, duration: 250 }} class="card max-w-md w-full">
 			<h3 class="text-lg font-medium mb-2">ยืนยันการยกเลิก</h3>
 			<p class="text-sm text-gray-400 mb-4">
-				ต้องการยกเลิกลูกค้า <span class="text-white font-medium">{account.client_name}</span> หรือไม่?
+				ต้องการยกเลิกลูกค้า <span class="text-white font-medium">{typedAccount.client_name}</span> หรือไม่?
 				ข้อมูลจะถูกลบออกจากระบบ
 			</p>
 

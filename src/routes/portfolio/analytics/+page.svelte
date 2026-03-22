@@ -14,9 +14,13 @@
 	import RecapsTab from '$lib/components/analytics/RecapsTab.svelte';
 	import CompareTab from '$lib/components/analytics/CompareTab.svelte';
 	import CorrelationTab from '$lib/components/analytics/CorrelationTab.svelte';
+	import type { SymbolBreakdownItem, TagBreakdown, DayOfWeekReport } from '$lib/types';
 
 	let { data } = $props();
-	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown, tagBreakdown, dayOfWeekReport, dayTimeHeatmap, calendarDays, kpiMetrics, statsOverview, healthScore, riskAnalysis, correlationMatrix } = $derived(data);
+	let { report, filterState, filterOptions, tags, playbooks, savedViews, symbolBreakdown: rawSymbolBreakdown, tagBreakdown: rawTagBreakdown, dayOfWeekReport: rawDayOfWeekReport, dayTimeHeatmap, calendarDays, kpiMetrics, statsOverview, healthScore, riskAnalysis, correlationMatrix } = $derived(data);
+	const symbolBreakdown = $derived((rawSymbolBreakdown as SymbolBreakdownItem[]) || []);
+	const tagBreakdown = $derived(rawTagBreakdown as TagBreakdown | null | undefined);
+	const dayOfWeekReport = $derived(rawDayOfWeekReport as DayOfWeekReport | null | undefined);
 
 	// Sub-tab state from URL
 	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
