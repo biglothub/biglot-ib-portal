@@ -28,7 +28,9 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	const supabase = isAdminView ? createSupabaseServiceClient() : locals.supabase;
 	const effectiveUserId = isAdminView ? locals.viewAsUserId! : locals.profile!.id;
 
-	let account: ClientAccount | null;
+	type AccountRow = Pick<ClientAccount, 'id' | 'client_name' | 'mt5_account_id' | 'mt5_server' | 'status' | 'last_synced_at'>;
+	let account: AccountRow | null = null;
+	let allAccounts: AccountRow[] = [];
 
 	if (isAdminView) {
 		// Admin viewing: load specific account by ID
@@ -39,18 +41,29 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 			.single();
 		account = data;
 	} else {
-		// Client viewing own account
-		const { data } = await supabase
+		// Client viewing: load all approved accounts
+		const { data: accounts } = await supabase
 			.from('client_accounts')
 			.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
 			.eq('status', 'approved')
-			.maybeSingle();
-		account = data;
+			.order('created_at', { ascending: true });
+
+		allAccounts = accounts || [];
+
+		// Select account by URL param or default to first
+		const selectedAccountId = url.searchParams.get('account_id');
+		if (selectedAccountId) {
+			account = allAccounts.find(a => a.id === selectedAccountId) ?? null;
+		}
+		if (!account && allAccounts.length > 0) {
+			account = allAccounts[0];
+		}
 	}
 
 	if (!account || !locals.profile) {
 		return {
 			account,
+			allAccounts,
 			tags: [],
 			baseData: null,
 			playbooks: [],
@@ -89,6 +102,7 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 
 	return {
 		account,
+		allAccounts,
 		tags: tagsRes.data || [],
 		baseData,
 		playbooks: baseData?.playbooks ?? [],

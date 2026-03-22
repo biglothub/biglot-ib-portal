@@ -771,11 +771,12 @@
   - Files: src/lib/stores/theme.svelte.ts (new), src/lib/components/layout/ThemeToggle.svelte (new), tailwind.config.ts, src/app.css, src/app.html, src/routes/+layout.svelte, src/routes/settings/+page.svelte
   - Session: 2026-03-22 — CSS variables for dark-bg/surface/border/hover, light-mode text overrides, theme store with Svelte 5 runes, dropdown toggle in header, visual theme picker in settings, flash-free init via inline script, system preference detection
 
-- [ ] [M] ENHANCE-002: Account switcher dropdown in header
+- [x] [M] ENHANCE-002: Account switcher dropdown in header
   - Show current account name in header
   - Dropdown to switch between user's accounts
   - Update all data on switch (invalidate + reload)
-  - Files: src/routes/portfolio/+layout.svelte
+  - Files: src/routes/portfolio/+layout.server.ts, src/routes/portfolio/+layout.svelte, src/lib/components/portfolio/AccountSwitcher.svelte (new)
+  - Session: 2026-03-22 — Layout server loads all approved accounts, supports account_id URL param for selection. AccountSwitcher component shows avatar + name + MT5 ID, dropdown with checkmark on active. Single account = info badge only. Tab navigation and beforeNavigate preserve account_id across pages. Fixed pre-existing type error with AccountRow type alias.
 
 - [ ] [L] ENHANCE-003: Trade Replay feature
   - Play/pause/speed controls (1x, 2x, 5x) on multi-TF chart

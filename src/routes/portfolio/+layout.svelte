@@ -11,11 +11,12 @@
 	import { adminViewAccountId } from '$lib/stores/adminViewStore';
 	import { displayUnit, type DisplayUnit } from '$lib/stores/displayUnit';
 	import SyncStatusBadge from '$lib/components/portfolio/SyncStatusBadge.svelte';
+	import AccountSwitcher from '$lib/components/portfolio/AccountSwitcher.svelte';
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
 
 	let { data, children } = $props();
-	let { account, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
+	let { account, allAccounts, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
 	let chatOpen = $state(false);
 	let guideOpen = $state(false);
 
@@ -107,10 +108,15 @@
 		{ value: 'pips', label: 'p' }
 	];
 
-	/** Build tab href — preserves account_id param for admin view */
+	// The active account_id — from admin view or user's account selection
+	const activeAccountId = $derived(
+		isAdminView ? viewAsAccountId : $page.url.searchParams.get('account_id')
+	);
+
+	/** Build tab href — preserves account_id param for admin view or account switching */
 	const tabHref = (base: string) => {
-		if (!isAdminView || !viewAsAccountId) return base;
-		return `${base}?account_id=${viewAsAccountId}`;
+		if (!activeAccountId) return base;
+		return `${base}?account_id=${activeAccountId}`;
 	};
 
 	// Set admin view store so child components can build correct links
@@ -119,13 +125,13 @@
 		return () => adminViewAccountId.set(null);
 	});
 
-	// Auto-append account_id to all portfolio navigations in admin view
+	// Auto-append account_id to all portfolio navigations when an account is explicitly selected
 	beforeNavigate(({ to, cancel }) => {
-		if (!isAdminView || !viewAsAccountId || !to?.url) return;
+		if (!activeAccountId || !to?.url) return;
 		if (to.url.pathname.startsWith('/portfolio') && !to.url.searchParams.has('account_id')) {
 			cancel();
 			const url = new URL(to.url);
-			url.searchParams.set('account_id', viewAsAccountId);
+			url.searchParams.set('account_id', activeAccountId);
 			goto(url.pathname + url.search, { replaceState: false });
 		}
 	});
@@ -265,7 +271,12 @@
 	style={pullDelta > 0 ? `transform: translateY(${Math.min(pullDelta * 0.3, 24)}px)` : ''}
 >
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-		<h1 class="text-xl font-bold">{isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'}</h1>
+		<div class="flex items-center gap-3">
+			<h1 class="text-xl font-bold">{isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'}</h1>
+			{#if account && !isAdminView}
+				<AccountSwitcher currentAccount={account} allAccounts={allAccounts ?? []} />
+			{/if}
+		</div>
 		<div class="flex items-center gap-2 flex-wrap">
 			{#if account}
 				<SyncStatusBadge lastSyncedAt={account.last_synced_at ?? null} bridgeStatus={bridgeStatus ?? null} />
@@ -332,11 +343,6 @@
 	</div>
 
 	{#if account}
-		<!-- Account info -->
-		<div class="text-sm text-gray-500">
-			MT5: {account.mt5_account_id} @ {account.mt5_server}
-		</div>
-
 		<!-- Tab Navigation (desktop only) -->
 		<div role="tablist" aria-label="หน้าพอร์ต" class="hidden md:flex gap-1 border-b border-dark-border overflow-x-auto">
 			{#each tabs as tab}
