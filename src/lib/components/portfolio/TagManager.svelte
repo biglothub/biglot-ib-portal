@@ -60,7 +60,7 @@
 		}
 	}
 
-	const groupedTags = $derived(() => {
+	const groupedTags = $derived.by(() => {
 		const groups: Record<string, TradeTag[]> = {};
 		for (const tag of tags) {
 			if (!groups[tag.category]) groups[tag.category] = [];

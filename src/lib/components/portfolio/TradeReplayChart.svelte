@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
+	import type { Trade, TradeChartContext, TradeChartBar } from '$lib/types';
 
 	const BASE_INTERVAL_MS = 500;
 	const SPEEDS = [0.5, 1, 2, 4] as const;
@@ -10,16 +12,16 @@
 		trade,
 		onclose
 	}: {
-		contexts?: any[];
-		trade?: any;
+		contexts?: TradeChartContext[];
+		trade?: Trade;
 		onclose?: () => void;
 	} = $props();
 
 	let container = $state<HTMLDivElement>(undefined!);
-	let chart: any;
-	let series: any;
-	let slLine: any = null;
-	let tpLine: any = null;
+	let chart: IChartApi | null;
+	let series: ISeriesApi<'Candlestick'> | null;
+	let slLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
+	let tpLine: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']> | null = null;
 	let intervalId: ReturnType<typeof setInterval> | null = null;
 
 	let isPlaying = $state(false);
@@ -28,13 +30,13 @@
 	let selectedTimeframe = $state('M5');
 
 	let availableTimeframes = $derived(
-		(contexts || []).map((c: any) => c.timeframe)
+		(contexts || []).map((c: TradeChartContext) => c.timeframe)
 	);
 	let currentContext = $derived(
-		(contexts || []).find((c: any) => c.timeframe === selectedTimeframe) || contexts?.[0] || null
+		(contexts || []).find((c: TradeChartContext) => c.timeframe === selectedTimeframe) || contexts?.[0] || null
 	);
 	let allBars = $derived(
-		(currentContext?.bars || []).map((bar: any) => ({
+		(currentContext?.bars || []).map((bar: TradeChartBar) => ({
 			time: bar.time,
 			open: bar.open,
 			high: bar.high,
@@ -60,7 +62,7 @@
 		series.setData(allBars.slice(0, currentIndex + 1));
 
 		// Markers
-		const markers: any[] = [];
+		const markers: SeriesMarker<Time>[] = [];
 		if (hasReachedEntry) {
 			markers.push({
 				time: entryTimestamp,

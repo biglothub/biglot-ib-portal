@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fly, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import type { ChecklistRule, ChecklistCompletion, DailyJournal, MarketNewsArticle } from '$lib/types';
 
 	let {
 		open = false,
@@ -14,17 +15,17 @@
 	}: {
 		open: boolean;
 		onclose: () => void;
-		checklistRules?: any[];
-		checklistCompletions?: any[];
+		checklistRules?: ChecklistRule[];
+		checklistCompletions?: ChecklistCompletion[];
 		checklistDoneToday?: boolean;
-		todayJournal?: any;
-		marketNews?: any[];
+		todayJournal?: DailyJournal | null;
+		marketNews?: MarketNewsArticle[];
 		today?: string;
 	} = $props();
 
 	let step = $state(0); // 0 = checklist, 1 = journal, 2 = market
 	let saving = $state(false);
-	let localCompletions = $state<any[]>([]);
+	let localCompletions = $state<ChecklistCompletion[]>([]);
 
 	$effect(() => {
 		if (open) {
@@ -40,18 +41,18 @@
 	];
 
 	function isCompleted(ruleId: string) {
-		return localCompletions.some((c: any) => c.rule_id === ruleId && c.completed);
+		return localCompletions.some((c: ChecklistCompletion) => c.rule_id === ruleId && c.completed);
 	}
 
-	const manualRules = $derived(checklistRules.filter((r: any) => r.type === 'manual'));
-	const automatedRules = $derived(checklistRules.filter((r: any) => r.type === 'automated'));
-	const completedCount = $derived(checklistRules.filter((r: any) => isCompleted(r.id)).length);
+	const manualRules = $derived(checklistRules.filter((r: ChecklistRule) => r.type === 'manual'));
+	const automatedRules = $derived(checklistRules.filter((r: ChecklistRule) => r.type === 'automated'));
+	const completedCount = $derived(checklistRules.filter((r: ChecklistRule) => isCompleted(r.id)).length);
 	const allDone = $derived(checklistRules.length > 0 && completedCount === checklistRules.length);
 
 	async function toggleRule(ruleId: string) {
 		const nowCompleted = !isCompleted(ruleId);
 		// Optimistic update
-		const existing = localCompletions.findIndex((c: any) => c.rule_id === ruleId);
+		const existing = localCompletions.findIndex((c: ChecklistCompletion) => c.rule_id === ruleId);
 		if (existing >= 0) {
 			localCompletions[existing] = { ...localCompletions[existing], completed: nowCompleted };
 		} else {

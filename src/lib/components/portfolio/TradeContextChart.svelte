@@ -1,29 +1,31 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
+	import type { IChartApi, ISeriesApi } from 'lightweight-charts';
+	import type { Trade, TradeChartContext, TradeChartBar } from '$lib/types';
 
 	let {
 		contexts = [],
 		trade
 	}: {
-		contexts?: any[];
-		trade?: any;
+		contexts?: TradeChartContext[];
+		trade?: Trade;
 	} = $props();
 
 	let container = $state<HTMLDivElement>(undefined!);
-	let chart: any;
-	let series: any;
+	let chart: IChartApi | null;
+	let series: ISeriesApi<'Candlestick'> | null;
 	let selectedTimeframe = $state('M5');
 	let availableTimeframes = $derived(
-		(contexts || []).map((context: any) => context.timeframe)
+		(contexts || []).map((context: TradeChartContext) => context.timeframe)
 	);
 	let currentContext = $derived(
-		(contexts || []).find((context: any) => context.timeframe === selectedTimeframe) || contexts?.[0] || null
+		(contexts || []).find((context: TradeChartContext) => context.timeframe === selectedTimeframe) || contexts?.[0] || null
 	);
 
 	function renderChart() {
 		if (!chart || !series || !currentContext) return;
-		const bars = (currentContext.bars || []).map((bar: any) => ({
+		const bars = (currentContext.bars || []).map((bar: TradeChartBar) => ({
 			time: bar.time,
 			open: bar.open,
 			high: bar.high,

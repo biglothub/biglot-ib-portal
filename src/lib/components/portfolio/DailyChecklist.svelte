@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import type { ChecklistRule, ChecklistCompletion, Trade } from '$lib/types';
 
 	let {
 		rules = [],
@@ -8,9 +9,9 @@
 		date = new Date().toISOString().split('T')[0],
 		onupdate
 	}: {
-		rules?: any[];
-		completions?: any[];
-		trades?: any[];
+		rules?: ChecklistRule[];
+		completions?: ChecklistCompletion[];
+		trades?: Trade[];
 		date?: string;
 		onupdate?: () => void;
 	} = $props();
@@ -21,27 +22,27 @@
 
 	// Get today's completions
 	const todayCompletions = $derived(
-		completions.filter((c: any) => c.date === date)
+		completions.filter((c: ChecklistCompletion) => c.date === date)
 	);
 
 	// Manual rules
-	const manualRules = $derived(rules.filter((r: any) => r.type === 'manual'));
-	const automatedRules = $derived(rules.filter((r: any) => r.type === 'automated'));
+	const manualRules = $derived(rules.filter((r: ChecklistRule) => r.type === 'manual'));
+	const automatedRules = $derived(rules.filter((r: ChecklistRule) => r.type === 'automated'));
 
 	// Check if a rule is completed today
 	function isCompleted(ruleId: string) {
-		return todayCompletions.some((c: any) => c.rule_id === ruleId && c.completed);
+		return todayCompletions.some((c: ChecklistCompletion) => c.rule_id === ruleId && c.completed);
 	}
 
 	// Get auto value for a rule
 	function getAutoValue(ruleId: string) {
-		const c = todayCompletions.find((c: any) => c.rule_id === ruleId);
+		const c = todayCompletions.find((c: ChecklistCompletion) => c.rule_id === ruleId);
 		return c?.auto_value;
 	}
 
 	// Count completed
 	const completedCount = $derived(
-		rules.filter((r: any) => isCompleted(r.id)).length
+		rules.filter((r: ChecklistRule) => isCompleted(r.id)).length
 	);
 
 	// Toggle a manual rule
@@ -103,7 +104,7 @@
 	}
 
 	// Auto rule status label
-	function autoStatusLabel(rule: any) {
+	function autoStatusLabel(rule: ChecklistRule) {
 		const val = getAutoValue(rule.id);
 		if (val === undefined || val === null) return 'รอตรวจสอบ';
 		const cond = rule.condition || {};

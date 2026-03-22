@@ -11,7 +11,7 @@
 		const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
 		const isStandalone =
 			window.matchMedia('(display-mode: standalone)').matches ||
-			(navigator as any).standalone === true;
+			(navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 		if (!isIos || isStandalone) return;
 

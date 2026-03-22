@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PortfolioFilterState } from '$lib/types';
+	import type { PortfolioFilterState, PortfolioFilterOptions, TradeTag, Playbook } from '$lib/types';
 	import { slide } from 'svelte/transition';
 
 	let {
@@ -11,9 +11,9 @@
 		onclear
 	}: {
 		filters: PortfolioFilterState;
-		filterOptions?: any;
-		tags?: any[];
-		playbooks?: any[];
+		filterOptions?: PortfolioFilterOptions;
+		tags?: TradeTag[];
+		playbooks?: Playbook[];
 		onremove: (filterKey: string, value?: string) => void;
 		onclear: () => void;
 	} = $props();
@@ -45,11 +45,11 @@
 		for (const rs of filters.reviewStatus) c.push({ key: 'reviewStatus', value: rs, label: `รีวิว: ${REVIEW_LABELS[rs] || rs}` });
 
 		for (const tid of filters.tagIds) {
-			const tag = tags.find((t: any) => t.id === tid);
+			const tag = tags.find((t: TradeTag) => t.id === tid);
 			c.push({ key: 'tagIds', value: tid, label: `แท็ก: ${tag?.name || tid}` });
 		}
 		for (const pid of filters.playbookIds) {
-			const pb = playbooks.find((p: any) => p.id === pid);
+			const pb = playbooks.find((p: Playbook) => p.id === pid);
 			c.push({ key: 'playbookIds', value: pid, label: `กลยุทธ์: ${pb?.name || pid}` });
 		}
 

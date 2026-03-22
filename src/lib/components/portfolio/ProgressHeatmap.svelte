@@ -10,7 +10,7 @@
 	const dayLabels = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 	// Group data into weeks (columns)
-	const weeks = $derived((() => {
+	const weeks = $derived.by(() => {
 		if (!data || data.length === 0) return [];
 		const result: Array<Array<{ date: string; rate: number; day: number } | null>> = [];
 		let currentWeek: Array<{ date: string; rate: number; day: number } | null> = [];
@@ -36,7 +36,7 @@
 		}
 
 		return result;
-	})());
+	});
 
 	function cellColor(rate: number) {
 		if (rate <= 0) return 'bg-dark-border/30';
@@ -47,7 +47,7 @@
 	}
 
 	// Month labels
-	const monthLabels = $derived((() => {
+	const monthLabels = $derived.by(() => {
 		if (!data || data.length === 0) return [];
 		const labels: Array<{ text: string; weekIndex: number }> = [];
 		const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -67,7 +67,7 @@
 			}
 		}
 		return labels;
-	})());
+	});
 </script>
 
 <div class="space-y-3">

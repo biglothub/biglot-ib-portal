@@ -2,10 +2,11 @@
 	import { marketNewsStore } from '$lib/stores/newsStore';
 	import { timeAgo } from '$lib/utils';
 	import { slide } from 'svelte/transition';
+	import type { MarketNewsArticle } from '$lib/types';
 
 	let { collapsed = false }: { collapsed?: boolean } = $props();
 
-	let articles = $state<any[]>([]);
+	let articles = $state<MarketNewsArticle[]>([]);
 	let refreshing = $state(false);
 	let expanded = $state(true);
 
