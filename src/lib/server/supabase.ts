@@ -4,9 +4,10 @@ import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/publi
 import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { SetAllCookies } from '@supabase/ssr';
+import { withQueryLogging } from './query-logger';
 
 export function createSupabaseServerClient(event: RequestEvent) {
-	return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+	const client = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 		cookies: {
 			getAll: () => event.cookies.getAll(),
 			setAll: (cookiesToSet: Parameters<SetAllCookies>[0]) => {
@@ -16,10 +17,12 @@ export function createSupabaseServerClient(event: RequestEvent) {
 			}
 		}
 	});
+	return withQueryLogging(client);
 }
 
 export function createSupabaseServiceClient() {
-	return createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+	const client = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 		auth: { autoRefreshToken: false, persistSession: false }
 	});
+	return withQueryLogging(client);
 }

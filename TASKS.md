@@ -750,10 +750,11 @@
   - Files: src/hooks.client.ts, src/lib/web-vitals.ts, src/routes/api/vitals/+server.ts
   - Session: 2026-03-22 — Added web-vitals package with batched reporting. Client module (src/lib/web-vitals.ts) collects CLS, FID, LCP, INP, TTFB via dynamic import, batches metrics in a queue, and flushes via sendBeacon on visibility change or after 5s delay. API endpoint (src/routes/api/vitals/+server.ts) validates incoming batches and logs metrics — human-readable in dev, structured JSON in production for log aggregation. Initialized in hooks.client.ts.
 
-- [ ] [M] SCALE-003: Add database query performance logging
+- [x] [M] SCALE-003: Add database query performance logging
   - Log slow queries (>500ms) with query details
   - Add timing wrapper around Supabase client calls
-  - Files: src/lib/server/supabase.ts or new wrapper
+  - Files: src/lib/server/query-logger.ts (new), src/lib/server/supabase.ts
+  - Session: 2026-03-22 — Created withQueryLogging() wrapper using recursive Proxy on Supabase client's from() method. Intercepts .then() at any chain depth to measure total query time. Dev mode: color-coded console logs for all queries (green OK / red SLOW). Production: structured JSON logs only for slow queries (>500ms threshold). Applied to both createSupabaseServerClient and createSupabaseServiceClient.
 
 - [ ] [S] SCALE-004: Add cache headers for static assets
   - Configure immutable cache headers for hashed assets
