@@ -700,11 +700,12 @@
 
 ### Production Infrastructure
 
-- [ ] [M] DEPLOY-001: Add adapter-node for production deployment
+- [x] [M] DEPLOY-001: Add adapter-node for production deployment
   - Replace adapter-auto with adapter-node
   - Configure for Docker/Node.js production server
   - Add Dockerfile + docker-compose.yml
   - Files: svelte.config.js, package.json, Dockerfile (new)
+  - Session: 2026-03-22 — Replaced adapter-auto with adapter-node, created multi-stage Dockerfile (deps → build → production with non-root user), docker-compose.yml with healthcheck, and .dockerignore. Build outputs to /build with Node.js entry point.
 
 - [ ] [M] DEPLOY-002: Add Sentry error tracking
   - Install @sentry/sveltekit
