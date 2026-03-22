@@ -77,14 +77,13 @@ export async function fetchPortfolioBaseData(
 		]);
 
 	const warnings: string[] = [];
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const getData = (result: PromiseSettledResult<{ data: any[] | null; error: any }>, label: string) => {
+	const getData = (result: PromiseSettledResult<{ data: unknown[] | null; error: { message?: string } | null }>, label: string) => {
 		if (result.status === 'fulfilled') {
 			if (result.value.error) {
 				console.error(`[Portfolio] ${label} query error:`, result.value.error.message);
 				warnings.push(label);
 			}
-			return result.value.data || [];
+			return (result.value.data || []) as Record<string, unknown>[];
 		}
 		console.error(`[Portfolio] ${label} promise rejected:`, (result as PromiseRejectedResult).reason);
 		warnings.push(label);

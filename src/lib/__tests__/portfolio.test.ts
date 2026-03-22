@@ -13,11 +13,11 @@ import {
 	getTradeDurationBucket,
 	applyPortfolioFilters
 } from '../portfolio';
-import type { PortfolioFilterState } from '$lib/types';
+import type { PortfolioFilterState, Trade, TradeReview } from '$lib/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function makeTrade(overrides: Record<string, any> = {}) {
+function makeTrade(overrides: Partial<Trade> = {}): Trade {
 	return {
 		id: 'trade-1',
 		client_account_id: 'acc-1',
@@ -44,7 +44,7 @@ function makeTrade(overrides: Record<string, any> = {}) {
 	};
 }
 
-function makeReview(overrides: Record<string, any> = {}) {
+function makeReview(overrides: Partial<TradeReview> = {}): TradeReview {
 	return {
 		id: 'rev-1',
 		trade_id: 'trade-1',
@@ -193,7 +193,24 @@ describe('buildPortfolioSearchParams', () => {
 			outcome: 'win',
 			hasNotes: true,
 			hasAttachments: false,
-			durationBucket: 'scalp'
+			durationBucket: 'scalp',
+			profitMin: null,
+			profitMax: null,
+			lotSizeMin: null,
+			lotSizeMax: null,
+			pipsMin: null,
+			pipsMax: null,
+			qualityScoreMin: null,
+			qualityScoreMax: null,
+			disciplineScoreMin: null,
+			disciplineScoreMax: null,
+			executionScoreMin: null,
+			executionScoreMax: null,
+			confidenceMin: null,
+			confidenceMax: null,
+			followedPlan: '',
+			hasBrokenRules: '',
+			dayOfWeek: []
 		};
 		const params = buildPortfolioSearchParams(original);
 		const parsed = parsePortfolioFilters(params);

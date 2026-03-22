@@ -175,7 +175,13 @@ async function getTradeHistory(supabase: SupabaseClient, accountId: string, para
 	const { data, error } = await query;
 	if (error) return JSON.stringify({ error: error.message });
 
-	const trades = (data || []).map((t: any) => ({
+	type TradeRow = Record<string, unknown> & {
+		trade_tag_assignments?: Array<{ trade_tags?: { name?: string; category?: string } }>;
+		trade_notes?: Array<{ content?: string; rating?: number | null }>;
+		trade_reviews?: Array<{ review_status?: string; playbook_id?: string | null; broken_rules?: string[]; followed_plan?: boolean | null }>;
+		trade_attachments?: unknown[];
+	};
+	const trades = (data as TradeRow[] || []).map((t) => ({
 		symbol: t.symbol,
 		type: t.type,
 		lot: t.lot_size,
@@ -189,7 +195,7 @@ async function getTradeHistory(supabase: SupabaseClient, accountId: string, para
 		tp: t.tp,
 		commission: t.commission,
 		swap: t.swap,
-		tags: (t.trade_tag_assignments || []).map((a: any) => ({
+		tags: (t.trade_tag_assignments || []).map((a) => ({
 			name: a.trade_tags?.name,
 			category: a.trade_tags?.category
 		})),
@@ -219,7 +225,8 @@ async function getDailyStats(supabase: SupabaseClient, accountId: string, params
 
 	if (error) return JSON.stringify({ error: error.message });
 
-	const stats = (data || []).map((d: any) => ({
+	type DailyStatsRow = Record<string, unknown>;
+	const stats = (data as DailyStatsRow[] || []).map((d) => ({
 		date: d.date,
 		balance: d.balance,
 		equity: d.equity,
@@ -256,7 +263,8 @@ async function getOpenPositions(supabase: SupabaseClient, accountId: string): Pr
 
 	if (error) return JSON.stringify({ error: error.message });
 
-	const positions = (data || []).map((p: any) => ({
+	type PositionRow = Record<string, unknown>;
+	const positions = (data as PositionRow[] || []).map((p) => ({
 		symbol: p.symbol,
 		type: p.type,
 		lot: p.lot_size,
@@ -289,18 +297,23 @@ async function getAnalytics(supabase: SupabaseClient, accountId: string): Promis
 			.single()
 	]);
 
-	const getValue = (res: PromiseSettledResult<any>) =>
+	type QueryResult<T> = PromiseSettledResult<{ data: T | null; error: unknown }>;
+	const getValue = <T>(res: QueryResult<T>): T | null =>
 		res.status === 'fulfilled' ? res.value.data : null;
 
-	const allStats = getValue(statsRes) || [];
-	const allTrades = getValue(tradesRes) || [];
-	const latest = getValue(latestRes);
+	type StatsRow = { date: string; balance: number; equity: number; profit: number };
+	type TradeRow2 = { close_time: string; open_time: string; profit: number; lot_size: number };
+	type LatestRow = { profit: number; max_drawdown: number };
+
+	const allStats = getValue<StatsRow[]>(statsRes as QueryResult<StatsRow[]>) || [];
+	const allTrades = getValue<TradeRow2[]>(tradesRes as QueryResult<TradeRow2[]>) || [];
+	const latest = getValue<LatestRow>(latestRes as QueryResult<LatestRow>);
 
 	const dailyStatsForAnalytics = allStats
-		.map((d: any) => ({ date: d.date, balance: d.balance || d.equity || 0, profit: d.profit || 0 }))
-		.filter((d: any) => d.balance > 0);
+		.map((d) => ({ date: d.date, balance: d.balance || d.equity || 0, profit: d.profit || 0 }))
+		.filter((d) => d.balance > 0);
 
-	const tradesForAnalytics = allTrades.map((t: any) => ({
+	const tradesForAnalytics = allTrades.map((t) => ({
 		closeTime: t.close_time, openTime: t.open_time, profit: t.profit || 0, lot: t.lot_size || 0
 	}));
 
@@ -352,7 +365,13 @@ async function getReviewContext(supabase: SupabaseClient, accountId: string, par
 
 	if (error) return JSON.stringify({ error: error.message });
 
-	const reviews = (data || []).map((trade: any) => ({
+	type ReviewTradeRow = Record<string, unknown> & {
+		trade_reviews?: Array<{ review_status?: string; playbook_id?: string | null; mistake_summary?: string | null; lesson_summary?: string | null; next_action?: string | null; broken_rules?: string[]; followed_plan?: boolean | null }>;
+		trade_attachments?: unknown[];
+		trade_notes?: unknown[];
+		trade_tag_assignments?: Array<{ trade_tags?: { name?: string; category?: string } }>;
+	};
+	const reviews = (data as ReviewTradeRow[] || []).map((trade) => ({
 		symbol: trade.symbol,
 		type: trade.type,
 		profit: trade.profit,
@@ -366,7 +385,7 @@ async function getReviewContext(supabase: SupabaseClient, accountId: string, par
 		followedPlan: trade.trade_reviews?.[0]?.followed_plan ?? null,
 		attachments: (trade.trade_attachments || []).length,
 		notes: (trade.trade_notes || []).length,
-		tags: (trade.trade_tag_assignments || []).map((assignment: any) => ({
+		tags: (trade.trade_tag_assignments || []).map((assignment) => ({
 			name: assignment.trade_tags?.name,
 			category: assignment.trade_tags?.category
 		}))
@@ -403,9 +422,9 @@ async function getPlaybooks(supabase: SupabaseClient, accountId: string, userId:
 
 	return JSON.stringify({
 		totalPlaybooks: playbooks.length,
-		playbooks: playbooks.map((playbook: any) => ({
+		playbooks: (playbooks as Array<Record<string, unknown>>).map((playbook) => ({
 			...playbook,
-			usage: playbookUsage.get(playbook.id) || { totalTrades: 0, reviewedTrades: 0 }
+			usage: playbookUsage.get(playbook.id as string) || { totalTrades: 0, reviewedTrades: 0 }
 		}))
 	});
 }
@@ -428,7 +447,7 @@ async function getEquitySnapshots(supabase: SupabaseClient, accountId: string, p
 	let snapshots = data || [];
 	if (snapshots.length > 200) {
 		const step = Math.ceil(snapshots.length / 200);
-		snapshots = snapshots.filter((_: any, i: number) => i % step === 0);
+		snapshots = snapshots.filter((_: unknown, i: number) => i % step === 0);
 	}
 
 	return JSON.stringify({ totalSnapshots: snapshots.length, days, snapshots });
@@ -460,7 +479,8 @@ async function getMarketNews(supabase: SupabaseClient, params: ToolParams): Prom
 	const { data, error } = await query;
 	if (error) return JSON.stringify({ error: error.message });
 
-	const articles = (data || []).map((a: any) => ({
+	type NewsRow = Record<string, unknown>;
+	const articles = (data as NewsRow[] || []).map((a) => ({
 		title: a.title_th || 'N/A',
 		summary: a.summary_th || 'N/A',
 		category: a.category,

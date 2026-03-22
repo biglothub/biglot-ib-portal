@@ -1,10 +1,11 @@
 import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/server/supabase';
 import { redirect, type Handle } from '@sveltejs/kit';
+import type { Profile } from '$lib/types';
 
 const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline'];
 
 // In-memory profile cache — avoids DB query on every request
-const profileCache = new Map<string, { profile: any; timestamp: number }>();
+const profileCache = new Map<string, { profile: Profile; timestamp: number }>();
 const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export const handle: Handle = async ({ event, resolve }) => {

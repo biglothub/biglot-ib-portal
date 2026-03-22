@@ -14,7 +14,24 @@ export const EMPTY_PORTFOLIO_FILTERS: PortfolioFilterState = {
 	outcome: '',
 	hasNotes: null,
 	hasAttachments: null,
-	durationBucket: ''
+	durationBucket: '',
+	profitMin: null,
+	profitMax: null,
+	lotSizeMin: null,
+	lotSizeMax: null,
+	pipsMin: null,
+	pipsMax: null,
+	qualityScoreMin: null,
+	qualityScoreMax: null,
+	disciplineScoreMin: null,
+	disciplineScoreMax: null,
+	executionScoreMin: null,
+	executionScoreMax: null,
+	confidenceMin: null,
+	confidenceMax: null,
+	followedPlan: '',
+	hasBrokenRules: '',
+	dayOfWeek: []
 };
 
 export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
@@ -31,6 +48,12 @@ export const REVIEW_STATUS_STYLES: Record<ReviewStatus, string> = {
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+function parseNumParam(value: string | null): number | null {
+	if (value == null || value === '') return null;
+	const n = parseFloat(value);
+	return isNaN(n) ? null : n;
+}
+
 export function parsePortfolioFilters(searchParams: URLSearchParams): PortfolioFilterState {
 	const parseBool = (value: string | null) => {
 		if (value == null || value === '') return null;
@@ -41,6 +64,8 @@ export function parsePortfolioFilters(searchParams: URLSearchParams): PortfolioF
 	const durationBucket = searchParams.get('duration');
 	const rawFrom = searchParams.get('from') || '';
 	const rawTo = searchParams.get('to') || '';
+	const followedPlan = searchParams.get('followed_plan');
+	const hasBrokenRules = searchParams.get('has_broken_rules');
 
 	return {
 		q: searchParams.get('q') || '',
@@ -61,7 +86,24 @@ export function parsePortfolioFilters(searchParams: URLSearchParams): PortfolioF
 			durationBucket === 'swing' ||
 			durationBucket === 'position'
 				? durationBucket
-				: ''
+				: '',
+		profitMin: parseNumParam(searchParams.get('profit_min')),
+		profitMax: parseNumParam(searchParams.get('profit_max')),
+		lotSizeMin: parseNumParam(searchParams.get('lot_min')),
+		lotSizeMax: parseNumParam(searchParams.get('lot_max')),
+		pipsMin: parseNumParam(searchParams.get('pips_min')),
+		pipsMax: parseNumParam(searchParams.get('pips_max')),
+		qualityScoreMin: parseNumParam(searchParams.get('quality_min')),
+		qualityScoreMax: parseNumParam(searchParams.get('quality_max')),
+		disciplineScoreMin: parseNumParam(searchParams.get('discipline_min')),
+		disciplineScoreMax: parseNumParam(searchParams.get('discipline_max')),
+		executionScoreMin: parseNumParam(searchParams.get('execution_min')),
+		executionScoreMax: parseNumParam(searchParams.get('execution_max')),
+		confidenceMin: parseNumParam(searchParams.get('confidence_min')),
+		confidenceMax: parseNumParam(searchParams.get('confidence_max')),
+		followedPlan: followedPlan === 'yes' || followedPlan === 'no' ? followedPlan : '',
+		hasBrokenRules: hasBrokenRules === 'yes' || hasBrokenRules === 'no' ? hasBrokenRules : '',
+		dayOfWeek: searchParams.getAll('dow').map(Number).filter((n) => n >= 0 && n <= 6 && Number.isInteger(n))
 	};
 }
 
@@ -80,26 +122,43 @@ export function buildPortfolioSearchParams(filters: PortfolioFilterState): URLSe
 	if (filters.hasNotes != null) params.set('has_notes', filters.hasNotes ? '1' : '0');
 	if (filters.hasAttachments != null) params.set('has_attachments', filters.hasAttachments ? '1' : '0');
 	if (filters.durationBucket) params.set('duration', filters.durationBucket);
+	if (filters.profitMin != null) params.set('profit_min', String(filters.profitMin));
+	if (filters.profitMax != null) params.set('profit_max', String(filters.profitMax));
+	if (filters.lotSizeMin != null) params.set('lot_min', String(filters.lotSizeMin));
+	if (filters.lotSizeMax != null) params.set('lot_max', String(filters.lotSizeMax));
+	if (filters.pipsMin != null) params.set('pips_min', String(filters.pipsMin));
+	if (filters.pipsMax != null) params.set('pips_max', String(filters.pipsMax));
+	if (filters.qualityScoreMin != null) params.set('quality_min', String(filters.qualityScoreMin));
+	if (filters.qualityScoreMax != null) params.set('quality_max', String(filters.qualityScoreMax));
+	if (filters.disciplineScoreMin != null) params.set('discipline_min', String(filters.disciplineScoreMin));
+	if (filters.disciplineScoreMax != null) params.set('discipline_max', String(filters.disciplineScoreMax));
+	if (filters.executionScoreMin != null) params.set('execution_min', String(filters.executionScoreMin));
+	if (filters.executionScoreMax != null) params.set('execution_max', String(filters.executionScoreMax));
+	if (filters.confidenceMin != null) params.set('confidence_min', String(filters.confidenceMin));
+	if (filters.confidenceMax != null) params.set('confidence_max', String(filters.confidenceMax));
+	if (filters.followedPlan) params.set('followed_plan', filters.followedPlan);
+	if (filters.hasBrokenRules) params.set('has_broken_rules', filters.hasBrokenRules);
+	for (const dow of filters.dayOfWeek) params.append('dow', String(dow));
 	return params;
 }
 
-export function getTradeReview(trade: Partial<Trade> & Record<string, any>) {
+export function getTradeReview(trade: Trade) {
 	return trade.trade_reviews?.[0] || null;
 }
 
-export function getTradeReviewStatus(trade: Partial<Trade> & Record<string, any>): ReviewStatus {
+export function getTradeReviewStatus(trade: Trade): ReviewStatus {
 	return getTradeReview(trade)?.review_status || 'unreviewed';
 }
 
-export function getTradeNotes(trade: Partial<Trade> & Record<string, any>) {
+export function getTradeNotes(trade: Trade) {
 	return trade.trade_notes || [];
 }
 
-export function getTradeAttachments(trade: Partial<Trade> & Record<string, any>) {
+export function getTradeAttachments(trade: Trade) {
 	return trade.trade_attachments || [];
 }
 
-export function getTradePlaybookId(trade: Partial<Trade> & Record<string, any>): string | null {
+export function getTradePlaybookId(trade: Trade): string | null {
 	return getTradeReview(trade)?.playbook_id || null;
 }
 
@@ -124,7 +183,7 @@ export function getTradeDurationBucket(openTime: string | null | undefined, clos
 	return 'position';
 }
 
-export function applyPortfolioFilters<T extends Partial<Trade> & Record<string, any>>(
+export function applyPortfolioFilters<T extends Trade>(
 	trades: T[],
 	filters: PortfolioFilterState
 ) {
@@ -152,6 +211,34 @@ export function applyPortfolioFilters<T extends Partial<Trade> & Record<string, 
 		if (filters.hasAttachments === false && getTradeAttachments(trade).length > 0) return false;
 		if (filters.durationBucket && getTradeDurationBucket(trade.open_time, trade.close_time) !== filters.durationBucket) {
 			return false;
+		}
+		// Numeric range filters
+		const profit = Number(trade.profit || 0);
+		if (filters.profitMin != null && profit < filters.profitMin) return false;
+		if (filters.profitMax != null && profit > filters.profitMax) return false;
+		if (filters.lotSizeMin != null && Number(trade.lot_size || 0) < filters.lotSizeMin) return false;
+		if (filters.lotSizeMax != null && Number(trade.lot_size || 0) > filters.lotSizeMax) return false;
+		if (filters.pipsMin != null && (trade.pips == null || Number(trade.pips) < filters.pipsMin)) return false;
+		if (filters.pipsMax != null && (trade.pips == null || Number(trade.pips) > filters.pipsMax)) return false;
+		// Review score filters
+		const review = getTradeReview(trade);
+		if (filters.qualityScoreMin != null && (!review?.setup_quality_score || review.setup_quality_score < filters.qualityScoreMin)) return false;
+		if (filters.qualityScoreMax != null && (!review?.setup_quality_score || review.setup_quality_score > filters.qualityScoreMax)) return false;
+		if (filters.disciplineScoreMin != null && (!review?.discipline_score || review.discipline_score < filters.disciplineScoreMin)) return false;
+		if (filters.disciplineScoreMax != null && (!review?.discipline_score || review.discipline_score > filters.disciplineScoreMax)) return false;
+		if (filters.executionScoreMin != null && (!review?.execution_score || review.execution_score < filters.executionScoreMin)) return false;
+		if (filters.executionScoreMax != null && (!review?.execution_score || review.execution_score > filters.executionScoreMax)) return false;
+		if (filters.confidenceMin != null && (!review?.confidence_at_entry || review.confidence_at_entry < filters.confidenceMin)) return false;
+		if (filters.confidenceMax != null && (!review?.confidence_at_entry || review.confidence_at_entry > filters.confidenceMax)) return false;
+		// Boolean/enum filters
+		if (filters.followedPlan === 'yes' && review?.followed_plan !== true) return false;
+		if (filters.followedPlan === 'no' && review?.followed_plan !== false) return false;
+		if (filters.hasBrokenRules === 'yes' && (!review?.broken_rules || review.broken_rules.length === 0)) return false;
+		if (filters.hasBrokenRules === 'no' && review?.broken_rules && review.broken_rules.length > 0) return false;
+		// Day of week filter
+		if (filters.dayOfWeek.length > 0) {
+			const closeDay = trade.close_time ? new Date(trade.close_time).getDay() : -1;
+			if (!filters.dayOfWeek.includes(closeDay)) return false;
 		}
 		if (filters.from) {
 			const closeTime = trade.close_time ? new Date(trade.close_time).getTime() : 0;

@@ -293,6 +293,26 @@ export interface PortfolioFilterState {
 	hasNotes: boolean | null;
 	hasAttachments: boolean | null;
 	durationBucket: '' | 'scalp' | 'intraday' | 'swing' | 'position';
+	// Numeric ranges
+	profitMin: number | null;
+	profitMax: number | null;
+	lotSizeMin: number | null;
+	lotSizeMax: number | null;
+	pipsMin: number | null;
+	pipsMax: number | null;
+	// Review score ranges
+	qualityScoreMin: number | null;
+	qualityScoreMax: number | null;
+	disciplineScoreMin: number | null;
+	disciplineScoreMax: number | null;
+	executionScoreMin: number | null;
+	executionScoreMax: number | null;
+	confidenceMin: number | null;
+	confidenceMax: number | null;
+	// Boolean/enum
+	followedPlan: '' | 'yes' | 'no';
+	hasBrokenRules: '' | 'yes' | 'no';
+	dayOfWeek: number[];
 }
 
 export interface OpenPosition {
@@ -381,4 +401,163 @@ export interface MarketNewsArticle {
 	published_at: string;
 	fetched_at: string;
 	image_url: string | null;
+}
+
+// --- Checklist types ---
+
+export interface ChecklistRule {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	name: string;
+	description: string;
+	type: 'manual' | 'automated';
+	automated_check: string | null;
+	condition: Record<string, unknown> | null;
+	is_active: boolean;
+	sort_order: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface ChecklistCompletion {
+	id: string;
+	rule_id: string;
+	user_id: string;
+	client_account_id: string;
+	date: string;
+	completed: boolean;
+	auto_value: number | null;
+	created_at: string;
+}
+
+// --- Notebook types ---
+
+export interface NotebookFolder {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	name: string;
+	type: 'system' | 'custom';
+	system_type: string | null;
+	icon: string;
+	sort_order: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface NotebookNote {
+	id: string;
+	user_id: string;
+	client_account_id: string;
+	folder_id: string;
+	title: string;
+	content: string;
+	linked_trade_id: string | null;
+	linked_date: string | null;
+	linked_session: string | null;
+	is_pinned: boolean;
+	is_deleted: boolean;
+	deleted_at: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+// --- Filter options type ---
+
+export interface PortfolioFilterOptions {
+	symbols: string[];
+	sessions: string[];
+	directions: string[];
+	durationBuckets: Array<{ value: string; label: string }>;
+	playbooks: Array<{ id: string; name: string }>;
+	profitRange: { min: number; max: number } | null;
+	lotSizeRange: { min: number; max: number } | null;
+	pipsRange: { min: number; max: number } | null;
+}
+
+// --- Stats overview type ---
+
+export interface StatsSection {
+	title: string;
+	rows: Array<{ label: string; value: string; color?: string }>;
+}
+
+// --- Analytics breakdown types ---
+
+export interface SymbolBreakdownItem {
+	symbol: string;
+	trades: number;
+	wins: number;
+	losses: number;
+	winRate: number;
+	profitFactor: number;
+	netPnl: number;
+	avgPnl: number;
+}
+
+export interface TagBreakdownItem {
+	tagId: string;
+	tagName: string;
+	category: string;
+	color: string;
+	trades: number;
+	wins: number;
+	losses: number;
+	winRate: number;
+	profitFactor: number;
+	netPnl: number;
+	avgPnl: number;
+}
+
+export interface TagCategoryBreakdownItem {
+	category: string;
+	tagCount: number;
+	trades: number;
+	wins: number;
+	losses: number;
+	winRate: number;
+	profitFactor: number;
+	netPnl: number;
+	avgPnl: number;
+}
+
+export interface TagBreakdown {
+	byTag: TagBreakdownItem[];
+	byCategory: TagCategoryBreakdownItem[];
+}
+
+export interface DayOfWeekItem {
+	day: string;
+	dayIdx: number;
+	trades: number;
+	wins: number;
+	losses: number;
+	winRate: number;
+	profitFactor: number;
+	netPnl: number;
+	avgPnl: number;
+	avgHoldMinutes: number;
+	bestTrade: number;
+	worstTrade: number;
+}
+
+export interface DayOfWeekReport {
+	days: DayOfWeekItem[];
+	bestDay: string | null;
+	worstDay: string | null;
+}
+
+export interface HeatmapCell {
+	day: number;
+	hour: number;
+	trades: number;
+	pnl: number;
+	winRate: number;
+}
+
+export interface DayTimeHeatmap {
+	cells: HeatmapCell[];
+	maxTrades: number;
+	maxAbsPnl: number;
 }

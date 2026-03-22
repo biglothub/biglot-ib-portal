@@ -171,20 +171,25 @@ async function fetchSingleFeed(feed: (typeof RSS_FEEDS)[0]): Promise<RawArticle[
 
 		return itemList
 			.slice(0, 10) // Max 10 per feed
-			.map((item: any) => {
-				const title = item[feed.titlePath] || '';
+			.map((item: Record<string, unknown>) => {
+				const raw = item as Record<string, Record<string, string> | string | undefined>;
+				const title = raw[feed.titlePath] || '';
+				const linkRaw = raw[feed.linkPath];
 				const link =
-					typeof item[feed.linkPath] === 'string'
-						? item[feed.linkPath]
-						: item[feed.linkPath]?.['@_href'] || '';
-				const desc = item[feed.descPath] || '';
-				const dateStr = item[feed.datePath] || item.updated || '';
+					typeof linkRaw === 'string'
+						? linkRaw
+						: (linkRaw?.['@_href']) || '';
+				const desc = raw[feed.descPath] || '';
+				const dateStr = raw[feed.datePath] || raw['updated'] || '';
 
 				// Try to extract image from description or media
+				const mediaContent = raw['media:content'];
+				const mediaThumbnail = raw['media:thumbnail'];
+				const enclosure = raw['enclosure'];
 				const imageUrl =
-					item['media:content']?.['@_url'] ||
-					item['media:thumbnail']?.['@_url'] ||
-					item.enclosure?.['@_url'] ||
+					(typeof mediaContent === 'object' ? mediaContent?.['@_url'] : null) ||
+					(typeof mediaThumbnail === 'object' ? mediaThumbnail?.['@_url'] : null) ||
+					(typeof enclosure === 'object' ? enclosure?.['@_url'] : null) ||
 					null;
 
 				// Strip HTML from description
@@ -194,12 +199,13 @@ async function fetchSingleFeed(feed: (typeof RSS_FEEDS)[0]): Promise<RawArticle[
 
 				if (!title || !link) return null;
 
+				const dateStrVal = typeof dateStr === 'string' ? dateStr : '';
 				return {
 					source: feed.source,
-					source_url: link,
+					source_url: typeof link === 'string' ? link : '',
 					title_original: typeof title === 'string' ? title.trim() : String(title),
 					summary_original: cleanDesc,
-					published_at: parseDate(dateStr),
+					published_at: parseDate(dateStrVal),
 					image_url: typeof imageUrl === 'string' ? imageUrl : null
 				};
 			})
