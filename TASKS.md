@@ -1,11 +1,11 @@
 # IB-Portal Task Board — TradeZella Feature Parity
 
 > Last updated: 2026-03-22
-> Status: Cycle 1 complete (56 tasks). Cycle 2 starting (39 tasks).
-> Phase order: SEC → FIX → FEAT → QA2 → POLISH2
+> Status: Cycle 1 (56 tasks) + Cycle 2 (39 tasks) complete. Cycle 3 starting (21 tasks).
+> Phase order: CLEAN → DEPLOY → SCALE → ENHANCE → QA3
 
 ## Status Legend
-- [ ] = Ready | [~] = In Progress | [x] = Complete | [!] = Blocked
+`[ ]` = Ready | `[~]` = In Progress | `[x]` = Complete | `[!]` = Blocked
 
 ---
 
@@ -667,6 +667,144 @@
   - Focus rings visible for keyboard nav
   - Chart animations smooth
   - Notes: Added focus-visible rings to all .btn-* classes in app.css (brand-400 for primary/secondary, red-400 for danger, green-400 for success) with ring-offset for dark bg. Added fade/fly transitions to 12 modals: TradeImportModal, JournalTemplates, QuickTradeEntry (backdrop fade + CSS slide-up), TradingCalendar (fade+scale), SwipeableTradeCard (2 bottom sheets with fade+slide-up), playbook publish modal, admin approvals reject modal, admin IB add modal, admin client delete/edit modals, IB client edit/cancel modals. Added fade to Sidebar mobile backdrop and MobileNav drawer backdrop. Added animate-slide-up and animate-dropdown-in CSS keyframes to Tailwind config. Applied animate-dropdown-in to MultiSelectDropdown. All patterns follow canonical fade(200ms) + fly(y:30, 250ms) established by PortfolioGuide/StartMyDayModal.
+
+---
+
+## Cycle 3 — Production Deployment & Enhancements
+
+### Code Quality Fixes
+
+- [x] [S] CLEAN-001: Fix `<svelte:component>` deprecation warnings
+  - Svelte 5 runes mode: components are dynamic by default, no wrapper needed
+  - Remove `<svelte:component this={X}>` → use `<X>` directly
+  - Files: src/routes/portfolio/analytics/+page.svelte, src/routes/portfolio/trades/[id]/+page.svelte
+  - **Session**: 2026-03-22 — Replaced 3 `<svelte:component>` usages (2 in analytics, 1 in trade detail) with direct component tags
+
+- [x] [S] CLEAN-002: Fix Social Feed data reactivity
+  - `$state(data.initialPosts)` captures initial value only, won't update on navigation
+  - Change to `$derived(data.initialPosts)` for reactive server data
+  - Files: src/routes/portfolio/social/+page.svelte
+  - **Session**: 2026-03-22 — Used `$derived` for read-only server data (leaderboard, serverPosts, serverSettings) + `$effect` to sync locally-mutable state (posts, mySettings, settingsForm) on navigation. Eliminated all `state_referenced_locally` warnings.
+
+- [x] [M] CLEAN-003: Refactor analytics page — extract sub-tab components
+  - analytics/+page.svelte is 1682 lines — too large
+  - Extract each sub-tab into its own component (OverviewTab, PerformanceTab, CalendarTab, etc.)
+  - Keep parent page as tab router only
+  - Files: src/routes/portfolio/analytics/+page.svelte → src/lib/components/analytics/*.svelte
+  - **Session**: 2026-03-22 — Extracted 11 sub-tab components (OverviewTab, PerformanceTab, CalendarTab, SymbolsTab, TagsTab, DaysTab, DaytimeTab, RiskTab, RecapsTab, CompareTab, CorrelationTab) into src/lib/components/analytics/. Parent page reduced from 1680 lines to ~110 lines (tab router only). All state, helpers, and logic moved into respective components. Fixed type annotations for undefined/null prop compatibility.
+
+- [ ] [S] CLEAN-004: Audit and remove remaining `any` types
+  - grep -r ': any' src/ — fix all occurrences with proper types
+  - Focus on function params, API responses, component props
+  - Files: multiple
+
+### Production Infrastructure
+
+- [ ] [M] DEPLOY-001: Add adapter-node for production deployment
+  - Replace adapter-auto with adapter-node
+  - Configure for Docker/Node.js production server
+  - Add Dockerfile + docker-compose.yml
+  - Files: svelte.config.js, package.json, Dockerfile (new)
+
+- [ ] [M] DEPLOY-002: Add Sentry error tracking
+  - Install @sentry/sveltekit
+  - Configure client-side + server-side error capture
+  - Add source maps upload for stack traces
+  - Files: src/hooks.client.ts, src/hooks.server.ts, vite.config.ts
+
+- [ ] [L] DEPLOY-003: Add GitHub Actions CI/CD pipeline
+  - Workflow: lint → type-check → test → build → deploy
+  - Run on push to main and PRs
+  - Cache node_modules for speed
+  - Files: .github/workflows/ci.yml (new)
+
+- [ ] [M] DEPLOY-004: Add health check endpoint
+  - GET /api/health — returns 200 + Supabase connectivity check
+  - Include: server uptime, DB connection status, last sync time
+  - For uptime monitoring (UptimeRobot, Betterstack)
+  - Files: src/routes/api/health/+server.ts (new)
+
+- [ ] [S] DEPLOY-005: Add environment validation on startup
+  - Check all required env vars exist on server start
+  - Fail fast with clear error message if missing
+  - Required: SUPABASE_URL, SUPABASE_ANON_KEY, OPENAI_API_KEY, etc.
+  - Files: src/lib/server/env.ts (new), import in hooks.server.ts
+
+### Scaling & Performance
+
+- [ ] [M] SCALE-001: Migrate rate limiting to Redis/Upstash
+  - Current: in-memory Map (single instance only)
+  - Use Upstash Redis for distributed rate limiting
+  - Fallback to in-memory if Redis unavailable
+  - Files: src/lib/server/rateLimit.ts
+
+- [ ] [M] SCALE-002: Add Web Vitals tracking
+  - Track LCP, CLS, FID/INP metrics
+  - Report to analytics endpoint or console in dev
+  - Files: src/routes/+layout.svelte
+
+- [ ] [M] SCALE-003: Add database query performance logging
+  - Log slow queries (>500ms) with query details
+  - Add timing wrapper around Supabase client calls
+  - Files: src/lib/server/supabase.ts or new wrapper
+
+- [ ] [S] SCALE-004: Add cache headers for static assets
+  - Configure immutable cache headers for hashed assets
+  - Set appropriate Cache-Control for API responses
+  - Files: svelte.config.js, hooks.server.ts
+
+### Feature Enhancements
+
+- [ ] [M] ENHANCE-001: Dark/Light theme toggle
+  - Add theme store (dark/light/system)
+  - Toggle button in settings + header
+  - CSS variables for theme colors via Tailwind dark: prefix
+  - Files: src/lib/stores/theme.ts (new), tailwind.config.ts, src/routes/settings/+page.svelte
+
+- [ ] [M] ENHANCE-002: Account switcher dropdown in header
+  - Show current account name in header
+  - Dropdown to switch between user's accounts
+  - Update all data on switch (invalidate + reload)
+  - Files: src/routes/portfolio/+layout.svelte
+
+- [ ] [L] ENHANCE-003: Trade Replay feature
+  - Play/pause/speed controls (1x, 2x, 5x) on multi-TF chart
+  - Progressive candle reveal with entry/exit markers
+  - P&L curve overlay during replay
+  - Leverage existing MultiTimeframeChart component
+  - Files: src/routes/portfolio/trades/[id]/+page.svelte, new ReplayControls.svelte
+
+- [ ] [M] ENHANCE-004: E2E tests with Playwright
+  - Install Playwright
+  - Critical flows: login, view dashboard, open trade, create journal, filter trades
+  - Run in CI pipeline
+  - Files: tests/e2e/ (new), playwright.config.ts (new)
+
+- [ ] [S] ENHANCE-005: Add favicon + PWA manifest icons
+  - Generate favicon set (16x16, 32x32, 180x180, 512x512)
+  - Update manifest.json with proper icons
+  - Add apple-touch-icon
+  - Files: static/favicon.ico, static/manifest.json, src/app.html
+
+- [ ] [M] ENHANCE-006: Coach schedule from database
+  - Current: hardcoded coach list in live-trade page
+  - Create coaches table in Supabase
+  - Admin UI to manage coach schedule
+  - Files: src/routes/portfolio/live-trade/+page.svelte, supabase/migrations/ (new)
+
+### Final QA
+
+- [ ] [L] QA3-001: Full regression test
+  - Verify all 94 previous tasks still work
+  - Test critical user flows end-to-end
+  - Check all pages render without errors
+  - Verify 386+ tests still pass
+
+- [ ] [M] QA3-002: Performance audit — Lighthouse score
+  - Run Lighthouse on all main pages
+  - Target: Performance > 90, Accessibility > 90
+  - Fix any issues found
+  - Document scores
 
 ---
 
