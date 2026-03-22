@@ -693,7 +693,7 @@
   - Files: src/routes/portfolio/analytics/+page.svelte → src/lib/components/analytics/*.svelte
   - **Session**: 2026-03-22 — Extracted 11 sub-tab components (OverviewTab, PerformanceTab, CalendarTab, SymbolsTab, TagsTab, DaysTab, DaytimeTab, RiskTab, RecapsTab, CompareTab, CorrelationTab) into src/lib/components/analytics/. Parent page reduced from 1680 lines to ~110 lines (tab router only). All state, helpers, and logic moved into respective components. Fixed type annotations for undefined/null prop compatibility.
 
-- [ ] [S] CLEAN-004: Audit and remove remaining `any` types
+- [~] [S] CLEAN-004: Audit and remove remaining `any` types
   - grep -r ': any' src/ — fix all occurrences with proper types
   - Focus on function params, API responses, component props
   - Files: multiple
