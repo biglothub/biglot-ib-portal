@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:journal:${profile.id}`, 30, 60_000)) {
+	if (!(await rateLimit(`portfolio:journal:${profile.id}`, 30, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 

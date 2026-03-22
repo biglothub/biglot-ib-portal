@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:checklist:${profile.id}`, 30, 60_000)) {
+	if (!(await rateLimit(`portfolio:checklist:${profile.id}`, 30, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป' }, { status: 429 });
 	}
 

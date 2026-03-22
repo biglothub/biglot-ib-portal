@@ -19,7 +19,9 @@ const ENV_VARS: EnvVar[] = [
 	{ name: 'VAPID_PUBLIC_KEY', required: false, description: 'VAPID public key for push notifications' },
 	{ name: 'VAPID_PRIVATE_KEY', required: false, description: 'VAPID private key for push notifications' },
 	{ name: 'VAPID_SUBJECT', required: false, description: 'VAPID subject for push notifications' },
-	{ name: 'PUBLIC_APP_URL', required: false, description: 'Public app URL used in email links' }
+	{ name: 'PUBLIC_APP_URL', required: false, description: 'Public app URL used in email links' },
+	{ name: 'UPSTASH_REDIS_REST_URL', required: false, description: 'Upstash Redis REST URL for distributed rate limiting' },
+	{ name: 'UPSTASH_REDIS_REST_TOKEN', required: false, description: 'Upstash Redis REST token for distributed rate limiting' }
 ];
 
 /**

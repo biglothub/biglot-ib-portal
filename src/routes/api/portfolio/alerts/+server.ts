@@ -43,7 +43,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
-	if (!rateLimit(`alerts:${profile.id}`, 20, 60_000)) {
+	if (!(await rateLimit(`alerts:${profile.id}`, 20, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
@@ -108,7 +108,7 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
-	if (!rateLimit(`alerts:del:${profile.id}`, 20, 60_000)) {
+	if (!(await rateLimit(`alerts:del:${profile.id}`, 20, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 

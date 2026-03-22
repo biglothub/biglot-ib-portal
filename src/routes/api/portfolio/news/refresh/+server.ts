@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 	}
 
 	// Global rate limit: 1 refresh per 5 minutes across all users
-	if (!rateLimit('news-refresh-global', 1, 300_000)) {
+	if (!(await rateLimit('news-refresh-global', 1, 300_000))) {
 		return new Response(
 			JSON.stringify({ message: 'News was recently refreshed', newArticles: 0 }),
 			{ status: 200 }

@@ -8,7 +8,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:tags:${profile.id}`, 20, 60_000)) {
+	if (!(await rateLimit(`portfolio:tags:${profile.id}`, 20, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
@@ -50,7 +50,7 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:tags:delete:${profile.id}`, 20, 60_000)) {
+	if (!(await rateLimit(`portfolio:tags:delete:${profile.id}`, 20, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 

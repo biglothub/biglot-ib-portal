@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 		return new Response(JSON.stringify({ message: 'ไม่ได้รับอนุญาต' }), { status: 403 });
 	}
 
-	if (!rateLimit(`analysis:${profile.id}`, 5, 3_600_000)) {
+	if (!(await rateLimit(`analysis:${profile.id}`, 5, 3_600_000))) {
 		return new Response(JSON.stringify({ message: 'Rate limit exceeded' }), { status: 429 });
 	}
 

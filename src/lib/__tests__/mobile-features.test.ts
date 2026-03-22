@@ -874,30 +874,30 @@ describe('MOB-005: Quick Trade Entry', () => {
 			vi.useFakeTimers();
 		});
 
-		it('allows first 20 requests within a minute', () => {
+		it('allows first 20 requests within a minute', async () => {
 			const key = `portfolio:trades-manual:test-rate-limit-mob005-${Date.now()}`;
 			for (let i = 0; i < 20; i++) {
-				expect(rateLimit(key, 20, 60_000)).toBe(true);
+				expect(await rateLimit(key, 20, 60_000)).toBe(true);
 			}
 		});
 
-		it('blocks 21st request within a minute', () => {
+		it('blocks 21st request within a minute', async () => {
 			const key = `portfolio:trades-manual:test-rate-limit-mob005-21st-${Date.now()}`;
 			for (let i = 0; i < 20; i++) {
-				rateLimit(key, 20, 60_000);
+				await rateLimit(key, 20, 60_000);
 			}
-			expect(rateLimit(key, 20, 60_000)).toBe(false);
+			expect(await rateLimit(key, 20, 60_000)).toBe(false);
 		});
 
-		it('resets after window expires', () => {
+		it('resets after window expires', async () => {
 			const key = `portfolio:trades-manual:test-rate-limit-mob005-reset-${Date.now()}`;
 			for (let i = 0; i < 20; i++) {
-				rateLimit(key, 20, 60_000);
+				await rateLimit(key, 20, 60_000);
 			}
-			expect(rateLimit(key, 20, 60_000)).toBe(false);
+			expect(await rateLimit(key, 20, 60_000)).toBe(false);
 
 			vi.advanceTimersByTime(60_001);
-			expect(rateLimit(key, 20, 60_000)).toBe(true);
+			expect(await rateLimit(key, 20, 60_000)).toBe(true);
 		});
 
 		afterEach(() => {

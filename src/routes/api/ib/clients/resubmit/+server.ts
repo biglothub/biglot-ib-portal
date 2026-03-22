@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
-	if (!rateLimit(`ib:resubmit:${ip}`, 5, 60_000)) {
+	if (!(await rateLimit(`ib:resubmit:${ip}`, 5, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 

@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
-	if (!rateLimit(`social:settings:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`social:settings:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 

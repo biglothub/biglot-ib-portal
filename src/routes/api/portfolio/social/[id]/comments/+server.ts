@@ -39,7 +39,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
-	if (!rateLimit(`social:comment:${profile.id}`, 20, 60_000)) {
+	if (!(await rateLimit(`social:comment:${profile.id}`, 20, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
@@ -92,7 +92,7 @@ export const DELETE: RequestHandler = async ({ params, url, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
-	if (!rateLimit(`social:comment-del:${profile.id}`, 20, 60_000)) {
+	if (!(await rateLimit(`social:comment-del:${profile.id}`, 20, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 

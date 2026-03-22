@@ -37,7 +37,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:economic-calendar:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`portfolio:economic-calendar:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 

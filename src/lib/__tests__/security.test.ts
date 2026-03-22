@@ -441,78 +441,78 @@ describe('SEC-008: rateLimit', () => {
 		vi.restoreAllMocks();
 	});
 
-	it('allows requests within the limit', () => {
+	it('allows requests within the limit', async () => {
 		const key = 'test:allow:' + Math.random();
-		expect(rateLimit(key, 5, 60_000)).toBe(true);
-		expect(rateLimit(key, 5, 60_000)).toBe(true);
-		expect(rateLimit(key, 5, 60_000)).toBe(true);
+		expect(await rateLimit(key, 5, 60_000)).toBe(true);
+		expect(await rateLimit(key, 5, 60_000)).toBe(true);
+		expect(await rateLimit(key, 5, 60_000)).toBe(true);
 	});
 
-	it('blocks requests exceeding the limit', () => {
+	it('blocks requests exceeding the limit', async () => {
 		const key = 'test:block:' + Math.random();
 		for (let i = 0; i < 3; i++) {
-			expect(rateLimit(key, 3, 60_000)).toBe(true);
+			expect(await rateLimit(key, 3, 60_000)).toBe(true);
 		}
 		// 4th request should be blocked
-		expect(rateLimit(key, 3, 60_000)).toBe(false);
-		expect(rateLimit(key, 3, 60_000)).toBe(false);
+		expect(await rateLimit(key, 3, 60_000)).toBe(false);
+		expect(await rateLimit(key, 3, 60_000)).toBe(false);
 	});
 
-	it('resets after the time window expires', () => {
+	it('resets after the time window expires', async () => {
 		const key = 'test:reset:' + Math.random();
 		const baseTime = 1000000;
 
 		vi.spyOn(Date, 'now').mockReturnValue(baseTime);
 
 		// Exhaust the limit
-		expect(rateLimit(key, 2, 1000)).toBe(true);
-		expect(rateLimit(key, 2, 1000)).toBe(true);
-		expect(rateLimit(key, 2, 1000)).toBe(false);
+		expect(await rateLimit(key, 2, 1000)).toBe(true);
+		expect(await rateLimit(key, 2, 1000)).toBe(true);
+		expect(await rateLimit(key, 2, 1000)).toBe(false);
 
 		// Advance time past the window
 		vi.spyOn(Date, 'now').mockReturnValue(baseTime + 1001);
 
 		// Should be allowed again
-		expect(rateLimit(key, 2, 1000)).toBe(true);
+		expect(await rateLimit(key, 2, 1000)).toBe(true);
 	});
 
-	it('isolates different keys', () => {
+	it('isolates different keys', async () => {
 		const key1 = 'test:isolate1:' + Math.random();
 		const key2 = 'test:isolate2:' + Math.random();
 
 		// Exhaust key1
-		rateLimit(key1, 1, 60_000);
-		expect(rateLimit(key1, 1, 60_000)).toBe(false);
+		await rateLimit(key1, 1, 60_000);
+		expect(await rateLimit(key1, 1, 60_000)).toBe(false);
 
 		// key2 should still work
-		expect(rateLimit(key2, 1, 60_000)).toBe(true);
+		expect(await rateLimit(key2, 1, 60_000)).toBe(true);
 	});
 
-	it('allows exactly limit requests (boundary)', () => {
+	it('allows exactly limit requests (boundary)', async () => {
 		const key = 'test:boundary:' + Math.random();
 		for (let i = 0; i < 10; i++) {
-			expect(rateLimit(key, 10, 60_000)).toBe(true);
+			expect(await rateLimit(key, 10, 60_000)).toBe(true);
 		}
 		// 11th should fail
-		expect(rateLimit(key, 10, 60_000)).toBe(false);
+		expect(await rateLimit(key, 10, 60_000)).toBe(false);
 	});
 
-	it('handles limit of 1 (single request per window)', () => {
+	it('handles limit of 1 (single request per window)', async () => {
 		const key = 'test:single:' + Math.random();
-		expect(rateLimit(key, 1, 60_000)).toBe(true);
-		expect(rateLimit(key, 1, 60_000)).toBe(false);
+		expect(await rateLimit(key, 1, 60_000)).toBe(true);
+		expect(await rateLimit(key, 1, 60_000)).toBe(false);
 	});
 
-	it('resets counter on exact window boundary', () => {
+	it('resets counter on exact window boundary', async () => {
 		const key = 'test:exact:' + Math.random();
 		const baseTime = 1000000;
 
 		vi.spyOn(Date, 'now').mockReturnValue(baseTime);
-		rateLimit(key, 1, 1000);
-		expect(rateLimit(key, 1, 1000)).toBe(false);
+		await rateLimit(key, 1, 1000);
+		expect(await rateLimit(key, 1, 1000)).toBe(false);
 
 		// At exactly window boundary (now > resetAt means baseTime + 1001 > baseTime + 1000)
 		vi.spyOn(Date, 'now').mockReturnValue(baseTime + 1001);
-		expect(rateLimit(key, 1, 1000)).toBe(true);
+		expect(await rateLimit(key, 1, 1000)).toBe(true);
 	});
 });

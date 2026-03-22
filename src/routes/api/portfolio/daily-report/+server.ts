@@ -73,7 +73,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 		weekly_day: number;
 	}>;
 
-	if (!rateLimit(`daily-report:settings:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`daily-report:settings:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
@@ -116,7 +116,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
 	}
 
-	if (!rateLimit(`daily-report:send:${profile.id}`, 3, 60_000)) {
+	if (!(await rateLimit(`daily-report:send:${profile.id}`, 3, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 

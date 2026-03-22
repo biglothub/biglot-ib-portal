@@ -78,7 +78,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:templates:publish:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`portfolio:templates:publish:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
@@ -184,7 +184,7 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:templates:delete:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`portfolio:templates:delete:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 

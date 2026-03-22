@@ -17,7 +17,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`ai-coach:${profile.id}`, 5, 3_600_000)) {
+	if (!(await rateLimit(`ai-coach:${profile.id}`, 5, 3_600_000))) {
 		return json({ message: 'สร้างคำแนะนำได้สูงสุด 5 ครั้ง/ชั่วโมง' }, { status: 429 });
 	}
 

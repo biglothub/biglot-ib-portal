@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 	}
 
 	// Allow at most 1 manual sync trigger per 60 s per user
-	if (!rateLimit(`portfolio:sync-trigger:${profile.id}`, 1, 60_000)) {
+	if (!(await rateLimit(`portfolio:sync-trigger:${profile.id}`, 1, 60_000))) {
 		return json({ message: 'Too many requests — wait 60 seconds before syncing again' }, { status: 429 });
 	}
 

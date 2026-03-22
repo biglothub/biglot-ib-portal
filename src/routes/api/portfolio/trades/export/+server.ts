@@ -31,7 +31,7 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 		});
 	}
 
-	if (!rateLimit(`portfolio:trades-export:${profile.id}`, 5, 60_000)) {
+	if (!(await rateLimit(`portfolio:trades-export:${profile.id}`, 5, 60_000))) {
 		return new Response(JSON.stringify({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }), {
 			status: 429,
 			headers: { 'Content-Type': 'application/json' }

@@ -11,7 +11,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 	}
 
-	if (!rateLimit(`portfolio:trades-bulk:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`portfolio:trades-bulk:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 

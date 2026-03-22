@@ -737,11 +737,12 @@
 
 ### Scaling & Performance
 
-- [ ] [M] SCALE-001: Migrate rate limiting to Redis/Upstash
+- [x] [M] SCALE-001: Migrate rate limiting to Redis/Upstash
   - Current: in-memory Map (single instance only)
   - Use Upstash Redis for distributed rate limiting
   - Fallback to in-memory if Redis unavailable
-  - Files: src/lib/server/rateLimit.ts
+  - Files: src/lib/server/rate-limit.ts
+  - Session: 2026-03-22 — Rewrote rate-limit.ts using @upstash/redis + @upstash/ratelimit with lazy-initialized Redis client and per-config Ratelimit instance caching. Falls back to in-memory Map when UPSTASH_REDIS_REST_URL/TOKEN not set or Redis errors. Made rateLimit() async (Promise<boolean>), updated all 59 call sites across 48 API route files and 2 test files. Added UPSTASH env vars to env.ts validation and .env.example.
 
 - [ ] [M] SCALE-002: Add Web Vitals tracking
   - Track LCP, CLS, FID/INP metrics

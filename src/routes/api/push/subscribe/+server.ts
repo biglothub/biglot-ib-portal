@@ -8,7 +8,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Unauthorized' }, { status: 401 });
 	}
 
-	if (!rateLimit(`push:sub:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`push:sub:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
@@ -40,7 +40,7 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'Unauthorized' }, { status: 401 });
 	}
 
-	if (!rateLimit(`push:unsub:${profile.id}`, 10, 60_000)) {
+	if (!(await rateLimit(`push:unsub:${profile.id}`, 10, 60_000))) {
 		return json({ message: 'Rate limit exceeded' }, { status: 429 });
 	}
 
