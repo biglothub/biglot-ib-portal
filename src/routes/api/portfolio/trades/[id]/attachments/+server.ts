@@ -1,4 +1,5 @@
 import { rateLimit } from '$lib/server/rate-limit';
+import { createSupabaseServiceClient } from '$lib/server/supabase';
 import { json } from '@sveltejs/kit';
 import { verifyTradeOwnership, isSafeUrl } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
@@ -22,6 +23,19 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 	if (error) {
 		return json({ message: error.message }, { status: 500 });
+	}
+
+	// Generate fresh signed URLs for screenshot attachments
+	if (data && data.length > 0) {
+		const serviceClient = createSupabaseServiceClient();
+		for (const att of data) {
+			if (att.kind === 'screenshot') {
+				const { data: signedData } = await serviceClient.storage
+					.from('trade-screenshots')
+					.createSignedUrl(att.storage_path, 3600);
+				if (signedData?.signedUrl) att.storage_path = signedData.signedUrl;
+			}
+		}
 	}
 
 	return json({ attachments: data || [] });
@@ -98,6 +112,27 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 	const { id } = await request.json();
 	if (!id) {
 		return json({ message: 'Attachment id is required' }, { status: 400 });
+	}
+
+	// Fetch the attachment to check kind and get storage_path for cleanup
+	const { data: attachment } = await locals.supabase
+		.from('trade_attachments')
+		.select('kind, storage_path')
+		.eq('id', id)
+		.eq('trade_id', params.id)
+		.eq('user_id', profile.id)
+		.single();
+
+	// Clean up storage for screenshot attachments
+	if (attachment?.kind === 'screenshot' && attachment.storage_path) {
+		try {
+			const serviceClient = createSupabaseServiceClient();
+			await serviceClient.storage
+				.from('trade-screenshots')
+				.remove([attachment.storage_path]);
+		} catch (e) {
+			console.error('Failed to remove file from storage:', e);
+		}
 	}
 
 	const { error } = await locals.supabase

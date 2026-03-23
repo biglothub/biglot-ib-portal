@@ -176,7 +176,7 @@ export interface TradeReview {
 	playbooks?: Playbook | null;
 }
 
-export type TradeAttachmentKind = 'link' | 'image_url';
+export type TradeAttachmentKind = 'link' | 'image_url' | 'screenshot';
 
 export interface TradeAttachment {
 	id: string;

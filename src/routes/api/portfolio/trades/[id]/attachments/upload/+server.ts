@@ -56,23 +56,14 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		return json({ message: `อัปโหลดไม่สำเร็จ: ${uploadError.message}` }, { status: 500 });
 	}
 
-	// Get signed URL (valid 10 years — effectively permanent for this use case)
-	const { data: signedData, error: signError } = await serviceClient.storage
-		.from('trade-screenshots')
-		.createSignedUrl(filename, 60 * 60 * 24 * 365 * 10);
-
-	if (signError || !signedData?.signedUrl) {
-		return json({ message: 'อัปโหลดสำเร็จแต่สร้าง URL ไม่ได้' }, { status: 500 });
-	}
-
-	// Save to trade_attachments
+	// Save to trade_attachments — store the bucket file path, not a signed URL
 	const { data: attachment, error: dbError } = await locals.supabase
 		.from('trade_attachments')
 		.insert({
 			trade_id: params.id,
 			user_id: profile.id,
 			kind: 'screenshot',
-			storage_path: signedData.signedUrl,
+			storage_path: filename,
 			caption: caption.trim(),
 			sort_order: 0
 		})
