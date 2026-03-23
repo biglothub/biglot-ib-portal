@@ -87,7 +87,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		.single();
 
 	if (error) {
-		return json({ message: 'บันทึกเทรดไม่สำเร็จ' }, { status: 500 });
+		return json({ message: 'เกิดข้อผิดพลาดในการบันทึกเทรด กรุณาลองใหม่' }, { status: 500 });
 	}
 
 	return json({ id: data.id }, { status: 201 });

@@ -287,7 +287,8 @@
 							onclick={() => deleteFolder(folder.id)}
 							class="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 transition-opacity"
 							title="ลบโฟลเดอร์"
-						>
+						aria-label="ลบโฟลเดอร์"
+					>
 							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
 						</button>
 					{/if}
@@ -405,6 +406,7 @@
 			<button
 				onclick={() => { selectedNoteId = null; editTitle = ''; editContent = ''; }}
 				class="md:hidden flex items-center gap-1 text-xs text-gray-400 hover:text-white mb-2"
+				aria-label="กลับไปรายการโน้ต"
 			>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
 				กลับ

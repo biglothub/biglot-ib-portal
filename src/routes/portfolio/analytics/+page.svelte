@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { navigating } from '$app/stores';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
@@ -69,7 +70,13 @@
 	}
 </script>
 
-<div class="space-y-7">
+<div class="space-y-7 relative">
+	{#if $navigating}
+		<div class="absolute inset-0 bg-dark-bg/50 flex items-center justify-center z-10 rounded-lg">
+			<div class="animate-spin w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full"></div>
+		</div>
+	{/if}
+
 	<PortfolioFilterBar
 		filters={filterState}
 		{filterOptions}

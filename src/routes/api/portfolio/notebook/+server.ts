@@ -26,7 +26,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ไม่พบบัญชีที่อนุมัติ' }, { status: 404 });
 	}
 
-	const body = await request.json();
+	let body: Record<string, unknown>;
+	try {
+		body = await request.json();
+	} catch {
+		return json({ message: 'ข้อมูลไม่ถูกต้อง' }, { status: 400 });
+	}
+
+	if (!body.action || typeof body.action !== 'string') {
+		return json({ message: 'กรุณาระบุ action' }, { status: 400 });
+	}
 
 	// ── Create / ensure system folders ──
 	if (body.action === 'ensure_folders') {
@@ -91,6 +100,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// ── Delete folder ──
 	if (body.action === 'delete_folder') {
+		if (!body.folder_id) {
+			return json({ message: 'กรุณาระบุ folder_id' }, { status: 400 });
+		}
 		// Move notes to unfiled, then delete folder
 		await locals.supabase
 			.from('notebook_notes')
@@ -119,7 +131,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				folder_id: body.folder_id || null,
 				title: body.title || '',
 				content: body.content || '',
-				content_plain: stripHtml(body.content || ''),
+				content_plain: stripHtml(String(body.content || '')),
 				linked_trade_id: body.linked_trade_id || null,
 				linked_date: body.linked_date || null,
 				linked_session: body.linked_session || null,
@@ -133,11 +145,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// ── Update note ──
 	if (body.action === 'update_note') {
+		if (!body.note_id) {
+			return json({ message: 'กรุณาระบุ note_id' }, { status: 400 });
+		}
 		const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
 		if (body.title !== undefined) updates.title = body.title;
 		if (body.content !== undefined) {
 			updates.content = body.content;
-			updates.content_plain = stripHtml(body.content);
+			updates.content_plain = stripHtml(String(body.content));
 		}
 		if (body.folder_id !== undefined) updates.folder_id = body.folder_id;
 		if (body.is_pinned !== undefined) updates.is_pinned = body.is_pinned;
@@ -156,6 +171,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// ── Soft delete note ──
 	if (body.action === 'delete_note') {
+		if (!body.note_id) {
+			return json({ message: 'กรุณาระบุ note_id' }, { status: 400 });
+		}
 		const { error } = await locals.supabase
 			.from('notebook_notes')
 			.update({ is_deleted: true, deleted_at: new Date().toISOString() })
@@ -168,6 +186,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// ── Restore note ──
 	if (body.action === 'restore_note') {
+		if (!body.note_id) {
+			return json({ message: 'กรุณาระบุ note_id' }, { status: 400 });
+		}
 		const { error } = await locals.supabase
 			.from('notebook_notes')
 			.update({ is_deleted: false, deleted_at: null })

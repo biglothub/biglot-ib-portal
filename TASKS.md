@@ -982,3 +982,74 @@
 - Files: src/routes/portfolio/+page.svelte, TASKS.md
 - Next: FEAT-011
 
+---
+
+## Cycle 4 — Product Hardening (17 tasks)
+
+> Date: 2026-03-24
+> Strategy: 3 parallel agents (worktree isolation) + 1 QA agent
+> Team: product-hardening
+
+### Critical Fixes (agent-storage)
+
+- [ ] [M] HARD-001: Fix file upload — store bucket path instead of signed URL
+  - src/routes/api/portfolio/trades/[id]/attachments/upload/+server.ts
+  - Line 75: storage_path: signedData.signedUrl → storage_path: filename
+
+- [ ] [M] HARD-002: Generate signed URLs on read (GET handler)
+  - src/routes/api/portfolio/trades/[id]/attachments/+server.ts
+  - For kind:'screenshot' generate fresh signed URL (1hr expiry)
+
+- [ ] [M] HARD-003: Add storage cleanup on attachment delete
+  - src/routes/api/portfolio/trades/[id]/attachments/+server.ts DELETE handler
+  - Call storage.remove() before deleting DB row
+
+- [ ] [S] HARD-004: Fix TradeAttachmentKind type — add 'screenshot'
+  - src/lib/types.ts line 179
+
+- [ ] [S] HARD-005: Fix migration numbering — rename duplicate 003_
+  - supabase/migrations/003_enable_notification_realtime.sql → 003b_
+
+### Data Resilience (agent-resilience)
+
+- [ ] [M] HARD-006: Layout loader — graceful error handling
+  - src/routes/portfolio/+layout.server.ts lines 82-101
+  - Replace Promise.all with try-catch per query, add .catch to marketNews
+
+- [ ] [M] HARD-007: AI Chat — token estimation + context cap
+  - src/lib/server/validation.ts — total chars cap 24,000
+  - src/routes/api/portfolio/ai-chat/+server.ts — cap tool_calls to 5
+
+- [ ] [M] HARD-008: AI Tools — parameter bounds
+  - src/lib/server/ai-tools.ts — days<=365, limit<=100, symbols<=10
+
+- [ ] [S] HARD-009: AI Coach — error tolerance
+  - src/routes/api/portfolio/ai-coach/+server.ts — try-catch data fetching
+
+### UX Polish (agent-ux)
+
+- [ ] [S] HARD-010: a11y — aria-labels on icon buttons
+  - src/routes/portfolio/journal/+page.svelte lines 227-229
+  - Scan other pages for icon-only buttons
+
+- [ ] [S] HARD-011: a11y — QuickTradeEntry form label
+  - src/lib/components/portfolio/QuickTradeEntry.svelte line 247
+
+- [ ] [S] HARD-012: Analytics tab loading state
+  - src/routes/portfolio/analytics/+page.svelte — navigating store + skeleton
+
+- [ ] [M] HARD-013: Settings trade table mobile
+  - src/routes/settings/trade/+page.svelte — mobile card view
+
+- [ ] [S] HARD-014: Date filter validation
+  - src/lib/portfolio.ts — Date.parse check + from<=to
+
+- [ ] [M] HARD-015: API error messages
+  - journal, trades/manual, notebook — field-specific errors
+
+### QA (agent-qa)
+
+- [ ] [M] HARD-016: Full test suite + build verification
+  - npx vitest run, npm run build, npx svelte-check
+
+- [ ] [M] HARD-017: Manual verification of critical fixes

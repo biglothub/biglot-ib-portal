@@ -214,7 +214,7 @@
 
 		<!-- Existing symbols table -->
 		{#if symbolSettings.length > 0}
-			<div class="overflow-x-auto mb-6">
+			<div class="hidden md:block overflow-x-auto mb-6">
 				<table class="w-full text-sm">
 					<thead>
 						<tr class="border-b border-dark-border text-gray-500 text-xs">
@@ -297,6 +297,30 @@
 						{/each}
 					</tbody>
 				</table>
+			</div>
+
+			<!-- Mobile card view -->
+			<div class="md:hidden space-y-3 mb-6">
+				{#each symbolSettings as sym, i}
+					<div class="bg-dark-bg border border-dark-border rounded-lg p-3">
+						<div class="flex items-center justify-between">
+							<span class="inline-block px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary text-xs font-mono font-medium">{sym.symbol}</span>
+							<button
+								type="button"
+								onclick={() => removeSymbol(i)}
+								class="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+								aria-label="ลบ {sym.symbol}"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+							</button>
+						</div>
+						<div class="grid grid-cols-3 gap-2 mt-2 text-sm text-gray-400">
+							<span>TP: {sym.default_tp_pips ?? '-'}</span>
+							<span>SL: {sym.default_sl_pips ?? '-'}</span>
+							<span>Com: {sym.commission ?? '-'}</span>
+						</div>
+					</div>
+				{/each}
 			</div>
 		{:else}
 			<div

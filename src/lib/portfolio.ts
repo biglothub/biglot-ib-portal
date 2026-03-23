@@ -48,6 +48,8 @@ export const REVIEW_STATUS_STYLES: Record<ReviewStatus, string> = {
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+const isValidDate = (s: string) => DATE_RE.test(s) && !isNaN(new Date(s).getTime());
+
 function parseNumParam(value: string | null): number | null {
 	if (value == null || value === '') return null;
 	const n = parseFloat(value);
@@ -67,10 +69,16 @@ export function parsePortfolioFilters(searchParams: URLSearchParams): PortfolioF
 	const followedPlan = searchParams.get('followed_plan');
 	const hasBrokenRules = searchParams.get('has_broken_rules');
 
+	let from = isValidDate(rawFrom) ? rawFrom : '';
+	let to = isValidDate(rawTo) ? rawTo : '';
+	if (from && to && from > to) {
+		[from, to] = [to, from];
+	}
+
 	return {
 		q: searchParams.get('q') || '',
-		from: DATE_RE.test(rawFrom) ? rawFrom : '',
-		to: DATE_RE.test(rawTo) ? rawTo : '',
+		from,
+		to,
 		symbols: searchParams.getAll('symbol'),
 		sessions: searchParams.getAll('session'),
 		directions: searchParams.getAll('direction'),

@@ -46,7 +46,7 @@
 	{#if actionError}
 		<div class="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
 			<span>{actionError}</span>
-			<button type="button" onclick={() => actionError = ''} class="text-red-300 hover:text-red-200 text-xs">ปิด</button>
+			<button type="button" onclick={() => actionError = ''} class="text-red-300 hover:text-red-200 text-xs" aria-label="ปิดข้อความแจ้งเตือน">ปิด</button>
 		</div>
 	{/if}
 
