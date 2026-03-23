@@ -29,6 +29,12 @@ export function validateChatMessages(
 		});
 	}
 
+	// Check total content length (rough token estimation — 1 char ≈ 1 token for Thai)
+	const totalChars = validated.reduce((sum, m) => sum + (typeof m.content === 'string' ? m.content.length : 0), 0);
+	if (totalChars > 24000) {
+		return { valid: false, status: 413, error: 'ข้อความยาวเกินไป กรุณาเริ่มบทสนทนาใหม่' };
+	}
+
 	// Enforce strict alternation: must start with 'user', alternate user/assistant, end with 'user'
 	if (validated[0].role !== 'user' || validated[validated.length - 1].role !== 'user') {
 		return { valid: false, error: 'Invalid message sequence', status: 400 };

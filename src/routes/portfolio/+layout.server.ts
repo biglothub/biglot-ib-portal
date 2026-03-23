@@ -79,18 +79,20 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
 	// Stream market news separately — don't block critical data
-	const marketNewsPromise = supabase
-		.from('market_news')
-		.select('*')
-		.eq('ai_processed', true)
-		.gte('published_at', oneDayAgo.toISOString())
-		.order('relevance_score', { ascending: false })
-		.order('published_at', { ascending: false })
-		.limit(20)
-		.then((res) => res.data || []);
+	const marketNewsPromise = Promise.resolve(
+		supabase
+			.from('market_news')
+			.select('*')
+			.eq('ai_processed', true)
+			.gte('published_at', oneDayAgo.toISOString())
+			.order('relevance_score', { ascending: false })
+			.order('published_at', { ascending: false })
+			.limit(20)
+			.then((res) => res.data || [])
+	).catch(() => []);
 
-	// Critical data loads in parallel (not blocked by news)
-	const [tagsRes, baseData, bridgeHealthRes] = await Promise.all([
+	// Critical data: baseData is essential, tags and bridgeHealth are non-critical
+	const [tagsRes, baseData, bridgeHealthRes] = await Promise.allSettled([
 		supabase
 			.from('trade_tags')
 			.select('*')
@@ -100,16 +102,25 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 		supabase.from('bridge_health').select('status, last_heartbeat').eq('id', 'singleton').maybeSingle()
 	]);
 
+	// baseData is critical — let failure propagate
+	if (baseData.status === 'rejected') {
+		throw baseData.reason;
+	}
+
+	const tags = tagsRes.status === 'fulfilled' ? tagsRes.value.data || [] : [];
+	const bridgeHealth = bridgeHealthRes.status === 'fulfilled' ? bridgeHealthRes.value.data : null;
+	const resolvedBaseData = baseData.value;
+
 	return {
 		account,
 		allAccounts,
-		tags: tagsRes.data || [],
-		baseData,
-		playbooks: baseData?.playbooks ?? [],
-		savedViews: baseData?.savedViews ?? [],
+		tags,
+		baseData: resolvedBaseData,
+		playbooks: resolvedBaseData?.playbooks ?? [],
+		savedViews: resolvedBaseData?.savedViews ?? [],
 		userId: effectiveUserId,
 		marketNews: marketNewsPromise,
-		bridgeStatus: (bridgeHealthRes.data?.status as string | null) ?? null,
+		bridgeStatus: (bridgeHealth?.status as string | null) ?? null,
 		isAdminView,
 		viewAsAccountId: isAdminView ? locals.viewAsAccountId : null
 	};

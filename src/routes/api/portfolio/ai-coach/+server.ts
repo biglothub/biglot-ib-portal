@@ -30,29 +30,45 @@ export const POST: RequestHandler = async ({ locals }) => {
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 	const since = thirtyDaysAgo.toISOString().split('T')[0];
 
-	const { data: trades } = await locals.supabase
-		.from('trades')
-		.select(
-			'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_reviews(id, review_status, playbook_id, broken_rules, followed_plan, playbooks(id, name))'
-		)
-		.eq('client_account_id', account.id)
-		.gte('close_time', `${since}T00:00:00`)
-		.order('close_time', { ascending: false });
+	let recentTrades: Record<string, unknown>[] = [];
+	try {
+		const { data: trades } = await locals.supabase
+			.from('trades')
+			.select(
+				'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_reviews(id, review_status, playbook_id, broken_rules, followed_plan, playbooks(id, name))'
+			)
+			.eq('client_account_id', account.id)
+			.gte('close_time', `${since}T00:00:00`)
+			.order('close_time', { ascending: false });
 
-	const recentTrades = trades ?? [];
+		recentTrades = (trades as Record<string, unknown>[]) ?? [];
+	} catch {
+		// Trade fetch failed — continue with empty data
+		recentTrades = [];
+	}
 
 	if (recentTrades.length < 5) {
 		return json({ coach: null, reason: 'insufficient_data' });
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const dailyHistory = buildDailyHistory(recentTrades as any);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const kpi = buildKpiMetrics(recentTrades as any, dailyHistory);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const ruleBreaks = buildRuleBreakMetrics(recentTrades as any);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const setupPerf = buildSetupPerformance(recentTrades as any);
+	let dailyHistory: any[] = [], kpi: any = {}, ruleBreaks: any = { topRules: [] }, setupPerf: any[] = [];
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		dailyHistory = buildDailyHistory(recentTrades as any);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		kpi = buildKpiMetrics(recentTrades as any, dailyHistory);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		ruleBreaks = buildRuleBreakMetrics(recentTrades as any);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		setupPerf = buildSetupPerformance(recentTrades as any);
+	} catch {
+		// Computation failed — use safe defaults
+		dailyHistory = [];
+		kpi = { totalTrades: recentTrades.length, tradeWinRate: 0, dayWinRate: 0, profitFactor: 0, netPnl: 0, avgWin: 0, avgLoss: 0 };
+		ruleBreaks = { topRules: [] };
+		setupPerf = [];
+	}
 
 	// Session performance (UTC hour-based, same as recaps endpoint)
 	const sessionMap = new Map<string, { profit: number; trades: number; wins: number }>();
@@ -134,7 +150,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 		...(ruleBreaks.topRules.length > 0
 			? ruleBreaks.topRules
 					.slice(0, 3)
-					.map((r) => `- ${r.rule}: ${r.count}x (loss: $${r.loss.toFixed(2)})`)
+					.map((r: { rule: string; count: number; loss: number }) => `- ${r.rule}: ${r.count}x (loss: $${r.loss.toFixed(2)})`)
 			: ['- ไม่มีข้อมูล']),
 		``,
 		`Setup Performance:`,

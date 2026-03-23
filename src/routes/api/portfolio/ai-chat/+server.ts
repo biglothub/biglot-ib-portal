@@ -95,14 +95,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 							(tc): tc is Extract<typeof tc, { type: 'function' }> => tc.type === 'function'
 						);
 
-						if (functionCalls.length > 0) {
-							send({ type: 'tool_use', names: functionCalls.map(tc => tc.function.name) });
+						// Cap tool calls per iteration to prevent runaway execution
+						const limitedCalls = functionCalls.slice(0, 5);
+
+						if (limitedCalls.length > 0) {
+							send({ type: 'tool_use', names: limitedCalls.map(tc => tc.function.name) });
 
 							// Add assistant message with tool calls
 							currentMessages.push(message);
 
 							// Execute all tool calls and add results
-							for (const toolCall of functionCalls) {
+							for (const toolCall of limitedCalls) {
 								const args = JSON.parse(toolCall.function.arguments || '{}');
 								const result = await executeTool(
 									toolCall.function.name,

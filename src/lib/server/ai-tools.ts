@@ -130,6 +130,12 @@ export async function executeTool(
 	clientAccountId: string,
 	userId: string
 ): Promise<string> {
+	// Sanitize common numeric params to prevent abuse
+	if (params && typeof params === 'object') {
+		if ('days' in params) params.days = Math.min(Math.max(Number(params.days) || 30, 1), 365);
+		if ('limit' in params) params.limit = Math.min(Math.max(Number(params.limit) || 50, 1), 100);
+	}
+
 	switch (name) {
 		case 'get_trade_history':
 			return getTradeHistory(supabase, clientAccountId, params);
@@ -467,12 +473,13 @@ async function getMarketNews(supabase: SupabaseClient, params: ToolParams): Prom
 		.order('published_at', { ascending: false })
 		.limit(limit);
 
-	if (params.category) {
+	const validCategories = ['forex', 'commodities', 'central_bank', 'economic_data', 'geopolitical'];
+	if (params.category && validCategories.includes(params.category as string)) {
 		query = query.eq('category', params.category as string);
 	}
 
 	if (params.symbols) {
-		const symbolList = (params.symbols as string).split(',').map(s => s.trim());
+		const symbolList = (params.symbols as string).split(',').map(s => s.trim()).slice(0, 10);
 		query = query.overlaps('symbols', symbolList);
 	}
 
