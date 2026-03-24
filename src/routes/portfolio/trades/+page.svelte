@@ -11,6 +11,7 @@
 	import type { Trade, TradeTagAssignment, Playbook } from '$lib/types';
 	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
 	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
+	import VirtualList from '$lib/components/shared/VirtualList.svelte';
 
 	let { data } = $props();
 	let trades = $derived(data.trades || []);
@@ -374,20 +375,40 @@
 						</div>
 						<span class="text-xs text-gray-500">{group.items.length} เทรด</span>
 					</div>
-					<!-- Mobile card list (hidden on md+) -->
-				<div class="md:hidden space-y-2 mb-2">
-					{#each group.items as trade}
-						<SwipeableTradeCard
-							{trade}
-							{tags}
-							{playbooks}
-							insights={tradeInsights[trade.id]}
-							score={tradeScores[trade.id]}
-							selected={selectedIds.has(trade.id)}
-							onToggleSelect={() => toggleTrade(trade.id)}
-						/>
-					{/each}
-				</div>
+					<!-- Mobile card list (hidden on md+) — virtual scrolled for large groups -->
+				{#if group.items.length > 10}
+					<div class="md:hidden mb-2" style:height="{Math.min(group.items.length, 6) * 120}px">
+						<VirtualList items={group.items} itemHeight={120} overscan={3}>
+							{#snippet item(trade)}
+								<div class="pb-2">
+									<SwipeableTradeCard
+										{trade}
+										{tags}
+										{playbooks}
+										insights={tradeInsights[trade.id]}
+										score={tradeScores[trade.id]}
+										selected={selectedIds.has(trade.id)}
+										onToggleSelect={() => toggleTrade(trade.id)}
+									/>
+								</div>
+							{/snippet}
+						</VirtualList>
+					</div>
+				{:else}
+					<div class="md:hidden space-y-2 mb-2">
+						{#each group.items as trade}
+							<SwipeableTradeCard
+								{trade}
+								{tags}
+								{playbooks}
+								insights={tradeInsights[trade.id]}
+								score={tradeScores[trade.id]}
+								selected={selectedIds.has(trade.id)}
+								onToggleSelect={() => toggleTrade(trade.id)}
+							/>
+						{/each}
+					</div>
+				{/if}
 
 				<!-- Desktop table (hidden on mobile) -->
 				<div class="hidden md:block overflow-x-auto">
@@ -505,6 +526,11 @@
 					</div>
 				</div>
 			{/each}
+		</div>
+
+		<!-- Count indicator -->
+		<div class="text-center text-xs text-gray-500">
+			แสดง {trades.length} จาก {total} รายการ
 		</div>
 
 		{#if totalPages > 1}
