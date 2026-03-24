@@ -31,6 +31,7 @@
 		"vitest": "^4.1.0"
 	},
 	"dependencies": {
+		"@inlang/paraglide-sveltekit": "^0.16.1",
 		"@sentry/sveltekit": "^10.45.0",
 		"@supabase/ssr": "^0.5.2",
 		"@supabase/supabase-js": "^2.86.0",
@@ -44,6 +45,7 @@
 		"dompurify": "^3.3.3",
 		"fast-xml-parser": "^5.5.5",
 		"jspdf": "^4.2.0",
+		"jszip": "^3.10.1",
 		"lightweight-charts": "^4.1.1",
 		"openai": "^6.29.0",
 		"sharp": "^0.34.5",

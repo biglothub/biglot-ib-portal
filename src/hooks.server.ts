@@ -4,6 +4,7 @@ import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/se
 import { validateEnv } from '$lib/server/env';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { i18n } from '$lib/i18n';
 // Validate environment variables on startup — fail fast if required vars are missing
 validateEnv();
 
@@ -164,5 +165,5 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle = sequence(sentryHandle(), authHandle, cacheHandle, securityHandle);
+export const handle = sequence(i18n.handle(), sentryHandle(), authHandle, cacheHandle, securityHandle);
 export const handleError = handleErrorWithSentry();
