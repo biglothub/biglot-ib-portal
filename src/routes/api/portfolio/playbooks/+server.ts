@@ -1,5 +1,6 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
+import { invalidateCachePattern } from '$lib/server/cache';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -98,6 +99,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
+	await invalidateCachePattern('portfolio:playbooks:');
+
 	return json({ success: true, playbook: data });
 };
 
@@ -125,6 +128,8 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 	if (error) {
 		return json({ message: error.message }, { status: 500 });
 	}
+
+	await invalidateCachePattern('portfolio:playbooks:');
 
 	return json({ success: true });
 };

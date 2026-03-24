@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
 import { fetchPortfolioBaseData } from '$lib/server/portfolio';
+import { getCache, setCache } from '$lib/server/cache';
 import type { ClientAccount } from '$lib/types';
 import type { LayoutServerLoad } from './$types';
 
@@ -78,17 +79,25 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	const oneDayAgo = new Date();
 	oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-	// Stream market news separately — don't block critical data
-	const marketNewsPromise = Promise.resolve(
-		supabase
-			.from('market_news')
-			.select('*')
-			.eq('ai_processed', true)
-			.gte('published_at', oneDayAgo.toISOString())
-			.order('relevance_score', { ascending: false })
-			.order('published_at', { ascending: false })
-			.limit(20)
-			.then((res) => res.data || [])
+	// Market news: check cache first (TTL 15min), fall back to DB
+	const NEWS_CACHE_KEY = 'portfolio:news';
+	const marketNewsPromise = getCache<Record<string, unknown>[]>(NEWS_CACHE_KEY).then(
+		(cached) => {
+			if (cached) return cached;
+			return supabase
+				.from('market_news')
+				.select('*')
+				.eq('ai_processed', true)
+				.gte('published_at', oneDayAgo.toISOString())
+				.order('relevance_score', { ascending: false })
+				.order('published_at', { ascending: false })
+				.limit(20)
+				.then((res) => {
+					const articles = res.data || [];
+					if (articles.length > 0) void setCache(NEWS_CACHE_KEY, articles, 900);
+					return articles;
+				});
+		}
 	).catch(() => []);
 
 	// Critical data: baseData is essential, tags and bridgeHealth are non-critical

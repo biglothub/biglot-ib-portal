@@ -1,6 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
+import { invalidateCache } from '$lib/server/cache';
+import { sendTradeSync } from '$lib/server/webhooks';
+import type { Trade } from '$lib/types';
 import type { RequestHandler } from './$types';
 
 /**
@@ -34,6 +37,24 @@ export const POST: RequestHandler = async ({ locals }) => {
 		.from('client_accounts')
 		.update({ sync_requested_at: now })
 		.eq('id', account.id);
+
+	// Invalidate daily_stats cache so the next page load fetches fresh data after sync
+	await invalidateCache(`portfolio:daily_stats:${account.id}`);
+
+	// Fire trade_sync webhook (non-blocking — silent fail on error)
+	// Fetch the latest trades so the webhook payload has real data
+	Promise.resolve(
+		locals.supabase
+			.from('trades')
+			.select('id, client_account_id, symbol, type, lot_size, open_price, close_price, open_time, close_time, profit, sl, tp, position_id, pips, commission, swap, created_at')
+			.eq('client_account_id', account.id)
+			.order('close_time', { ascending: false })
+			.limit(50)
+	).then(({ data }) => {
+		if (data && data.length > 0) {
+			sendTradeSync(locals.supabase, profile.id, data as Trade[]).catch(() => undefined);
+		}
+	}).catch(() => undefined);
 
 	return json({ ok: true, requested_at: now });
 };

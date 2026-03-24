@@ -8,6 +8,7 @@ import {
 	getTradeReviewStatus,
 	getTradeSession
 } from '$lib/portfolio';
+import { getCache, setCache } from '$lib/server/cache';
 import type {
 	DailyJournal,
 	DailyStats,
@@ -34,6 +35,15 @@ export async function fetchPortfolioBaseData(
 	accountId: string,
 	userId: string
 ): Promise<PortfolioBaseData> {
+	const dailyStatsCacheKey = `portfolio:daily_stats:${accountId}`;
+	const playbooksCacheKey = `portfolio:playbooks:${userId}`;
+
+	// Check hot-data cache before hitting the DB
+	const [cachedDailyStats, cachedPlaybooks] = await Promise.all([
+		getCache<DailyStats[]>(dailyStatsCacheKey),
+		getCache<Playbook[]>(playbooksCacheKey)
+	]);
+
 	const [tradesRes, dailyStatsRes, journalsRes, playbooksRes, savedViewsRes, progressGoalsRes] =
 		await Promise.allSettled([
 			supabase
@@ -43,24 +53,30 @@ export async function fetchPortfolioBaseData(
 				)
 				.eq('client_account_id', accountId)
 				.order('close_time', { ascending: false }),
-			supabase
-				.from('daily_stats')
-				.select('*')
-				.eq('client_account_id', accountId)
-				.order('date', { ascending: true }),
+			// Use cached daily_stats if available, otherwise query DB
+			cachedDailyStats
+				? Promise.resolve({ data: cachedDailyStats, error: null })
+				: supabase
+						.from('daily_stats')
+						.select('*')
+						.eq('client_account_id', accountId)
+						.order('date', { ascending: true }),
 			supabase
 				.from('daily_journal')
 				.select('*')
 				.eq('client_account_id', accountId)
 				.eq('user_id', userId)
 				.order('date', { ascending: true }),
-			supabase
-				.from('playbooks')
-				.select('*, trade_tags(id, name, color, category)')
-				.eq('client_account_id', accountId)
-				.eq('user_id', userId)
-				.order('sort_order', { ascending: true })
-				.order('created_at', { ascending: true }),
+			// Use cached playbooks if available, otherwise query DB
+			cachedPlaybooks
+				? Promise.resolve({ data: cachedPlaybooks, error: null })
+				: supabase
+						.from('playbooks')
+						.select('*, trade_tags(id, name, color, category)')
+						.eq('client_account_id', accountId)
+						.eq('user_id', userId)
+						.order('sort_order', { ascending: true })
+						.order('created_at', { ascending: true }),
 			supabase
 				.from('portfolio_saved_views')
 				.select('*')
@@ -91,11 +107,22 @@ export async function fetchPortfolioBaseData(
 		return [];
 	};
 
+	const dailyStats = getData(dailyStatsRes, 'dailyStats') as unknown as DailyStats[];
+	const playbooks = getData(playbooksRes, 'playbooks') as unknown as Playbook[];
+
+	// Populate cache for fresh DB results (fire-and-forget, never throws)
+	if (!cachedDailyStats && dailyStats.length > 0) {
+		void setCache(dailyStatsCacheKey, dailyStats, 300);
+	}
+	if (!cachedPlaybooks && playbooks.length > 0) {
+		void setCache(playbooksCacheKey, playbooks, 600);
+	}
+
 	return {
 		trades: getData(tradesRes, 'trades') as unknown as Trade[],
-		dailyStats: getData(dailyStatsRes, 'dailyStats') as unknown as DailyStats[],
+		dailyStats,
 		journals: getData(journalsRes, 'journals') as unknown as DailyJournal[],
-		playbooks: getData(playbooksRes, 'playbooks') as unknown as Playbook[],
+		playbooks,
 		savedViews: getData(savedViewsRes, 'savedViews') as unknown as PortfolioSavedView[],
 		progressGoals: mergeDefaultProgressGoals(getData(progressGoalsRes, 'progressGoals') as unknown as ProgressGoal[], accountId, userId),
 		warnings
