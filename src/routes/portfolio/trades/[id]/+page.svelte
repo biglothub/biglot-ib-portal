@@ -321,7 +321,7 @@
 
 	{#if !trade}
 		<div class="card text-center py-12">
-			<p class="text-gray-500">ไม่พบ Trade นี้</p>
+			<p class="text-gray-400">ไม่พบ Trade นี้</p>
 		</div>
 	{:else}
 		<div class="card">
@@ -334,7 +334,7 @@
 						</span>
 						<ReviewStatusBadge status={reviewStatus} />
 					</div>
-					<p class="text-xs text-gray-500 mt-2">
+					<p class="text-xs text-gray-400 mt-2">
 						{formatDateTime(trade.open_time)} → {formatDateTime(trade.close_time)}
 					</p>
 				</div>
@@ -342,7 +342,7 @@
 					<p class="text-3xl font-bold {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 						{formatCurrency(trade.profit)}
 					</p>
-					<p class="text-xs text-gray-500">
+					<p class="text-xs text-gray-400">
 						{trade.lot_size} lots • {getDuration(trade.open_time, trade.close_time)}
 					</p>
 				</div>
@@ -350,19 +350,19 @@
 
 			<div class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 				<div>
-					<p class="text-gray-500 text-xs">ราคาเปิด</p>
+					<p class="text-gray-400 text-xs">ราคาเปิด</p>
 					<p class="text-white">{formatNumber(trade.open_price, 5)}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">ราคาปิด</p>
+					<p class="text-gray-400 text-xs">ราคาปิด</p>
 					<p class="text-white">{formatNumber(trade.close_price, 5)}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">Stop Loss</p>
+					<p class="text-gray-400 text-xs">Stop Loss</p>
 					<p class="text-red-400">{trade.sl ? formatNumber(trade.sl, 5) : '-'}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">Take Profit</p>
+					<p class="text-gray-400 text-xs">Take Profit</p>
 					<p class="text-green-400">{trade.tp ? formatNumber(trade.tp, 5) : '-'}</p>
 				</div>
 			</div>
@@ -373,7 +373,7 @@
 						{#if TradeReplayChart}
 							<TradeReplayChart contexts={chartContexts} {trade} onclose={() => showReplay = false} />
 						{:else}
-							<div class="animate-pulse rounded-xl bg-dark-border/20 h-64 flex items-center justify-center text-gray-500 text-sm">กำลังโหลด Replay...</div>
+							<div class="animate-pulse rounded-xl bg-dark-border/20 h-64 flex items-center justify-center text-gray-400 text-sm">กำลังโหลด Replay...</div>
 						{/if}
 					{:else}
 						<MultiTimeframeChart contexts={chartContexts} {trade} />
@@ -402,7 +402,7 @@
 				</div>
 				<div class="space-y-4">
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
-						<div class="text-xs text-gray-500">ขั้นตอน Review</div>
+						<div class="text-xs text-gray-400">ขั้นตอน Review</div>
 						<div class="mt-3 space-y-2 text-sm">
 							<div class="flex items-center justify-between">
 								<span class="text-gray-400">กลยุทธ์</span>
@@ -424,7 +424,7 @@
 					</div>
 
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
-						<div class="text-xs text-gray-500">บันทึกประจำวัน</div>
+						<div class="text-xs text-gray-400">บันทึกประจำวัน</div>
 						<div class="mt-2 text-sm text-gray-300">
 							{#if dayJournal}
 								มี journal ของวันที่ {journalDate}
@@ -441,7 +441,7 @@
 					</div>
 
 					<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
-						<div class="text-xs text-gray-500">เกี่ยวข้อง</div>
+						<div class="text-xs text-gray-400">เกี่ยวข้อง</div>
 						<div class="mt-2 text-sm text-gray-300">
 							{relatedTrades.length} เทรดคู่เดียวกัน • {similarReviewedTrades.length} เทรดที่ review แล้ว
 						</div>
@@ -449,7 +449,7 @@
 
 					{#if qualityScore > 0}
 						<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
-							<div class="text-xs text-gray-500 mb-2">Quality Score</div>
+							<div class="text-xs text-gray-400 mb-2">Quality Score</div>
 							<QualityScoreBar score={qualityScore} />
 						</div>
 					{/if}
@@ -492,7 +492,7 @@
 								>
 									<span class="w-3 h-3 rounded-full" style="background-color: {tag.color}"></span>
 									{tag.name}
-									<span class="text-[10px] text-gray-500 ml-auto">{tag.category}</span></button>
+									<span class="text-[10px] text-gray-400 ml-auto">{tag.category}</span></button>
 							{/each}
 						</div>
 					{/if}
@@ -518,7 +518,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
-					<p class="text-xs text-gray-500 mt-1">บันทึกกระบวนการ, กฎที่ผิด, บทเรียน และสิ่งที่จะทำต่อ</p>
+					<p class="text-xs text-gray-400 mt-1">บันทึกกระบวนการ, กฎที่ผิด, บทเรียน และสิ่งที่จะทำต่อ</p>
 				</div>
 				{#if reviewSaved}
 					<span class="text-xs text-green-400">บันทึก review แล้ว</span>
@@ -578,27 +578,27 @@
 
 			<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">เหตุผลเข้าเทรด</h4>
+					<h4 class="text-xs text-gray-400 mb-2">เหตุผลเข้าเทรด</h4>
 					<textarea bind:value={entryReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">เหตุผลออกเทรด</h4>
+					<h4 class="text-xs text-gray-400 mb-2">เหตุผลออกเทรด</h4>
 					<textarea bind:value={exitReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">บันทึกการ Execute</h4>
+					<h4 class="text-xs text-gray-400 mb-2">บันทึกการ Execute</h4>
 					<textarea bind:value={executionNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">บันทึกความเสี่ยง</h4>
+					<h4 class="text-xs text-gray-400 mb-2">บันทึกความเสี่ยง</h4>
 					<textarea bind:value={riskNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">สรุปข้อผิดพลาด</h4>
+					<h4 class="text-xs text-gray-400 mb-2">สรุปข้อผิดพลาด</h4>
 					<textarea bind:value={mistakeSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">สรุปบทเรียน</h4>
+					<h4 class="text-xs text-gray-400 mb-2">สรุปบทเรียน</h4>
 					<textarea bind:value={lessonSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 			</div>
@@ -613,7 +613,7 @@
 					/>
 				</div>
 				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-500 mb-2">สิ่งที่จะทำต่อ</h4>
+					<h4 class="text-xs text-gray-400 mb-2">สิ่งที่จะทำต่อ</h4>
 					<textarea bind:value={nextAction} rows="5" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
 				</div>
 			</div>
@@ -643,7 +643,7 @@
 				</div>
 
 				<div class="flex items-center gap-1.5 mb-3">
-					<span class="text-xs text-gray-500 mr-2">คะแนน:</span>
+					<span class="text-xs text-gray-400 mr-2">คะแนน:</span>
 					{#each [1, 2, 3, 4, 5] as star}
 						<button
 							type="button"
@@ -684,7 +684,7 @@
 				<div class="flex items-start justify-between gap-3">
 					<div>
 						<h3 class="text-sm font-medium text-gray-400">ไฟล์แนบ</h3>
-						<p class="text-xs text-gray-500 mt-1">วาง link กราฟ, URL รูปภาพ หรืออัปโหลด Screenshot พร้อม annotation</p>
+						<p class="text-xs text-gray-400 mt-1">วาง link กราฟ, URL รูปภาพ หรืออัปโหลด Screenshot พร้อม annotation</p>
 					</div>
 					<button
 						type="button"
@@ -739,7 +739,7 @@
 													href={attachment.storage_path}
 													target="_blank"
 													rel="noopener noreferrer"
-													class="text-[10px] text-gray-500 hover:text-gray-300"
+													class="text-[10px] text-gray-400 hover:text-gray-300"
 												>
 													เปิดแบบเต็ม ↗
 												</a>
@@ -773,7 +773,7 @@
 										<a href={attachment.storage_path} target="_blank" rel="noopener noreferrer" class="font-medium text-white hover:text-brand-primary truncate block">
 											{attachment.caption || attachment.storage_path}
 										</a>
-										<div class="text-[11px] text-gray-500">{attachment.kind}</div>
+										<div class="text-[11px] text-gray-400">{attachment.kind}</div>
 									</div>
 									<button type="button" onclick={() => deleteAttachment(attachment.id)} class="text-xs text-red-300 hover:text-red-200">
 										ลบ
@@ -782,7 +782,7 @@
 							{/if}
 						{/each}
 					{:else}
-						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-500">
+						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-400">
 							ยังไม่มี attachment
 						</div>
 					{/if}
@@ -805,12 +805,12 @@
 								</div>
 								<div class="text-right">
 									<div class="text-sm font-medium {relatedTrade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(relatedTrade.profit)}</div>
-									<div class="text-xs text-gray-500">{formatDateTime(relatedTrade.close_time)}</div>
+									<div class="text-xs text-gray-400">{formatDateTime(relatedTrade.close_time)}</div>
 								</div>
 							</a>
 						{/each}
 					{:else}
-						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-500">
+						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-400">
 							ยังไม่มีเทรดอื่นของ {trade.symbol}
 						</div>
 					{/if}
@@ -825,7 +825,7 @@
 							<a href={`/portfolio/trades/${similarTrade.id}`} class="flex items-center justify-between p-3 rounded-xl hover:bg-dark-border/30 transition-colors">
 								<div>
 									<div class="text-sm text-white">{similarTrade.symbol}</div>
-									<div class="text-[11px] text-gray-500">{formatDateTime(similarTrade.close_time)}</div>
+									<div class="text-[11px] text-gray-400">{formatDateTime(similarTrade.close_time)}</div>
 								</div>
 								<div class="text-right">
 									<div class="text-sm font-medium {similarTrade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(similarTrade.profit)}</div>
@@ -834,7 +834,7 @@
 							</a>
 						{/each}
 					{:else}
-						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-500">
+						<div class="rounded-xl border border-dashed border-dark-border px-3 py-5 text-center text-sm text-gray-400">
 							ยังไม่มีเทรดที่ review แล้วคล้ายกัน
 						</div>
 					{/if}

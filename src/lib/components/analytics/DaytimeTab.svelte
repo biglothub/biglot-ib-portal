@@ -63,7 +63,7 @@
 		</div>
 	</div>
 
-	<p class="text-xs text-gray-500 mb-4">เวลาแสดงเป็น UTC+7 (เวลาไทย)</p>
+	<p class="text-xs text-gray-400 mb-4">เวลาแสดงเป็น UTC+7 (เวลาไทย)</p>
 
 	{#if !dayTimeHeatmap || dayTimeHeatmap.cells.length === 0}
 		<EmptyState message="ยังไม่มีข้อมูลเพียงพอสำหรับ heatmap" />
@@ -75,7 +75,7 @@
 						<th class="w-12"></th>
 						{#each hourLabels as label, i}
 							{#if i % 2 === 0}
-								<th class="text-[9px] text-gray-500 font-normal px-0.5 pb-1" colspan="2">{label}</th>
+								<th class="text-[9px] text-gray-400 font-normal px-0.5 pb-1" colspan="2">{label}</th>
 							{/if}
 						{/each}
 					</tr>
@@ -100,7 +100,7 @@
 		</div>
 
 		<!-- Legend -->
-		<div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+		<div class="mt-4 flex items-center gap-4 text-xs text-gray-400">
 			{#if heatmapMode === 'pnl'}
 				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/60"></div> กำไร</div>
 				<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/60"></div> ขาดทุน</div>

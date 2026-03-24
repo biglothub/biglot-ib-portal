@@ -21,7 +21,7 @@
 {#if isAdminView}
 	<!-- Admin view not supported -->
 	<div class="card flex flex-col items-center justify-center py-16 text-center">
-		<svg class="w-12 h-12 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
 		</svg>
 		<p class="text-gray-400">ไม่รองรับ Admin View สำหรับหน้านี้</p>
@@ -79,27 +79,27 @@
 				<div class="flex items-center gap-2 mb-4">
 					<div class="w-2 h-2 rounded-full bg-brand-primary"></div>
 					<h2 class="text-sm font-semibold text-brand-primary uppercase tracking-wider">รวมทุกบัญชี</h2>
-					<span class="ml-auto text-xs text-gray-500">{accountSummaries.length} บัญชี</span>
+					<span class="ml-auto text-xs text-gray-400">{accountSummaries.length} บัญชี</span>
 				</div>
 				<div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
 					<div>
-						<p class="text-xs text-gray-500 mb-1">ยอดรวมบัญชี</p>
+						<p class="text-xs text-gray-400 mb-1">ยอดรวมบัญชี</p>
 						<p class="text-lg font-bold text-white">{formatCurrency(combined.balance)}</p>
 					</div>
 					<div>
-						<p class="text-xs text-gray-500 mb-1">Equity รวม</p>
+						<p class="text-xs text-gray-400 mb-1">Equity รวม</p>
 						<p class="text-lg font-bold text-white">{formatCurrency(combined.equity)}</p>
 					</div>
 					<div>
-						<p class="text-xs text-gray-500 mb-1">P&L รวม (สุทธิ)</p>
+						<p class="text-xs text-gray-400 mb-1">P&L รวม (สุทธิ)</p>
 						<p class="text-lg font-bold {pnlColor(combined.netPnl)}">{formatCurrency(combined.netPnl)}</p>
 					</div>
 					<div>
-						<p class="text-xs text-gray-500 mb-1">P&L วันนี้ (รวม)</p>
+						<p class="text-xs text-gray-400 mb-1">P&L วันนี้ (รวม)</p>
 						<p class="text-lg font-bold {pnlColor(combined.todayPnl)}">{formatCurrency(combined.todayPnl)}</p>
 					</div>
 					<div>
-						<p class="text-xs text-gray-500 mb-1">เทรดทั้งหมด</p>
+						<p class="text-xs text-gray-400 mb-1">เทรดทั้งหมด</p>
 						<p class="text-lg font-bold text-white">{formatNumber(combined.totalTrades, 0)}</p>
 					</div>
 				</div>
@@ -125,13 +125,13 @@
 			<table class="w-full text-sm min-w-[600px]">
 				<thead>
 					<tr class="border-b border-dark-border">
-						<th class="text-left text-xs text-gray-500 font-medium pb-3 pr-4">บัญชี</th>
-						<th class="text-right text-xs text-gray-500 font-medium pb-3 px-3">ยอดบัญชี</th>
-						<th class="text-right text-xs text-gray-500 font-medium pb-3 px-3">Net P&L</th>
-						<th class="text-right text-xs text-gray-500 font-medium pb-3 px-3">Win Rate</th>
-						<th class="text-right text-xs text-gray-500 font-medium pb-3 px-3">Profit Factor</th>
-						<th class="text-right text-xs text-gray-500 font-medium pb-3 px-3">เทรด</th>
-						<th class="text-right text-xs text-gray-500 font-medium pb-3 pl-3">Max DD</th>
+						<th class="text-left text-xs text-gray-400 font-medium pb-3 pr-4">บัญชี</th>
+						<th class="text-right text-xs text-gray-400 font-medium pb-3 px-3">ยอดบัญชี</th>
+						<th class="text-right text-xs text-gray-400 font-medium pb-3 px-3">Net P&L</th>
+						<th class="text-right text-xs text-gray-400 font-medium pb-3 px-3">Win Rate</th>
+						<th class="text-right text-xs text-gray-400 font-medium pb-3 px-3">Profit Factor</th>
+						<th class="text-right text-xs text-gray-400 font-medium pb-3 px-3">เทรด</th>
+						<th class="text-right text-xs text-gray-400 font-medium pb-3 pl-3">Max DD</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-dark-border/50">
@@ -140,7 +140,7 @@
 							<td class="py-3 pr-4">
 								<div>
 									<p class="font-medium text-white text-sm">{summary.account.client_name}</p>
-									<p class="text-xs text-gray-500">{summary.account.mt5_account_id}</p>
+									<p class="text-xs text-gray-400">{summary.account.mt5_account_id}</p>
 								</div>
 							</td>
 							<td class="py-3 px-3 text-right text-white font-medium">
@@ -176,7 +176,7 @@
 		<div class="flex items-start justify-between gap-2">
 			<div class="min-w-0">
 				<h3 class="font-semibold text-white text-sm truncate">{summary.account.client_name}</h3>
-				<p class="text-xs text-gray-500 mt-0.5">{summary.account.mt5_server} · {summary.account.mt5_account_id}</p>
+				<p class="text-xs text-gray-400 mt-0.5">{summary.account.mt5_server} · {summary.account.mt5_account_id}</p>
 			</div>
 			<a
 				href="/portfolio"
@@ -192,26 +192,26 @@
 
 		<!-- P&L badge -->
 		<div class="rounded-xl border px-4 py-3 {pnlBg(summary.netPnl)}">
-			<p class="text-xs text-gray-500 mb-0.5">Net P&L (สุทธิ)</p>
+			<p class="text-xs text-gray-400 mb-0.5">Net P&L (สุทธิ)</p>
 			<p class="text-2xl font-bold {pnlColor(summary.netPnl)}">{formatCurrency(summary.netPnl)}</p>
 		</div>
 
 		<!-- Key metrics grid -->
 		<div class="grid grid-cols-2 gap-3">
 			<div class="rounded-lg bg-dark-surface/60 px-3 py-2.5">
-				<p class="text-xs text-gray-500 mb-1">ยอดบัญชี</p>
+				<p class="text-xs text-gray-400 mb-1">ยอดบัญชี</p>
 				<p class="text-sm font-semibold text-white">{formatCurrency(summary.latestBalance)}</p>
 			</div>
 			<div class="rounded-lg bg-dark-surface/60 px-3 py-2.5">
-				<p class="text-xs text-gray-500 mb-1">P&L วันนี้</p>
+				<p class="text-xs text-gray-400 mb-1">P&L วันนี้</p>
 				<p class="text-sm font-semibold {pnlColor(summary.todayPnl)}">{formatCurrency(summary.todayPnl)}</p>
 			</div>
 			<div class="rounded-lg bg-dark-surface/60 px-3 py-2.5">
-				<p class="text-xs text-gray-500 mb-1">Win Rate</p>
+				<p class="text-xs text-gray-400 mb-1">Win Rate</p>
 				<p class="text-sm font-semibold text-white">{formatPercent(summary.tradeWinRate)}</p>
 			</div>
 			<div class="rounded-lg bg-dark-surface/60 px-3 py-2.5">
-				<p class="text-xs text-gray-500 mb-1">Profit Factor</p>
+				<p class="text-xs text-gray-400 mb-1">Profit Factor</p>
 				<p class="text-sm font-semibold {summary.profitFactor >= 1.5 ? 'text-green-400' : summary.profitFactor >= 1 ? 'text-yellow-400' : 'text-red-400'}">
 					{formatNumber(summary.profitFactor)}
 				</p>
@@ -219,7 +219,7 @@
 		</div>
 
 		<!-- Footer -->
-		<div class="flex items-center justify-between text-xs text-gray-600 border-t border-dark-border pt-3">
+		<div class="flex items-center justify-between text-xs text-gray-400 border-t border-dark-border pt-3">
 			<span>{formatNumber(summary.totalTrades, 0)} เทรด</span>
 			{#if summary.account.last_synced_at}
 				<span>Sync {timeAgo(summary.account.last_synced_at)}</span>

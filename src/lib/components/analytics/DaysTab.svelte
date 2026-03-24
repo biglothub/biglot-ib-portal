@@ -75,7 +75,7 @@
 		<div class="overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+					<tr class="border-b border-dark-border text-gray-400 text-[11px] uppercase tracking-wider">
 						{#each [
 							{ key: 'dayIdx', label: 'วัน' },
 							{ key: 'trades', label: 'เทรด' },

@@ -49,7 +49,7 @@
 				<h3 class="text-sm font-semibold text-gray-300 mb-2">{monthNames[monthIdx]}</h3>
 				<div class="grid grid-cols-7 gap-0.5">
 					{#each dayLabels as label}
-						<div class="text-center text-[9px] text-gray-600 py-0.5">{label}</div>
+						<div class="text-center text-[9px] text-gray-400 py-0.5">{label}</div>
 					{/each}
 					{#each grid as cell}
 						{#if cell}
@@ -69,7 +69,7 @@
 	</div>
 
 	<!-- Legend -->
-	<div class="mt-6 flex items-center gap-4 text-xs text-gray-500">
+	<div class="mt-6 flex items-center gap-4 text-xs text-gray-400">
 		<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500/30"></div> กำไร</div>
 		<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/30"></div> ขาดทุน</div>
 		<div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-dark-bg"></div> ไม่มีเทรด</div>

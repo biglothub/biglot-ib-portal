@@ -395,7 +395,7 @@
 
 			<!-- Line width -->
 			<div class="flex items-center gap-2">
-				<span class="text-xs text-gray-500">ขนาด</span>
+				<span class="text-xs text-gray-400">ขนาด</span>
 				<input
 					type="range"
 					min="1"

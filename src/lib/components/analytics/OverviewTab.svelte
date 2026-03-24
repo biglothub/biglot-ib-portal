@@ -13,21 +13,21 @@
 
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 	<div class="card border-l-2 {report.expectancy >= 0 ? 'border-l-green-500' : 'border-l-red-500'}">
-		<div class="text-xs text-gray-500 uppercase tracking-wider">ค่าคาดหวัง</div>
+		<div class="text-xs text-gray-400 uppercase tracking-wider">ค่าคาดหวัง</div>
 		<div class="mt-1.5 text-2xl font-bold {report.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}">
 			{formatCurrency(report.expectancy)}
 		</div>
 	</div>
 	<div class="card border-l-2 border-l-red-500">
-		<div class="text-xs text-gray-500 uppercase tracking-wider">ต้นทุนผิดกฎ</div>
+		<div class="text-xs text-gray-400 uppercase tracking-wider">ต้นทุนผิดกฎ</div>
 		<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(report.ruleBreakMetrics?.ruleBreakLoss || 0)}</div>
 	</div>
 	<div class="card border-l-2 border-l-green-500">
-		<div class="text-xs text-gray-500 uppercase tracking-wider">บันทึกครบ</div>
+		<div class="text-xs text-gray-400 uppercase tracking-wider">บันทึกครบ</div>
 		<div class="mt-1.5 text-2xl font-bold text-green-400">{(report.journalSummary?.completionRate || 0).toFixed(0)}%</div>
 	</div>
 	<div class="card border-l-2 border-l-brand-primary">
-		<div class="text-xs text-gray-500 uppercase tracking-wider">เทรดที่กรอง</div>
+		<div class="text-xs text-gray-400 uppercase tracking-wider">เทรดที่กรอง</div>
 		<div class="mt-1.5 text-2xl font-bold text-white">{report.filteredTrades?.length || 0}</div>
 	</div>
 </div>
@@ -49,7 +49,7 @@
 		<div class="overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+					<tr class="border-b border-dark-border text-gray-400 text-[11px] uppercase tracking-wider">
 						<th class="text-left py-2.5 font-medium">กลยุทธ์</th>
 						<th class="text-right py-2.5 font-medium">เทรด</th>
 						<th class="text-right py-2.5 font-medium">อัตราชนะ</th>
@@ -83,7 +83,7 @@
 						<span class="text-white uppercase">{session.session}</span>
 						<span class="{session.profit >= 0 ? 'text-green-400' : 'text-red-400'} font-medium">{formatCurrency(session.profit)}</span>
 					</div>
-					<div class="mt-1 text-xs text-gray-500">{session.trades} เทรด • ชนะ {session.winRate.toFixed(0)}%</div>
+					<div class="mt-1 text-xs text-gray-400">{session.trades} เทรด • ชนะ {session.winRate.toFixed(0)}%</div>
 				</div>
 			{/each}
 		</div>
@@ -99,7 +99,7 @@
 					<div class="flex items-center justify-between rounded-xl bg-dark-bg/30 px-3 py-3">
 						<div>
 							<div class="text-sm text-white">{mistake.name}</div>
-							<div class="text-[11px] text-gray-500">{mistake.count} เทรดที่ติดแท็ก</div>
+							<div class="text-[11px] text-gray-400">{mistake.count} เทรดที่ติดแท็ก</div>
 						</div>
 						<div class="text-sm font-medium text-red-400">{formatCurrency(mistake.cost)}</div>
 					</div>
@@ -118,7 +118,7 @@
 						<div class="text-sm text-white uppercase">{bucket.bucket}</div>
 						<div class="{bucket.profit >= 0 ? 'text-green-400' : 'text-red-400'} text-sm font-medium">{formatCurrency(bucket.profit)}</div>
 					</div>
-					<div class="mt-1 text-[11px] text-gray-500">{bucket.count} เทรด • เฉลี่ย {bucket.avgMinutes} นาที</div>
+					<div class="mt-1 text-[11px] text-gray-400">{bucket.count} เทรด • เฉลี่ย {bucket.avgMinutes} นาที</div>
 				</div>
 			{/each}
 		</div>

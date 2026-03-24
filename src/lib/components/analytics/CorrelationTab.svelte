@@ -27,12 +27,12 @@
 	}
 
 	function corrCellText(val: number | null, isDiag: boolean): string {
-		if (isDiag) return 'text-gray-500';
-		if (val === null) return 'text-gray-600';
+		if (isDiag) return 'text-gray-400';
+		if (val === null) return 'text-gray-400';
 		const abs = Math.abs(val);
 		if (abs >= 0.4) return 'text-white font-semibold';
 		if (abs >= 0.2) return 'text-gray-300';
-		return 'text-gray-500';
+		return 'text-gray-400';
 	}
 
 	function corrLabel(val: number): string {
@@ -50,10 +50,10 @@
 		<div class="card">
 			<div class="py-12 text-center">
 				<div class="w-12 h-12 rounded-full bg-dark-bg flex items-center justify-center mx-auto mb-3">
-					<svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+					<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
 				</div>
 				<p class="text-gray-400 text-sm">ต้องการเทรดอย่างน้อย 2 สัญลักษณ์เพื่อคำนวณความสัมพันธ์</p>
-				<p class="text-gray-600 text-xs mt-1">ขยายช่วงวันที่หรือปรับตัวกรองเพื่อดูข้อมูลเพิ่มเติม</p>
+				<p class="text-gray-400 text-xs mt-1">ขยายช่วงวันที่หรือปรับตัวกรองเพื่อดูข้อมูลเพิ่มเติม</p>
 			</div>
 		</div>
 	{:else}
@@ -102,9 +102,9 @@
 								aria-label="{isDiag ? symRow : `${symRow} vs ${symCol}: ${val !== null ? val.toFixed(2) : 'N/A'}`}"
 							>
 								{#if isDiag}
-									<span class="text-xs text-gray-600">—</span>
+									<span class="text-xs text-gray-400">—</span>
 								{:else if val === null}
-									<span class="text-[10px] text-gray-600">N/A</span>
+									<span class="text-[10px] text-gray-400">N/A</span>
 								{:else}
 									<span class="text-xs {corrCellText(val, isDiag)}">{val.toFixed(2)}</span>
 								{/if}
@@ -120,16 +120,16 @@
 				<div class="mt-4 pt-4 border-t border-dark-border/40 flex items-center gap-3">
 					<div class="flex-1 flex items-center gap-2 text-sm">
 						<span class="font-medium text-white">{correlationMatrix.symbols[hoveredCell.i]}</span>
-						<span class="text-gray-500">×</span>
+						<span class="text-gray-400">×</span>
 						<span class="font-medium text-white">{correlationMatrix.symbols[hoveredCell.j]}</span>
 					</div>
 					{#if hv !== null}
 						<div class="flex items-center gap-3">
 							<span class="text-2xl font-bold {Math.abs(hv) >= 0.7 ? (hv >= 0 ? 'text-red-400' : 'text-blue-400') : Math.abs(hv) >= 0.4 ? 'text-amber-400' : 'text-gray-400'}">{hv.toFixed(3)}</span>
-							<span class="text-xs text-gray-500 bg-dark-bg rounded-md px-2 py-1">{corrLabel(hv)}</span>
+							<span class="text-xs text-gray-400 bg-dark-bg rounded-md px-2 py-1">{corrLabel(hv)}</span>
 						</div>
 					{:else}
-						<span class="text-xs text-gray-500">ข้อมูลไม่เพียงพอ (ต้องการอย่างน้อย 3 วันร่วมกัน)</span>
+						<span class="text-xs text-gray-400">ข้อมูลไม่เพียงพอ (ต้องการอย่างน้อย 3 วันร่วมกัน)</span>
 					{/if}
 				</div>
 			{/if}
@@ -173,7 +173,7 @@
 						<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-dark-bg/40 hover:bg-dark-bg/70 transition-colors">
 							<div class="flex items-center gap-1.5 min-w-[140px]">
 								<span class="text-sm font-medium text-white">{pair.symA}</span>
-								<span class="text-gray-600 text-xs">↔</span>
+								<span class="text-gray-400 text-xs">↔</span>
 								<span class="text-sm font-medium text-white">{pair.symB}</span>
 							</div>
 							<!-- Bar -->
@@ -187,7 +187,7 @@
 								<span class="text-sm font-bold {absR >= 0.7 ? (isPositive ? 'text-red-400' : 'text-blue-400') : absR >= 0.4 ? 'text-amber-400' : 'text-gray-400'}">
 									{pair.correlation >= 0 ? '+' : ''}{pair.correlation.toFixed(3)}
 								</span>
-								<span class="text-[10px] text-gray-600 whitespace-nowrap">{pair.sharedDays} วัน</span>
+								<span class="text-[10px] text-gray-400 whitespace-nowrap">{pair.sharedDays} วัน</span>
 							</div>
 							{#if absR >= 0.7 && isPositive}
 								<div class="shrink-0 px-2 py-0.5 rounded-md bg-red-500/15 border border-red-500/20 text-[10px] text-red-400 font-medium">

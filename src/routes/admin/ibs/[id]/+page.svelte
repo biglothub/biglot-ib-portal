@@ -44,7 +44,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<a href="/admin/ibs" class="text-sm text-gray-500 hover:text-brand-400">&larr; กลับ</a>
+	<a href="/admin/ibs" class="text-sm text-gray-400 hover:text-brand-400">&larr; กลับ</a>
 
 	<!-- IB Profile -->
 	<div class="card">
@@ -55,7 +55,7 @@
 				</div>
 				<div>
 					<h1 class="text-lg font-bold">{ib.profiles?.full_name}</h1>
-					<p class="text-sm text-gray-500">IB Code: {ib.ib_code} | {ib.profiles?.email}</p>
+					<p class="text-sm text-gray-400">IB Code: {ib.ib_code} | {ib.profiles?.email}</p>
 				</div>
 			</div>
 			<button
@@ -87,12 +87,12 @@
 		<h2 class="text-sm font-medium text-gray-400 mb-4">ลูกค้า ({clients.length})</h2>
 
 		{#if clients.length === 0}
-			<p class="text-sm text-gray-500">ยังไม่มีลูกค้า</p>
+			<p class="text-sm text-gray-400">ยังไม่มีลูกค้า</p>
 		{:else}
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
-						<tr class="border-b border-dark-border text-gray-500 text-xs">
+						<tr class="border-b border-dark-border text-gray-400 text-xs">
 							<th class="text-left py-2 px-2">ชื่อ</th>
 							<th class="text-left py-2 px-2">MT5</th>
 							<th class="text-left py-2 px-2">สถานะ</th>
@@ -111,10 +111,10 @@
 									{#if client.mt5_validated}
 										<span class="text-green-400">✓</span>
 									{:else}
-										<span class="text-gray-500">-</span>
+										<span class="text-gray-400">-</span>
 									{/if}
 								</td>
-								<td class="py-2 px-2 text-gray-500">{formatDateTime(client.submitted_at)}</td>
+								<td class="py-2 px-2 text-gray-400">{formatDateTime(client.submitted_at)}</td>
 								<td class="py-2 px-2 text-right">
 									{#if client.status === 'approved'}
 										<a href="/admin/clients/{client.id}" class="text-brand-400 hover:text-brand-300 text-xs">ดูพอร์ต</a>

@@ -131,12 +131,12 @@
 			<div class="flex items-center justify-between px-6 py-4 border-b border-dark-border">
 				<div>
 					<h2 id="template-modal-title" class="text-base font-semibold text-white">เลือก Template</h2>
-					<p class="text-xs text-gray-500 mt-0.5">เลือก template เพื่อ auto-fill ช่องในบันทึก</p>
+					<p class="text-xs text-gray-400 mt-0.5">เลือก template เพื่อ auto-fill ช่องในบันทึก</p>
 				</div>
 				<button
 					type="button"
 					onclick={handleClose}
-					class="rounded-lg p-1.5 text-gray-500 hover:text-white hover:bg-dark-border/50 transition-colors"
+					class="rounded-lg p-1.5 text-gray-400 hover:text-white hover:bg-dark-border/50 transition-colors"
 					aria-label="ปิด"
 				>
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +174,7 @@
 										</span>
 									{/if}
 								</div>
-								<p class="text-xs text-gray-500 mt-0.5">{template.description}</p>
+								<p class="text-xs text-gray-400 mt-0.5">{template.description}</p>
 								<div class="flex flex-wrap gap-1.5 mt-2">
 									{#each template.sections as section}
 										<span class="text-[10px] px-2 py-0.5 rounded-full bg-dark-border/50 text-gray-400">{section}</span>

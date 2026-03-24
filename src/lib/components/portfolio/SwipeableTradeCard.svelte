@@ -270,7 +270,7 @@
 		</div>
 
 		<!-- Row 2: Prices -->
-		<div class="text-xs text-gray-500 mb-2.5 font-mono">
+		<div class="text-xs text-gray-400 mb-2.5 font-mono">
 			{formatNumber(trade.open_price as number, 5)} → {formatNumber(trade.close_price as number, 5)}
 			<span class="font-sans ml-1">• {trade.lot_size} lots</span>
 		</div>
@@ -288,10 +288,10 @@
 				{/if}
 			{/each}
 			{#if (trade.trade_tag_assignments ?? []).length > 2}
-				<span class="text-[10px] text-gray-500">+{(trade.trade_tag_assignments ?? []).length - 2}</span>
+				<span class="text-[10px] text-gray-400">+{(trade.trade_tag_assignments ?? []).length - 2}</span>
 			{/if}
 			{#if playbookName}
-				<span class="text-[10px] text-gray-500 italic">{playbookName}</span>
+				<span class="text-[10px] text-gray-400 italic">{playbookName}</span>
 			{/if}
 		</div>
 
@@ -311,7 +311,7 @@
 					/>
 				{/if}
 			</div>
-			<span class="text-xs text-gray-600">{formatDateTime(trade.close_time as string)}</span>
+			<span class="text-xs text-gray-400">{formatDateTime(trade.close_time as string)}</span>
 		</div>
 
 		<!-- Swipe hint indicator -->
@@ -351,7 +351,7 @@
 		<div class="flex items-center justify-between">
 			<div>
 				<h3 class="font-semibold text-white">Quick Review</h3>
-				<p class="text-xs text-gray-500 mt-0.5">{trade.symbol} • {formatCurrency(trade.profit as number)}</p>
+				<p class="text-xs text-gray-400 mt-0.5">{trade.symbol} • {formatCurrency(trade.profit as number)}</p>
 			</div>
 			<button
 				type="button"
@@ -427,7 +427,7 @@
 		<div class="flex items-center justify-between">
 			<div>
 				<h3 class="font-semibold text-white">เพิ่ม Tag</h3>
-				<p class="text-xs text-gray-500 mt-0.5">{trade.symbol} • {formatCurrency(trade.profit as number)}</p>
+				<p class="text-xs text-gray-400 mt-0.5">{trade.symbol} • {formatCurrency(trade.profit as number)}</p>
 			</div>
 			<button
 				type="button"
@@ -445,7 +445,7 @@
 		</div>
 
 		{#if tags.length === 0}
-			<p class="text-sm text-gray-500 text-center py-6">
+			<p class="text-sm text-gray-400 text-center py-6">
 				ยังไม่มี Tag — สร้าง Tag ได้ที่หน้า Playbook
 			</p>
 		{:else}

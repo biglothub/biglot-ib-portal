@@ -16,23 +16,23 @@
 	<!-- Risk KPI Cards -->
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card border-l-2 border-l-red-500">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">Drawdown สูงสุด</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">Drawdown สูงสุด</div>
 			<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(riskAnalysis.maxDrawdown)}</div>
 			{#if riskAnalysis.maxDrawdownDate}
-				<div class="text-xs text-gray-500 mt-1">{riskAnalysis.maxDrawdownDate}</div>
+				<div class="text-xs text-gray-400 mt-1">{riskAnalysis.maxDrawdownDate}</div>
 			{/if}
 		</div>
 		<div class="card border-l-2 border-l-amber-500">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">Drawdown เฉลี่ย</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">Drawdown เฉลี่ย</div>
 			<div class="mt-1.5 text-2xl font-bold text-amber-400">{formatCurrency(riskAnalysis.avgDrawdown)}</div>
-			<div class="text-xs text-gray-500 mt-1">{riskAnalysis.drawdownPeriodCount} ช่วง</div>
+			<div class="text-xs text-gray-400 mt-1">{riskAnalysis.drawdownPeriodCount} ช่วง</div>
 		</div>
 		<div class="card border-l-2 border-l-red-400">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">ขาดทุนสูงสุด</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">ขาดทุนสูงสุด</div>
 			<div class="mt-1.5 text-2xl font-bold text-red-400">{formatCurrency(riskAnalysis.largestLoss)}</div>
 		</div>
 		<div class="card border-l-2 border-l-orange-500">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">แพ้ติดต่อสูงสุด</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">แพ้ติดต่อสูงสุด</div>
 			<div class="mt-1.5 text-2xl font-bold text-orange-400">{riskAnalysis.maxLossStreak} เทรด</div>
 		</div>
 	</div>
@@ -50,7 +50,7 @@
 				? 'text-gray-300'
 				: ratio.value >= ratio.great ? 'text-green-400' : ratio.value >= ratio.good ? 'text-amber-400' : 'text-red-400'}
 			<div class="card text-center">
-				<div class="text-xs text-gray-500 uppercase tracking-wider">{ratio.label}</div>
+				<div class="text-xs text-gray-400 uppercase tracking-wider">{ratio.label}</div>
 				<div class="mt-2 text-xl font-bold {color}">
 					{ratio.label.includes('ผันผวน') || ratio.label.includes('ผลตอบแทน')
 						? `${ratio.value.toFixed(2)}%`
@@ -83,14 +83,14 @@
 						stroke-width="1.5"
 					/>
 				</svg>
-				<div class="flex justify-between text-[10px] text-gray-500 mt-1 px-1">
+				<div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
 					<span>{series[0]?.date || ''}</span>
 					{#if series.length > 2}
 						<span>{series[Math.floor(series.length / 2)]?.date || ''}</span>
 					{/if}
 					<span>{series[series.length - 1]?.date || ''}</span>
 				</div>
-				<div class="absolute left-0 top-0 h-full flex flex-col justify-between text-[10px] text-gray-500 pointer-events-none">
+				<div class="absolute left-0 top-0 h-full flex flex-col justify-between text-[10px] text-gray-400 pointer-events-none">
 					<span>$0</span>
 					<span>{formatCurrency(minDD)}</span>
 				</div>
@@ -109,7 +109,7 @@
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+							<tr class="border-b border-dark-border text-gray-400 text-[11px] uppercase tracking-wider">
 								<th class="text-left py-2 font-medium">เริ่มต้น</th>
 								<th class="text-right py-2 font-medium">DD สูงสุด</th>
 								<th class="text-right py-2 font-medium">ระยะเวลา</th>
@@ -130,7 +130,7 @@
 						</tbody>
 					</table>
 				</div>
-				<div class="mt-3 text-xs text-gray-500">
+				<div class="mt-3 text-xs text-gray-400">
 					ระยะเวลาเฉลี่ย: {riskAnalysis.avgDrawdownDuration} วัน
 				</div>
 			{/if}
@@ -173,7 +173,7 @@
 						</div>
 					{/each}
 				</div>
-				<div class="mt-3 text-xs text-gray-500">
+				<div class="mt-3 text-xs text-gray-400">
 					จากเทรดทั้งหมด {riskAnalysis.totalRRTrades} เทรดที่มี Stop Loss
 				</div>
 			{/if}
@@ -183,19 +183,19 @@
 	<!-- Risk Summary Row -->
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card text-center">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">ส่วนเบี่ยงเบน P&L/วัน</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">ส่วนเบี่ยงเบน P&L/วัน</div>
 			<div class="mt-2 text-lg font-bold text-gray-300">{formatCurrency(riskAnalysis.dailyStdDev)}</div>
 		</div>
 		<div class="card text-center">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">กำไรเฉลี่ย/วัน</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">กำไรเฉลี่ย/วัน</div>
 			<div class="mt-2 text-lg font-bold {riskAnalysis.dailyMean >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(riskAnalysis.dailyMean)}</div>
 		</div>
 		<div class="card text-center">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">ชนะมากสุด</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">ชนะมากสุด</div>
 			<div class="mt-2 text-lg font-bold text-green-400">{formatCurrency(riskAnalysis.largestWin)}</div>
 		</div>
 		<div class="card text-center">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">จำนวนช่วง DD</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">จำนวนช่วง DD</div>
 			<div class="mt-2 text-lg font-bold text-gray-300">{riskAnalysis.drawdownPeriodCount}</div>
 		</div>
 	</div>

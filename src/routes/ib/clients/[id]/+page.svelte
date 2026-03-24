@@ -180,7 +180,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<a href="/ib/clients" class="text-sm text-gray-500 hover:text-brand-400">&larr; กลับ</a>
+	<a href="/ib/clients" class="text-sm text-gray-400 hover:text-brand-400">&larr; กลับ</a>
 
 	<!-- Header -->
 	<div class="flex items-center justify-between">
@@ -193,7 +193,7 @@
 					<h1 class="text-lg font-bold">{typedAccount.client_name}</h1>
 					<StatusBadge status={typedAccount.status} />
 				</div>
-				<p class="text-xs text-gray-500">
+				<p class="text-xs text-gray-400">
 					MT5: {typedAccount.mt5_account_id} @ {typedAccount.mt5_server}
 					{#if typedAccount.last_synced_at}
 						 | Sync: {timeAgo(typedAccount.last_synced_at as string)}
@@ -307,7 +307,7 @@
 			</div>
 		{:else}
 			<div class="card text-center py-8">
-				<p class="text-gray-500">ยังไม่มีข้อมูล - รอ Bridge sync</p>
+				<p class="text-gray-400">ยังไม่มีข้อมูล - รอ Bridge sync</p>
 			</div>
 		{/if}
 
@@ -329,7 +329,7 @@
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-xs">
+							<tr class="border-b border-dark-border text-gray-400 text-xs">
 								<th class="text-left py-2">สัญลักษณ์</th>
 								<th class="text-left py-2">ประเภท</th>
 								<th class="text-right py-2">ล็อต</th>
@@ -372,7 +372,7 @@
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-xs">
+							<tr class="border-b border-dark-border text-gray-400 text-xs">
 								<th class="text-left py-2">สัญลักษณ์</th>
 								<th class="text-left py-2">ประเภท</th>
 								<th class="text-right py-2">ล็อต</th>
@@ -397,7 +397,7 @@
 									<td class="py-2 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 										{formatCurrency(trade.profit)}
 									</td>
-									<td class="py-2 text-right text-gray-500 text-xs">{formatDateTime(trade.close_time)}</td>
+									<td class="py-2 text-right text-gray-400 text-xs">{formatDateTime(trade.close_time)}</td>
 								</tr>
 							{/each}
 						</tbody>

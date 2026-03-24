@@ -134,7 +134,7 @@
 						สรุปผลการเทรดสิ้นวัน: กำไร/ขาดทุน, จำนวนเทรด, Win Rate, วินัย และเทรดที่ดีที่สุด/แย่ที่สุด
 					</p>
 					{#if settings.last_daily_sent_at}
-						<p class="mt-1 text-xs text-gray-500">ส่งล่าสุด: {formatLastSent(settings.last_daily_sent_at)}</p>
+						<p class="mt-1 text-xs text-gray-400">ส่งล่าสุด: {formatLastSent(settings.last_daily_sent_at)}</p>
 					{/if}
 				</div>
 			</div>
@@ -169,7 +169,7 @@
 							<option value={h.value}>{h.label}</option>
 						{/each}
 					</select>
-					<span class="text-xs text-gray-500">เวลาไทย UTC+7: {String((settings.daily_send_hour + 7) % 24).padStart(2, '0')}:00</span>
+					<span class="text-xs text-gray-400">เวลาไทย UTC+7: {String((settings.daily_send_hour + 7) % 24).padStart(2, '0')}:00</span>
 				</div>
 
 				<div class="flex items-center justify-between pt-2 border-t border-dark-border">
@@ -215,7 +215,7 @@
 						สรุปผลการเทรดรายสัปดาห์: Net P&L, Win Rate, Profit Factor, Day Win%, สัญลักษณ์ที่ดีที่สุด และ Journal Streak
 					</p>
 					{#if settings.last_weekly_sent_at}
-						<p class="mt-1 text-xs text-gray-500">ส่งล่าสุด: {formatLastSent(settings.last_weekly_sent_at)}</p>
+						<p class="mt-1 text-xs text-gray-400">ส่งล่าสุด: {formatLastSent(settings.last_weekly_sent_at)}</p>
 					{/if}
 				</div>
 			</div>
@@ -250,7 +250,7 @@
 							<option value={d.value}>{d.label}</option>
 						{/each}
 					</select>
-					<span class="text-xs text-gray-500">เวลาส่งจะตรงกับ {String((settings.daily_send_hour + 7) % 24).padStart(2, '0')}:00 ตามเขตเวลาไทย</span>
+					<span class="text-xs text-gray-400">เวลาส่งจะตรงกับ {String((settings.daily_send_hour + 7) % 24).padStart(2, '0')}:00 ตามเขตเวลาไทย</span>
 				</div>
 
 				<div class="flex items-center justify-between pt-2 border-t border-dark-border">
@@ -290,7 +290,7 @@
 			<div class="text-sm text-gray-400 space-y-1">
 				<p>อีเมลจะถูกส่งไปยัง <span class="text-white font-medium">อีเมลที่ใช้ลงทะเบียน</span> ของคุณ</p>
 				<p>การส่งจะเกิดขึ้นโดยอัตโนมัติตามเวลาที่กำหนด ผ่าน Resend API</p>
-				<p class="text-xs text-gray-500">ต้องการตั้งค่า <code class="bg-dark-surface px-1 py-0.5 rounded text-gray-300">RESEND_API_KEY</code> ในเซิร์ฟเวอร์เพื่อส่งอีเมล</p>
+				<p class="text-xs text-gray-400">ต้องการตั้งค่า <code class="bg-dark-surface px-1 py-0.5 rounded text-gray-300">RESEND_API_KEY</code> ในเซิร์ฟเวอร์เพื่อส่งอีเมล</p>
 			</div>
 		</div>
 	</div>

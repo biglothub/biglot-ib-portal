@@ -43,7 +43,7 @@
 		<div class="flex items-center justify-between px-6 py-4 border-b border-dark-border shrink-0">
 			<div>
 				<h2 class="text-lg font-bold text-white">คู่มือการใช้งาน Portfolio</h2>
-				<p class="text-xs text-gray-500 mt-0.5">เรียนรู้วิธีใช้งานทุกฟีเจอร์แบบ Step-by-Step</p>
+				<p class="text-xs text-gray-400 mt-0.5">เรียนรู้วิธีใช้งานทุกฟีเจอร์แบบ Step-by-Step</p>
 			</div>
 			<button onclick={onclose} class="p-2 rounded-lg hover:bg-dark-hover text-gray-400 hover:text-white transition-colors" aria-label="ปิด">
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>

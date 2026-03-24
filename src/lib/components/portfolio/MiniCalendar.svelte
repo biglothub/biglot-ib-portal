@@ -61,7 +61,7 @@
 	</div>
 
 	<!-- Day headers -->
-	<div class="grid grid-cols-7 text-center text-[10px] text-gray-500 mb-1">
+	<div class="grid grid-cols-7 text-center text-[10px] text-gray-400 mb-1">
 		{#each ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as d}
 			<div class="py-0.5">{d}</div>
 		{/each}
@@ -79,7 +79,7 @@
 						: ''}"
 					title={day.profit != null ? `${formatCurrency(day.profit)} (${day.trades} trades)` : ''}
 				>
-					<div class="text-[11px] font-medium {day.profit != null ? day.profit >= 0 ? 'text-green-400' : 'text-red-400' : 'text-gray-600'}">
+					<div class="text-[11px] font-medium {day.profit != null ? day.profit >= 0 ? 'text-green-400' : 'text-red-400' : 'text-gray-400'}">
 						{day.day}
 					</div>
 					{#if day.trades}
@@ -95,7 +95,7 @@
 	<!-- Month summary -->
 	{#if monthSummary.tradingDays > 0}
 		<div class="mt-3 pt-2 border-t border-dark-border flex items-center justify-between text-[11px]">
-			<span class="text-gray-500">{monthSummary.tradingDays} วัน / {monthSummary.totalTrades} trades</span>
+			<span class="text-gray-400">{monthSummary.tradingDays} วัน / {monthSummary.totalTrades} trades</span>
 			<span class="font-medium {monthSummary.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">
 				{formatCurrency(monthSummary.totalProfit)}
 			</span>

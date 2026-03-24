@@ -305,7 +305,7 @@
 	<div class="space-y-3">
 		<div class="flex items-center gap-2">
 			<div class="relative flex-1">
-				<svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 					<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
 				</svg>
 				<input
@@ -354,7 +354,7 @@
 	<!-- Saved views -->
 	{#if savedViews.length > 0}
 		<div class="flex flex-wrap items-center gap-1.5">
-			<span class="text-[10px] text-gray-500 mr-0.5">มุมมอง:</span>
+			<span class="text-[10px] text-gray-400 mr-0.5">มุมมอง:</span>
 			{#each savedViews as view}
 				<div class="inline-flex items-center gap-1 rounded-full border border-dark-border bg-dark-bg/40 px-2.5 py-1 text-[11px] text-gray-300">
 					<button type="button" onclick={() => applyFilters(view.filters)} class="hover:text-white">
@@ -377,7 +377,7 @@
 					<button
 						type="button"
 						onclick={toggleAutoApply}
-						class="flex items-center gap-1.5 text-[11px] {autoApply ? 'text-brand-primary' : 'text-gray-500 hover:text-gray-400'}"
+						class="flex items-center gap-1.5 text-[11px] {autoApply ? 'text-brand-primary' : 'text-gray-400 hover:text-gray-400'}"
 						aria-pressed={autoApply}
 					>
 						<span class="w-7 h-4 rounded-full transition-colors relative {autoApply ? 'bg-brand-primary/30' : 'bg-dark-border'}">
@@ -402,7 +402,7 @@
 			<!-- Section: พื้นฐาน -->
 			<div role="group" aria-label="ตัวกรองพื้นฐาน">
 				<button type="button" onclick={() => toggleSection('basic')} class="flex items-center gap-1.5 w-full text-left mb-2" aria-expanded={sectionOpen.basic}>
-					<svg class="w-3.5 h-3.5 text-gray-500 transition-transform {sectionOpen.basic ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
+					<svg class="w-3.5 h-3.5 text-gray-400 transition-transform {sectionOpen.basic ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
 					<span class="text-xs font-medium text-gray-300">พื้นฐาน</span>
 				</button>
 				{#if sectionOpen.basic}
@@ -453,14 +453,14 @@
 			<!-- Section: ช่วงเวลา -->
 			<div role="group" aria-label="ตัวกรองช่วงเวลา">
 				<button type="button" onclick={() => toggleSection('time')} class="flex items-center gap-1.5 w-full text-left mb-2" aria-expanded={sectionOpen.time}>
-					<svg class="w-3.5 h-3.5 text-gray-500 transition-transform {sectionOpen.time ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
+					<svg class="w-3.5 h-3.5 text-gray-400 transition-transform {sectionOpen.time ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
 					<span class="text-xs font-medium text-gray-300">ช่วงเวลา</span>
 				</button>
 				{#if sectionOpen.time}
 					<div class="pl-5 space-y-3">
 						<div class="flex items-center gap-2">
 							<input type="date" bind:value={from} onchange={() => autoApplyNow()} aria-label="วันที่เริ่ม" class="flex-1 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-							<span class="text-gray-600 text-xs">ถึง</span>
+							<span class="text-gray-400 text-xs">ถึง</span>
 							<input type="date" bind:value={to} onchange={() => autoApplyNow()} aria-label="วันที่สิ้นสุด" class="flex-1 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
 						</div>
 						<div class="space-y-1">
@@ -491,7 +491,7 @@
 			<!-- Section: ผลการเทรด -->
 			<div role="group" aria-label="ตัวกรองผลการเทรด">
 				<button type="button" onclick={() => toggleSection('performance')} class="flex items-center gap-1.5 w-full text-left mb-2" aria-expanded={sectionOpen.performance}>
-					<svg class="w-3.5 h-3.5 text-gray-500 transition-transform {sectionOpen.performance ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
+					<svg class="w-3.5 h-3.5 text-gray-400 transition-transform {sectionOpen.performance ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
 					<span class="text-xs font-medium text-gray-300">ผลการเทรด</span>
 				</button>
 				{#if sectionOpen.performance}
@@ -531,7 +531,7 @@
 			<!-- Section: การรีวิว -->
 			<div role="group" aria-label="ตัวกรองการรีวิว">
 				<button type="button" onclick={() => toggleSection('review')} class="flex items-center gap-1.5 w-full text-left mb-2" aria-expanded={sectionOpen.review}>
-					<svg class="w-3.5 h-3.5 text-gray-500 transition-transform {sectionOpen.review ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
+					<svg class="w-3.5 h-3.5 text-gray-400 transition-transform {sectionOpen.review ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
 					<span class="text-xs font-medium text-gray-300">การรีวิว</span>
 				</button>
 				{#if sectionOpen.review}
@@ -573,7 +573,7 @@
 			<!-- Section: คะแนน -->
 			<div role="group" aria-label="ตัวกรองคะแนน">
 				<button type="button" onclick={() => toggleSection('scores')} class="flex items-center gap-1.5 w-full text-left mb-2" aria-expanded={sectionOpen.scores}>
-					<svg class="w-3.5 h-3.5 text-gray-500 transition-transform {sectionOpen.scores ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
+					<svg class="w-3.5 h-3.5 text-gray-400 transition-transform {sectionOpen.scores ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
 					<span class="text-xs font-medium text-gray-300">คะแนน</span>
 				</button>
 				{#if sectionOpen.scores}
@@ -589,7 +589,7 @@
 			<!-- Section: แท็กและกลยุทธ์ -->
 			<div role="group" aria-label="ตัวกรองแท็กและกลยุทธ์">
 				<button type="button" onclick={() => toggleSection('tags')} class="flex items-center gap-1.5 w-full text-left mb-2" aria-expanded={sectionOpen.tags}>
-					<svg class="w-3.5 h-3.5 text-gray-500 transition-transform {sectionOpen.tags ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
+					<svg class="w-3.5 h-3.5 text-gray-400 transition-transform {sectionOpen.tags ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" /></svg>
 					<span class="text-xs font-medium text-gray-300">แท็กและกลยุทธ์</span>
 				</button>
 				{#if sectionOpen.tags}

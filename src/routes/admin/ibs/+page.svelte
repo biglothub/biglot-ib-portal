@@ -74,21 +74,21 @@
 						</div>
 						<div>
 							<p class="text-sm font-medium text-white">{ib.profiles?.full_name}</p>
-							<p class="text-xs text-gray-500">{ib.ib_code}</p>
+							<p class="text-xs text-gray-400">{ib.ib_code}</p>
 						</div>
 					</div>
 					<div class="grid grid-cols-3 gap-2 text-center">
 						<div>
 							<p class="text-lg font-bold text-green-400">{ib.approvedCount}</p>
-							<p class="text-[10px] text-gray-500">ลูกค้า</p>
+							<p class="text-[10px] text-gray-400">ลูกค้า</p>
 						</div>
 						<div>
 							<p class="text-lg font-bold text-yellow-400">{ib.pendingCount}</p>
-							<p class="text-[10px] text-gray-500">รออนุมัติ</p>
+							<p class="text-[10px] text-gray-400">รออนุมัติ</p>
 						</div>
 						<div>
 							<p class="text-lg font-bold text-gray-400">{ib.totalCount}</p>
-							<p class="text-[10px] text-gray-500">ทั้งหมด</p>
+							<p class="text-[10px] text-gray-400">ทั้งหมด</p>
 						</div>
 					</div>
 				</a>

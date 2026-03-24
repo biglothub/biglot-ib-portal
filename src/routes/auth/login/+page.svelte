@@ -66,7 +66,7 @@
 	<div class="w-full max-w-sm">
 		<div class="text-center mb-8">
 			<h1 class="text-2xl font-bold text-white">IB Portal</h1>
-			<p class="text-gray-500 mt-2">เข้าสู่ระบบเพื่อจัดการพอร์ต</p>
+			<p class="text-gray-400 mt-2">เข้าสู่ระบบเพื่อจัดการพอร์ต</p>
 		</div>
 
 		<div class="card space-y-4">
@@ -97,7 +97,7 @@
 					<div class="w-full border-t border-dark-border"></div>
 				</div>
 				<div class="relative flex justify-center text-sm">
-					<span class="px-3 bg-dark-surface text-gray-500">สำหรับ Admin / IB</span>
+					<span class="px-3 bg-dark-surface text-gray-400">สำหรับ Admin / IB</span>
 				</div>
 			</div>
 

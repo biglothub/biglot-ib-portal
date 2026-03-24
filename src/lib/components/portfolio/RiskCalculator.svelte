@@ -132,7 +132,7 @@
 				</svg>
 			</div>
 			<div>
-				<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">เครื่องมือ</p>
+				<p class="text-[10px] uppercase tracking-[0.24em] text-gray-400">เครื่องมือ</p>
 				<h2 class="text-base font-semibold text-white">คำนวณขนาด Position</h2>
 			</div>
 		</div>
@@ -142,7 +142,7 @@
 	<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 		<!-- Symbol -->
 		<div>
-			<label class="mb-1 block text-[11px] text-gray-500" for="rc-symbol">สัญลักษณ์</label>
+			<label class="mb-1 block text-[11px] text-gray-400" for="rc-symbol">สัญลักษณ์</label>
 			<input
 				id="rc-symbol"
 				type="text"
@@ -154,7 +154,7 @@
 
 		<!-- Account balance -->
 		<div>
-			<label class="mb-1 block text-[11px] text-gray-500" for="rc-balance"
+			<label class="mb-1 block text-[11px] text-gray-400" for="rc-balance"
 				>ยอดเงินในบัญชี (USD)</label
 			>
 			<input
@@ -170,7 +170,7 @@
 		<!-- Risk % -->
 		<div>
 			<div class="mb-1 flex items-center justify-between">
-				<label class="text-[11px] text-gray-500" for="rc-risk">ความเสี่ยง</label>
+				<label class="text-[11px] text-gray-400" for="rc-risk">ความเสี่ยง</label>
 				<span class="text-[11px] font-medium text-amber-400">{riskPct}%</span>
 			</div>
 			<input
@@ -182,7 +182,7 @@
 				step="0.1"
 				class="w-full accent-amber-500"
 			/>
-			<div class="mt-1 flex justify-between text-[10px] text-gray-600">
+			<div class="mt-1 flex justify-between text-[10px] text-gray-400">
 				<span>0.1%</span>
 				<span>2.5%</span>
 				<span>5%</span>
@@ -191,7 +191,7 @@
 
 		<!-- Pip value -->
 		<div>
-			<label class="mb-1 block text-[11px] text-gray-500" for="rc-pipvalue"
+			<label class="mb-1 block text-[11px] text-gray-400" for="rc-pipvalue"
 				>Pip Value (USD / pip / lot)</label
 			>
 			<input
@@ -206,7 +206,7 @@
 
 		<!-- Stop loss -->
 		<div>
-			<label class="mb-1 block text-[11px] text-gray-500" for="rc-sl">Stop Loss (pips)</label>
+			<label class="mb-1 block text-[11px] text-gray-400" for="rc-sl">Stop Loss (pips)</label>
 			<input
 				id="rc-sl"
 				type="number"
@@ -219,7 +219,7 @@
 
 		<!-- Take profit -->
 		<div>
-			<label class="mb-1 block text-[11px] text-gray-500" for="rc-tp">Take Profit (pips)</label>
+			<label class="mb-1 block text-[11px] text-gray-400" for="rc-tp">Take Profit (pips)</label>
 			<input
 				id="rc-tp"
 				type="number"
@@ -235,29 +235,29 @@
 	<div class="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
 		<!-- Primary: lot size -->
 		<div class="text-center">
-			<p class="text-[11px] text-gray-500">ขนาด Lot ที่แนะนำ</p>
+			<p class="text-[11px] text-gray-400">ขนาด Lot ที่แนะนำ</p>
 			<p class="mt-1 text-4xl font-bold tracking-tight text-amber-400">
 				{formatLot(lotSize)}
 			</p>
-			<p class="mt-0.5 text-[11px] text-gray-600">Standard Lots</p>
+			<p class="mt-0.5 text-[11px] text-gray-400">Standard Lots</p>
 		</div>
 
 		<!-- Secondary metrics -->
 		<div class="mt-4 grid grid-cols-3 gap-3 border-t border-amber-500/10 pt-4">
 			<div class="text-center">
-				<p class="text-[10px] text-gray-500">ความเสี่ยง</p>
+				<p class="text-[10px] text-gray-400">ความเสี่ยง</p>
 				<p class="mt-1 text-sm font-semibold text-red-400">
 					{formatCurrency(riskAmount)}
 				</p>
 			</div>
 			<div class="text-center">
-				<p class="text-[10px] text-gray-500">กำไรคาดหวัง</p>
+				<p class="text-[10px] text-gray-400">กำไรคาดหวัง</p>
 				<p class="mt-1 text-sm font-semibold text-green-400">
 					{tpPips > 0 ? formatCurrency(potentialProfit) : '-'}
 				</p>
 			</div>
 			<div class="text-center">
-				<p class="text-[10px] text-gray-500">R:R Ratio</p>
+				<p class="text-[10px] text-gray-400">R:R Ratio</p>
 				<p
 					class="mt-1 text-sm font-semibold {rrRatio >= 2
 						? 'text-green-400'
@@ -274,7 +274,7 @@
 	<!-- Presets -->
 	<div class="mt-4">
 		<div class="flex items-center justify-between">
-			<p class="text-[11px] text-gray-500">Preset ที่บันทึกไว้</p>
+			<p class="text-[11px] text-gray-400">Preset ที่บันทึกไว้</p>
 			<button
 				onclick={savePreset}
 				class="flex items-center gap-1 rounded-lg border border-amber-500/30 px-2.5 py-1 text-[11px] text-amber-400 transition-colors hover:bg-amber-500/10"
@@ -300,7 +300,7 @@
 
 		{#if presets.length === 0}
 			<div class="mt-2 rounded-lg border border-dashed border-dark-border px-3 py-4 text-center">
-				<p class="text-[11px] text-gray-600">ยังไม่มี preset — กดบันทึกเพื่อเก็บค่าปัจจุบัน</p>
+				<p class="text-[11px] text-gray-400">ยังไม่มี preset — กดบันทึกเพื่อเก็บค่าปัจจุบัน</p>
 			</div>
 		{:else}
 			<div class="mt-2 flex flex-wrap gap-2">
@@ -311,7 +311,7 @@
 						title="{preset.symbol}: Risk {preset.riskPct}%, SL {preset.stopLossPips}p / TP {preset.tpPips}p"
 					>
 						<span class="font-medium">{preset.symbol}</span>
-						<span class="text-gray-600">{preset.riskPct}%</span>
+						<span class="text-gray-400">{preset.riskPct}%</span>
 						<span
 							onclick={(e) => deletePreset(preset.symbol, e)}
 							role="button"

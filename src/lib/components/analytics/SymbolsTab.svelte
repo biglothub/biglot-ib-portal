@@ -55,7 +55,7 @@
 		<div class="overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+					<tr class="border-b border-dark-border text-gray-400 text-[11px] uppercase tracking-wider">
 						<th class="text-left py-2.5 font-medium">สัญลักษณ์</th>
 						{#each [
 							{ key: 'trades', label: 'เทรด' },

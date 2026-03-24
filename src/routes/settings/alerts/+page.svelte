@@ -186,7 +186,7 @@
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold">การแจ้งเตือนประสิทธิภาพ</h2>
-					<p class="text-xs text-gray-500 mt-0.5">
+					<p class="text-xs text-gray-400 mt-0.5">
 						รับการแจ้งเตือน Push Notification เมื่อตัวชี้วัดถึงเกณฑ์ที่กำหนด
 					</p>
 				</div>
@@ -251,7 +251,7 @@
 					{/each}
 				</select>
 				{#if selectedOption}
-					<p class="text-xs text-gray-500">{selectedOption.hint}</p>
+					<p class="text-xs text-gray-400">{selectedOption.hint}</p>
 				{/if}
 			</div>
 
@@ -262,7 +262,7 @@
 				</label>
 				<div class="relative">
 					{#if selectedOption?.unit === '$'}
-						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">$</span>
+						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
 					{/if}
 					<input
 						id="alert-threshold"
@@ -276,7 +276,7 @@
 						onkeydown={(e) => { if (e.key === 'Enter') addAlert(); }}
 					/>
 					{#if selectedOption?.unit !== '$'}
-						<span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+						<span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
 							{selectedOption?.unit}
 						</span>
 					{/if}
@@ -310,7 +310,7 @@
 	<div class="rounded-xl border border-dark-border bg-dark-surface overflow-hidden">
 		<div class="px-6 py-4 border-b border-dark-border flex items-center justify-between">
 			<h3 class="text-sm font-semibold text-white">กฎการแจ้งเตือนทั้งหมด</h3>
-			<span class="text-xs text-gray-500">{alerts.length} รายการ</span>
+			<span class="text-xs text-gray-400">{alerts.length} รายการ</span>
 		</div>
 
 		{#if alerts.length === 0}
@@ -323,7 +323,7 @@
 					</svg>
 				</div>
 				<p class="text-sm font-medium text-gray-300">ยังไม่มีการแจ้งเตือน</p>
-				<p class="text-xs text-gray-500 mt-1">เพิ่มกฎการแจ้งเตือนด้านบนเพื่อเริ่มต้น</p>
+				<p class="text-xs text-gray-400 mt-1">เพิ่มกฎการแจ้งเตือนด้านบนเพื่อเริ่มต้น</p>
 			</div>
 		{:else}
 			<ul class="divide-y divide-dark-border">
@@ -372,7 +372,7 @@
 										: `${alert.threshold}%`}
 								</span>
 							</div>
-							<p class="text-xs text-gray-500 mt-0.5">
+							<p class="text-xs text-gray-400 mt-0.5">
 								{formatLastTriggered(alert.last_triggered_at)}
 							</p>
 						</div>
@@ -393,7 +393,7 @@
 						<!-- Delete -->
 						<button
 							onclick={() => deleteAlert(alert.id)}
-							class="w-8 h-8 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+							class="w-8 h-8 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
 							aria-label="ลบการแจ้งเตือน"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

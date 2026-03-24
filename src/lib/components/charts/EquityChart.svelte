@@ -349,10 +349,10 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
 				</svg>
 				<span class="text-sm">ยังไม่มีข้อมูล Equity</span>
-				<span class="text-xs text-gray-500 mt-1">ข้อมูลจะแสดงเมื่อมีการเทรด</span>
+				<span class="text-xs text-gray-400 mt-1">ข้อมูลจะแสดงเมื่อมีการเทรด</span>
 			</div>
 		{:else if !hasRangeData}
-			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+			<div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
 				ไม่พบข้อมูลสำหรับช่วง {currentTimeframe}
 			</div>
 		{/if}

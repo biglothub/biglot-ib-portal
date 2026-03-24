@@ -193,7 +193,7 @@
 			{/each}
 		</div>
 		{#if recapTimestamp}
-			<div class="text-xs text-gray-500">สรุปเมื่อ: {recapTimestamp}</div>
+			<div class="text-xs text-gray-400">สรุปเมื่อ: {recapTimestamp}</div>
 		{/if}
 	</div>
 
@@ -201,7 +201,7 @@
 	{#if recapStats}
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 			<div class="card">
-				<div class="text-xs text-gray-500">กำไรสุทธิ</div>
+				<div class="text-xs text-gray-400">กำไรสุทธิ</div>
 				<div class="mt-1 text-2xl font-bold {recapStats.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(recapStats.netPnl)}</div>
 				{#if recapPrevStats}
 					<div class="mt-1 text-xs {recapStats.netPnl >= recapPrevStats.netPnl ? 'text-green-400' : 'text-red-400'}">
@@ -210,7 +210,7 @@
 				{/if}
 			</div>
 			<div class="card">
-				<div class="text-xs text-gray-500">อัตราชนะ</div>
+				<div class="text-xs text-gray-400">อัตราชนะ</div>
 				<div class="mt-1 text-2xl font-bold {recapStats.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{recapStats.tradeWinRate?.toFixed(1)}%</div>
 				{#if recapPrevStats}
 					<div class="mt-1 text-xs {recapStats.tradeWinRate >= recapPrevStats.tradeWinRate ? 'text-green-400' : 'text-red-400'}">
@@ -219,11 +219,11 @@
 				{/if}
 			</div>
 			<div class="card">
-				<div class="text-xs text-gray-500">อัตราส่วนกำไร</div>
+				<div class="text-xs text-gray-400">อัตราส่วนกำไร</div>
 				<div class="mt-1 text-2xl font-bold {recapStats.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{formatNumber(recapStats.profitFactor)}</div>
 			</div>
 			<div class="card">
-				<div class="text-xs text-gray-500">จำนวนเทรด</div>
+				<div class="text-xs text-gray-400">จำนวนเทรด</div>
 				<div class="mt-1 text-2xl font-bold text-white">{recapStats.totalTrades}</div>
 			</div>
 		</div>

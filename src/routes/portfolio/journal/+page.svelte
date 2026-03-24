@@ -204,19 +204,19 @@
 
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
-			<div class="text-xs text-gray-500">รายการ Journal</div>
+			<div class="text-xs text-gray-400">รายการ Journal</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{journalSummary?.totalEntries || 0}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">อัตราการเขียน</div>
+			<div class="text-xs text-gray-400">อัตราการเขียน</div>
 			<div class="mt-1 text-2xl font-semibold text-green-400">{(journalSummary?.completionRate || 0).toFixed(0)}%</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">Streak ปัจจุบัน</div>
+			<div class="text-xs text-gray-400">Streak ปัจจุบัน</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{journalSummary?.currentStreak || 0}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">วันที่เทรด</div>
+			<div class="text-xs text-gray-400">วันที่เทรด</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{journalSummary?.activeTradingDays || 0}</div>
 		</div>
 	</div>
@@ -231,7 +231,7 @@
 
 			<div class="grid grid-cols-7 gap-1 mb-1">
 				{#each dayNames as name}
-					<div class="text-center text-[10px] text-gray-500 py-1">{name}</div>
+					<div class="text-center text-[10px] text-gray-400 py-1">{name}</div>
 				{/each}
 			</div>
 
@@ -248,7 +248,7 @@
 								{cell.date === today ? 'ring-1 ring-brand-primary/50' : ''}
 								{cell.profit !== undefined && cell.profit > 0 ? 'bg-green-500/10 text-green-400' : ''}
 								{cell.profit !== undefined && cell.profit < 0 ? 'bg-red-500/10 text-red-400' : ''}
-								{cell.profit === undefined ? 'text-gray-500 hover:bg-dark-border/30' : 'hover:bg-dark-border/30'}
+								{cell.profit === undefined ? 'text-gray-400 hover:bg-dark-border/30' : 'hover:bg-dark-border/30'}
 							"
 						>
 							<span class="text-[11px]">{cell.day}</span>
@@ -270,7 +270,7 @@
 		<div class="lg:col-span-2 space-y-4">
 			{#if !selectedDate}
 				<div class="card text-center py-12">
-					<p class="text-gray-500 text-sm">เลือกวันจากปฏิทินเพื่อเขียน Notebook</p>
+					<p class="text-gray-400 text-sm">เลือกวันจากปฏิทินเพื่อเขียน Notebook</p>
 				</div>
 			{:else}
 				<div class="flex flex-wrap items-center justify-between gap-2">
@@ -313,19 +313,19 @@
 
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">บันทึกก่อนเทรด</h4>
+						<h4 class="text-xs text-gray-400 mb-2">บันทึกก่อนเทรด</h4>
 						<TiptapEditor compact content={preMarketNotes} onupdate={(html) => (preMarketNotes = html)} placeholder="วิเคราะห์ตลาดก่อนเทรด..." />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">แผนการเทรด</h4>
+						<h4 class="text-xs text-gray-400 mb-2">แผนการเทรด</h4>
 						<TiptapEditor compact content={sessionPlan} onupdate={(html) => (sessionPlan = html)} placeholder="แผนการเทรดวันนี้..." />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">มุมมองตลาด</h4>
+						<h4 class="text-xs text-gray-400 mb-2">มุมมองตลาด</h4>
 						<input bind:value={marketBias} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">ระดับราคาสำคัญ</h4>
+						<h4 class="text-xs text-gray-400 mb-2">ระดับราคาสำคัญ</h4>
 						<input bind:value={keyLevels} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 				</div>
@@ -341,7 +341,7 @@
 
 				<div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">อารมณ์</h4>
+						<h4 class="text-xs text-gray-400 mb-2">อารมณ์</h4>
 						<div class="flex flex-wrap gap-1.5">
 							{#each moodLabels as label, index}
 								<button
@@ -350,7 +350,7 @@
 									class="px-2 py-1 text-xs rounded-lg border transition-all
 										{mood === index + 1
 											? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
-											: 'border-dark-border text-gray-500 hover:text-gray-300'}"
+											: 'border-dark-border text-gray-400 hover:text-gray-300'}"
 								>
 									{label}
 								</button>
@@ -358,38 +358,38 @@
 						</div>
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">พลังงาน</h4>
+						<h4 class="text-xs text-gray-400 mb-2">พลังงาน</h4>
 						<input type="number" min="1" max="5" bind:value={energyScore} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">วินัย</h4>
+						<h4 class="text-xs text-gray-400 mb-2">วินัย</h4>
 						<input type="number" min="1" max="5" bind:value={disciplineScore} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">ความมั่นใจ</h4>
+						<h4 class="text-xs text-gray-400 mb-2">ความมั่นใจ</h4>
 						<input type="number" min="1" max="5" bind:value={confidenceScore} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 				</div>
 
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">บันทึกหลังเทรด</h4>
+						<h4 class="text-xs text-gray-400 mb-2">บันทึกหลังเทรด</h4>
 						<TiptapEditor compact content={postMarketNotes} onupdate={(html) => (postMarketNotes = html)} placeholder="สรุปผลการเทรดวันนี้..." />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-500 mb-2">บทเรียน</h4>
+						<h4 class="text-xs text-gray-400 mb-2">บทเรียน</h4>
 						<TiptapEditor compact content={lessons} onupdate={(html) => (lessons = html)} placeholder="บทเรียนที่ได้รับ..." />
 					</div>
 					<div class="card xl:col-span-2">
-						<h4 class="text-xs text-gray-500 mb-2">จุดโฟกัสพรุ่งนี้</h4>
+						<h4 class="text-xs text-gray-400 mb-2">จุดโฟกัสพรุ่งนี้</h4>
 						<TiptapEditor compact content={tomorrowFocus} onupdate={(html) => (tomorrowFocus = html)} placeholder="สิ่งที่จะโฟกัสพรุ่งนี้..." />
 					</div>
 				</div>
 
 				<div class="card">
 					<div class="flex items-center justify-between mb-3">
-						<h4 class="text-xs text-gray-500">เทรดของวัน</h4>
-						<span class="text-xs text-gray-500">{dayTrades.length} เทรด</span>
+						<h4 class="text-xs text-gray-400">เทรดของวัน</h4>
+						<span class="text-xs text-gray-400">{dayTrades.length} เทรด</span>
 					</div>
 					{#if dayTrades.length > 0}
 						<div class="space-y-2">
@@ -397,7 +397,7 @@
 								<a href={`/portfolio/trades/${trade.id}`} class="flex items-center justify-between rounded-xl bg-dark-bg/30 px-3 py-3 hover:bg-dark-bg/50">
 									<div>
 										<div class="font-medium text-white">{trade.symbol}</div>
-										<div class="text-[11px] text-gray-500">{trade.type} • {formatDateTime(trade.close_time)}</div>
+										<div class="text-[11px] text-gray-400">{trade.type} • {formatDateTime(trade.close_time)}</div>
 									</div>
 									<div class="text-right">
 										<ReviewStatusBadge status={getTradeReviewStatus(trade)} />

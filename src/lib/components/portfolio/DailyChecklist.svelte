@@ -118,7 +118,7 @@
 	<div class="flex items-center justify-between">
 		<h3 class="text-sm font-medium text-gray-400">เช็คลิสต์ประจำวัน</h3>
 		<div class="flex items-center gap-2">
-			<span class="text-xs text-gray-500">{completedCount}/{rules.length}</span>
+			<span class="text-xs text-gray-400">{completedCount}/{rules.length}</span>
 			<div
 				class="w-16 h-1.5 rounded-full bg-dark-border overflow-hidden"
 				role="progressbar"
@@ -137,7 +137,7 @@
 
 	<!-- Manual Rules -->
 	{#if manualRules.length > 0}
-		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-2">ทำเอง</div>
+		<div class="text-[10px] uppercase tracking-wider text-gray-400 mt-2">ทำเอง</div>
 		{#each manualRules as rule}
 			<button
 				role="checkbox"
@@ -165,7 +165,7 @@
 
 	<!-- Automated Rules -->
 	{#if automatedRules.length > 0}
-		<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-3">อัตโนมัติ</div>
+		<div class="text-[10px] uppercase tracking-wider text-gray-400 mt-3">อัตโนมัติ</div>
 		{#each automatedRules as rule}
 			<div class="flex items-center justify-between rounded-xl px-3 py-2.5
 				{isCompleted(rule.id) ? 'bg-green-500/10' : 'bg-dark-bg/30'}">

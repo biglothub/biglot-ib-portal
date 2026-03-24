@@ -112,10 +112,10 @@
 								{:else if account.mt5_validation_error}
 									<span class="text-red-400 text-xs" title={account.mt5_validation_error}>MT5 ✗</span>
 								{:else}
-									<span class="text-gray-500 text-xs">MT5 รอตรวจ</span>
+									<span class="text-gray-400 text-xs">MT5 รอตรวจ</span>
 								{/if}
 							</div>
-							<div class="text-xs text-gray-500 space-y-0.5">
+							<div class="text-xs text-gray-400 space-y-0.5">
 								<p>MT5: {account.mt5_account_id} @ {account.mt5_server}</p>
 								<p>IB: {account.master_ibs?.profiles?.full_name || '-'} ({account.master_ibs?.ib_code || '-'})</p>
 								<p>ส่งเมื่อ: {formatDateTime(account.submitted_at)}</p>

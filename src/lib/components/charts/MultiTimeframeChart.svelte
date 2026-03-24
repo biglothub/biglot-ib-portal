@@ -240,7 +240,7 @@
 	<div class="flex items-center justify-between gap-3">
 		<div>
 			<h3 class="text-sm font-medium text-white">การวิเคราะห์หลายกรอบเวลา</h3>
-			<p class="text-xs text-gray-500 mt-0.5">
+			<p class="text-xs text-gray-400 mt-0.5">
 				Entry/exit markers พร้อม crosshair ซิงก์ทุก timeframe
 			</p>
 		</div>
@@ -265,7 +265,7 @@
 	{#if sortedContexts.length === 0}
 		<div class="rounded-xl border border-dashed border-dark-border px-4 py-8 text-center">
 			<svg
-				class="w-10 h-10 mx-auto mb-2 text-gray-600"
+				class="w-10 h-10 mx-auto mb-2 text-gray-400"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -277,8 +277,8 @@
 					d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 				/>
 			</svg>
-			<p class="text-sm text-gray-500">ยังไม่มีข้อมูล Chart Context สำหรับ Trade นี้</p>
-			<p class="text-xs text-gray-600 mt-1">ข้อมูลจะแสดงเมื่อ Bridge ส่ง bar data มา</p>
+			<p class="text-sm text-gray-400">ยังไม่มีข้อมูล Chart Context สำหรับ Trade นี้</p>
+			<p class="text-xs text-gray-400 mt-1">ข้อมูลจะแสดงเมื่อ Bridge ส่ง bar data มา</p>
 		</div>
 
 	<!-- Timeframe tabs when focused -->
@@ -309,7 +309,7 @@
 				>
 					{tfLabel(ctx.timeframe)}
 				</span>
-				<span class="text-xs text-gray-500">
+				<span class="text-xs text-gray-400">
 					{ctx.bars?.length ?? 0} แท่ง · {new Date(ctx.window_start).toLocaleDateString('th-TH')}
 					— {new Date(ctx.window_end).toLocaleDateString('th-TH')}
 				</span>
@@ -339,14 +339,14 @@
 							{tfLabel(ctx.timeframe)}
 						</span>
 						<div class="flex items-center gap-2">
-							<span class="text-xs text-gray-600 hidden sm:block">
+							<span class="text-xs text-gray-400 hidden sm:block">
 								{ctx.bars?.length ?? 0} แท่ง
 							</span>
 							<button
 								type="button"
 								onclick={() => (focusedTf = ctx.timeframe)}
 								title="ขยาย"
-								class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-white"
+								class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-white"
 							>
 								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
@@ -372,7 +372,7 @@
 
 		<!-- Sync indicator -->
 		{#if sortedContexts.length > 1}
-			<p class="text-xs text-gray-600 text-right">
+			<p class="text-xs text-gray-400 text-right">
 				↔ Crosshair ซิงก์ทุก {sortedContexts.length} timeframe · คลิก ⤢ เพื่อขยาย
 			</p>
 		{/if}

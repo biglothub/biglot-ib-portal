@@ -44,7 +44,7 @@
 </svelte:head>
 
 <div class="max-w-lg mx-auto space-y-6">
-	<a href="/ib" class="text-sm text-gray-500 hover:text-brand-400">&larr; กลับ</a>
+	<a href="/ib" class="text-sm text-gray-400 hover:text-brand-400">&larr; กลับ</a>
 	<h1 class="text-xl font-bold">เพิ่มลูกค้าใหม่</h1>
 
 	{#if success}
@@ -72,10 +72,10 @@
 			{#each [1, 2] as s}
 				<div class="flex items-center gap-2">
 					<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium
-						{step >= s ? 'bg-brand-600 text-white' : 'bg-dark-border text-gray-500'}">
+						{step >= s ? 'bg-brand-600 text-white' : 'bg-dark-border text-gray-400'}">
 						{s}
 					</div>
-					<span class="text-xs text-gray-500">{s === 1 ? 'ข้อมูลลูกค้า' : 'ข้อมูล MT5'}</span>
+					<span class="text-xs text-gray-400">{s === 1 ? 'ข้อมูลลูกค้า' : 'ข้อมูล MT5'}</span>
 				</div>
 				{#if s < 2}
 					<div class="flex-1 h-px {step > s ? 'bg-brand-600' : 'bg-dark-border'}"></div>

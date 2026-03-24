@@ -30,21 +30,21 @@
 				<div class="text-2xl font-bold {getRatioColor(analytics.sharpeRatio)}">
 					{formatRatio(analytics.sharpeRatio)}
 				</div>
-				<div class="text-[10px] text-gray-500 mt-1">ผลตอบแทนปรับความเสี่ยง</div>
+				<div class="text-[10px] text-gray-400 mt-1">ผลตอบแทนปรับความเสี่ยง</div>
 			</div>
 			<div class="text-center">
 				<div class="text-xs text-gray-400 mb-1">Sortino Ratio</div>
 				<div class="text-2xl font-bold {getRatioColor(analytics.sortinoRatio)}">
 					{formatRatio(analytics.sortinoRatio)}
 				</div>
-				<div class="text-[10px] text-gray-500 mt-1">ความเสี่ยงขาลงเท่านั้น</div>
+				<div class="text-[10px] text-gray-400 mt-1">ความเสี่ยงขาลงเท่านั้น</div>
 			</div>
 			<div class="text-center">
 				<div class="text-xs text-gray-400 mb-1">Calmar Ratio</div>
 				<div class="text-2xl font-bold {getRatioColor(analytics.calmarRatio)}">
 					{formatRatio(analytics.calmarRatio)}
 				</div>
-				<div class="text-[10px] text-gray-500 mt-1">ผลตอบแทน / DD สูงสุด</div>
+				<div class="text-[10px] text-gray-400 mt-1">ผลตอบแทน / DD สูงสุด</div>
 			</div>
 		</div>
 		<div class="mt-4 grid grid-cols-2 gap-3">
@@ -79,7 +79,7 @@
 						<div class="w-20 text-right text-xs font-mono font-bold {day.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 							{day.profit >= 0 ? '+' : ''}${day.profit.toFixed(2)}
 						</div>
-						<div class="w-14 text-right text-[10px] text-gray-500">
+						<div class="w-14 text-right text-[10px] text-gray-400">
 							{day.winRate.toFixed(0)}% ({day.trades})
 						</div>
 					</div>

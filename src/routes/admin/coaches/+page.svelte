@@ -150,7 +150,7 @@
 	<div class="flex items-center justify-between">
 		<div>
 			<h1 class="text-xl font-bold">จัดการตารางโค้ช</h1>
-			<p class="text-xs text-gray-500 mt-1">เพิ่ม แก้ไข ลบ โค้ช Live Trade</p>
+			<p class="text-xs text-gray-400 mt-1">เพิ่ม แก้ไข ลบ โค้ช Live Trade</p>
 		</div>
 		<button class="btn-primary text-sm" onclick={openAdd}>
 			เพิ่มโค้ช
@@ -165,7 +165,7 @@
 				<div class="card flex items-center gap-4 {!coach.is_active ? 'opacity-50' : ''}">
 					<!-- Sort order -->
 					<div class="flex-shrink-0 w-8 text-center">
-						<span class="text-xs text-gray-500 font-mono">{coach.sort_order}</span>
+						<span class="text-xs text-gray-400 font-mono">{coach.sort_order}</span>
 					</div>
 
 					<!-- Color badge -->
@@ -182,7 +182,7 @@
 							<img src={coach.avatar_url} alt={coach.name} width="36" height="36" loading="lazy" class="w-9 h-9 rounded-full object-cover border border-dark-border" />
 						{:else}
 							<div class="w-9 h-9 rounded-full bg-dark-hover border border-dark-border flex items-center justify-center">
-								<span class="text-xs text-gray-500">{coach.name.charAt(6) || '?'}</span>
+								<span class="text-xs text-gray-400">{coach.name.charAt(6) || '?'}</span>
 							</div>
 						{/if}
 					</div>
@@ -190,7 +190,7 @@
 					<!-- Info -->
 					<div class="flex-1 min-w-0">
 						<p class="text-sm font-medium text-white truncate">{coach.channel_name}</p>
-						<p class="text-xs text-gray-500 truncate">{coach.youtube_handle}</p>
+						<p class="text-xs text-gray-400 truncate">{coach.youtube_handle}</p>
 					</div>
 
 					<!-- Status -->
@@ -200,7 +200,7 @@
 							class="text-[10px] px-2 py-0.5 rounded-full border transition-colors
 								{coach.is_active
 									? 'bg-green-500/10 border-green-500/20 text-green-400'
-									: 'bg-gray-500/10 border-gray-500/20 text-gray-500'}"
+									: 'bg-gray-500/10 border-gray-500/20 text-gray-400'}"
 						>
 							{coach.is_active ? 'เปิด' : 'ปิด'}
 						</button>
@@ -290,7 +290,7 @@
 					<div>
 						<label for="end" class="label">จบ (ชม.)</label>
 						<input id="end" type="number" bind:value={form.end_hour} class="input" min="1" max="26" oninput={updateTimeDisplay} required />
-						<p class="text-[10px] text-gray-600 mt-0.5">ข้ามวัน: ใช้ 25=01:00, 26=02:00</p>
+						<p class="text-[10px] text-gray-400 mt-0.5">ข้ามวัน: ใช้ 25=01:00, 26=02:00</p>
 					</div>
 					<div>
 						<label for="display" class="label">แสดงเวลา</label>

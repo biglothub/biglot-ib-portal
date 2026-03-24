@@ -101,7 +101,7 @@
 <div class="card">
 	<div class="flex items-start justify-between gap-3">
 		<div>
-			<p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-gray-500">Recent Rhythm</p>
+			<p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-gray-400">Recent Rhythm</p>
 			<h3 class="mt-1 text-lg font-semibold text-white">Trading Footprint</h3>
 			<p class="mt-1 text-xs leading-5 text-gray-400">Last 7 trading days plus the symbols doing most of the work.</p>
 		</div>
@@ -113,13 +113,13 @@
 	<div class="mt-4 rounded-2xl border border-dark-border bg-dark-bg/40 p-4">
 		<div class="flex items-end justify-between gap-3">
 			<div>
-				<p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-gray-500">7D Net P/L</p>
+				<p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-gray-400">7D Net P/L</p>
 				<p class="mt-1 text-2xl font-semibold tabular-nums {netRecentProfit >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{formatSigned(netRecentProfit)}
 				</p>
 			</div>
 			<div class="text-right">
-				<p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-gray-500">Green Days</p>
+				<p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-gray-400">Green Days</p>
 				<p class="mt-1 text-sm font-semibold text-white">{greenDays}/{recentDays.length || 0}</p>
 			</div>
 		</div>
@@ -157,7 +157,7 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="mt-4 rounded-xl border border-dashed border-dark-border px-3 py-4 text-center text-xs text-gray-500">
+			<div class="mt-4 rounded-xl border border-dashed border-dark-border px-3 py-4 text-center text-xs text-gray-400">
 				Recent daily data is not available yet.
 			</div>
 		{/if}
@@ -165,8 +165,8 @@
 
 	<div class="mt-4">
 		<div class="flex items-center justify-between gap-3">
-			<p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-gray-500">Top Symbols</p>
-			<p class="text-[11px] text-gray-500">
+			<p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-gray-400">Top Symbols</p>
+			<p class="text-[11px] text-gray-400">
 				{latestTrade ? `Last trade ${formatLastTrade(latestTrade.closeTime)}` : 'No recent close'}
 			</p>
 		</div>
@@ -183,13 +183,13 @@
 							<p class="text-xs font-mono font-semibold tabular-nums {symbol.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 								{formatSigned(symbol.profit)}
 							</p>
-							<p class="text-[11px] text-gray-500">{symbol.winRate.toFixed(0)}% win</p>
+							<p class="text-[11px] text-gray-400">{symbol.winRate.toFixed(0)}% win</p>
 						</div>
 					</div>
 				{/each}
 			</div>
 		{:else}
-			<div class="mt-3 rounded-xl border border-dashed border-dark-border px-3 py-4 text-center text-xs text-gray-500">
+			<div class="mt-3 rounded-xl border border-dashed border-dark-border px-3 py-4 text-center text-xs text-gray-400">
 				Symbol breakdown will appear once trades are available.
 			</div>
 		{/if}

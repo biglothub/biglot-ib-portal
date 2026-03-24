@@ -124,7 +124,7 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">โซนเวลา</h2>
-				<p class="text-xs text-gray-500">เลือกโซนเวลาสำหรับแสดงผลข้อมูลเทรด</p>
+				<p class="text-xs text-gray-400">เลือกโซนเวลาสำหรับแสดงผลข้อมูลเทรด</p>
 			</div>
 		</div>
 
@@ -153,7 +153,7 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">ค่าเริ่มต้น TP/SL</h2>
-				<p class="text-xs text-gray-500">
+				<p class="text-xs text-gray-400">
 					กำหนดค่า Take Profit และ Stop Loss เริ่มต้น (หน่วย pips)
 				</p>
 			</div>
@@ -186,7 +186,7 @@
 			</div>
 		</div>
 
-		<p class="text-xs text-gray-600 mt-4">
+		<p class="text-xs text-gray-400 mt-4">
 			ค่านี้จะใช้เป็นค่าเริ่มต้นเมื่อวิเคราะห์เทรดที่ไม่ได้ตั้ง TP/SL
 		</p>
 	</div>
@@ -206,7 +206,7 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">ตั้งค่าต่อสัญลักษณ์</h2>
-				<p class="text-xs text-gray-500">
+				<p class="text-xs text-gray-400">
 					กำหนด TP/SL และค่าคอมมิชชันแยกตามสัญลักษณ์
 				</p>
 			</div>
@@ -217,7 +217,7 @@
 			<div class="hidden md:block overflow-x-auto mb-6">
 				<table class="w-full text-sm">
 					<thead>
-						<tr class="border-b border-dark-border text-gray-500 text-xs">
+						<tr class="border-b border-dark-border text-gray-400 text-xs">
 							<th class="text-left py-2 px-3 font-medium">สัญลักษณ์</th>
 							<th class="text-left py-2 px-3 font-medium">TP (pips)</th>
 							<th class="text-left py-2 px-3 font-medium">SL (pips)</th>
@@ -275,7 +275,7 @@
 									<button
 										type="button"
 										onclick={() => removeSymbol(i)}
-										class="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+										class="p-1 rounded text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
 										title="ลบ"
 									>
 										<svg
@@ -308,7 +308,7 @@
 							<button
 								type="button"
 								onclick={() => removeSymbol(i)}
-								class="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+								class="p-1 rounded text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
 								aria-label="ลบ {sym.symbol}"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -327,7 +327,7 @@
 				class="rounded-lg border border-dashed border-dark-border bg-dark-bg/50 p-8 text-center mb-6"
 			>
 				<svg
-					class="w-8 h-8 text-gray-600 mx-auto mb-2"
+					class="w-8 h-8 text-gray-400 mx-auto mb-2"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -339,8 +339,8 @@
 						d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
 					/>
 				</svg>
-				<p class="text-sm text-gray-500">ยังไม่มีการตั้งค่าแยกตามสัญลักษณ์</p>
-				<p class="text-xs text-gray-600 mt-1">เพิ่มสัญลักษณ์ด้านล่างเพื่อกำหนดค่า</p>
+				<p class="text-sm text-gray-400">ยังไม่มีการตั้งค่าแยกตามสัญลักษณ์</p>
+				<p class="text-xs text-gray-400 mt-1">เพิ่มสัญลักษณ์ด้านล่างเพื่อกำหนดค่า</p>
 			</div>
 		{/if}
 
@@ -403,7 +403,7 @@
 						class="w-full px-4 py-1.5 rounded-lg text-xs font-medium transition-colors
 							{newSymbol.trim()
 							? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/30 hover:bg-brand-primary/20'
-							: 'bg-dark-border text-gray-500 cursor-not-allowed border border-dark-border'}"
+							: 'bg-dark-border text-gray-400 cursor-not-allowed border border-dark-border'}"
 					>
 						+ เพิ่ม
 					</button>
@@ -420,7 +420,7 @@
 			disabled={saving}
 			class="px-6 py-2.5 rounded-lg text-sm font-medium transition-colors
 				{saving
-				? 'bg-dark-border text-gray-500 cursor-not-allowed'
+				? 'bg-dark-border text-gray-400 cursor-not-allowed'
 				: 'bg-brand-primary text-black hover:bg-brand-primary/90'}"
 		>
 			{#if saving}

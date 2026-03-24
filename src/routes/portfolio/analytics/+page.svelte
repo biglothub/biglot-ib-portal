@@ -92,7 +92,7 @@
 			{#each subTabs as tab}
 				<button
 					class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap
-						{activeTab === tab.key ? 'bg-dark-bg text-brand-primary shadow-md shadow-brand-primary/5 ring-1 ring-brand-primary/20' : 'text-gray-500 hover:text-gray-300 hover:bg-dark-bg/40'}"
+						{activeTab === tab.key ? 'bg-dark-bg text-brand-primary shadow-md shadow-brand-primary/5 ring-1 ring-brand-primary/20' : 'text-gray-400 hover:text-gray-300 hover:bg-dark-bg/40'}"
 					onclick={() => switchTab(tab.key)}
 				>{tab.label}</button>
 			{/each}

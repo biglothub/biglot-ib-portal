@@ -13,5 +13,5 @@
 	<div class="w-14 h-1.5 rounded-full bg-dark-border overflow-hidden">
 		<div class="{color} h-full rounded-full transition-all" style="width: {score}%"></div>
 	</div>
-	<span class="text-[10px] text-gray-500">{score}</span>
+	<span class="text-[10px] text-gray-400">{score}</span>
 </div>

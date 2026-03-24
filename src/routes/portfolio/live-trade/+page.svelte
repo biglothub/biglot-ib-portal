@@ -49,7 +49,7 @@
 	<div class="flex items-center justify-between">
 		<div>
 			<h2 class="text-lg font-bold text-white">ELITE GOLD LIVE TRADE</h2>
-			<p class="text-xs text-gray-500 mt-1">ตาราง Live Trade Master ประจำวัน</p>
+			<p class="text-xs text-gray-400 mt-1">ตาราง Live Trade Master ประจำวัน</p>
 		</div>
 		<div class="flex items-center gap-3">
 			{#if liveCoachIndex >= 0}
@@ -64,7 +64,7 @@
 			<!-- Current time -->
 			<div class="rounded-lg bg-dark-surface border border-dark-border px-3 py-1.5 text-center">
 				<div class="text-lg font-mono font-bold text-white tracking-wider">{currentTime}</div>
-				<div class="text-[9px] text-gray-500 -mt-0.5">เวลากรุงเทพฯ</div>
+				<div class="text-[9px] text-gray-400 -mt-0.5">เวลากรุงเทพฯ</div>
 			</div>
 		</div>
 	</div>
@@ -74,12 +74,12 @@
 		<!-- Empty state -->
 		<div class="flex flex-col items-center justify-center py-16 text-center">
 			<div class="w-16 h-16 rounded-2xl bg-dark-surface border border-dark-border flex items-center justify-center mb-4">
-				<svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
 				</svg>
 			</div>
 			<h3 class="text-sm font-medium text-gray-400 mb-1">ยังไม่มีตารางโค้ช</h3>
-			<p class="text-xs text-gray-600 max-w-xs">ตาราง Live Trade จะแสดงเมื่อแอดมินเพิ่มข้อมูลโค้ชในระบบ</p>
+			<p class="text-xs text-gray-400 max-w-xs">ตาราง Live Trade จะแสดงเมื่อแอดมินเพิ่มข้อมูลโค้ชในระบบ</p>
 		</div>
 	{:else}
 		<div class="space-y-3">
@@ -155,7 +155,7 @@
 
 						<!-- Time display -->
 						<div class="flex-shrink-0 text-right hidden sm:block">
-							<div class="text-sm font-mono transition-colors duration-500 {live ? coach.color_text : 'text-gray-500'}">
+							<div class="text-sm font-mono transition-colors duration-500 {live ? coach.color_text : 'text-gray-400'}">
 								{coach.time_display}
 							</div>
 							{#if live}

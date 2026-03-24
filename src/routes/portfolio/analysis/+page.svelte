@@ -293,10 +293,10 @@
 					</svg>
 				</span>
 				วิเคราะห์ทองคำประจำวัน
-				<span class="text-xs font-normal text-gray-500 ml-1">XAUUSD</span>
+				<span class="text-xs font-normal text-gray-400 ml-1">XAUUSD</span>
 			</h2>
 			{#if lastUpdated}
-				<p class="text-xs text-gray-500 mt-0.5">อัพเดทล่าสุด: {lastUpdated}</p>
+				<p class="text-xs text-gray-400 mt-0.5">อัพเดทล่าสุด: {lastUpdated}</p>
 			{/if}
 		</div>
 		<button
@@ -349,7 +349,7 @@
 					</div>
 					<div>
 						<h3 class="text-sm font-semibold text-white">{cfg.title}</h3>
-						<p class="text-xs text-gray-500">{cfg.subtitle}</p>
+						<p class="text-xs text-gray-400">{cfg.subtitle}</p>
 					</div>
 					{#if section.loading}
 						<div class="ml-auto flex gap-1">
@@ -373,7 +373,7 @@
 							<div class="h-3 bg-dark-border/30 rounded w-2/3"></div>
 						</div>
 					{:else if !generating}
-						<p class="text-gray-600 text-center py-4">กดปุ่ม "วิเคราะห์ใหม่" เพื่อเริ่มวิเคราะห์</p>
+						<p class="text-gray-400 text-center py-4">กดปุ่ม "วิเคราะห์ใหม่" เพื่อเริ่มวิเคราะห์</p>
 					{/if}
 				</div>
 			</div>

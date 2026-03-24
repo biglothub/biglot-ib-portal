@@ -202,7 +202,7 @@
 		{/if}
 
 		{#if chartData.length === 0}
-			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">ไม่มีข้อมูลสำหรับตัวชี้วัดนี้</div>
+			<div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">ไม่มีข้อมูลสำหรับตัวชี้วัดนี้</div>
 		{/if}
 	</div>
 	{/if}

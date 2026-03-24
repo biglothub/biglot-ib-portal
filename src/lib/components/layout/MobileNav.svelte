@@ -48,7 +48,7 @@
 	>
 		<div class="p-4 pb-2">
 			<div class="w-10 h-1 rounded-full bg-dark-border mx-auto mb-4"></div>
-			<p class="text-xs font-medium text-gray-500 uppercase tracking-widest mb-3 px-1">เพิ่มเติม</p>
+			<p class="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3 px-1">เพิ่มเติม</p>
 			<div class="grid grid-cols-4 gap-1">
 				{#each moreTabs as tab}
 					<a
@@ -78,7 +78,7 @@
 			class="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors
 				{isActive(tab.base)
 					? 'text-brand-primary'
-					: 'text-gray-500 hover:text-gray-300'}"
+					: 'text-gray-400 hover:text-gray-300'}"
 			aria-current={isActive(tab.base) ? 'page' : undefined}
 		>
 			{#if tab.base === '/portfolio'}
@@ -111,7 +111,7 @@
 		class="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors
 			{moreActive || moreOpen
 				? 'text-brand-primary'
-				: 'text-gray-500 hover:text-gray-300'}"
+				: 'text-gray-400 hover:text-gray-300'}"
 		onclick={() => (moreOpen = !moreOpen)}
 		aria-expanded={moreOpen}
 		aria-haspopup="dialog"

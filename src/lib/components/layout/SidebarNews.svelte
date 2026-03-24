@@ -179,10 +179,10 @@
 								class="w-1.5 h-1.5 rounded-full flex-shrink-0 {categoryDotColors[article.category] || 'bg-gray-400'}"
 								title={categoryThaiLabels[article.category] || 'ทั่วไป'}
 							></span>
-							<span class="text-gray-500">{timeAgo(article.published_at)}</span>
+							<span class="text-gray-400">{timeAgo(article.published_at)}</span>
 							{#if article.symbols.length > 0}
-								<span class="text-gray-600">&middot;</span>
-								<span class="text-gray-500 font-mono">{article.symbols[0]}</span>
+								<span class="text-gray-400">&middot;</span>
+								<span class="text-gray-400 font-mono">{article.symbols[0]}</span>
 							{/if}
 							{#if article.relevance_score > 85}
 								<span class="text-brand-primary font-medium">สำคัญ</span>

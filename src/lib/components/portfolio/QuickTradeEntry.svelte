@@ -220,7 +220,7 @@
 						</svg>
 					</div>
 					<p class="text-sm font-medium text-white">บันทึกเทรดสำเร็จ</p>
-					<p class="text-xs text-gray-500">กำลังปิดหน้าต่าง...</p>
+					<p class="text-xs text-gray-400">กำลังปิดหน้าต่าง...</p>
 				</div>
 			{:else}
 				<form
@@ -252,7 +252,7 @@
 									class="px-4 py-2.5 text-sm font-semibold transition-colors
 										{side === 'BUY'
 											? 'bg-green-500/20 text-green-400 border-r border-green-500/30'
-											: 'text-gray-500 hover:text-gray-300 border-r border-dark-border'}"
+											: 'text-gray-400 hover:text-gray-300 border-r border-dark-border'}"
 									aria-pressed={side === 'BUY'}
 								>
 									BUY
@@ -263,7 +263,7 @@
 									class="px-4 py-2.5 text-sm font-semibold transition-colors
 										{side === 'SELL'
 											? 'bg-red-500/20 text-red-400'
-											: 'text-gray-500 hover:text-gray-300'}"
+											: 'text-gray-400 hover:text-gray-300'}"
 									aria-pressed={side === 'SELL'}
 								>
 									SELL
@@ -327,7 +327,7 @@
 					<button
 						type="button"
 						onclick={() => (showAdvanced = !showAdvanced)}
-						class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+						class="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-300 transition-colors"
 					>
 						<svg
 							class="w-3.5 h-3.5 transition-transform duration-200 {showAdvanced ? 'rotate-90' : ''}"

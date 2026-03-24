@@ -133,26 +133,26 @@
 					{#if daySummary}
 						<div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">กำไร/ขาดทุน</div>
+								<div class="text-xs text-gray-400">กำไร/ขาดทุน</div>
 								<div class="mt-1 text-xl font-bold {daySummary.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 									{formatCurrency(daySummary.pnl)}
 								</div>
 							</div>
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">จำนวน Trade</div>
+								<div class="text-xs text-gray-400">จำนวน Trade</div>
 								<div class="mt-1 text-xl font-bold text-white">{daySummary.totalTrades}</div>
 							</div>
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">อัตราชนะ</div>
+								<div class="text-xs text-gray-400">อัตราชนะ</div>
 								<div class="mt-1 text-xl font-bold {daySummary.winRate >= 50 ? 'text-green-400' : 'text-amber-400'}">
 									{daySummary.winRate.toFixed(0)}%
 								</div>
 							</div>
 							<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-3">
-								<div class="text-xs text-gray-500">ชนะ / แพ้</div>
+								<div class="text-xs text-gray-400">ชนะ / แพ้</div>
 								<div class="mt-1 text-xl font-bold text-white">
 									<span class="text-green-400">{daySummary.wins}</span>
-									<span class="text-gray-600 mx-1">/</span>
+									<span class="text-gray-400 mx-1">/</span>
 									<span class="text-red-400">{daySummary.losses}</span>
 								</div>
 							</div>
@@ -203,7 +203,7 @@
 						<div class="overflow-x-auto">
 							<table class="w-full text-sm">
 								<thead>
-									<tr class="border-b border-dark-border text-gray-500 text-xs">
+									<tr class="border-b border-dark-border text-gray-400 text-xs">
 										<th class="text-left py-2">เวลา</th>
 										<th class="text-left py-2">สัญลักษณ์</th>
 										<th class="text-left py-2">ประเภท</th>
@@ -256,7 +256,7 @@
 					<!-- Day labels -->
 					<div class="grid grid-cols-7 gap-1 mb-1">
 						{#each dayLabels as label}
-							<div class="text-center text-[10px] text-gray-500 font-medium py-1">{label}</div>
+							<div class="text-center text-[10px] text-gray-400 font-medium py-1">{label}</div>
 						{/each}
 					</div>
 
@@ -269,7 +269,7 @@
 									class="aspect-square flex items-center justify-center text-xs rounded-lg transition-all
 										{cell.date === selectedDate ? 'ring-2 ring-brand-primary' : ''}
 										{dayColor(cell.pnl, cell.trades)}
-										{cell.trades === 0 ? 'text-gray-600 hover:bg-dark-bg/50' : 'hover:ring-1 hover:ring-gray-500'}"
+										{cell.trades === 0 ? 'text-gray-400 hover:bg-dark-bg/50' : 'hover:ring-1 hover:ring-gray-500'}"
 								>
 									{cell.day}
 								</button>
@@ -311,15 +311,15 @@
 							onclick={() => { const params = new URLSearchParams(); params.set('date', card.date); params.set('view', 'day'); goto(`/portfolio/day-view?${params.toString()}`); }}
 							class="card text-center p-4 hover:border-brand-primary/40 transition-colors {card.date === selectedDate ? 'border-brand-primary' : ''}"
 						>
-							<div class="text-xs text-gray-500 font-medium">{card.day}</div>
+							<div class="text-xs text-gray-400 font-medium">{card.day}</div>
 							{#if card.hasData}
 								<div class="mt-2 text-lg font-bold {card.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 									{formatCurrency(card.pnl)}
 								</div>
-								<div class="mt-1 text-xs text-gray-500">{card.trades} รายการ</div>
+								<div class="mt-1 text-xs text-gray-400">{card.trades} รายการ</div>
 							{:else}
-								<div class="mt-2 text-sm text-gray-600">—</div>
-								<div class="mt-1 text-xs text-gray-600">ไม่มี trade</div>
+								<div class="mt-2 text-sm text-gray-400">—</div>
+								<div class="mt-1 text-xs text-gray-400">ไม่มี trade</div>
 							{/if}
 						</button>
 					{/each}
@@ -331,26 +331,26 @@
 						<h3 class="text-sm font-medium text-gray-400 mb-3">สรุปประจำสัปดาห์</h3>
 						<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
 							<div>
-								<div class="text-xs text-gray-500">จำนวน Trade</div>
+								<div class="text-xs text-gray-400">จำนวน Trade</div>
 								<div class="text-xl font-bold text-white">{weekData.stats.totalTrades}</div>
 							</div>
 							<div>
-								<div class="text-xs text-gray-500">อัตราชนะ</div>
+								<div class="text-xs text-gray-400">อัตราชนะ</div>
 								<div class="text-xl font-bold {weekData.stats.winRate >= 50 ? 'text-green-400' : 'text-amber-400'}">
 									{weekData.stats.winRate.toFixed(0)}%
 								</div>
 							</div>
 							<div>
-								<div class="text-xs text-gray-500">Profit Factor</div>
+								<div class="text-xs text-gray-400">Profit Factor</div>
 								<div class="text-xl font-bold {weekData.stats.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">
 									{formatNumber(weekData.stats.profitFactor)}
 								</div>
 							</div>
 							<div>
-								<div class="text-xs text-gray-500">ชนะ / แพ้</div>
+								<div class="text-xs text-gray-400">ชนะ / แพ้</div>
 								<div class="text-xl font-bold text-white">
 									<span class="text-green-400">{weekData.stats.winners}</span>
-									<span class="text-gray-600 mx-1">/</span>
+									<span class="text-gray-400 mx-1">/</span>
 									<span class="text-red-400">{weekData.stats.losers}</span>
 								</div>
 							</div>
@@ -360,7 +360,7 @@
 						{#if weekData.dayCards.some((c: { hasData: boolean; pnl: number; day: string }) => c.hasData)}
 							{@const maxPnl = weekData.dayCards.reduce((max: number, c: { hasData: boolean; pnl: number; day: string }) => { const v = Math.abs(c.pnl); return v > max ? v : max; }, 1)}
 							<div class="mt-6">
-								<div class="text-xs text-gray-500 mb-2">กำไร/ขาดทุนรายวัน</div>
+								<div class="text-xs text-gray-400 mb-2">กำไร/ขาดทุนรายวัน</div>
 								<div class="flex items-end gap-2 h-24">
 									{#each weekData.dayCards as card}
 										<div class="flex-1 flex flex-col items-center justify-end h-full">
@@ -372,7 +372,7 @@
 											{:else}
 												<div class="w-full h-[2px] bg-gray-700 rounded"></div>
 											{/if}
-											<div class="text-[10px] text-gray-500 mt-1">{card.day.slice(0, 2)}</div>
+											<div class="text-[10px] text-gray-400 mt-1">{card.day.slice(0, 2)}</div>
 										</div>
 									{/each}
 								</div>
@@ -390,7 +390,7 @@
 						<div class="overflow-x-auto">
 							<table class="w-full text-sm">
 								<thead>
-									<tr class="border-b border-dark-border text-gray-500 text-xs">
+									<tr class="border-b border-dark-border text-gray-400 text-xs">
 										<th class="text-left py-2">วัน</th>
 										<th class="text-left py-2">เวลา</th>
 										<th class="text-left py-2">สัญลักษณ์</th>

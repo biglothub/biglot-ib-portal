@@ -445,7 +445,7 @@
 						<span class="text-xs px-2 py-0.5 rounded {trade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
 							{trade.type}
 						</span>
-						<span class="text-xs text-gray-500 hidden md:inline">
+						<span class="text-xs text-gray-400 hidden md:inline">
 							{trade.lot_size} ล็อต
 						</span>
 					</div>
@@ -469,22 +469,22 @@
 				<!-- Desktop trade info -->
 				<div class="hidden md:flex items-center gap-4 text-sm">
 					<div>
-						<span class="text-gray-500">เข้า:</span>
+						<span class="text-gray-400">เข้า:</span>
 						<span class="text-white ml-1">{formatNumber(trade.open_price, 5)}</span>
 					</div>
 					<div>
-						<span class="text-gray-500">ออก:</span>
+						<span class="text-gray-400">ออก:</span>
 						<span class="text-white ml-1">{formatNumber(trade.close_price, 5)}</span>
 					</div>
 					{#if trade.sl}
 						<div>
-							<span class="text-gray-500">SL:</span>
+							<span class="text-gray-400">SL:</span>
 							<span class="text-red-400 ml-1">{formatNumber(trade.sl, 5)}</span>
 						</div>
 					{/if}
 					{#if trade.tp}
 						<div>
-							<span class="text-gray-500">TP:</span>
+							<span class="text-gray-400">TP:</span>
 							<span class="text-green-400 ml-1">{formatNumber(trade.tp, 5)}</span>
 						</div>
 					{/if}
@@ -499,31 +499,31 @@
 		{#if showMobileInfo && trade}
 			<div class="md:hidden mt-3 grid grid-cols-2 gap-2 text-xs border-t border-dark-border pt-3">
 				<div>
-					<span class="text-gray-500">เข้า:</span>
+					<span class="text-gray-400">เข้า:</span>
 					<span class="text-white ml-1">{formatNumber(trade.open_price, 5)}</span>
 				</div>
 				<div>
-					<span class="text-gray-500">ออก:</span>
+					<span class="text-gray-400">ออก:</span>
 					<span class="text-white ml-1">{formatNumber(trade.close_price, 5)}</span>
 				</div>
 				{#if trade.sl}
 					<div>
-						<span class="text-gray-500">SL:</span>
+						<span class="text-gray-400">SL:</span>
 						<span class="text-red-400 ml-1">{formatNumber(trade.sl, 5)}</span>
 					</div>
 				{/if}
 				{#if trade.tp}
 					<div>
-						<span class="text-gray-500">TP:</span>
+						<span class="text-gray-400">TP:</span>
 						<span class="text-green-400 ml-1">{formatNumber(trade.tp, 5)}</span>
 					</div>
 				{/if}
 				<div>
-					<span class="text-gray-500">P/L:</span>
+					<span class="text-gray-400">P/L:</span>
 					<span class="ml-1 font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(trade.profit)}</span>
 				</div>
 				<div>
-					<span class="text-gray-500">ระยะเวลา:</span>
+					<span class="text-gray-400">ระยะเวลา:</span>
 					<span class="text-white ml-1">{getDuration(trade.open_time, trade.close_time)}</span>
 				</div>
 			</div>
@@ -534,12 +534,12 @@
 		<!-- Not found -->
 		<div class="flex-1 flex items-center justify-center">
 			<div class="text-center">
-				<div class="text-4xl text-gray-600 mb-3">
+				<div class="text-4xl text-gray-400 mb-3">
 					<svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 				</div>
-				<p class="text-gray-500">ไม่พบ Trade นี้</p>
+				<p class="text-gray-400">ไม่พบ Trade นี้</p>
 				<button
 					type="button"
 					onclick={() => goto('/portfolio/trades')}
@@ -553,13 +553,13 @@
 		<!-- No chart data -->
 		<div class="flex-1 flex items-center justify-center">
 			<div class="text-center max-w-sm">
-				<div class="text-4xl text-gray-600 mb-3">
+				<div class="text-4xl text-gray-400 mb-3">
 					<svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
 					</svg>
 				</div>
 				<p class="text-gray-400 font-medium mb-1">ยังไม่มีข้อมูล Chart</p>
-				<p class="text-gray-500 text-sm">Trade นี้ยังไม่มี chart context สำหรับ replay</p>
+				<p class="text-gray-400 text-sm">Trade นี้ยังไม่มี chart context สำหรับ replay</p>
 				<button
 					type="button"
 					onclick={() => goto(`/portfolio/trades/${$page.params.id}`)}
@@ -585,11 +585,11 @@
 				<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
 					{#if currentBar}
 						<span class="text-gray-400">{formatBarTime(currentBar.time)}</span>
-						<span class="text-gray-500">O: <span class="text-white">{formatNumber(currentBar.open, 5)}</span></span>
-						<span class="text-gray-500">H: <span class="text-white">{formatNumber(currentBar.high, 5)}</span></span>
-						<span class="text-gray-500">L: <span class="text-white">{formatNumber(currentBar.low, 5)}</span></span>
-						<span class="text-gray-500">C: <span class={currentBar.close >= currentBar.open ? 'text-green-400' : 'text-red-400'}>{formatNumber(currentBar.close, 5)}</span></span>
-						<span class="text-gray-600">{currentIndex + 1}/{totalBars}</span>
+						<span class="text-gray-400">O: <span class="text-white">{formatNumber(currentBar.open, 5)}</span></span>
+						<span class="text-gray-400">H: <span class="text-white">{formatNumber(currentBar.high, 5)}</span></span>
+						<span class="text-gray-400">L: <span class="text-white">{formatNumber(currentBar.low, 5)}</span></span>
+						<span class="text-gray-400">C: <span class={currentBar.close >= currentBar.open ? 'text-green-400' : 'text-red-400'}>{formatNumber(currentBar.close, 5)}</span></span>
+						<span class="text-gray-400">{currentIndex + 1}/{totalBars}</span>
 					{/if}
 
 					{#if hasReachedEntry && !hasReachedExit}
@@ -605,11 +605,11 @@
 							P/L: {formatCurrency(trade.profit)}
 						</span>
 					{:else}
-						<span class="text-gray-500">ก่อนเข้าเทรด</span>
+						<span class="text-gray-400">ก่อนเข้าเทรด</span>
 					{/if}
 
 					{#if hasReachedEntry && pnlData.length > 0}
-						<span class="hidden sm:inline text-gray-600">
+						<span class="hidden sm:inline text-gray-400">
 							Max: <span class="text-green-400">{formatCurrency(maxPnl)}</span>
 							Min: <span class="text-red-400">{formatCurrency(minPnl)}</span>
 						</span>
@@ -625,7 +625,7 @@
 				<!-- P&L curve -->
 				<div class="flex-none border-t border-dark-border/30">
 					<div class="px-4 py-1 flex items-center justify-between">
-						<span class="text-[10px] text-gray-500 uppercase tracking-wider">กำไร/ขาดทุนที่ยังไม่ปิด</span>
+						<span class="text-[10px] text-gray-400 uppercase tracking-wider">กำไร/ขาดทุนที่ยังไม่ปิด</span>
 						{#if hasReachedEntry}
 							<span class="text-xs font-medium {currentPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 								{formatCurrency(currentPnl)}
@@ -720,7 +720,7 @@
 										type="button"
 										onclick={() => { selectedTimeframe = tf; }}
 										class="px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200
-											{selectedTimeframe === tf ? 'bg-dark-surface text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}"
+											{selectedTimeframe === tf ? 'bg-dark-surface text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
 									>
 										{tf}
 									</button>
@@ -735,7 +735,7 @@
 									type="button"
 									onclick={() => setSpeed(s)}
 									class="px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200
-										{speed === s ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-500 hover:text-gray-300'}"
+										{speed === s ? 'bg-dark-surface text-brand-primary shadow-sm' : 'text-gray-400 hover:text-gray-300'}"
 								>
 									{s}x
 								</button>
@@ -745,7 +745,7 @@
 				</div>
 
 				<!-- Keyboard shortcuts hint -->
-				<div class="hidden md:flex items-center gap-4 mt-2 text-[10px] text-gray-600">
+				<div class="hidden md:flex items-center gap-4 mt-2 text-[10px] text-gray-400">
 					<span><kbd class="kbd">Space</kbd> เล่น/หยุด</span>
 					<span><kbd class="kbd">&larr;</kbd><kbd class="kbd">&rarr;</kbd> เลื่อนทีละแท่ง</span>
 					<span><kbd class="kbd">R</kbd> รีเซ็ต</span>

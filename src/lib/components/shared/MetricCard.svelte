@@ -23,7 +23,7 @@
 <div class="card">
 	<div class="flex items-start justify-between">
 		<div class="flex-1 min-w-0">
-			<p class="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
+			<p class="text-xs text-gray-400 uppercase tracking-wider">{label}</p>
 			<div class="flex items-center gap-2 mt-1">
 				<p class="text-xl font-bold {color}">{value}</p>
 				{#if trend}
@@ -33,12 +33,12 @@
 				{/if}
 			</div>
 			{#if subValue}
-				<p class="text-xs text-gray-500 mt-0.5">{subValue}</p>
+				<p class="text-xs text-gray-400 mt-0.5">{subValue}</p>
 			{/if}
 			{#if tradeCount}
-				<p class="text-[11px] text-gray-500 mt-0.5">
+				<p class="text-[11px] text-gray-400 mt-0.5">
 					<span class="text-green-400">{tradeCount.wins}W</span>
-					<span class="text-gray-600 mx-0.5">/</span>
+					<span class="text-gray-400 mx-0.5">/</span>
 					<span class="text-red-400">{tradeCount.losses}L</span>
 				</p>
 			{/if}

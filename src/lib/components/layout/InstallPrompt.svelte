@@ -55,7 +55,7 @@
 				</div>
 				<button
 					onclick={dismiss}
-					class="shrink-0 p-1 text-gray-500 hover:text-white transition-colors"
+					class="shrink-0 p-1 text-gray-400 hover:text-white transition-colors"
 					aria-label="ปิด"
 				>
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

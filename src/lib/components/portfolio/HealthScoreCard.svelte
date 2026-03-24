@@ -26,7 +26,7 @@
 </script>
 
 <div class="card">
-	<p class="text-xs text-gray-500 uppercase tracking-wider mb-3">{label}</p>
+	<p class="text-xs text-gray-400 uppercase tracking-wider mb-3">{label}</p>
 	<div class="flex items-center gap-4">
 		<!-- Circular gauge -->
 		<div class="relative flex-shrink-0">
@@ -49,7 +49,7 @@
 		<!-- Label -->
 		<div>
 			<p class="text-sm font-medium {scoreColor}">{scoreLabel}</p>
-			<p class="text-xs text-gray-500 mt-0.5">จาก 100</p>
+			<p class="text-xs text-gray-400 mt-0.5">จาก 100</p>
 		</div>
 	</div>
 </div>

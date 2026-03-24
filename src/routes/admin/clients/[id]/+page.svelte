@@ -137,7 +137,7 @@
 </svelte:head>
 
 <div class="space-y-6">
-	<a href="/admin/approvals" class="text-sm text-gray-500 hover:text-brand-400">&larr; กลับ</a>
+	<a href="/admin/approvals" class="text-sm text-gray-400 hover:text-brand-400">&larr; กลับ</a>
 
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
@@ -149,7 +149,7 @@
 					<h1 class="text-lg font-bold">{typedAccount.client_name}</h1>
 					<StatusBadge status={typedAccount.status} />
 				</div>
-				<p class="text-xs text-gray-500">
+				<p class="text-xs text-gray-400">
 					MT5: {typedAccount.mt5_account_id} @ {typedAccount.mt5_server}
 					| IB: {typedAccount.master_ibs?.profiles?.full_name} ({typedAccount.master_ibs?.ib_code})
 					{#if typedAccount.last_synced_at}
@@ -208,7 +208,7 @@
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
-						<tr class="border-b border-dark-border text-gray-500 text-xs">
+						<tr class="border-b border-dark-border text-gray-400 text-xs">
 							<th class="text-left py-2">สัญลักษณ์</th>
 							<th class="text-left py-2">ประเภท</th>
 							<th class="text-right py-2">ล็อต</th>
@@ -240,7 +240,7 @@
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
-						<tr class="border-b border-dark-border text-gray-500 text-xs">
+						<tr class="border-b border-dark-border text-gray-400 text-xs">
 							<th class="text-left py-2">สัญลักษณ์</th>
 							<th class="text-left py-2">ประเภท</th>
 							<th class="text-right py-2">ล็อต</th>
@@ -255,7 +255,7 @@
 								<td class="py-2"><span class="text-xs px-1.5 py-0.5 rounded {trade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">{trade.type}</span></td>
 								<td class="py-2 text-right text-gray-300">{trade.lot_size}</td>
 								<td class="py-2 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(trade.profit)}</td>
-								<td class="py-2 text-right text-gray-500 text-xs">{formatDateTime(trade.close_time)}</td>
+								<td class="py-2 text-right text-gray-400 text-xs">{formatDateTime(trade.close_time)}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -340,7 +340,7 @@
 				<div>
 					<label class="label" for="edit_password">Investor Password</label>
 					<input id="edit_password" type="password" class="input" bind:value={editMt5Password} placeholder="เว้นว่างถ้าไม่ต้องการเปลี่ยน" minlength="4" maxlength="64" />
-					<p class="text-xs text-gray-500 mt-1">เว้นว่างถ้าไม่ต้องการเปลี่ยนรหัสผ่าน</p>
+					<p class="text-xs text-gray-400 mt-1">เว้นว่างถ้าไม่ต้องการเปลี่ยนรหัสผ่าน</p>
 				</div>
 
 				{#if editError}

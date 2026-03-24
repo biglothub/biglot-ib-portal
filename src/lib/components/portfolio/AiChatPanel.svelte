@@ -161,7 +161,7 @@
 				</div>
 				<div>
 					<h3 id="ai-chat-title" class="text-sm font-semibold text-white">AI ผู้ช่วยเทรด</h3>
-					<p class="text-xs text-gray-500">วิเคราะห์ข้อมูลการเทรดของคุณ</p>
+					<p class="text-xs text-gray-400">วิเคราะห์ข้อมูลการเทรดของคุณ</p>
 				</div>
 			</div>
 			<div class="flex items-center gap-1">
@@ -202,7 +202,7 @@
 						</svg>
 					</div>
 					<h4 class="text-white font-medium mb-1">สวัสดีครับ!</h4>
-					<p class="text-sm text-gray-500 mb-6">ผมเป็นผู้ช่วย AI พร้อมวิเคราะห์ข้อมูลการเทรดของคุณ</p>
+					<p class="text-sm text-gray-400 mb-6">ผมเป็นผู้ช่วย AI พร้อมวิเคราะห์ข้อมูลการเทรดของคุณ</p>
 
 					<div class="grid grid-cols-1 gap-2 w-full">
 						{#each starters as starter}

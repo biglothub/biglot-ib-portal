@@ -6,7 +6,7 @@
 	<div class="text-center max-w-sm w-full">
 		<!-- Icon -->
 		<div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-dark-surface border border-dark-border flex items-center justify-center">
-			<svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+			<svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
 					d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M8.464 8.464a5 5 0 010 7.072M15.536 8.464a5 5 0 000 7.072M12 12h.01" />
 				<line x1="4" y1="4" x2="20" y2="20" stroke-linecap="round" stroke-width="1.5" />
@@ -17,7 +17,7 @@
 		<p class="text-gray-400 mb-1 leading-relaxed">
 			ขณะนี้คุณกำลังออฟไลน์อยู่
 		</p>
-		<p class="text-sm text-gray-500 mb-8">
+		<p class="text-sm text-gray-400 mb-8">
 			กลับสู่พอร์ตเพื่อดูข้อมูลที่บันทึกไว้ล่าสุด
 		</p>
 
@@ -49,7 +49,7 @@
 			<p class="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wide">สิ่งที่ทำได้ขณะออฟไลน์</p>
 			<ul class="space-y-2">
 				{#each ['ดูข้อมูลพอร์ตที่บันทึกไว้ล่าสุด', 'อ่านบันทึกประจำวันและโน้ต', 'ตรวจสอบประวัติการเทรด', 'ดูสถิติและรายงาน'] as tip}
-					<li class="flex items-center gap-2.5 text-sm text-gray-500">
+					<li class="flex items-center gap-2.5 text-sm text-gray-400">
 						<svg class="w-3.5 h-3.5 text-brand-primary shrink-0" fill="currentColor" viewBox="0 0 20 20">
 							<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
 						</svg>

@@ -77,7 +77,7 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">เปลี่ยนรหัสผ่าน</h2>
-				<p class="text-xs text-gray-500">จัดการรหัสผ่านสำหรับเข้าสู่ระบบ</p>
+				<p class="text-xs text-gray-400">จัดการรหัสผ่านสำหรับเข้าสู่ระบบ</p>
 			</div>
 		</div>
 
@@ -89,7 +89,7 @@
 					</svg>
 					<div>
 						<p class="text-sm text-white">ลงชื่อเข้าใช้ผ่าน {provider === 'google' ? 'Google' : provider === 'github' ? 'GitHub' : 'OAuth'}</p>
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-gray-400 mt-1">
 							บัญชีของคุณเชื่อมต่อผ่าน {provider === 'google' ? 'Google' : provider} จึงไม่สามารถเปลี่ยนรหัสผ่านได้ที่นี่
 							กรุณาจัดการรหัสผ่านที่ผู้ให้บริการของคุณ
 						</p>
@@ -112,7 +112,7 @@
 						<button
 							type="button"
 							onclick={() => showCurrentPassword = !showCurrentPassword}
-							class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+							class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
 						>
 							{#if showCurrentPassword}
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@
 						<button
 							type="button"
 							onclick={() => showNewPassword = !showNewPassword}
-							class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+							class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
 						>
 							{#if showNewPassword}
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +188,7 @@
 					class="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors
 						{canSubmitPassword
 							? 'bg-brand-primary text-black hover:bg-brand-primary/90'
-							: 'bg-dark-border text-gray-500 cursor-not-allowed'}"
+							: 'bg-dark-border text-gray-400 cursor-not-allowed'}"
 				>
 					{#if passwordLoading}
 						<span class="flex items-center gap-2">
@@ -216,7 +216,7 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">เซสชันที่ใช้งาน</h2>
-				<p class="text-xs text-gray-500">อุปกรณ์ที่เข้าสู่ระบบอยู่</p>
+				<p class="text-xs text-gray-400">อุปกรณ์ที่เข้าสู่ระบบอยู่</p>
 			</div>
 		</div>
 
@@ -232,7 +232,7 @@
 						</div>
 						<div>
 							<p class="text-sm text-white">เซสชันปัจจุบัน</p>
-							<p class="text-xs text-gray-500">
+							<p class="text-xs text-gray-400">
 								เข้าสู่ระบบล่าสุด: {formatDate(lastSignIn)}
 							</p>
 						</div>
@@ -268,19 +268,19 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">การยืนยันตัวตนสองขั้นตอน (2FA)</h2>
-				<p class="text-xs text-gray-500">เพิ่มความปลอดภัยให้บัญชีของคุณ</p>
+				<p class="text-xs text-gray-400">เพิ่มความปลอดภัยให้บัญชีของคุณ</p>
 			</div>
 		</div>
 
 		<div class="rounded-lg bg-dark-bg border border-dark-border p-4">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
 					</svg>
 					<div>
 						<p class="text-sm text-white">แอปยืนยันตัวตน</p>
-						<p class="text-xs text-gray-500">ใช้แอปเช่น Google Authenticator หรือ Authy</p>
+						<p class="text-xs text-gray-400">ใช้แอปเช่น Google Authenticator หรือ Authy</p>
 					</div>
 				</div>
 				<div class="flex items-center gap-3">
@@ -295,7 +295,7 @@
 			</div>
 		</div>
 
-		<p class="text-xs text-gray-600 mt-4">
+		<p class="text-xs text-gray-400 mt-4">
 			การยืนยันตัวตนสองขั้นตอนจะช่วยปกป้องบัญชีของคุณ แม้ว่ารหัสผ่านจะรั่วไหล
 		</p>
 	</div>
@@ -310,7 +310,7 @@
 			</div>
 			<div>
 				<h2 class="text-lg font-semibold">การเชื่อมต่อ</h2>
-				<p class="text-xs text-gray-500">วิธีการเข้าสู่ระบบที่เชื่อมต่อแล้ว</p>
+				<p class="text-xs text-gray-400">วิธีการเข้าสู่ระบบที่เชื่อมต่อแล้ว</p>
 			</div>
 		</div>
 
@@ -333,7 +333,7 @@
 						<p class="text-sm text-white">
 							{provider === 'google' ? 'Google' : provider === 'github' ? 'GitHub' : 'อีเมล + รหัสผ่าน'}
 						</p>
-						<p class="text-xs text-gray-500">วิธีหลักในการเข้าสู่ระบบ</p>
+						<p class="text-xs text-gray-400">วิธีหลักในการเข้าสู่ระบบ</p>
 					</div>
 				</div>
 				<span class="flex items-center gap-1.5 text-xs text-green-400">

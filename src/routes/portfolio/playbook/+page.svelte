@@ -282,20 +282,20 @@
 			class="px-4 py-2.5 text-sm font-medium transition-colors
 				{activeTab === 'my'
 					? 'text-brand-primary border-b-2 border-brand-primary'
-					: 'text-gray-500 hover:text-gray-300'}"
+					: 'text-gray-400 hover:text-gray-300'}"
 		>
 			Playbook ของฉัน
-			<span class="ml-1 text-xs text-gray-500">({playbooks.length})</span>
+			<span class="ml-1 text-xs text-gray-400">({playbooks.length})</span>
 		</button>
 		<button
 			onclick={() => activeTab = 'community'}
 			class="px-4 py-2.5 text-sm font-medium transition-colors
 				{activeTab === 'community'
 					? 'text-brand-primary border-b-2 border-brand-primary'
-					: 'text-gray-500 hover:text-gray-300'}"
+					: 'text-gray-400 hover:text-gray-300'}"
 		>
 			เทมเพลตชุมชน
-			<span class="ml-1 text-xs text-gray-500">({templates.length})</span>
+			<span class="ml-1 text-xs text-gray-400">({templates.length})</span>
 		</button>
 	</div>
 
@@ -305,7 +305,7 @@
 			<div class="card space-y-4">
 				<div>
 					<h2 class="text-lg font-semibold text-white">ตัวแก้ไข Playbook</h2>
-					<p class="text-sm text-gray-500 mt-1">กำหนด Setup, กฎ, กระบวนการจัดการความเสี่ยง และเทรดตัวอย่าง</p>
+					<p class="text-sm text-gray-400 mt-1">กำหนด Setup, กฎ, กระบวนการจัดการความเสี่ยง และเทรดตัวอย่าง</p>
 				</div>
 
 				<input bind:value={name} placeholder="ชื่อ Playbook" class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
@@ -333,7 +333,7 @@
 				</div>
 
 				<div>
-					<label for="example-trades" class="text-xs text-gray-500 mb-2 block">เทรดตัวอย่าง</label>
+					<label for="example-trades" class="text-xs text-gray-400 mb-2 block">เทรดตัวอย่าง</label>
 					<select id="example-trades" multiple bind:value={exampleTradeIds} class="w-full min-h-32 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 						{#each trades as trade}
 							<option value={trade.id}>
@@ -367,7 +367,7 @@
 				<div class="flex items-center justify-between mb-4">
 					<div>
 						<h2 class="text-lg font-semibold text-white">คลัง Playbook</h2>
-						<p class="text-sm text-gray-500 mt-1">{playbooks.length} playbooks</p>
+						<p class="text-sm text-gray-400 mt-1">{playbooks.length} playbooks</p>
 					</div>
 				</div>
 
@@ -397,7 +397,7 @@
 										<button type="button" onclick={() => deletePlaybook(playbook.id)} class="text-xs text-red-300">ลบ</button>
 									</div>
 								</div>
-								<div class="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-500">
+								<div class="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-400">
 									<div>{playbook.entry_criteria?.length || 0} เงื่อนไขเข้า</div>
 									<div>{playbook.risk_rules?.length || 0} กฎความเสี่ยง</div>
 								</div>
@@ -414,7 +414,7 @@
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">
 					<thead>
-						<tr class="border-b border-dark-border text-gray-500 text-xs">
+						<tr class="border-b border-dark-border text-gray-400 text-xs">
 							<th class="text-left py-2">Setup</th>
 							<th class="text-right py-2">เทรด</th>
 							<th class="text-right py-2">รีวิวแล้ว</th>
@@ -445,7 +445,7 @@
 		<!-- Filters + Search -->
 		<div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
 			<div class="relative flex-1 w-full sm:w-auto">
-				<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
 				</svg>
 				<input
@@ -479,7 +479,7 @@
 						<div class="flex items-start justify-between gap-2 mb-3">
 							<div class="min-w-0 flex-1">
 								<h3 class="text-white font-medium truncate">{template.name}</h3>
-								<p class="text-xs text-gray-500 mt-0.5 truncate">
+								<p class="text-xs text-gray-400 mt-0.5 truncate">
 									โดย {template.author_name || 'ไม่ระบุชื่อ'}
 								</p>
 							</div>
@@ -496,17 +496,17 @@
 						<!-- Stats -->
 						<div class="grid grid-cols-3 gap-2 mb-3">
 							<div class="text-center p-2 rounded-lg bg-dark-bg/40">
-								<div class="text-xs text-gray-500">เทรด</div>
+								<div class="text-xs text-gray-400">เทรด</div>
 								<div class="text-sm font-medium text-white">{template.total_trades}</div>
 							</div>
 							<div class="text-center p-2 rounded-lg bg-dark-bg/40">
-								<div class="text-xs text-gray-500">อัตราชนะ</div>
+								<div class="text-xs text-gray-400">อัตราชนะ</div>
 								<div class="text-sm font-medium {template.win_rate >= 50 ? 'text-green-400' : 'text-red-400'}">
 									{template.win_rate.toFixed(1)}%
 								</div>
 							</div>
 							<div class="text-center p-2 rounded-lg bg-dark-bg/40">
-								<div class="text-xs text-gray-500">P&L</div>
+								<div class="text-xs text-gray-400">P&L</div>
 								<div class="text-sm font-medium {template.net_pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 									{formatCurrency(template.net_pnl)}
 								</div>
@@ -534,7 +534,7 @@
 
 						<!-- Footer -->
 						<div class="flex items-center justify-between pt-3 border-t border-dark-border/40">
-							<div class="flex items-center gap-3 text-xs text-gray-500">
+							<div class="flex items-center gap-3 text-xs text-gray-400">
 								<span class="flex items-center gap-1">
 									<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
@@ -605,7 +605,7 @@
 			</p>
 
 			<div>
-				<label for="publish-category" class="text-xs text-gray-500 mb-1 block">หมวดหมู่</label>
+				<label for="publish-category" class="text-xs text-gray-400 mb-1 block">หมวดหมู่</label>
 				<select id="publish-category" bind:value={publishCategory} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white">
 					{#each categories.filter(c => c.value !== 'all') as cat}
 						<option value={cat.value}>{cat.label}</option>

@@ -136,15 +136,15 @@
 <div class="card">
 	<div class="flex items-start justify-between gap-3">
 		<div>
-			<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">ข่าวตลาด</p>
+			<p class="text-[10px] uppercase tracking-[0.24em] text-gray-400">ข่าวตลาด</p>
 			<h2 class="mt-1 text-lg font-semibold text-white">
 				สรุปข่าวประจำวัน
-				<span class="text-xs text-gray-500 font-normal">({effectiveArticles.length})</span>
+				<span class="text-xs text-gray-400 font-normal">({effectiveArticles.length})</span>
 			</h2>
 		</div>
 		<div class="flex items-center gap-3">
 			{#if lastUpdated}
-				<span class="text-[11px] text-gray-500">{timeAgo(lastUpdated)}</span>
+				<span class="text-[11px] text-gray-400">{timeAgo(lastUpdated)}</span>
 			{/if}
 			<button
 				onclick={handleRefresh}
@@ -181,7 +181,7 @@
 						<span class="w-2 h-2 rounded-full {categoryDotColors[cat.value]}"></span>
 					{/if}
 					{cat.label}
-					<span class="text-gray-600">({categoryCounts[cat.value]})</span>
+					<span class="text-gray-400">({categoryCounts[cat.value]})</span>
 				</button>
 			{/if}
 		{/each}
@@ -228,7 +228,7 @@
 								</p>
 							{/if}
 							<div class="mt-2 flex items-center justify-between">
-								<div class="flex items-center gap-1.5 text-[10px] text-gray-500">
+								<div class="flex items-center gap-1.5 text-[10px] text-gray-400">
 									<span>{sourceLabels[article.source] || article.source}</span>
 									<span class="text-gray-700">&middot;</span>
 									<span>{timeAgo(article.published_at)}</span>

@@ -84,7 +84,7 @@
 
 	// Toolbar button helper
 	function tbClass(active: boolean) {
-		return `p-1.5 rounded transition-colors ${active ? 'bg-dark-bg text-brand-primary' : 'text-gray-500 hover:text-gray-300 hover:bg-dark-bg/50'}`;
+		return `p-1.5 rounded transition-colors ${active ? 'bg-dark-bg text-brand-primary' : 'text-gray-400 hover:text-gray-300 hover:bg-dark-bg/50'}`;
 	}
 </script>
 
@@ -131,7 +131,7 @@
 
 			<div class="w-px h-5 bg-dark-border mx-1"></div>
 
-			<button type="button" class="p-1.5 rounded text-gray-500 hover:text-gray-300 hover:bg-dark-bg/50 transition-colors" onclick={() => editor?.chain().focus().setHorizontalRule().run()} title="เส้นแบ่ง">
+			<button type="button" class="p-1.5 rounded text-gray-400 hover:text-gray-300 hover:bg-dark-bg/50 transition-colors" onclick={() => editor?.chain().focus().setHorizontalRule().run()} title="เส้นแบ่ง">
 				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="22" y2="12"/></svg>
 			</button>
 		{/if}

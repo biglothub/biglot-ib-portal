@@ -106,7 +106,7 @@
 		aria-haspopup="listbox"
 		aria-label="{label}{selected.length > 0 ? ` (${selected.length} เลือก)` : ''}"
 		class="w-full flex items-center justify-between gap-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-left
-			{selected.length > 0 ? 'text-white' : 'text-gray-500'}"
+			{selected.length > 0 ? 'text-white' : 'text-gray-400'}"
 	>
 		<span class="truncate">
 			{#if selected.length === 0}
@@ -117,7 +117,7 @@
 				{label} ({selected.length})
 			{/if}
 		</span>
-		<svg class="w-3.5 h-3.5 shrink-0 text-gray-500 transition-transform {open ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+		<svg class="w-3.5 h-3.5 shrink-0 text-gray-400 transition-transform {open ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 			<path d="M19 9l-7 7-7-7" />
 		</svg>
 	</button>
@@ -140,7 +140,7 @@
 			{#if showSelectAll}
 				<div class="flex items-center gap-2 px-3 py-1.5 border-b border-dark-border">
 					<button type="button" onclick={selectAll} class="text-xs text-brand-primary hover:text-brand-primary/80">เลือกทั้งหมด</button>
-					<span class="text-gray-600 text-xs">|</span>
+					<span class="text-gray-400 text-xs">|</span>
 					<button type="button" onclick={clearAll} class="text-xs text-gray-400 hover:text-white">ล้าง</button>
 				</div>
 			{/if}
@@ -149,7 +149,7 @@
 				{#if groupBy && groupedOptions}
 					{#each [...groupedOptions.entries()] as [groupName, groupOpts], gi}
 						{#if groupName}
-							<div class="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider {gi > 0 ? 'border-t border-dark-border mt-1' : ''}">
+							<div class="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider {gi > 0 ? 'border-t border-dark-border mt-1' : ''}">
 								{groupName}
 							</div>
 						{/if}
@@ -199,7 +199,7 @@
 				{/if}
 
 				{#if filteredOptions.length === 0}
-					<div class="px-3 py-2 text-xs text-gray-500">
+					<div class="px-3 py-2 text-xs text-gray-400">
 						{searchQuery ? 'ไม่พบผลลัพธ์' : 'ไม่มีตัวเลือก'}
 					</div>
 				{/if}

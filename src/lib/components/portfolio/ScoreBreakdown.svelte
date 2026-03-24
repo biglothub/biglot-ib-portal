@@ -39,7 +39,7 @@
 		<div class="text-4xl font-bold {totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">
 			{formatCurrency(totalProfit)}
 		</div>
-		<div class="text-xs text-gray-500 mt-1">กำไรรวม</div>
+		<div class="text-xs text-gray-400 mt-1">กำไรรวม</div>
 	</div>
 
 	<!-- Key Metrics -->

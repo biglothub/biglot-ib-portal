@@ -46,11 +46,11 @@
 			</div>
 			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
 				<div>
-					<p class="text-gray-500 text-xs">Heartbeat ล่าสุด</p>
+					<p class="text-gray-400 text-xs">Heartbeat ล่าสุด</p>
 					<p class="text-gray-300">{bridgeHealth.last_heartbeat ? timeAgo(bridgeHealth.last_heartbeat) : '-'}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">รอบล่าสุด</p>
+					<p class="text-gray-400 text-xs">รอบล่าสุด</p>
 					<p class="text-gray-300">
 						{#if bridgeHealth.accounts_synced != null}
 							<span class="text-green-400">{bridgeHealth.accounts_synced}</span> สำเร็จ
@@ -63,11 +63,11 @@
 					</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">เวลารอบ</p>
+					<p class="text-gray-400 text-xs">เวลารอบ</p>
 					<p class="text-gray-300">{bridgeHealth.cycle_duration_ms ? (bridgeHealth.cycle_duration_ms / 1000).toFixed(1) + 's' : '-'}</p>
 				</div>
 				<div>
-					<p class="text-gray-500 text-xs">เวอร์ชัน</p>
+					<p class="text-gray-400 text-xs">เวอร์ชัน</p>
 					<p class="text-gray-300">v{bridgeHealth.version || '-'}</p>
 				</div>
 			</div>
@@ -109,10 +109,10 @@
 								<span class="text-white">{log.client_accounts?.client_name || '-'}</span>
 							</p>
 							{#if log.reason}
-								<p class="text-gray-500 text-xs mt-0.5">{log.reason}</p>
+								<p class="text-gray-400 text-xs mt-0.5">{log.reason}</p>
 							{/if}
 						</div>
-						<span class="text-xs text-gray-600 whitespace-nowrap">{timeAgo(log.created_at)}</span>
+						<span class="text-xs text-gray-400 whitespace-nowrap">{timeAgo(log.created_at)}</span>
 					</div>
 				{/each}
 			</div>

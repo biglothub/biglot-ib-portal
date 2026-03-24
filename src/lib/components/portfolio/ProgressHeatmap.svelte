@@ -76,14 +76,14 @@
 		{#if streak > 0}
 			<div class="flex items-center gap-1.5 text-sm">
 				<span class="text-brand-primary font-bold">{streak}</span>
-				<span class="text-gray-500">วันติดต่อกัน</span>
+				<span class="text-gray-400">วันติดต่อกัน</span>
 			</div>
 		{/if}
 	</div>
 
 	<!-- Month labels -->
 	{#if monthLabels.length > 0}
-		<div class="flex gap-[3px] ml-8 text-[9px] text-gray-600">
+		<div class="flex gap-[3px] ml-8 text-[9px] text-gray-400">
 			{#each weeks as _, wi}
 				{@const label = monthLabels.find(m => m.weekIndex === wi)}
 				<div class="w-[12px] text-center">{label ? label.text : ''}</div>
@@ -96,7 +96,7 @@
 		<!-- Day labels -->
 		<div class="flex flex-col gap-[3px]">
 			{#each dayLabels as label, i}
-				<div class="h-[12px] text-[9px] text-gray-600 leading-[12px] w-6 text-right pr-1">
+				<div class="h-[12px] text-[9px] text-gray-400 leading-[12px] w-6 text-right pr-1">
 					{i % 2 === 1 ? label : ''}
 				</div>
 			{/each}
@@ -122,7 +122,7 @@
 	</div>
 
 	<!-- Legend -->
-	<div class="flex items-center gap-2 text-[10px] text-gray-600">
+	<div class="flex items-center gap-2 text-[10px] text-gray-400">
 		<span>น้อย</span>
 		<div class="w-[10px] h-[10px] rounded-sm bg-dark-border/30"></div>
 		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/15"></div>

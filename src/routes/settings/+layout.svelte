@@ -114,7 +114,7 @@
 						{/if}
 						<div class="min-w-0 flex-1">
 							<p class="text-sm font-medium text-white truncate">{profile?.full_name}</p>
-							<p class="text-xs text-gray-500 truncate">{profile?.email}</p>
+							<p class="text-xs text-gray-400 truncate">{profile?.email}</p>
 						</div>
 					</div>
 				</div>

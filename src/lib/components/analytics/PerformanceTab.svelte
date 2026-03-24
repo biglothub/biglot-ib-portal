@@ -57,19 +57,19 @@
 {#if kpiMetrics}
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card border-l-2 {kpiMetrics.netPnl >= 0 ? 'border-l-green-500' : 'border-l-red-500'}">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">กำไรสุทธิ</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">กำไรสุทธิ</div>
 			<div class="mt-1.5 text-2xl font-bold {kpiMetrics.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(kpiMetrics.netPnl)}</div>
 		</div>
 		<div class="card border-l-2 {kpiMetrics.tradeWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">อัตราชนะ</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">อัตราชนะ</div>
 			<div class="mt-1.5 text-2xl font-bold {kpiMetrics.tradeWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.tradeWinRate.toFixed(1)}%</div>
 		</div>
 		<div class="card border-l-2 {kpiMetrics.profitFactor >= 1 ? 'border-l-green-500' : 'border-l-red-500'}">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">อัตราส่วนกำไร</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">อัตราส่วนกำไร</div>
 			<div class="mt-1.5 text-2xl font-bold {kpiMetrics.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}">{kpiMetrics.profitFactor >= 999 ? '∞' : formatNumber(kpiMetrics.profitFactor)}</div>
 		</div>
 		<div class="card border-l-2 {kpiMetrics.dayWinRate >= 50 ? 'border-l-green-500' : 'border-l-amber-500'}">
-			<div class="text-xs text-gray-500 uppercase tracking-wider">อัตราชนะรายวัน</div>
+			<div class="text-xs text-gray-400 uppercase tracking-wider">อัตราชนะรายวัน</div>
 			<div class="mt-1.5 text-2xl font-bold {kpiMetrics.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}">{kpiMetrics.dayWinRate.toFixed(1)}%</div>
 		</div>
 	</div>

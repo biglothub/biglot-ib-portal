@@ -43,7 +43,7 @@
 			class="w-full bg-dark-bg border rounded px-2.5 py-2 text-sm text-white placeholder-gray-600
 				{hasError ? 'border-red-500/50' : 'border-dark-border'}"
 		/>
-		<span class="text-gray-600 text-xs shrink-0">-</span>
+		<span class="text-gray-400 text-xs shrink-0">-</span>
 		<input
 			type="number"
 			value={max ?? ''}

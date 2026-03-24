@@ -89,7 +89,7 @@
 
 <div class="w-full">
 	<div class="flex items-center gap-2 mb-2">
-		<p class="text-[10px] uppercase tracking-[0.24em] text-gray-500">คะแนนการเทรด</p>
+		<p class="text-[10px] uppercase tracking-[0.24em] text-gray-400">คะแนนการเทรด</p>
 	</div>
 
 	<svg viewBox="0 0 260 230" class="w-full max-w-[300px] mx-auto">

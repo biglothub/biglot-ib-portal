@@ -418,10 +418,10 @@
 					<span class="text-xs font-normal px-2 py-0.5 rounded-full {trade.type === 'BUY' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
 						{trade.type}
 					</span>
-					<span class="text-xs font-normal text-gray-500">{trade.symbol}</span>
+					<span class="text-xs font-normal text-gray-400">{trade.symbol}</span>
 				{/if}
 			</h3>
-			<p class="text-xs text-gray-500 mt-0.5">ดูการเคลื่อนไหวราคาทีละแท่ง พร้อมกราฟ P&L</p>
+			<p class="text-xs text-gray-400 mt-0.5">ดูการเคลื่อนไหวราคาทีละแท่ง พร้อมกราฟ P&L</p>
 		</div>
 		<div class="flex items-center gap-2">
 			{#if availableTimeframes.length > 0}
@@ -459,7 +459,7 @@
 					<span>H: <span class="text-white">{formatNumber(currentBar.high, 5)}</span></span>
 					<span>L: <span class="text-white">{formatNumber(currentBar.low, 5)}</span></span>
 					<span>C: <span class={currentBar.close >= currentBar.open ? 'text-green-400' : 'text-red-400'}>{formatNumber(currentBar.close, 5)}</span></span>
-					<span class="text-gray-500">{currentIndex + 1}/{totalBars}</span>
+					<span class="text-gray-400">{currentIndex + 1}/{totalBars}</span>
 					{#if hasReachedEntry && !hasReachedExit}
 						<span class="inline-flex items-center gap-1 text-brand-primary font-medium">
 							<span class="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
@@ -470,7 +470,7 @@
 						</span>
 					{/if}
 					{#if hasReachedExit && trade}
-						<span class="text-gray-500 font-medium">CLOSED</span>
+						<span class="text-gray-400 font-medium">CLOSED</span>
 						<span class={trade.profit >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
 							P&L: {formatCurrency(trade.profit)}
 						</span>
@@ -624,7 +624,7 @@
 					type="button"
 					onclick={() => showPnlOverlay = !showPnlOverlay}
 					class="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors
-						{showPnlOverlay ? 'text-brand-primary bg-brand-primary/10' : 'text-gray-500 hover:text-gray-300'}"
+						{showPnlOverlay ? 'text-brand-primary bg-brand-primary/10' : 'text-gray-400 hover:text-gray-300'}"
 					title="แสดง/ซ่อนกราฟ P&L"
 				>
 					<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -651,18 +651,18 @@
 
 		<!-- Keyboard shortcuts hint -->
 		{#if fullscreen}
-			<div class="text-center text-[10px] text-gray-600 pt-1">
+			<div class="text-center text-[10px] text-gray-400 pt-1">
 				Space = เล่น/หยุด &nbsp; ← → = ย้อน/ถัดไป &nbsp; Home/End = เริ่มต้น/สุดท้าย
 			</div>
 		{/if}
 	{:else}
 		<div class="rounded-xl border border-dashed border-dark-border px-4 py-8 text-center">
-			<svg class="w-10 h-10 mx-auto text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="w-10 h-10 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 			</svg>
-			<p class="text-sm text-gray-500">ยังไม่มี chart context สำหรับ trade นี้</p>
-			<p class="text-xs text-gray-600 mt-1">ข้อมูลกราฟจะถูกสร้างอัตโนมัติเมื่อ sync จาก MT5</p>
+			<p class="text-sm text-gray-400">ยังไม่มี chart context สำหรับ trade นี้</p>
+			<p class="text-xs text-gray-400 mt-1">ข้อมูลกราฟจะถูกสร้างอัตโนมัติเมื่อ sync จาก MT5</p>
 		</div>
 	{/if}
 </div>

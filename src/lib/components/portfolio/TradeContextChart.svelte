@@ -137,7 +137,7 @@
 	<div class="flex items-start justify-between gap-3">
 		<div>
 			<h3 class="text-sm font-medium text-white">Trade Context</h3>
-			<p class="text-xs text-gray-500">Entry/exit markers with synced bars around this trade.</p>
+			<p class="text-xs text-gray-400">Entry/exit markers with synced bars around this trade.</p>
 		</div>
 		{#if availableTimeframes.length > 0}
 			<select
@@ -161,7 +161,7 @@
 		</div>
 		<div bind:this={container} class="w-full"></div>
 	{:else}
-		<div class="rounded-xl border border-dashed border-dark-border px-4 py-6 text-center text-sm text-gray-500">
+		<div class="rounded-xl border border-dashed border-dark-border px-4 py-6 text-center text-sm text-gray-400">
 			ยังไม่มี chart context สำหรับ trade นี้
 		</div>
 	{/if}

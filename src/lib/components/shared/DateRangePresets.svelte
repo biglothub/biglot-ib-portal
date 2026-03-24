@@ -126,7 +126,7 @@
 				aria-label="วันที่เริ่ม"
 				class="flex-1 bg-dark-bg border border-dark-border rounded px-2.5 py-1.5 text-sm text-white"
 			/>
-			<span class="text-gray-600 text-xs">ถึง</span>
+			<span class="text-gray-400 text-xs">ถึง</span>
 			<input
 				type="date"
 				bind:value={to}

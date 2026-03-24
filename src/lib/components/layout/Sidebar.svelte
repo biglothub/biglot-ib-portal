@@ -72,7 +72,7 @@
 		{#if !collapsed}
 			<div>
 				<h1 class="text-lg font-bold text-white">IB Portal</h1>
-				<p class="text-xs text-gray-500 mt-0.5">{roleLabel}</p>
+				<p class="text-xs text-gray-400 mt-0.5">{roleLabel}</p>
 			</div>
 		{/if}
 		<button
@@ -157,11 +157,11 @@
 				{/if}
 				<div class="flex-1 min-w-0">
 					<p class="text-sm font-medium text-white truncate">{profile?.full_name}</p>
-					<p class="text-xs text-gray-500 truncate">{profile?.email}</p>
+					<p class="text-xs text-gray-400 truncate">{profile?.email}</p>
 				</div>
 			</div>
 			<form method="POST" action="/auth/logout" class="mt-3">
-				<button type="submit" class="w-full text-left text-xs text-gray-500 hover:text-red-400 transition-colors">
+				<button type="submit" class="w-full text-left text-xs text-gray-400 hover:text-red-400 transition-colors">
 					ออกจากระบบ
 				</button>
 			</form>

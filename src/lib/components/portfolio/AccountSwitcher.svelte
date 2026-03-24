@@ -70,11 +70,11 @@
 				</div>
 				<div class="text-left">
 					<div class="text-xs font-medium text-white truncate max-w-[120px]">{currentAccount.client_name}</div>
-					<div class="text-[10px] text-gray-500">MT5: {currentAccount.mt5_account_id}</div>
+					<div class="text-[10px] text-gray-400">MT5: {currentAccount.mt5_account_id}</div>
 				</div>
 			</div>
 			<svg
-				class="w-3.5 h-3.5 text-gray-500 transition-transform {open ? 'rotate-180' : ''}"
+				class="w-3.5 h-3.5 text-gray-400 transition-transform {open ? 'rotate-180' : ''}"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -90,7 +90,7 @@
 				aria-label="เลือกบัญชี"
 			>
 				<div class="px-3 py-2 border-b border-dark-border">
-					<span class="text-xs font-medium text-gray-500 uppercase tracking-wider">เลือกบัญชี</span>
+					<span class="text-xs font-medium text-gray-400 uppercase tracking-wider">เลือกบัญชี</span>
 				</div>
 				{#each allAccounts as acc (acc.id)}
 					<button
@@ -114,7 +114,7 @@
 							<div class="text-sm font-medium truncate {acc.id === currentAccount.id ? 'text-brand-primary' : 'text-white'}">
 								{acc.client_name}
 							</div>
-							<div class="text-xs text-gray-500">
+							<div class="text-xs text-gray-400">
 								MT5: {acc.mt5_account_id} @ {acc.mt5_server}
 							</div>
 						</div>
@@ -138,7 +138,7 @@
 		</div>
 		<div>
 			<div class="text-xs font-medium text-white">{currentAccount.client_name}</div>
-			<div class="text-[10px] text-gray-500">MT5: {currentAccount.mt5_account_id}</div>
+			<div class="text-[10px] text-gray-400">MT5: {currentAccount.mt5_account_id}</div>
 		</div>
 	</div>
 {/if}

@@ -217,11 +217,11 @@
 		{/if}
 
 		{#if !dailyHistory || dailyHistory.length === 0}
-			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+			<div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
 				No daily P&L data available yet
 			</div>
 		{:else if filteredData.length === 0}
-			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+			<div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
 				ไม่พบข้อมูลสำหรับช่วง {currentTimeframe}
 			</div>
 		{/if}

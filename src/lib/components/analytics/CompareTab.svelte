@@ -56,7 +56,7 @@
 		<h3 class="text-sm font-semibold text-white mb-4">กลุ่ม #1</h3>
 		<div class="space-y-3">
 			<div>
-				<label for="g1-symbol" class="text-xs text-gray-500">สัญลักษณ์</label>
+				<label for="g1-symbol" class="text-xs text-gray-400">สัญลักษณ์</label>
 				<select id="g1-symbol" bind:value={group1Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 					<option value="">ทุกสัญลักษณ์</option>
 					{#each availableSymbols as sym}
@@ -65,7 +65,7 @@
 				</select>
 			</div>
 			<div>
-				<label for="g1-side" class="text-xs text-gray-500">ทิศทาง</label>
+				<label for="g1-side" class="text-xs text-gray-400">ทิศทาง</label>
 				<select id="g1-side" bind:value={group1Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 					<option value="">ทุกทิศทาง</option>
 					<option value="BUY">BUY</option>
@@ -78,7 +78,7 @@
 		<h3 class="text-sm font-semibold text-white mb-4">กลุ่ม #2</h3>
 		<div class="space-y-3">
 			<div>
-				<label for="g2-symbol" class="text-xs text-gray-500">สัญลักษณ์</label>
+				<label for="g2-symbol" class="text-xs text-gray-400">สัญลักษณ์</label>
 				<select id="g2-symbol" bind:value={group2Symbol} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 					<option value="">ทุกสัญลักษณ์</option>
 					{#each availableSymbols as sym}
@@ -87,7 +87,7 @@
 				</select>
 			</div>
 			<div>
-				<label for="g2-side" class="text-xs text-gray-500">ทิศทาง</label>
+				<label for="g2-side" class="text-xs text-gray-400">ทิศทาง</label>
 				<select id="g2-side" bind:value={group2Side} class="mt-1 w-full rounded-lg bg-dark-bg border border-dark-border px-3 py-2 text-sm text-white">
 					<option value="">ทุกทิศทาง</option>
 					<option value="BUY">BUY</option>
@@ -115,7 +115,7 @@
 		<div class="overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-dark-border text-gray-500 text-[11px] uppercase tracking-wider">
+					<tr class="border-b border-dark-border text-gray-400 text-[11px] uppercase tracking-wider">
 						<th class="text-left py-2.5 font-medium">ตัวชี้วัด</th>
 						<th class="text-right py-2.5 font-medium">กลุ่ม #1</th>
 						<th class="text-right py-2.5 font-medium">กลุ่ม #2</th>

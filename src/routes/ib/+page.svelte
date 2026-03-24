@@ -56,7 +56,7 @@
 								<p class="text-sm font-medium text-white truncate">{client.client_name}</p>
 								<StatusBadge status={client.status} />
 							</div>
-							<p class="text-xs text-gray-500">MT5: {client.mt5_account_id}</p>
+							<p class="text-xs text-gray-400">MT5: {client.mt5_account_id}</p>
 						</div>
 						{#if stats}
 							<div class="text-right shrink-0">
@@ -66,7 +66,7 @@
 								</p>
 							</div>
 						{:else if client.status === 'approved'}
-							<p class="text-xs text-gray-500">รอ sync...</p>
+							<p class="text-xs text-gray-400">รอ sync...</p>
 						{/if}
 					</a>
 				{/each}

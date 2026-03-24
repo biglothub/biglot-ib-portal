@@ -173,13 +173,13 @@
 				</svg>
 				<div class="flex items-center gap-1">
 					<button onclick={previousMonth} class="p-2 rounded hover:bg-dark-border transition-colors" aria-label="Previous month">
-						<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+						<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
 					</button>
 					<span class="text-sm font-semibold text-gray-200 min-w-[100px] text-center">
 						{monthNames[currentMonth].slice(0, 3)} {currentYear}
 					</span>
 					<button onclick={nextMonth} class="p-2 rounded hover:bg-dark-border transition-colors" aria-label="Next month">
-						<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+						<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
 					</button>
 					<button onclick={goToToday} aria-label="ไปวันนี้" class="ml-1 px-2 py-0.5 text-xs font-medium text-brand-primary bg-brand-primary/10 rounded hover:bg-brand-primary/20 transition-colors">
 						วันนี้
@@ -189,19 +189,19 @@
 
 			<div class="flex items-center gap-3 text-xs">
 				<div class="flex items-center gap-1">
-					<span class="text-gray-500">เดือนนี้:</span>
+					<span class="text-gray-400">เดือนนี้:</span>
 					<span class="font-bold {getProfitTextColor(monthStats.totalPnL)}">{formatMoney(monthStats.totalPnL)}</span>
 				</div>
 				<div class="hidden sm:flex items-center gap-1">
-					<span class="text-gray-500">วัน:</span>
+					<span class="text-gray-400">วัน:</span>
 					<span class="font-medium text-gray-300">{monthStats.profitableDays}W/{monthStats.lossDays}L</span>
 				</div>
 				<div class="hidden md:flex items-center gap-1">
-					<span class="text-gray-500">เทรด:</span>
+					<span class="text-gray-400">เทรด:</span>
 					<span class="font-medium text-gray-300">{monthStats.totalTrades}</span>
 				</div>
 				<button onclick={() => showStats = !showStats} class="p-2 rounded hover:bg-dark-border transition-colors" aria-label="Toggle stats">
-					<svg class="w-4 h-4 text-gray-500 transition-transform {showStats ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-4 h-4 text-gray-400 transition-transform {showStats ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 					</svg>
 				</button>
@@ -212,31 +212,31 @@
 			<div class="mt-3 pt-3 border-t border-dark-border">
 				<div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
 					<div class="p-2 bg-dark-bg/50 rounded text-center">
-						<div class="text-gray-500 mb-0.5">รวม</div>
+						<div class="text-gray-400 mb-0.5">รวม</div>
 						<div class="font-bold {getProfitTextColor(monthStats.totalPnL)}">{formatMoney(monthStats.totalPnL)}</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded text-center">
-						<div class="text-gray-500 mb-0.5">ดีที่สุด</div>
-						<div class="font-bold {monthStats.bestDay ? getProfitTextColor(monthStats.bestDay.data?.profit || 0) : 'text-gray-500'}">
+						<div class="text-gray-400 mb-0.5">ดีที่สุด</div>
+						<div class="font-bold {monthStats.bestDay ? getProfitTextColor(monthStats.bestDay.data?.profit || 0) : 'text-gray-400'}">
 							{monthStats.bestDay ? formatMoney(monthStats.bestDay.data?.profit || 0) : '-'}
 						</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded text-center">
-						<div class="text-gray-500 mb-0.5">แย่ที่สุด</div>
-						<div class="font-bold {monthStats.worstDay ? getProfitTextColor(monthStats.worstDay.data?.profit || 0) : 'text-gray-500'}">
+						<div class="text-gray-400 mb-0.5">แย่ที่สุด</div>
+						<div class="font-bold {monthStats.worstDay ? getProfitTextColor(monthStats.worstDay.data?.profit || 0) : 'text-gray-400'}">
 							{monthStats.worstDay ? formatMoney(monthStats.worstDay.data?.profit || 0) : '-'}
 						</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded text-center">
-						<div class="text-gray-500 mb-0.5">เฉลี่ย/วัน</div>
+						<div class="text-gray-400 mb-0.5">เฉลี่ย/วัน</div>
 						<div class="font-bold {getProfitTextColor(monthStats.avgDaily)}">{formatMoney(monthStats.avgDaily)}</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded text-center">
-						<div class="text-gray-500 mb-0.5">วันเทรด</div>
+						<div class="text-gray-400 mb-0.5">วันเทรด</div>
 						<div class="font-bold text-gray-300">{monthStats.tradingDays}</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded text-center">
-						<div class="text-gray-500 mb-0.5">เทรด</div>
+						<div class="text-gray-400 mb-0.5">เทรด</div>
 						<div class="font-bold text-gray-300">{monthStats.totalTrades}</div>
 					</div>
 				</div>
@@ -337,7 +337,7 @@
 					{selectedDay.date.toLocaleDateString('th-TH', { weekday: 'long', month: 'short', day: 'numeric' })}
 				</h3>
 				<button onclick={closeDayModal} class="p-2 hover:bg-dark-border rounded transition-colors" aria-label="ปิด">
-					<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>
 				</button>
@@ -346,27 +346,27 @@
 			<div class="p-4">
 				<div class="text-center mb-4">
 					<div class="text-2xl font-bold {getProfitTextColor(selectedDay.data.profit)}">{formatMoneyFull(selectedDay.data.profit)}</div>
-					<div class="text-xs text-gray-500">P&L รายวัน</div>
+					<div class="text-xs text-gray-400">P&L รายวัน</div>
 				</div>
 				<div class="grid grid-cols-2 gap-2 text-center">
 					<div class="p-2 bg-dark-bg/50 rounded">
 						<div class="text-lg font-bold text-gray-200">{selectedDay.data.totalTrades || 0}</div>
-						<div class="text-[10px] text-gray-500">เทรด</div>
+						<div class="text-[10px] text-gray-400">เทรด</div>
 					</div>
 					<div class="p-2 bg-dark-bg/50 rounded">
 						<div class="text-lg font-bold text-brand-primary">{(selectedDay.data.winRate || 0).toFixed(0)}%</div>
-						<div class="text-[10px] text-gray-500">อัตราชนะ</div>
+						<div class="text-[10px] text-gray-400">อัตราชนะ</div>
 					</div>
 					{#if selectedDay.data.bestTrade}
 						<div class="p-2 bg-dark-bg/50 rounded">
 							<div class="text-sm font-bold text-emerald-400">{formatMoney(selectedDay.data.bestTrade)}</div>
-							<div class="text-[10px] text-gray-500">ดีที่สุด</div>
+							<div class="text-[10px] text-gray-400">ดีที่สุด</div>
 						</div>
 					{/if}
 					{#if selectedDay.data.worstTrade}
 						<div class="p-2 bg-dark-bg/50 rounded">
 							<div class="text-sm font-bold text-red-400">{formatMoney(selectedDay.data.worstTrade)}</div>
-							<div class="text-[10px] text-gray-500">แย่ที่สุด</div>
+							<div class="text-[10px] text-gray-400">แย่ที่สุด</div>
 						</div>
 					{/if}
 				</div>

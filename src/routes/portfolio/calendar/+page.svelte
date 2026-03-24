@@ -273,11 +273,11 @@
 	{:else if filteredEvents.length === 0}
 		<!-- Empty State -->
 		<div class="bg-dark-surface border border-dark-border rounded-lg p-4 sm:p-8 text-center">
-			<svg class="w-12 h-12 text-gray-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+			<svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
 			</svg>
 			<p class="text-gray-400 font-medium">ไม่พบเหตุการณ์</p>
-			<p class="text-gray-500 text-sm mt-1">
+			<p class="text-gray-400 text-sm mt-1">
 				{#if filterImpact !== 'all' || filterCountry !== 'all' || searchQuery}
 					ลองปรับตัวกรองใหม่
 				{:else}
@@ -299,14 +299,14 @@
 						{#if isToday(date)}
 							<span class="px-2 py-0.5 text-xs bg-brand-primary/20 text-brand-primary rounded-full">วันนี้</span>
 						{/if}
-						<span class="text-xs text-gray-500 ml-auto">{dayEvents.length} เหตุการณ์</span>
+						<span class="text-xs text-gray-400 ml-auto">{dayEvents.length} เหตุการณ์</span>
 					</div>
 
 					<!-- Desktop Table -->
 					<div class="hidden md:block overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead>
-								<tr class="text-xs text-gray-500 border-b border-dark-border">
+								<tr class="text-xs text-gray-400 border-b border-dark-border">
 									<th class="px-4 py-2 text-left font-medium w-20">เวลา</th>
 									<th class="px-4 py-2 text-left font-medium w-16">สกุลเงิน</th>
 									<th class="px-4 py-2 text-left font-medium w-24">ผลกระทบ</th>
@@ -335,7 +335,7 @@
 										<td class="px-4 py-2.5 text-white font-medium">{event.title}</td>
 										<td class="px-4 py-2.5 text-right text-gray-400 font-mono text-xs">{event.forecast || '—'}</td>
 										<td class="px-4 py-2.5 text-right text-gray-400 font-mono text-xs">{event.previous || '—'}</td>
-										<td class="px-4 py-2.5 text-right font-mono text-xs {event.actual ? 'text-white font-semibold' : 'text-gray-500'}">{event.actual || '—'}</td>
+										<td class="px-4 py-2.5 text-right font-mono text-xs {event.actual ? 'text-white font-semibold' : 'text-gray-400'}">{event.actual || '—'}</td>
 									</tr>
 								{/each}
 							</tbody>
@@ -362,16 +362,16 @@
 								<p class="text-white text-sm font-medium">{event.title}</p>
 								<div class="flex gap-4 text-xs">
 									<div>
-										<span class="text-gray-500">คาดการณ์</span>
+										<span class="text-gray-400">คาดการณ์</span>
 										<span class="text-gray-300 ml-1 font-mono">{event.forecast || '—'}</span>
 									</div>
 									<div>
-										<span class="text-gray-500">ครั้งก่อน</span>
+										<span class="text-gray-400">ครั้งก่อน</span>
 										<span class="text-gray-300 ml-1 font-mono">{event.previous || '—'}</span>
 									</div>
 									<div>
-										<span class="text-gray-500">จริง</span>
-										<span class="font-mono ml-1 {event.actual ? 'text-white font-semibold' : 'text-gray-500'}">{event.actual || '—'}</span>
+										<span class="text-gray-400">จริง</span>
+										<span class="font-mono ml-1 {event.actual ? 'text-white font-semibold' : 'text-gray-400'}">{event.actual || '—'}</span>
 									</div>
 								</div>
 							</div>
