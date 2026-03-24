@@ -132,7 +132,7 @@ type MarketNewsArticle = {
 			<div class="flex items-center justify-between px-5 py-4 border-b border-dark-border shrink-0">
 				<div>
 					<h2 id="start-my-day-title" class="text-base font-bold text-white">เริ่มต้นวันนี้</h2>
-					<p class="text-[11px] text-gray-500 mt-0.5">{today}</p>
+					<p class="text-[11px] text-gray-400 mt-0.5">{today}</p>
 				</div>
 				<button
 					onclick={onclose}
@@ -153,7 +153,7 @@ type MarketNewsArticle = {
 						class="flex-1 text-xs font-medium pb-2.5 border-b-2 transition-colors
 							{step === i
 							? 'text-brand-primary border-brand-primary'
-							: 'text-gray-500 border-transparent hover:text-gray-300'}"
+							: 'text-gray-400 border-transparent hover:text-gray-300'}"
 					>
 						<span class="flex items-center justify-center gap-1.5">
 							<span class="w-4 h-4 rounded-full text-[10px] flex items-center justify-center
@@ -174,12 +174,12 @@ type MarketNewsArticle = {
 						{#if checklistRules.length === 0}
 							<div class="text-center py-8">
 								<div class="w-12 h-12 rounded-full bg-dark-border/50 flex items-center justify-center mx-auto mb-3">
-									<svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
 									</svg>
 								</div>
 								<p class="text-sm text-gray-400">ยังไม่มีเช็คลิสต์</p>
-								<p class="text-xs text-gray-600 mt-1">ตั้งค่า checklist ได้ที่หน้า Progress</p>
+								<p class="text-xs text-gray-400 mt-1">ตั้งค่า checklist ได้ที่หน้า Progress</p>
 								<a
 									href="/portfolio/progress"
 									onclick={onclose}
@@ -198,7 +198,7 @@ type MarketNewsArticle = {
 										style="width: {checklistRules.length > 0 ? (completedCount / checklistRules.length) * 100 : 0}%"
 									></div>
 								</div>
-								<span class="text-xs text-gray-500 shrink-0">{completedCount}/{checklistRules.length}</span>
+								<span class="text-xs text-gray-400 shrink-0">{completedCount}/{checklistRules.length}</span>
 							</div>
 
 							{#if allDone}
@@ -212,7 +212,7 @@ type MarketNewsArticle = {
 
 							<!-- Manual Rules -->
 							{#if manualRules.length > 0}
-								<div class="text-[10px] uppercase tracking-wider text-gray-600 mb-1">ตรวจด้วยตนเอง</div>
+								<div class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">ตรวจด้วยตนเอง</div>
 								{#each manualRules as rule}
 									<button
 										onclick={() => toggleRule(rule.id)}
@@ -237,7 +237,7 @@ type MarketNewsArticle = {
 
 							<!-- Automated Rules -->
 							{#if automatedRules.length > 0}
-								<div class="text-[10px] uppercase tracking-wider text-gray-600 mt-2 mb-1">อัตโนมัติ</div>
+								<div class="text-[10px] uppercase tracking-wider text-gray-400 mt-2 mb-1">อัตโนมัติ</div>
 								{#each automatedRules as rule}
 									<div class="flex items-center justify-between rounded-xl px-3 py-2.5 border
 										{isCompleted(rule.id) ? 'bg-green-500/10 border-green-500/20' : 'bg-dark-bg/40 border-transparent'}">
@@ -252,7 +252,7 @@ type MarketNewsArticle = {
 											</div>
 											<span class="text-sm {isCompleted(rule.id) ? 'text-gray-400' : 'text-gray-200'}">{rule.name}</span>
 										</div>
-										<span class="text-xs {isCompleted(rule.id) ? 'text-green-400' : 'text-gray-500'}">
+										<span class="text-xs {isCompleted(rule.id) ? 'text-green-400' : 'text-gray-400'}">
 											{isCompleted(rule.id) ? 'ผ่าน' : 'รอตรวจ'}
 										</span>
 									</div>
@@ -271,7 +271,7 @@ type MarketNewsArticle = {
 								</svg>
 								<div>
 									<p class="text-sm font-medium text-green-400">บันทึกวันนี้เสร็จแล้ว</p>
-									<p class="text-xs text-gray-500 mt-0.5">คุณบันทึก journal ของวันนี้เรียบร้อยแล้ว</p>
+									<p class="text-xs text-gray-400 mt-0.5">คุณบันทึก journal ของวันนี้เรียบร้อยแล้ว</p>
 								</div>
 							</div>
 							<button
@@ -290,12 +290,12 @@ type MarketNewsArticle = {
 									</div>
 									<p class="text-sm font-medium text-white">ยังไม่มี journal วันนี้</p>
 								</div>
-								<p class="text-xs text-gray-500 leading-relaxed">
+								<p class="text-xs text-gray-400 leading-relaxed">
 									การบันทึก journal ช่วยให้คุณเข้าใจรูปแบบการเทรดของตัวเอง และพัฒนาได้ต่อเนื่อง ใช้เวลาเพียง 2-3 นาที
 								</p>
-								<div class="text-xs text-gray-600 space-y-1">
+								<div class="text-xs text-gray-400 space-y-1">
 									<p>แนะนำให้บันทึก:</p>
-									<ul class="ml-3 space-y-0.5 text-gray-500 list-disc list-inside">
+									<ul class="ml-3 space-y-0.5 text-gray-400 list-disc list-inside">
 										<li>อารมณ์ก่อนเทรดวันนี้</li>
 										<li>แผนการเทรดและ setup ที่วางไว้</li>
 										<li>สิ่งที่ต้องระวังวันนี้</li>
@@ -320,11 +320,11 @@ type MarketNewsArticle = {
 				{:else if step === 2}
 					<!-- Market Summary Step -->
 					<div class="space-y-3">
-						<p class="text-[10px] uppercase tracking-wider text-gray-600">ข่าวตลาดล่าสุด</p>
+						<p class="text-[10px] uppercase tracking-wider text-gray-400">ข่าวตลาดล่าสุด</p>
 						{#if topNews.length === 0}
 							<div class="text-center py-8">
-								<p class="text-sm text-gray-500">ยังไม่มีข่าวตลาดวันนี้</p>
-								<p class="text-xs text-gray-600 mt-1">ข่าวจะอัพเดทเมื่อระบบดึงข้อมูล</p>
+								<p class="text-sm text-gray-400">ยังไม่มีข่าวตลาดวันนี้</p>
+								<p class="text-xs text-gray-400 mt-1">ข่าวจะอัพเดทเมื่อระบบดึงข้อมูล</p>
 							</div>
 						{:else}
 							{#each topNews as article}
@@ -338,7 +338,7 @@ type MarketNewsArticle = {
 										<p class="text-sm text-gray-200 leading-snug">{article.title || article.headline}</p>
 									</div>
 									{#if article.summary}
-										<p class="text-xs text-gray-500 leading-relaxed line-clamp-2">{article.summary}</p>
+										<p class="text-xs text-gray-400 leading-relaxed line-clamp-2">{article.summary}</p>
 									{/if}
 								</div>
 							{/each}
@@ -346,7 +346,7 @@ type MarketNewsArticle = {
 
 						<div class="rounded-xl bg-brand-primary/5 border border-brand-primary/20 px-4 py-3 mt-4">
 							<p class="text-xs text-brand-primary font-medium">พร้อมเทรดแล้ว</p>
-							<p class="text-[11px] text-gray-500 mt-1">คุณผ่านการเตรียมพร้อมแล้ว ขอให้เทรดด้วยวินัย</p>
+							<p class="text-[11px] text-gray-400 mt-1">คุณผ่านการเตรียมพร้อมแล้ว ขอให้เทรดด้วยวินัย</p>
 						</div>
 					</div>
 				{/if}

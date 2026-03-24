@@ -131,7 +131,7 @@
 	{/if}
 
 	{#if tags.length === 0}
-		<p class="text-xs text-gray-500">ยังไม่มี Tag — สร้าง Tag เพื่อจัดหมวดหมู่ Trade</p>
+		<p class="text-xs text-gray-400">ยังไม่มี Tag — สร้าง Tag เพื่อจัดหมวดหมู่ Trade</p>
 	{:else}
 		<div class="flex flex-wrap gap-1.5">
 			{#each tags as tag}

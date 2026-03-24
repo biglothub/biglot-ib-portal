@@ -273,7 +273,7 @@
 							disabled={syncingNow || syncCooldown}
 							class="flex items-center gap-1.5 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs font-medium transition-colors
 								{syncingNow || syncCooldown
-									? 'text-gray-600 border-gray-700 cursor-not-allowed'
+									? 'text-gray-400 border-gray-700 cursor-not-allowed'
 									: 'text-gray-400 hover:text-white hover:border-brand-primary/40'}"
 							aria-label={syncCooldown ? 'Sync แล้ว — กรุณารอก่อน' : 'Sync ข้อมูลล่าสุด'}
 							title={syncCooldown ? 'Sync แล้ว — กรุณารอก่อน' : 'Sync ข้อมูลล่าสุด'}
@@ -309,7 +309,7 @@
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
 					</svg>
 					<span class="hidden sm:inline">ค้นหา</span>
-					<kbd class="hidden sm:inline px-1 rounded bg-dark-bg border border-dark-border font-mono text-gray-600">⌘K</kbd>
+					<kbd class="hidden sm:inline px-1 rounded bg-dark-bg border border-dark-border font-mono text-gray-400">⌘K</kbd>
 				</button>
 			{/if}
 			<!-- Display unit switcher -->
@@ -324,7 +324,7 @@
 						class="px-2.5 py-1.5 text-xs font-medium transition-colors
 							{$displayUnit === opt.value
 								? 'bg-brand-primary/20 text-brand-primary'
-								: 'text-gray-500 hover:text-gray-300 hover:bg-dark-border/40'}"
+								: 'text-gray-400 hover:text-gray-300 hover:bg-dark-border/40'}"
 						aria-pressed={$displayUnit === opt.value}
 					>
 						{opt.label}
@@ -364,7 +364,7 @@
 					class="px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors
 						{isActive(tab.base)
 							? 'text-brand-primary border-b-2 border-brand-primary'
-							: 'text-gray-500 hover:text-gray-300'}"
+							: 'text-gray-400 hover:text-gray-300'}"
 				>
 					{tab.label}
 				</a>

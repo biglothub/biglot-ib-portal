@@ -81,7 +81,7 @@
 					{@const staticInGroup = staticShortcuts[groupName] ?? []}
 					{#if registeredInGroup.length > 0 || staticInGroup.length > 0}
 						<section>
-							<h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{groupName}</h3>
+							<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{groupName}</h3>
 							<div class="space-y-2">
 								{#each registeredInGroup as s}
 									<div class="flex items-center justify-between gap-4">
@@ -89,7 +89,7 @@
 										<div class="flex items-center gap-1 shrink-0">
 											{#each s.keys[0].split('+') as part, i}
 												{#if i > 0}
-													<span class="text-gray-600 text-xs">then</span>
+													<span class="text-gray-400 text-xs">then</span>
 												{/if}
 												<kbd class="bg-dark-bg border border-dark-border rounded px-1.5 py-0.5 text-xs font-mono text-gray-200">
 													{formatKey(part)}
@@ -104,7 +104,7 @@
 										<div class="flex items-center gap-1 shrink-0">
 											{#each s.keys as k, i}
 												{#if i > 0}
-													<span class="text-gray-600 text-xs">/</span>
+													<span class="text-gray-400 text-xs">/</span>
 												{/if}
 												<kbd class="bg-dark-bg border border-dark-border rounded px-1.5 py-0.5 text-xs font-mono text-gray-200">
 													{formatKey(k)}
@@ -119,7 +119,7 @@
 				{/each}
 
 				<!-- Chord hint -->
-				<p class="text-xs text-gray-600 border-t border-dark-border pt-4">
+				<p class="text-xs text-gray-400 border-t border-dark-border pt-4">
 					Chord shortcuts: กด <kbd class="bg-dark-bg border border-dark-border rounded px-1 py-0.5 text-xs font-mono text-gray-400">g</kbd> แล้วกดตามด้วยคีย์ภายใน 500ms
 				</p>
 			</div>

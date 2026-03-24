@@ -238,7 +238,7 @@
 			<div class="sticky top-0 bg-dark-surface border-b border-dark-border px-6 py-4 flex items-center justify-between z-10">
 				<div>
 					<h2 id="import-modal-title" class="text-lg font-semibold text-white">Import Trades</h2>
-					<p class="text-xs text-gray-500 mt-0.5">
+					<p class="text-xs text-gray-400 mt-0.5">
 						{#if step === 'upload'}อัพโหลดไฟล์ CSV
 						{:else if step === 'mapping'}จับคู่คอลัมน์
 						{:else if step === 'preview'}ตรวจสอบข้อมูล
@@ -254,7 +254,7 @@
 					>
 						{showHistory ? 'ซ่อนประวัติ' : 'ประวัติ Import'}
 					</button>
-					<button type="button" onclick={close} aria-label="ปิด" class="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+					<button type="button" onclick={close} aria-label="ปิด" class="text-gray-400 hover:text-white text-xl leading-none">&times;</button>
 				</div>
 			</div>
 
@@ -270,14 +270,14 @@
 								{/each}
 							</div>
 						{:else if importHistory.length === 0}
-							<p class="text-xs text-gray-500">ยังไม่มีประวัติ import</p>
+							<p class="text-xs text-gray-400">ยังไม่มีประวัติ import</p>
 						{:else}
 							<div class="space-y-2 max-h-48 overflow-y-auto">
 								{#each importHistory as log}
 									<div class="flex items-center justify-between text-xs bg-dark-surface rounded px-3 py-2 border border-dark-border/50">
 										<div>
 											<span class="text-gray-300">{log.filename || 'CSV'}</span>
-											<span class="text-gray-500 ml-2">
+											<span class="text-gray-400 ml-2">
 												{new Date(log.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}
 												{new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
 											</span>
@@ -309,17 +309,17 @@
 							id="csv-upload"
 						/>
 						<label for="csv-upload" class="cursor-pointer space-y-3 block">
-							<div class="text-4xl text-gray-500">&#128196;</div>
+							<div class="text-4xl text-gray-400">&#128196;</div>
 							<div class="text-sm text-gray-300">คลิกเพื่อเลือกไฟล์ CSV</div>
-							<div class="text-xs text-gray-500">รองรับไฟล์ .csv สูงสุด 500 แถว</div>
+							<div class="text-xs text-gray-400">รองรับไฟล์ .csv สูงสุด 500 แถว</div>
 						</label>
 					</div>
 
 					<div class="bg-dark-bg rounded-lg p-4 space-y-2">
 						<h4 class="text-xs font-medium text-gray-300">รูปแบบ CSV ที่รองรับ</h4>
-						<p class="text-xs text-gray-500">คอลัมน์ที่จำเป็น: Symbol, Type, Lot Size, Open Price, Close Price, Open Time, Close Time, Profit</p>
-						<p class="text-xs text-gray-500">คอลัมน์เพิ่มเติม (ไม่บังคับ): Pips, Commission, Swap, SL, TP, Position ID</p>
-						<p class="text-xs text-gray-500">ระบบจะจับคู่ header อัตโนมัติ เช่น "Entry Price" = Open Price, "PnL" = Profit</p>
+						<p class="text-xs text-gray-400">คอลัมน์ที่จำเป็น: Symbol, Type, Lot Size, Open Price, Close Price, Open Time, Close Time, Profit</p>
+						<p class="text-xs text-gray-400">คอลัมน์เพิ่มเติม (ไม่บังคับ): Pips, Commission, Swap, SL, TP, Position ID</p>
+						<p class="text-xs text-gray-400">ระบบจะจับคู่ header อัตโนมัติ เช่น "Entry Price" = Open Price, "PnL" = Profit</p>
 					</div>
 
 				<!-- Step 2: Column Mapping -->
@@ -333,7 +333,7 @@
 						<div class="overflow-x-auto">
 							<table class="w-full text-sm">
 								<thead>
-									<tr class="border-b border-dark-border text-gray-500 text-xs">
+									<tr class="border-b border-dark-border text-gray-400 text-xs">
 										<th class="text-left py-2 pr-4">คอลัมน์ CSV</th>
 										<th class="text-left py-2 pr-4">ตัวอย่างข้อมูล</th>
 										<th class="text-left py-2">Map เป็น</th>
@@ -343,7 +343,7 @@
 									{#each headers as header, idx}
 										<tr class="border-b border-dark-border/40">
 											<td class="py-2 pr-4 text-gray-300 font-mono text-xs">{header}</td>
-											<td class="py-2 pr-4 text-gray-500 text-xs max-w-[150px] truncate">
+											<td class="py-2 pr-4 text-gray-400 text-xs max-w-[150px] truncate">
 												{previewRows[0]?.[idx] ?? ''}
 											</td>
 											<td class="py-2">
@@ -400,7 +400,7 @@
 						<div class="overflow-x-auto">
 							<table class="w-full text-xs">
 								<thead>
-									<tr class="border-b border-dark-border text-gray-500">
+									<tr class="border-b border-dark-border text-gray-400">
 										<th class="text-left py-2 pr-2">#</th>
 										{#each REQUIRED_FIELDS as field}
 											<th class="text-left py-2 pr-2">{FIELD_LABELS[field]}</th>
@@ -410,7 +410,7 @@
 								<tbody>
 									{#each previewRows.slice(0, 5) as row, rowIdx}
 										<tr class="border-b border-dark-border/40">
-											<td class="py-1.5 pr-2 text-gray-500">{rowIdx + 1}</td>
+											<td class="py-1.5 pr-2 text-gray-400">{rowIdx + 1}</td>
 											{#each REQUIRED_FIELDS as field}
 												{@const colIdx = Object.entries(columnMap).find(([, f]) => f === field)?.[0]}
 												<td class="py-1.5 pr-2 text-gray-300">
@@ -424,7 +424,7 @@
 						</div>
 
 						{#if allRows.length > 5}
-							<p class="text-xs text-gray-500">... และอีก {allRows.length - 5} แถว</p>
+							<p class="text-xs text-gray-400">... และอีก {allRows.length - 5} แถว</p>
 						{/if}
 
 						<div class="flex items-center gap-3">

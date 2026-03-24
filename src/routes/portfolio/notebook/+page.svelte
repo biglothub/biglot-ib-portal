@@ -282,7 +282,7 @@
 				placeholder="ค้นหาโน้ต..."
 				class="w-full rounded-lg bg-dark-surface border border-dark-border px-3 py-2 text-sm text-white placeholder-gray-600 pl-8"
 			/>
-			<svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
 			</svg>
 		</div>
@@ -290,7 +290,7 @@
 		<!-- Folders -->
 		<div class="card flex-shrink-0 space-y-1">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] uppercase tracking-wider text-gray-600">โฟลเดอร์</span>
+				<span class="text-[10px] uppercase tracking-wider text-gray-400">โฟลเดอร์</span>
 				<button onclick={() => showNewFolder = true} class="text-xs text-brand-primary hover:underline">+ สร้างใหม่</button>
 			</div>
 
@@ -301,7 +301,7 @@
 					{selectedFolderId === null && !showDeleted ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-300 hover:bg-dark-bg/50'}"
 			>
 				<span>📄 โน้ตทั้งหมด</span>
-				<span class="text-xs text-gray-500">{folderNoteCount(null)}</span>
+				<span class="text-xs text-gray-400">{folderNoteCount(null)}</span>
 			</button>
 
 			<!-- System + Custom folders -->
@@ -313,12 +313,12 @@
 							{selectedFolderId === folder.id ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-300 hover:bg-dark-bg/50'}"
 					>
 						<span>{folder.icon} {folder.name}</span>
-						<span class="text-xs text-gray-500">{folderNoteCount(folder.id)}</span>
+						<span class="text-xs text-gray-400">{folderNoteCount(folder.id)}</span>
 					</button>
 					{#if folder.type === 'custom'}
 						<button
 							onclick={() => deleteFolder(folder.id)}
-							class="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 transition-opacity"
+							class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition-opacity"
 							title="ลบโฟลเดอร์"
 						aria-label="ลบโฟลเดอร์"
 					>
@@ -332,10 +332,10 @@
 			<button
 				onclick={() => { showDeleted = true; selectedFolderId = null; }}
 				class="w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-sm text-left transition-colors
-					{showDeleted ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-500 hover:bg-dark-bg/50'}"
+					{showDeleted ? 'bg-brand-primary/10 text-brand-primary' : 'text-gray-400 hover:bg-dark-bg/50'}"
 			>
 				<span>🗑 ลบล่าสุด</span>
-				<span class="text-xs text-gray-600">{deletedNotes.length}</span>
+				<span class="text-xs text-gray-400">{deletedNotes.length}</span>
 			</button>
 
 			<!-- New folder inline form -->
@@ -348,7 +348,7 @@
 						onkeydown={(e) => { if (e.key === 'Enter') createFolder(); }}
 					/>
 					<button onclick={createFolder} class="text-xs text-brand-primary px-1">OK</button>
-					<button onclick={() => { showNewFolder = false; newFolderName = ''; }} class="text-xs text-gray-500 px-1">✕</button>
+					<button onclick={() => { showNewFolder = false; newFolderName = ''; }} class="text-xs text-gray-400 px-1">✕</button>
 				</div>
 			{/if}
 		</div>
@@ -356,7 +356,7 @@
 		<!-- Session Recap Generator -->
 		{#if isSessionsFolder}
 			<div class="card flex-shrink-0 space-y-2">
-				<span class="text-[10px] uppercase tracking-wider text-gray-600">สร้าง Session Recap</span>
+				<span class="text-[10px] uppercase tracking-wider text-gray-400">สร้าง Session Recap</span>
 				<div class="flex gap-2">
 					<input
 						type="date"
@@ -388,7 +388,7 @@
 		<!-- Note List -->
 		<div class="card flex-1 overflow-y-auto space-y-1">
 			<div class="flex items-center justify-between mb-2">
-				<span class="text-[10px] uppercase tracking-wider text-gray-600">
+				<span class="text-[10px] uppercase tracking-wider text-gray-400">
 					{showDeleted ? 'ที่ลบแล้ว' : searchQuery ? 'ผลการค้นหา' : 'โน้ต'}
 				</span>
 				{#if !showDeleted}
@@ -416,9 +416,9 @@
 							{selectedNoteId === note.id ? 'bg-brand-primary/10 border border-brand-primary/30' : 'hover:bg-dark-bg/50'}"
 					>
 						<div class="text-sm font-medium text-white truncate">{note.title || 'ไม่มีชื่อ'}</div>
-						<div class="text-[11px] text-gray-500 mt-0.5">{formatDate(note.updated_at || note.created_at)}</div>
+						<div class="text-[11px] text-gray-400 mt-0.5">{formatDate(note.updated_at || note.created_at)}</div>
 						{#if !showDeleted}
-							<div class="text-[11px] text-gray-600 mt-0.5 truncate">{truncate(note.content || '', 60)}</div>
+							<div class="text-[11px] text-gray-400 mt-0.5 truncate">{truncate(note.content || '', 60)}</div>
 						{/if}
 					</button>
 
@@ -454,13 +454,13 @@
 
 			<!-- Toolbar -->
 			<div class="flex items-center gap-2 pb-3 border-b border-dark-border mb-3">
-				<span class="text-[10px] text-gray-600">
+				<span class="text-[10px] text-gray-400">
 					{saving ? 'กำลังบันทึก...' : 'บันทึกอัตโนมัติแล้ว'}
 				</span>
 				<div class="flex-1"></div>
 				<button
 					onclick={() => deleteNote(selectedNoteId!)}
-					class="text-xs text-gray-500 hover:text-red-400"
+					class="text-xs text-gray-400 hover:text-red-400"
 				>ลบ</button>
 				<button
 					onclick={saveNote}

@@ -275,7 +275,7 @@
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 		<div>
 			<h2 class="text-lg font-semibold text-white">สังคมเทรดเดอร์</h2>
-			<p class="text-sm text-gray-500">แบ่งปันประสบการณ์และเรียนรู้จากชุมชน (opt-in)</p>
+			<p class="text-sm text-gray-400">แบ่งปันประสบการณ์และเรียนรู้จากชุมชน (opt-in)</p>
 		</div>
 		<!-- Tab pills -->
 		<div class="flex items-center gap-1 bg-dark-surface border border-dark-border rounded-lg p-1 self-start sm:self-auto">
@@ -318,7 +318,7 @@
 						{:else}
 							<div class="flex items-center justify-between mb-4">
 								<h3 class="font-semibold text-white">ตั้งค่าโปรไฟล์สังคม</h3>
-								<button onclick={() => showSettingsForm = false} class="text-gray-500 hover:text-gray-300 transition-colors" aria-label="ปิด">
+								<button onclick={() => showSettingsForm = false} class="text-gray-400 hover:text-gray-300 transition-colors" aria-label="ปิด">
 									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
 								</button>
 							</div>
@@ -393,13 +393,13 @@
 						<div class="flex items-center gap-3">
 							<button
 								onclick={() => showCreateForm = true}
-								class="flex-1 text-left rounded-xl border border-dark-border bg-dark-surface px-4 py-3 text-sm text-gray-500 hover:border-brand-primary/40 hover:text-gray-300 transition-colors"
+								class="flex-1 text-left rounded-xl border border-dark-border bg-dark-surface px-4 py-3 text-sm text-gray-400 hover:border-brand-primary/40 hover:text-gray-300 transition-colors"
 							>
 								แบ่งปันข้อคิดเห็น หรือบันทึกเทรดของคุณ...
 							</button>
 							<button
 								onclick={() => showSettingsForm = true}
-								class="p-2.5 rounded-lg border border-dark-border text-gray-500 hover:text-gray-300 hover:border-brand-primary/40 transition-colors"
+								class="p-2.5 rounded-lg border border-dark-border text-gray-400 hover:text-gray-300 hover:border-brand-primary/40 transition-colors"
 								aria-label="ตั้งค่าโปรไฟล์"
 								title="ตั้งค่าโปรไฟล์"
 							>
@@ -413,7 +413,7 @@
 						<div class="card space-y-3">
 							<div class="flex items-center justify-between">
 								<h3 class="text-sm font-semibold text-white">สร้างโพสต์ใหม่</h3>
-								<button onclick={() => { showCreateForm = false; postError = ''; }} class="text-gray-500 hover:text-gray-300 transition-colors" aria-label="ปิด">
+								<button onclick={() => { showCreateForm = false; postError = ''; }} class="text-gray-400 hover:text-gray-300 transition-colors" aria-label="ปิด">
 									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
 								</button>
 							</div>
@@ -426,7 +426,7 @@
 										class="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors
 											{newPostType === pt
 												? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
-												: 'border-dark-border text-gray-500 hover:text-gray-300'}"
+												: 'border-dark-border text-gray-400 hover:text-gray-300'}"
 									>
 										{postTypeLabel[pt]}
 									</button>
@@ -442,7 +442,7 @@
 							></textarea>
 
 							<div class="flex items-center justify-between">
-								<span class="text-xs text-gray-600">{newPostContent.length}/500</span>
+								<span class="text-xs text-gray-400">{newPostContent.length}/500</span>
 								<div class="flex items-center gap-2">
 									{#if postError}
 										<span class="text-xs text-red-400">{postError}</span>
@@ -469,7 +469,7 @@
 							</svg>
 						</div>
 						<h3 class="font-semibold text-white mb-1">ยังไม่มีโพสต์</h3>
-						<p class="text-sm text-gray-500 max-w-xs">เมื่อเทรดเดอร์เข้าร่วมชุมชน โพสต์จะปรากฏที่นี่</p>
+						<p class="text-sm text-gray-400 max-w-xs">เมื่อเทรดเดอร์เข้าร่วมชุมชน โพสต์จะปรากฏที่นี่</p>
 					</div>
 				{:else}
 					<div class="space-y-3">
@@ -493,7 +493,7 @@
 													{postTypeLabel[post.post_type as PostType] ?? post.post_type}
 												</span>
 											</div>
-											<time class="text-xs text-gray-500" datetime={post.created_at}>{timeAgo(post.created_at)}</time>
+											<time class="text-xs text-gray-400" datetime={post.created_at}>{timeAgo(post.created_at)}</time>
 										</div>
 									</div>
 
@@ -503,7 +503,7 @@
 									{#if mySettings?.display_name && post.display_name === mySettings.display_name}
 										<button
 											onclick={() => deletePost(post.id)}
-											class="text-gray-600 hover:text-red-400 transition-colors shrink-0"
+											class="text-gray-400 hover:text-red-400 transition-colors shrink-0"
 											aria-label="ลบโพสต์"
 											title="ลบโพสต์"
 										>
@@ -544,7 +544,7 @@
 									<button
 										onclick={() => toggleLike(post)}
 										class="flex items-center gap-1.5 text-sm transition-colors
-											{post.liked_by_me ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}"
+											{post.liked_by_me ? 'text-red-400' : 'text-gray-400 hover:text-red-400'}"
 										aria-label="{post.liked_by_me ? 'ถอนไลก์' : 'ไลก์'}"
 									>
 										<svg class="w-4 h-4" fill="{post.liked_by_me ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -554,7 +554,7 @@
 									</button>
 									<button
 										onclick={() => loadComments(post.id)}
-										class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-400 transition-colors"
+										class="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-400 transition-colors"
 										aria-label="ความคิดเห็น"
 										aria-expanded={expandedComments[post.id] ?? false}
 									>
@@ -594,7 +594,7 @@
 														<div class="flex-1 min-w-0 bg-dark-bg rounded-lg px-2.5 py-2">
 															<div class="flex items-baseline gap-2">
 																<span class="text-xs font-semibold text-white">{comment.display_name}</span>
-																<time class="text-xs text-gray-600">{timeAgo(comment.created_at)}</time>
+																<time class="text-xs text-gray-400">{timeAgo(comment.created_at)}</time>
 															</div>
 															<p class="text-xs text-gray-300 mt-0.5 break-words">{comment.content}</p>
 														</div>
@@ -602,7 +602,7 @@
 												{/each}
 											</div>
 										{:else}
-											<p class="text-xs text-gray-600 text-center py-2">ยังไม่มีความคิดเห็น</p>
+											<p class="text-xs text-gray-400 text-center py-2">ยังไม่มีความคิดเห็น</p>
 										{/if}
 
 										<!-- Add comment input -->
@@ -652,11 +652,11 @@
 					<div class="grid grid-cols-2 gap-3">
 						<div class="rounded-lg bg-dark-bg p-3 text-center">
 							<p class="text-xl font-bold text-white">{formatNumber(posts.length)}</p>
-							<p class="text-xs text-gray-500 mt-0.5">โพสต์ล่าสุด</p>
+							<p class="text-xs text-gray-400 mt-0.5">โพสต์ล่าสุด</p>
 						</div>
 						<div class="rounded-lg bg-dark-bg p-3 text-center">
 							<p class="text-xl font-bold text-white">{formatNumber(data.leaderboard.length)}</p>
-							<p class="text-xs text-gray-500 mt-0.5">เทรดเดอร์</p>
+							<p class="text-xs text-gray-400 mt-0.5">เทรดเดอร์</p>
 						</div>
 					</div>
 				</div>
@@ -674,7 +674,7 @@
 						<div class="space-y-2">
 							{#each [...data.leaderboard].sort((a, b) => b.net_pnl - a.net_pnl).slice(0, 5) as entry, i}
 								<div class="flex items-center gap-2.5">
-									<span class="text-xs font-mono w-5 text-center text-gray-500">{rankMedal(i + 1)}</span>
+									<span class="text-xs font-mono w-5 text-center text-gray-400">{rankMedal(i + 1)}</span>
 									{#if entry.avatar_url}
 										<img src={entry.avatar_url} alt={entry.display_name} width="28" height="28" loading="lazy" class="w-7 h-7 rounded-full object-cover shrink-0" />
 									{:else}
@@ -685,7 +685,7 @@
 									<div class="flex-1 min-w-0">
 										<p class="text-xs font-medium text-white truncate">{entry.display_name}</p>
 										{#if entry.bio}
-											<p class="text-xs text-gray-600 truncate">{entry.bio}</p>
+											<p class="text-xs text-gray-400 truncate">{entry.bio}</p>
 										{/if}
 									</div>
 									<span class="text-xs font-semibold {pnlColor(entry.net_pnl)} shrink-0">
@@ -735,7 +735,7 @@
 							class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors
 								{leaderboardSort === opt.key
 									? 'bg-brand-primary/20 text-brand-primary'
-									: 'text-gray-500 hover:text-gray-300'}"
+									: 'text-gray-400 hover:text-gray-300'}"
 						>
 							{opt.label}
 						</button>
@@ -751,14 +751,14 @@
 						</svg>
 					</div>
 					<h3 class="font-semibold text-white mb-1">ยังไม่มีข้อมูลลีดเดอร์บอร์ด</h3>
-					<p class="text-sm text-gray-500 max-w-xs">เมื่อเทรดเดอร์เลือกเปิดเผยสถิติ จะปรากฏที่นี่</p>
+					<p class="text-sm text-gray-400 max-w-xs">เมื่อเทรดเดอร์เลือกเปิดเผยสถิติ จะปรากฏที่นี่</p>
 				</div>
 			{:else}
 				<!-- Table header -->
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm" aria-label="ลีดเดอร์บอร์ด">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-500 text-xs">
+							<tr class="border-b border-dark-border text-gray-400 text-xs">
 								<th class="text-left pb-2 font-medium w-10">#</th>
 								<th class="text-left pb-2 font-medium">เทรดเดอร์</th>
 								<th class="text-right pb-2 font-medium">Net P&L</th>
@@ -785,7 +785,7 @@
 											<div class="min-w-0">
 												<p class="font-medium text-white truncate max-w-[120px] sm:max-w-none">{entry.display_name}</p>
 												{#if entry.bio}
-													<p class="text-xs text-gray-500 truncate max-w-[120px] sm:max-w-xs">{entry.bio}</p>
+													<p class="text-xs text-gray-400 truncate max-w-[120px] sm:max-w-xs">{entry.bio}</p>
 												{/if}
 											</div>
 										</div>
@@ -809,7 +809,7 @@
 				</div>
 
 				<!-- Note -->
-				<p class="text-xs text-gray-600 text-center pt-2">
+				<p class="text-xs text-gray-400 text-center pt-2">
 					แสดงเฉพาะเทรดเดอร์ที่เลือกเปิดเผยข้อมูลสาธารณะ
 				</p>
 			{/if}

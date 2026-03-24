@@ -35,7 +35,7 @@
 </script>
 
 <div class="space-y-2">
-	<div class="text-xs text-gray-500">{label}</div>
+	<div class="text-xs text-gray-400">{label}</div>
 	<div class="space-y-2">
 		{#each items as item, index}
 			<div class="flex items-center gap-2">
