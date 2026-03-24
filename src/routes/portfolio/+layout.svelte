@@ -14,11 +14,42 @@
 	import AccountSwitcher from '$lib/components/portfolio/AccountSwitcher.svelte';
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
+	import ShortcutsHelp from '$lib/components/shared/ShortcutsHelp.svelte';
+	import { registerShortcut, unregisterShortcut, initShortcuts } from '$lib/stores/shortcuts.svelte';
+	import CommandPalette from '$lib/components/shared/CommandPalette.svelte';
+	import NetworkStatus from '$lib/components/shared/NetworkStatus.svelte';
+	import UndoToast from '$lib/components/shared/UndoToast.svelte';
 
 	let { data, children } = $props();
 	let { account, allAccounts, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
 	let chatOpen = $state(false);
 	let guideOpen = $state(false);
+	let shortcutsOpen = $state(false);
+	let commandPaletteRef = $state<CommandPalette | null>(null);
+
+	// Initialize keyboard shortcut listener
+	$effect(() => {
+		const destroy = initShortcuts();
+
+		const navShortcuts = [
+			{ id: 'nav-overview', keys: ['g+o'], description: 'ภาพรวม', group: 'การนำทาง', action: () => goto(tabHref('/portfolio')) },
+			{ id: 'nav-trades', keys: ['g+t'], description: 'เทรด', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/trades')) },
+			{ id: 'nav-journal', keys: ['g+j'], description: 'บันทึก', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/journal')) },
+			{ id: 'nav-analytics', keys: ['g+a'], description: 'รายงาน', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/analytics')) },
+			{ id: 'nav-notebook', keys: ['g+n'], description: 'สมุดโน้ต', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/notebook')) },
+			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/playbook')) },
+			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/progress')) },
+			{ id: 'help-modal', keys: ['?'], description: 'แสดง Keyboard Shortcuts', group: 'อื่นๆ', action: () => (shortcutsOpen = true) },
+			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false; } },
+		];
+
+		navShortcuts.forEach(registerShortcut);
+
+		return () => {
+			navShortcuts.forEach((s) => unregisterShortcut(s.id));
+			destroy();
+		};
+	});
 
 	// Pull-to-refresh state
 	let pullStartY = $state(0);
@@ -172,59 +203,14 @@
 		return path.startsWith(base);
 	};
 
-	// Offline / online detection
-	let isOnline = $state(true);
-	let showReconnected = $state(false);
-	let reconnectedTimer: ReturnType<typeof setTimeout> | null = null;
-
-	$effect(() => {
-		isOnline = navigator.onLine;
-
-		function handleOffline() {
-			isOnline = false;
-		}
-
-		async function handleOnline() {
-			isOnline = true;
-			showReconnected = true;
-			if (reconnectedTimer) clearTimeout(reconnectedTimer);
-			reconnectedTimer = setTimeout(() => { showReconnected = false; }, 4000);
-			// Refresh data now that we're back online
-			await invalidate('portfolio:baseData');
-		}
-
-		window.addEventListener('offline', handleOffline);
-		window.addEventListener('online', handleOnline);
-		return () => {
-			window.removeEventListener('offline', handleOffline);
-			window.removeEventListener('online', handleOnline);
-			if (reconnectedTimer) clearTimeout(reconnectedTimer);
-		};
-	});
+	// Network status is handled by <NetworkStatus /> component
 </script>
 
 <svelte:head>
 	<title>{isAdminView ? `${account?.client_name || 'Client'} - Admin View` : 'พอร์ตของฉัน'} - IB Portal</title>
 </svelte:head>
 
-<!-- Offline banner -->
-{#if !isOnline}
-	<div class="fixed top-0 inset-x-0 z-50 bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-center gap-2" role="status" aria-live="polite">
-		<svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M8.464 8.464a5 5 0 010 7.072M15.536 8.464a5 5 0 000 7.072M12 12h.01" />
-			<line x1="4" y1="4" x2="20" y2="20" stroke-linecap="round" stroke-width="2" />
-		</svg>
-		<span class="text-xs text-gray-300">ออฟไลน์ — กำลังแสดงข้อมูลที่บันทึกไว้ล่าสุด</span>
-	</div>
-{/if}
-
-<!-- Reconnected toast -->
-{#if showReconnected}
-	<div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-dark-surface border border-green-500/30 rounded-full px-4 py-2 shadow-lg" role="status" aria-live="polite">
-		<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0"></span>
-		<span class="text-xs text-green-400 font-medium whitespace-nowrap">เชื่อมต่อแล้ว — กำลังอัปเดตข้อมูล</span>
-	</div>
-{/if}
+<NetworkStatus />
 
 <!-- Pull-to-refresh indicator (mobile only) -->
 {#if pullDelta > 0 || isRefreshing}
@@ -311,6 +297,21 @@
 					</div>
 				{/if}
 			{/if}
+			<!-- Search button -->
+			{#if account}
+				<button
+					onclick={() => commandPaletteRef?.openPalette()}
+					class="flex items-center gap-1.5 rounded-lg border border-dark-border px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
+					aria-label="ค้นหา (Cmd+K)"
+					title="ค้นหา (Cmd+K)"
+				>
+					<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
+					</svg>
+					<span class="hidden sm:inline">ค้นหา</span>
+					<kbd class="hidden sm:inline px-1 rounded bg-dark-bg border border-dark-border font-mono text-gray-600">⌘K</kbd>
+				</button>
+			{/if}
 			<!-- Display unit switcher -->
 			<div
 				class="flex items-center rounded-lg border border-dark-border overflow-hidden"
@@ -339,6 +340,14 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
 				</svg>
 				<span>คู่มือ</span>
+			</button>
+			<button
+				onclick={() => shortcutsOpen = true}
+				class="hidden md:flex items-center gap-1 rounded-lg border border-dark-border px-2 py-1.5 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors font-mono"
+				aria-label="แสดง Keyboard Shortcuts"
+				title="Keyboard Shortcuts (?)"
+			>
+				?
 			</button>
 		</div>
 	</div>
@@ -381,6 +390,7 @@
 {/if}
 
 <PortfolioGuide open={guideOpen} onclose={() => guideOpen = false} />
+<ShortcutsHelp open={shortcutsOpen} onclose={() => shortcutsOpen = false} />
 
 {#if account}
 	<MobileNav {tabs} {isActive} />
@@ -389,3 +399,9 @@
 {#if account && !isAdminView}
 	<QuickTradeEntry />
 {/if}
+
+{#if account}
+	<CommandPalette bind:this={commandPaletteRef} accountId={account.id} />
+{/if}
+
+<UndoToast />

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
 	import { fade, fly } from 'svelte/transition';
+	import { addPendingDelete, getPendingDeletes } from '$lib/stores/undoQueue.svelte';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency } from '$lib/utils';
@@ -33,6 +34,19 @@
 	let isActive = $state(true);
 	let saving = $state(false);
 	let actionError = $state('');
+	let hiddenPlaybookIds = $state<Set<string>>(new Set());
+	let pendingPlaybookDeleteIds = $state<Map<string, string>>(new Map());
+
+	// Restore hidden playbook if its pending delete was cancelled
+	$effect(() => {
+		const currentPendingIds = new Set(getPendingDeletes().map((d) => d.id));
+		pendingPlaybookDeleteIds.forEach((pendingId, playbookId) => {
+			if (!currentPendingIds.has(pendingId)) {
+				hiddenPlaybookIds = new Set([...hiddenPlaybookIds].filter((id) => id !== playbookId));
+				pendingPlaybookDeleteIds = new Map([...pendingPlaybookDeleteIds].filter(([k]) => k !== playbookId));
+			}
+		});
+	});
 
 	// Community tab state
 	let searchQuery = $state('');
@@ -134,25 +148,32 @@
 		}
 	}
 
-	async function deletePlaybook(id: string) {
-		if (!confirm('ต้องการลบ playbook นี้ใช่ไหม? ข้อมูลจะหายถาวร')) return;
-		actionError = '';
+	function deletePlaybook(id: string) {
+		const playbook = playbooks.find((p: Playbook) => p.id === id);
+		const label = playbook?.name || 'Playbook';
 
-		try {
-			const res = await fetch('/api/portfolio/playbooks', {
-				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ id })
-			});
-			if (!res.ok) {
-				actionError = 'ไม่สามารถลบ Playbook ได้';
-				return;
+		// Optimistic hide
+		hiddenPlaybookIds = new Set([...hiddenPlaybookIds, id]);
+		if (editingId === id) resetForm();
+
+		const pendingId = addPendingDelete(`Playbook: ${label}`, async () => {
+			pendingPlaybookDeleteIds = new Map([...pendingPlaybookDeleteIds].filter(([k]) => k !== id));
+			try {
+				const res = await fetch('/api/portfolio/playbooks', {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ id })
+				});
+				if (!res.ok) {
+					actionError = 'ไม่สามารถลบ Playbook ได้';
+				}
+				await invalidate('portfolio:baseData');
+			} catch {
+				actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 			}
-			if (editingId === id) resetForm();
-			invalidate('portfolio:baseData');
-		} catch {
-			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
-		}
+		});
+
+		pendingPlaybookDeleteIds = new Map([...pendingPlaybookDeleteIds, [id, pendingId]]);
 	}
 
 	function openPublishModal(playbookId: string) {
@@ -328,8 +349,13 @@
 				</label>
 
 				<div class="flex items-center gap-3">
-					<button type="button" onclick={savePlaybook} disabled={saving} class="btn-primary text-sm py-2 px-5 disabled:opacity-50">
-						{saving ? 'กำลังบันทึก...' : editingId ? 'อัปเดต Playbook' : 'สร้าง Playbook'}
+					<button type="button" onclick={savePlaybook} disabled={saving} class="btn-primary text-sm py-2 px-5 disabled:opacity-50 inline-flex items-center gap-2">
+						{#if saving}
+							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+							กำลังบันทึก...
+						{:else}
+							{editingId ? 'อัปเดต Playbook' : 'สร้าง Playbook'}
+						{/if}
 					</button>
 					<button type="button" onclick={resetForm} class="text-sm text-gray-400 hover:text-white">
 						รีเซ็ต
@@ -349,7 +375,7 @@
 					<EmptyState message="ยังไม่มี playbook" />
 				{:else}
 					<div class="space-y-3">
-						{#each playbooks as playbook}
+						{#each playbooks.filter((p: Playbook) => !hiddenPlaybookIds.has(p.id)) as playbook}
 							<div class="rounded-xl border border-dark-border bg-dark-bg/20 p-4">
 								<div class="flex items-start justify-between gap-3">
 									<div class="min-w-0 flex-1">
@@ -599,9 +625,14 @@
 					type="button"
 					onclick={publishPlaybook}
 					disabled={!!publishingId}
-					class="btn-primary text-sm py-2 px-5 disabled:opacity-50"
+					class="btn-primary text-sm py-2 px-5 disabled:opacity-50 inline-flex items-center gap-2"
 				>
-					{publishingId ? 'กำลังเผยแพร่...' : 'เผยแพร่'}
+					{#if publishingId}
+						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+						กำลังเผยแพร่...
+					{:else}
+						เผยแพร่
+					{/if}
 				</button>
 			</div>
 		</div>

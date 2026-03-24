@@ -3,6 +3,7 @@
 	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import type { NotebookFolder, NotebookNote } from '$lib/types';
+	import { addPendingDelete, getPendingDeletes } from '$lib/stores/undoQueue.svelte';
 
 	let { data } = $props();
 	let folders = $derived((data.folders as NotebookFolder[]) || []);
@@ -12,6 +13,7 @@
 	let selectedFolderId = $state<string | null>(null); // null = "All notes"
 	let showDeleted = $state(false);
 	let selectedNoteId = $state<string | null>(null);
+	let hiddenNoteIds = $state<Set<string>>(new Set());
 	let searchQuery = $state('');
 	let searchResults = $state<NotebookNote[]>([]);
 	let isSearching = $state(false);
@@ -33,12 +35,15 @@
 		folders.find((f: NotebookFolder) => f.id === selectedFolderId && f.system_type === 'sessions') != null
 	);
 
-	// Filtered notes by folder
+	// Filtered notes by folder (excluding optimistically hidden notes)
 	const filteredNotes = $derived.by((): NotebookNote[] => {
 		if (showDeleted) return deletedNotes;
-		if (searchQuery && searchResults.length > 0) return searchResults;
-		if (selectedFolderId === null) return notes;
-		return notes.filter((n: NotebookNote) => n.folder_id === selectedFolderId);
+		const base = searchQuery && searchResults.length > 0
+			? searchResults
+			: selectedFolderId === null
+				? notes
+				: notes.filter((n: NotebookNote) => n.folder_id === selectedFolderId);
+		return base.filter((n: NotebookNote) => !hiddenNoteIds.has(n.id));
 	});
 
 	// Selected note
@@ -116,18 +121,46 @@
 		}
 	}
 
-	async function deleteNote(noteId: string) {
-		await fetch('/api/portfolio/notebook', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ action: 'delete_note', note_id: noteId })
+	// Maps noteId -> pendingDelete id, so we can detect cancellation
+	let pendingNoteDeleteIds = $state<Map<string, string>>(new Map());
+
+	// When a pending delete disappears from the queue (cancelled), restore the hidden note
+	$effect(() => {
+		const currentPendingIds = new Set(getPendingDeletes().map((d) => d.id));
+		pendingNoteDeleteIds.forEach((pendingId, noteId) => {
+			if (!currentPendingIds.has(pendingId)) {
+				// Entry was removed — either deleted (invalidate cleared hiddenNoteIds indirectly)
+				// or cancelled — restore the note
+				hiddenNoteIds = new Set([...hiddenNoteIds].filter((id) => id !== noteId));
+				pendingNoteDeleteIds = new Map([...pendingNoteDeleteIds].filter(([k]) => k !== noteId));
+			}
 		});
+	});
+
+	function deleteNote(noteId: string) {
+		const note = notes.find((n: NotebookNote) => n.id === noteId);
+		const label = note?.title || 'ไม่มีชื่อ';
+
+		// Optimistic hide
+		hiddenNoteIds = new Set([...hiddenNoteIds, noteId]);
 		if (selectedNoteId === noteId) {
 			selectedNoteId = null;
 			editTitle = '';
 			editContent = '';
 		}
-		await invalidate('portfolio:baseData');
+
+		const pendingId = addPendingDelete(`โน้ต: ${label}`, async () => {
+			await fetch('/api/portfolio/notebook', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'delete_note', note_id: noteId })
+			});
+			// Remove from hidden map before invalidate so the $effect doesn't restore it
+			pendingNoteDeleteIds = new Map([...pendingNoteDeleteIds].filter(([k]) => k !== noteId));
+			await invalidate('portfolio:baseData');
+		});
+
+		pendingNoteDeleteIds = new Map([...pendingNoteDeleteIds, [noteId, pendingId]]);
 	}
 
 	async function restoreNote(noteId: string) {
@@ -432,8 +465,13 @@
 				<button
 					onclick={saveNote}
 					disabled={saving}
-					class="px-3 py-1 rounded-md bg-brand-primary text-dark-bg text-xs font-medium"
-				>บันทึก</button>
+					class="px-3 py-1 rounded-md bg-brand-primary text-dark-bg text-xs font-medium inline-flex items-center gap-1 disabled:opacity-50"
+				>
+					{#if saving}
+						<svg class="w-3 h-3 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+					{/if}
+					บันทึก
+				</button>
 			</div>
 
 			<!-- Rich text editor -->
