@@ -622,9 +622,14 @@
 				type="button"
 				onclick={saveReview}
 				disabled={savingReview}
-				class="btn-primary text-sm py-2 px-6 disabled:opacity-50"
+				class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2"
 			>
-				{savingReview ? 'กำลังบันทึก...' : 'บันทึก Review'}
+				{#if savingReview}
+					<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+					กำลังบันทึก...
+				{:else}
+					บันทึก Review
+				{/if}
 			</button>
 		</div>
 
@@ -664,9 +669,14 @@
 					type="button"
 					onclick={saveNote}
 					disabled={savingNote}
-					class="mt-3 btn-primary text-sm py-1.5 px-4 disabled:opacity-50"
+					class="mt-3 btn-primary text-sm py-1.5 px-4 disabled:opacity-50 inline-flex items-center gap-2"
 				>
-					{savingNote ? 'กำลังบันทึก...' : 'บันทึก Note'}
+					{#if savingNote}
+						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+						กำลังบันทึก...
+					{:else}
+						บันทึก Note
+					{/if}
 				</button>
 			</div>
 
@@ -694,8 +704,13 @@
 					</select>
 					<input bind:value={attachmentPath} placeholder="https://..." class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
 					<input bind:value={attachmentCaption} placeholder="คำอธิบาย" class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-					<button type="button" onclick={saveAttachment} disabled={savingAttachment} class="btn-primary text-sm py-2">
-						{savingAttachment ? 'กำลังบันทึก...' : 'เพิ่มไฟล์แนบ'}
+					<button type="button" onclick={saveAttachment} disabled={savingAttachment} class="btn-primary text-sm py-2 inline-flex items-center gap-2 disabled:opacity-50">
+						{#if savingAttachment}
+							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+							กำลังบันทึก...
+						{:else}
+							เพิ่มไฟล์แนบ
+						{/if}
 					</button>
 				</div>
 

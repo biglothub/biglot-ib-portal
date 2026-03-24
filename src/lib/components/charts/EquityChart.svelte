@@ -6,11 +6,13 @@
 	let {
 		equitySnapshots = [],
 		equityCurve = [],
-		height = 280
+		height = 280,
+		loading = false
 	}: {
 		equitySnapshots?: Array<{ time: number; balance: number; equity: number; floatingPL: number }>;
 		equityCurve?: number[];
 		height?: number;
+		loading?: boolean;
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
@@ -242,7 +244,33 @@
 	});
 </script>
 
-<div class="w-full">
+<div class="w-full" aria-busy={loading} aria-label="การเติบโตของ Equity">
+	{#if loading}
+		<div class="animate-pulse">
+			<div class="flex items-center justify-between mb-4">
+				<div class="h-5 w-40 bg-dark-surface rounded"></div>
+				<div class="h-7 w-44 bg-dark-surface rounded-lg"></div>
+			</div>
+			<div class="bg-dark-surface rounded-lg overflow-hidden" style:height="{height}px">
+				<div class="h-full w-full flex flex-col justify-end px-4 pb-4 gap-3">
+					<div class="flex items-end gap-1 h-3/4">
+						{#each [0.6, 0.8, 0.5, 0.9, 0.7, 1, 0.85, 0.75, 0.95, 0.65] as pct}
+							<div class="flex-1 bg-gray-700/40 rounded-t" style:height="{pct * 100}%"></div>
+						{/each}
+					</div>
+					<div class="h-3 w-full bg-gray-700/30 rounded"></div>
+				</div>
+			</div>
+			<div class="grid grid-cols-3 gap-3 mt-4">
+				{#each [1, 2, 3] as _}
+					<div class="bg-dark-surface rounded-lg p-3">
+						<div class="h-2.5 w-14 bg-gray-700/50 rounded mb-2"></div>
+						<div class="h-4 w-20 bg-gray-700/40 rounded"></div>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{:else}
 	<!-- Header -->
 	<div class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3">
@@ -353,5 +381,6 @@
 				<div class="font-mono font-semibold text-brand-primary">${formatMoney(maxEquity)}</div>
 			</div>
 		</div>
+	{/if}
 	{/if}
 </div>

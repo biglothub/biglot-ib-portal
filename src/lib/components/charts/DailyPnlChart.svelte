@@ -5,10 +5,12 @@
 
 	let {
 		dailyHistory = [],
-		height = 220
+		height = 220,
+		loading = false
 	}: {
 		dailyHistory?: Array<{ date: string; profit: number; totalTrades: number }>;
 		height?: number;
+		loading?: boolean;
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
@@ -152,7 +154,25 @@
 	});
 </script>
 
-<div class="w-full">
+<div class="w-full" aria-busy={loading} aria-label="กำไร/ขาดทุนรายวัน">
+	{#if loading}
+		<div class="animate-pulse">
+			<div class="flex items-center justify-between mb-4">
+				<div class="h-5 w-36 bg-dark-surface rounded"></div>
+				<div class="h-7 w-36 bg-dark-surface rounded-lg"></div>
+			</div>
+			<div class="bg-dark-surface rounded-lg overflow-hidden" style:height="{height}px">
+				<div class="h-full flex items-end justify-around px-4 pb-4 gap-1">
+					{#each [0.4, -0.6, 0.8, -0.3, 0.9, 0.5, -0.7, 0.6, 0.35, -0.5, 0.75, 0.45] as pct}
+						<div
+							class="flex-1 rounded {pct >= 0 ? 'bg-green-800/30 self-end' : 'bg-red-800/30 self-start'}"
+							style:height="{Math.abs(pct) * 80}%"
+						></div>
+					{/each}
+				</div>
+			</div>
+		</div>
+	{:else}
 	<div class="flex items-center justify-between mb-4">
 		<h3 class="text-lg font-semibold text-white">กำไร/ขาดทุนรายวัน</h3>
 		<div class="flex gap-1 bg-dark-bg/50 rounded-lg p-1">
@@ -206,4 +226,5 @@
 			</div>
 		{/if}
 	</div>
+	{/if}
 </div>

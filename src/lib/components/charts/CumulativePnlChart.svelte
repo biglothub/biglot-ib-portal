@@ -5,10 +5,12 @@
 
 	let {
 		data = [],
-		height = 220
+		height = 220,
+		loading = false
 	}: {
 		data?: Array<{ date: string; value: number }>;
 		height?: number;
+		loading?: boolean;
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
@@ -156,7 +158,30 @@
 	});
 </script>
 
-<div class="w-full">
+<div class="w-full" aria-busy={loading} aria-label="กำไร/ขาดทุนสะสม">
+	{#if loading}
+		<div class="animate-pulse">
+			<div class="flex items-center justify-between mb-4">
+				<div class="h-5 w-36 bg-dark-surface rounded"></div>
+				<div class="h-7 w-40 bg-dark-surface rounded-lg"></div>
+			</div>
+			<div class="bg-dark-surface rounded-lg overflow-hidden relative" style:height="{height}px">
+				<svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+					<polyline
+						points="0,80 15,70 30,60 45,50 55,40 70,30 85,20 100,15"
+						fill="none"
+						stroke="rgba(201,168,76,0.15)"
+						stroke-width="2"
+					/>
+					<polyline
+						points="0,80 15,70 30,60 45,50 55,40 70,30 85,20 100,15 100,100 0,100"
+						fill="rgba(201,168,76,0.06)"
+						stroke="none"
+					/>
+				</svg>
+			</div>
+		</div>
+	{:else}
 	<div class="flex items-center justify-between mb-4">
 		<h3 class="text-lg font-semibold text-white">กำไร/ขาดทุนสะสม</h3>
 		<div class="flex gap-1 bg-dark-bg/50 rounded-lg p-1">
@@ -206,4 +231,5 @@
 			</div>
 		{/if}
 	</div>
+	{/if}
 </div>

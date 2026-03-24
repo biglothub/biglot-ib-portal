@@ -8,12 +8,14 @@
 		dailyHistory = [],
 		height = 260,
 		defaultMetric = 'net_pnl_cumulative',
-		defaultTimeframe = 'day'
+		defaultTimeframe = 'day',
+		loading = false
 	}: {
 		dailyHistory?: Array<{ date: string; profit: number; totalTrades: number }>;
 		height?: number;
 		defaultMetric?: string;
 		defaultTimeframe?: string;
+		loading?: boolean;
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
@@ -142,7 +144,25 @@
 	}
 </script>
 
-<div class="w-full">
+<div class="w-full" aria-busy={loading} aria-label="ตัวชี้วัดประสิทธิภาพ">
+	{#if loading}
+		<div class="animate-pulse">
+			<div class="flex items-center gap-2 mb-3">
+				<div class="h-8 w-36 bg-dark-surface rounded-lg"></div>
+				<div class="h-8 w-20 bg-dark-surface rounded-lg"></div>
+			</div>
+			<div class="bg-dark-surface rounded-lg overflow-hidden" style:height="{height}px">
+				<div class="h-full w-full flex flex-col justify-end px-4 pb-4 gap-3">
+					<div class="flex items-end gap-1 h-3/4">
+						{#each [0.5, 0.7, 0.45, 0.85, 0.6, 0.95, 0.75, 0.55, 0.9, 0.65, 0.8, 0.7] as pct}
+							<div class="flex-1 bg-gray-700/40 rounded-t" style:height="{pct * 100}%"></div>
+						{/each}
+					</div>
+					<div class="h-3 w-full bg-gray-700/30 rounded"></div>
+				</div>
+			</div>
+		</div>
+	{:else}
 	<div class="flex items-center gap-2 mb-3 flex-wrap">
 		<!-- Metric selector -->
 		<select
@@ -185,4 +205,5 @@
 			<div class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">ไม่มีข้อมูลสำหรับตัวชี้วัดนี้</div>
 		{/if}
 	</div>
+	{/if}
 </div>
