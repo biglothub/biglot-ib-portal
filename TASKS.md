@@ -1053,3 +1053,254 @@
   - npx vitest run, npm run build, npx svelte-check
 
 - [ ] [M] HARD-017: Manual verification of critical fixes
+
+---
+
+## Cycle 5 — IB-Portal v2 Roadmap (23 tasks)
+
+> Date: 2026-03-24
+> Strategy: Agent Team `ib-portal-v2` with 5 roles (lead, frontend, backend, fullstack, test-eng)
+> Goal: Transform from feature-complete to world-class — UX polish, a11y, advanced features, infra, business
+
+### Team Roles
+
+| Role | Agent Name | Focus |
+|------|-----------|-------|
+| Team Lead | `lead` | Orchestrate, review, resolve conflicts |
+| Frontend | `frontend` | Svelte components, UI polish, a11y |
+| Backend | `backend` | APIs, Supabase, caching, webhooks |
+| Fullstack | `fullstack` | Cross-cutting (i18n, search, reports) |
+| Test Engineer | `test-eng` | Vitest, Playwright, audits |
+
+### Quality Checklist (every task)
+- Loading skeleton / spinner
+- Empty state handling
+- Error handling with Thai messages
+- Mobile responsive
+- Keyboard accessible
+- `npm run build` passes
+- Git commit per feature group
+
+---
+
+### Phase 7 — UX Polish & Performance
+
+- [x] [L] V2-001: Global Search — Command Palette (Cmd+K)
+  - Agent: fullstack
+  - New: `src/lib/components/shared/CommandPalette.svelte`
+  - New: `src/routes/api/portfolio/search/+server.ts`
+  - Modify: `src/routes/portfolio/+layout.svelte`
+  - Debounced search (300ms), keyboard nav (arrows + Enter)
+  - Search trades (symbol, ticket), journals, notes, playbooks
+  - Results grouped by type, recent searches in localStorage
+  - Session: 2026-03-24 — Cmd+K + `/` hotkeys, grouped results with Thai section headers, focus trap, body scroll lock, rate limited
+
+- [x] [M] V2-002: Keyboard Shortcuts System
+  - Agent: frontend
+  - New: `src/lib/stores/shortcuts.svelte.ts`
+  - New: `src/lib/components/shared/ShortcutsHelp.svelte`
+  - Modify: `src/routes/portfolio/+layout.svelte`
+  - Navigation: g+o overview, g+t trades, g+j journal, g+a analytics, g+n notebook
+  - Actions: n = new journal, / = focus search, ? = help modal
+  - Chord system (500ms window), disable in input/textarea
+  - Session: 2026-03-24 — chord-aware registry, 9 shortcuts registered, ShortcutsHelp modal with kbd styling
+
+- [x] [M] V2-003: Virtual Scrolling for Trade Lists
+  - Agent: frontend
+  - New: `src/lib/components/shared/VirtualList.svelte`
+  - Modify: `src/routes/portfolio/trades/+page.svelte`
+  - Windowed rendering (overscan: 5), preserve scroll on back nav
+  - Infinite scroll with server pagination, "X of Y" indicator
+  - Session: 2026-03-24 — ResizeObserver, snippet-based slot, scrollend event, mobile card VirtualList for groups >10
+
+- [x] [M] V2-004: Loading States Audit & Chart Skeletons
+  - Agent: frontend
+  - Modify: `src/lib/components/charts/*.svelte` (4 files)
+  - Chart skeletons: animated pulse matching dimensions
+  - Mutation buttons: disabled + spinner, prevent double-click
+  - Consolidate 3 duplicate sync status UIs into single SyncStatusBadge
+  - Session: 2026-03-24 — loading prop on 4 charts, SVG area/bar/histogram skeletons, saving spinners on journal/playbook/notebook/trade detail buttons, sync status audit (no duplication found)
+
+- [x] [M] V2-005: Network Status & Undo System
+  - Agent: frontend
+  - New: `src/lib/components/shared/NetworkStatus.svelte`
+  - New: `src/lib/stores/undoQueue.svelte.ts`
+  - New: `src/lib/components/shared/UndoToast.svelte`
+  - Offline/online detection with persistent banner
+  - Undo: 5-second delayed deletion toast for journals, notes, tags, playbooks
+  - Session: 2026-03-24 — online/offline events, reconnect toast 3s, pendingDeletes store with timer, countdown bar, wired to notebook/journal/playbook delete actions
+
+**Parallelism**: V2-001 + V2-002 + V2-003 in parallel (Wave 1), then V2-004 + V2-005 (Wave 2)
+
+---
+
+### Phase 8 — Accessibility & i18n
+
+- [ ] [L] V2-006: i18n Infrastructure (Paraglide)
+  - Agent: fullstack
+  - Install `@inlang/paraglide-sveltekit`
+  - New: `messages/th.json`, `messages/en.json`
+  - Extract ~500+ hardcoded Thai strings to message keys
+  - Group by domain: portfolio, trades, journal, analytics, admin, settings, common
+  - Language switcher in settings, preference in Supabase + cookie
+
+- [ ] [M] V2-007: ARIA Labels & Semantic HTML Audit
+  - Agent: frontend
+  - Audit all 73 components for missing aria-label, role, aria-live
+  - Fix heading hierarchy (h1 > h2 > h3)
+  - Add alt text to images, associate form labels with inputs
+  - Currently only 5 files have ARIA attributes
+
+- [ ] [M] V2-008: Keyboard Navigation & Focus Management
+  - Agent: frontend
+  - New: `src/lib/actions/focusTrap.ts`
+  - Focus trap for all modals, Escape closes + returns focus
+  - Roving tabindex for trade lists, calendar grids
+  - Skip-to-content link, visible focus indicators
+
+- [ ] [S] V2-009: Color Contrast & Theme Verification
+  - Agent: frontend
+  - Audit dark theme against WCAG AA (4.5:1 normal, 3:1 large text)
+  - Fix brand-primary (#C9A84C) contrast on dark backgrounds
+  - Fix muted text (gray-500 on dark often fails)
+
+**Parallelism**: V2-006 (fullstack) + V2-007+V2-008 (frontend) + V2-009 (frontend) all parallel
+
+---
+
+### Phase 9 — Advanced Features
+
+- [ ] [L] V2-010: Customizable Dashboard (Drag-and-Drop)
+  - Agent: fullstack
+  - Modify: `src/routes/portfolio/+page.svelte`
+  - New: `src/lib/components/portfolio/DashboardGrid.svelte`
+  - New: `src/routes/api/portfolio/dashboard-config/+server.ts`
+  - New: Supabase migration `user_dashboard_config`
+  - Cards: KPI, P&L chart, Equity, Radar, Health, Command Center, Recent Trades
+  - Show/hide, reorder (drag), resize (1x/2x), reset to default
+
+- [ ] [M] V2-011: Trade Comparison View
+  - Agent: frontend
+  - New: `src/routes/portfolio/trades/compare/+page.svelte`
+  - New: `src/routes/portfolio/trades/compare/+page.server.ts`
+  - Select 2-4 trades, side-by-side comparison table + chart overlay
+  - Highlight best/worst metrics, shareable via URL
+
+- [ ] [L] V2-012: Webhook Integrations (LINE, Discord)
+  - Agent: backend
+  - New: `src/lib/server/webhooks.ts`
+  - New: `src/routes/api/portfolio/webhooks/+server.ts`
+  - New: `src/routes/settings/webhooks/+page.svelte`
+  - New: Supabase migration `webhooks`
+  - Events: trade_sync, daily_pnl, rule_break, goal_milestone
+  - Providers: LINE Notify, Discord, Generic HTTP POST
+  - Test button, retry logic (3x exponential), 100/day rate limit
+
+- [ ] [M] V2-013: Full Account Data Export
+  - Agent: backend
+  - New: `src/routes/api/portfolio/export-all/+server.ts`
+  - ZIP: trades.csv, journals.json, notes.json, playbooks.json, checklists.json, settings.json, summary.pdf
+  - Rate limit: 1 export/hour, background job for >5000 trades
+
+- [ ] [L] V2-014: Public API with Key Management
+  - Agent: backend
+  - New: `src/routes/api/v1/{trades,stats,account}/+server.ts`
+  - New: `src/lib/server/api-keys.ts`
+  - New: `src/routes/settings/api-keys/+page.svelte`
+  - New: Supabase migration `api_keys`
+  - 32-char key (stored hashed), Bearer auth, 60 req/min
+  - Usage tracking, revoke/regenerate from settings
+
+**Parallelism**: All 5 tasks run across agents simultaneously
+
+---
+
+### Phase 10 — Infrastructure & Quality (runs parallel with Phase 8-9)
+
+- [ ] [L] V2-015: Comprehensive Test Coverage
+  - Agent: test-eng
+  - Expand from 6 to 25+ unit test files
+  - Priority: portfolio.ts (server+client), utils.ts, all 25 insight rules, rate-limit, validation
+  - Add 8+ e2e tests: trades nav, journal CRUD, settings, AI chat, admin approval, search
+
+- [ ] [M] V2-016: Performance Monitoring Dashboard
+  - Agent: fullstack
+  - Modify: `src/lib/web-vitals.ts`
+  - New: `src/routes/admin/performance/+page.svelte`
+  - Track: route load times, API response times, chart render
+  - Dashboard: p50/p95/p99 charts, slowest routes, error rates
+
+- [ ] [M] V2-017: Caching Layer for Hot Data
+  - Agent: backend
+  - New: `src/lib/server/cache.ts`
+  - Use Upstash Redis (existing connection)
+  - Cache: daily_stats (5min), playbooks (10min), market_news (15min)
+  - Invalidate on writes, graceful fallback on error
+
+- [ ] [M] V2-018: Database Backup & Staging Environment
+  - Agent: backend
+  - New: `bridge-ib-portal/backup.py`
+  - New: `.env.staging`, `scripts/setup-staging.sh`
+  - Daily pg_dump (30-day retention), staging Supabase project
+  - npm scripts: dev:staging, build:staging
+
+**Parallelism**: V2-015 (test-eng) + V2-016 (fullstack) + V2-017+V2-018 (backend) all parallel
+
+---
+
+### Phase 11 — Business Features
+
+- [ ] [L] V2-019: Report Templates for IBs
+  - Agent: fullstack
+  - New: `src/lib/server/report-templates.ts`
+  - New: `src/routes/ib/reports/+page.svelte`
+  - Templates: Monthly Performance, Weekly Summary, Risk, Discipline
+  - IB branding (logo, company name), scheduled delivery via email
+
+- [ ] [M] V2-020: Commission Tracking
+  - Agent: backend
+  - New: Supabase migration `commissions`
+  - New: `src/routes/ib/commissions/+page.svelte`
+  - New: `src/lib/server/commissions.ts`
+  - Formula: lots x commission_rate, auto-calc on trade sync
+  - Monthly chart, per-client breakdown, CSV export, manual adjustments
+
+- [ ] [L] V2-021: White-Label / Custom Branding
+  - Agent: fullstack
+  - New: `src/lib/server/branding.ts`
+  - New: `src/routes/ib/branding/+page.svelte`
+  - New: Supabase migration `master_ib_branding`
+  - Customize: logo, primary color, company name, custom domain (CNAME)
+  - CSS custom properties at layout, preview before save
+
+- [ ] [L] V2-022: Subscription & Billing (Stripe)
+  - Agent: fullstack
+  - New: `src/lib/server/stripe.ts`
+  - New: `src/routes/api/billing/{+server.ts, webhook/+server.ts}`
+  - New: `src/routes/settings/billing/+page.svelte`
+  - New: Supabase migration `subscriptions`
+  - Tiers: Free (1 acct, 90d) / Pro $29/mo (3 acct, AI, export) / Enterprise $99/mo (unlimited, white-label, API)
+  - Stripe Checkout + Webhooks, feature gating in hooks.server.ts
+
+**Parallelism**: V2-019 (fullstack) + V2-020 (backend) parallel, then V2-021 + V2-022
+
+---
+
+### Phase Execution Order
+
+```
+Phase 7 (UX Polish) — V2-001 ~ V2-005
+  ↓
+Phase 8 (a11y/i18n) + Phase 10 (infra) — V2-006 ~ V2-009 + V2-015 ~ V2-018
+  ↓
+Phase 9 (Advanced Features) — V2-010 ~ V2-014
+  ↓
+Phase 11 (Business) — V2-019 ~ V2-022
+```
+
+### Verification (after each phase)
+- `npm run build` — must pass
+- `npx svelte-check` — must pass (2 known web-push errors OK)
+- `npm run test` — all tests pass
+- Manual test on desktop + mobile viewport
+- Git commit per feature group
