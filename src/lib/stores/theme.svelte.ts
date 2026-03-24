@@ -41,7 +41,7 @@ const resolved = $derived<'dark' | 'light'>(
 
 // Apply on init
 if (browser) {
-	applyTheme(mode);
+	applyTheme(getInitialMode());
 
 	// Listen for system preference changes
 	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

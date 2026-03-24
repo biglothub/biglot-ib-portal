@@ -244,7 +244,7 @@
 							/>
 						</div>
 						<div class="shrink-0">
-							<label id="qt-side-label" class="block text-xs text-gray-400 mb-1.5">ทิศทาง <span class="text-red-400">*</span></label>
+							<span id="qt-side-label" class="block text-xs text-gray-400 mb-1.5">ทิศทาง <span class="text-red-400">*</span></span>
 							<div class="flex rounded-lg overflow-hidden border border-dark-border" role="group" aria-labelledby="qt-side-label">
 								<button
 									type="button"
