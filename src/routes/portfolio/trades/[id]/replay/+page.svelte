@@ -41,6 +41,11 @@
 	let hasPassedEntry = $state(false);
 	let showEntryBanner = $state(false);
 
+	// Quick note overlay
+	let showNoteOverlay = $state(false);
+	let noteText = $state('');
+	let noteSaving = $state(false);
+
 	let availableTimeframes = $derived(
 		(chartContexts || []).map((c: TradeChartContext) => c.timeframe)
 	);
@@ -172,8 +177,39 @@
 		}
 	});
 
+	// Quick note functions
+	function openNoteOverlay() {
+		noteText = currentBar ? `[${formatBarTime(currentBar.time)}]\n` : '';
+		showNoteOverlay = true;
+	}
+
+	async function saveNote() {
+		if (!noteText.trim() || noteSaving) return;
+		noteSaving = true;
+		try {
+			const res = await fetch(`/api/portfolio/trades/${$page.params.id}/notes`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ content: noteText.trim() })
+			});
+			if (res.ok) closeNoteOverlay();
+		} finally {
+			noteSaving = false;
+		}
+	}
+
+	function closeNoteOverlay() {
+		showNoteOverlay = false;
+		noteText = '';
+	}
+
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && showNoteOverlay) {
+			closeNoteOverlay();
+			e.preventDefault();
+			return;
+		}
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 		switch (e.key) {
 			case ' ':
@@ -708,7 +744,7 @@
 			{/if}
 
 			<!-- Charts area -->
-			<div class="flex-1 flex flex-col min-h-0" class:hidden={loading}>
+			<div class="relative flex-1 flex flex-col min-h-0" class:hidden={loading}>
 				<!-- Main candlestick chart -->
 				<div class="flex-1 min-h-[250px]" bind:this={mainContainer}></div>
 
@@ -725,6 +761,22 @@
 					<div class="h-[120px] sm:h-[140px]" bind:this={pnlContainer}></div>
 				</div>
 			</div>
+
+		<!-- Floating quick note button -->
+			{#if !loading && trade}
+				<button
+					type="button"
+					onclick={openNoteOverlay}
+					class="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full bg-dark-surface border border-dark-border shadow-lg
+						flex items-center justify-center text-gray-400 hover:text-white hover:border-brand-primary/50 transition-all"
+					title="บันทึกโน้ต"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+					</svg>
+				</button>
+			{/if}
 
 			<!-- Controls bar -->
 			<div class="flex-none px-4 py-3 border-t border-dark-border bg-dark-surface/30" class:hidden={loading}>
@@ -844,6 +896,71 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Quick note overlay -->
+{#if showNoteOverlay}
+	<!-- svelte-ignore a11y_click_outside -->
+	<div
+		class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+		role="dialog"
+		aria-modal="true"
+		aria-label="บันทึกโน้ต"
+	>
+		<!-- Backdrop -->
+		<button
+			type="button"
+			class="absolute inset-0 bg-black/60"
+			onclick={closeNoteOverlay}
+			aria-label="ปิด"
+			tabindex="-1"
+		></button>
+
+		<!-- Panel -->
+		<div class="relative w-full max-w-md bg-dark-surface border border-dark-border rounded-2xl shadow-2xl p-4 z-10">
+			<div class="flex items-center justify-between mb-3">
+				<h3 class="text-sm font-semibold text-white">โน้ตระหว่าง Replay</h3>
+				<button
+					type="button"
+					onclick={closeNoteOverlay}
+					class="p-1 text-gray-400 hover:text-white transition-colors"
+					aria-label="ปิด"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+
+			<textarea
+				bind:value={noteText}
+				rows="5"
+				placeholder="บันทึกสิ่งที่สังเกตเห็นจาก Replay..."
+				class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2.5 text-sm text-white
+					placeholder-gray-500 focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none resize-none"
+				autofocus
+			></textarea>
+
+			<div class="flex items-center justify-end gap-2 mt-3">
+				<button
+					type="button"
+					onclick={closeNoteOverlay}
+					class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+				>
+					ยกเลิก
+				</button>
+				<button
+					type="button"
+					onclick={saveNote}
+					disabled={noteSaving || !noteText.trim()}
+					class="px-4 py-2 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed
+						text-white text-sm font-semibold rounded-lg transition-colors"
+				>
+					{noteSaving ? 'กำลังบันทึก...' : 'บันทึก'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	.replay-scrubber {
