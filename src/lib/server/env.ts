@@ -21,7 +21,8 @@ const ENV_VARS: EnvVar[] = [
 	{ name: 'VAPID_SUBJECT', required: false, description: 'VAPID subject for push notifications' },
 	{ name: 'PUBLIC_APP_URL', required: false, description: 'Public app URL used in email links' },
 	{ name: 'UPSTASH_REDIS_REST_URL', required: false, description: 'Upstash Redis REST URL for distributed rate limiting' },
-	{ name: 'UPSTASH_REDIS_REST_TOKEN', required: false, description: 'Upstash Redis REST token for distributed rate limiting' }
+	{ name: 'UPSTASH_REDIS_REST_TOKEN', required: false, description: 'Upstash Redis REST token for distributed rate limiting' },
+	{ name: 'CRON_SECRET', required: false, description: 'Secret token for authenticating cron job requests' }
 ];
 
 /**
