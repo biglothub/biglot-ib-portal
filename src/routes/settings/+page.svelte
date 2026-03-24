@@ -19,6 +19,119 @@
 	let savingName = $state(false);
 	let nameMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
 
+	// API Keys
+	interface ApiKey {
+		id: string;
+		name: string;
+		key_prefix: string;
+		scopes: string[];
+		last_used_at: string | null;
+		expires_at: string | null;
+		is_active: boolean;
+		created_at: string;
+	}
+	let apiKeys = $derived((data.apiKeys ?? []) as ApiKey[]);
+	let creatingKey = $state(false);
+	let newKeyName = $state('');
+	let newKeyRevealed = $state<string | null>(null);
+	let apiKeyMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+	let revokingId = $state<string | null>(null);
+	let confirmRevokeId = $state<string | null>(null);
+
+	async function createApiKey() {
+		const trimmed = newKeyName.trim();
+		if (!trimmed) {
+			apiKeyMessage = { type: 'error', text: 'กรุณาตั้งชื่อ API Key' };
+			return;
+		}
+		creatingKey = true;
+		apiKeyMessage = null;
+		try {
+			const res = await fetch('/api/portfolio/api-keys', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: trimmed })
+			});
+			const result = await res.json();
+			if (res.ok) {
+				newKeyRevealed = result.key;
+				newKeyName = '';
+				await invalidateAll();
+			} else {
+				apiKeyMessage = { type: 'error', text: result.error || 'เกิดข้อผิดพลาด' };
+			}
+		} catch {
+			apiKeyMessage = { type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
+		} finally {
+			creatingKey = false;
+		}
+	}
+
+	async function revokeApiKey(id: string) {
+		revokingId = id;
+		try {
+			const res = await fetch('/api/portfolio/api-keys', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+			});
+			if (res.ok) {
+				confirmRevokeId = null;
+				await invalidateAll();
+			} else {
+				const result = await res.json();
+				apiKeyMessage = { type: 'error', text: result.error || 'เกิดข้อผิดพลาด' };
+			}
+		} catch {
+			apiKeyMessage = { type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
+		} finally {
+			revokingId = null;
+		}
+	}
+
+	function copyToClipboard(text: string) {
+		navigator.clipboard.writeText(text);
+		apiKeyMessage = { type: 'success', text: 'คัดลอกแล้ว' };
+		setTimeout(() => { if (apiKeyMessage?.text === 'คัดลอกแล้ว') apiKeyMessage = null; }, 2000);
+	}
+
+	function formatKeyDate(dateStr: string | null): string {
+		if (!dateStr) return '-';
+		return new Date(dateStr).toLocaleDateString('th-TH', {
+			year: 'numeric', month: 'short', day: 'numeric'
+		});
+	}
+
+	// Data export
+	let exporting = $state(false);
+	let exportMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+	async function downloadExport() {
+		exporting = true;
+		exportMessage = null;
+		try {
+			const res = await fetch('/api/portfolio/export');
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({ message: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }));
+				exportMessage = { type: 'error', text: err.message };
+				return;
+			}
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			const date = new Date().toISOString().slice(0, 10);
+			a.href = url;
+			a.download = `ib-portal-export-${date}.zip`;
+			a.click();
+			URL.revokeObjectURL(url);
+			exportMessage = { type: 'success', text: 'ดาวน์โหลดสำเร็จ' };
+		} catch {
+			exportMessage = { type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
+		} finally {
+			exporting = false;
+		}
+	}
+
 	// Sync nameValue when data changes (e.g. after invalidation)
 	$effect(() => {
 		nameValue = data.profile?.full_name || '';
@@ -129,6 +242,148 @@
 			minute: '2-digit'
 		});
 	}
+
+	// ─── Webhook state ───────────────────────────────────────────────────────
+
+	type WebhookType = 'line' | 'discord';
+	type WebhookEvent = 'trade_sync' | 'daily_pnl' | 'rule_break';
+
+	interface WebhookConfig {
+		id: string;
+		webhook_type: WebhookType;
+		webhook_url: string;
+		events: WebhookEvent[];
+		is_active: boolean;
+	}
+
+	const ALL_EVENTS: { value: WebhookEvent; label: string }[] = [
+		{ value: 'trade_sync', label: 'ซิงค์การเทรด' },
+		{ value: 'daily_pnl', label: 'สรุป P&L รายวัน' },
+		{ value: 'rule_break', label: 'ละเมิดกฎ' }
+	];
+
+	// Keyed by webhook_type
+	let webhookConfigs = $state<Record<WebhookType, WebhookConfig | null>>({ line: null, discord: null });
+	let webhookLoading = $state(true);
+	let webhookUrlInputs = $state<Record<WebhookType, string>>({ line: '', discord: '' });
+	let webhookEventsInputs = $state<Record<WebhookType, WebhookEvent[]>>({
+		line: ['trade_sync', 'daily_pnl', 'rule_break'],
+		discord: ['trade_sync', 'daily_pnl', 'rule_break']
+	});
+	let webhookActiveInputs = $state<Record<WebhookType, boolean>>({ line: true, discord: true });
+	let webhookSaving = $state<Record<WebhookType, boolean>>({ line: false, discord: false });
+	let webhookTesting = $state<Record<WebhookType, boolean>>({ line: false, discord: false });
+	let webhookMessages = $state<Record<WebhookType, { type: 'success' | 'error'; text: string } | null>>({
+		line: null,
+		discord: null
+	});
+
+	async function loadWebhooks() {
+		webhookLoading = true;
+		try {
+			const res = await fetch('/api/portfolio/webhooks');
+			if (!res.ok) return;
+			const { configs } = await res.json() as { configs: WebhookConfig[] };
+			for (const cfg of configs) {
+				webhookConfigs[cfg.webhook_type] = cfg;
+				webhookUrlInputs[cfg.webhook_type] = cfg.webhook_url;
+				webhookEventsInputs[cfg.webhook_type] = [...cfg.events];
+				webhookActiveInputs[cfg.webhook_type] = cfg.is_active;
+			}
+		} finally {
+			webhookLoading = false;
+		}
+	}
+
+	async function saveWebhook(type: WebhookType) {
+		webhookSaving[type] = true;
+		webhookMessages[type] = null;
+		try {
+			const res = await fetch('/api/portfolio/webhooks', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					webhook_type: type,
+					webhook_url: webhookUrlInputs[type],
+					events: webhookEventsInputs[type],
+					is_active: webhookActiveInputs[type]
+				})
+			});
+			const result = await res.json() as { config?: WebhookConfig; message?: string };
+			if (res.ok && result.config) {
+				webhookConfigs[type] = result.config;
+				webhookMessages[type] = { type: 'success', text: 'บันทึกเรียบร้อยแล้ว' };
+			} else {
+				webhookMessages[type] = { type: 'error', text: result.message ?? 'เกิดข้อผิดพลาด' };
+			}
+		} catch {
+			webhookMessages[type] = { type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
+		} finally {
+			webhookSaving[type] = false;
+		}
+	}
+
+	async function deleteWebhook(type: WebhookType) {
+		webhookSaving[type] = true;
+		webhookMessages[type] = null;
+		try {
+			const res = await fetch('/api/portfolio/webhooks', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ webhook_type: type })
+			});
+			if (res.ok) {
+				webhookConfigs[type] = null;
+				webhookUrlInputs[type] = '';
+				webhookEventsInputs[type] = ['trade_sync', 'daily_pnl', 'rule_break'];
+				webhookActiveInputs[type] = true;
+				webhookMessages[type] = { type: 'success', text: 'ลบเรียบร้อยแล้ว' };
+			} else {
+				const result = await res.json() as { message?: string };
+				webhookMessages[type] = { type: 'error', text: result.message ?? 'เกิดข้อผิดพลาด' };
+			}
+		} catch {
+			webhookMessages[type] = { type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
+		} finally {
+			webhookSaving[type] = false;
+		}
+	}
+
+	async function testWebhook(type: WebhookType) {
+		webhookTesting[type] = true;
+		webhookMessages[type] = null;
+		try {
+			const res = await fetch('/api/portfolio/webhooks/test', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ webhook_type: type })
+			});
+			const result = await res.json() as { success?: boolean; message?: string };
+			if (res.ok && result.success) {
+				webhookMessages[type] = { type: 'success', text: 'ส่งข้อความทดสอบสำเร็จ' };
+			} else {
+				webhookMessages[type] = { type: 'error', text: result.message ?? 'ทดสอบไม่สำเร็จ' };
+			}
+		} catch {
+			webhookMessages[type] = { type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' };
+		} finally {
+			webhookTesting[type] = false;
+		}
+	}
+
+	function toggleWebhookEvent(type: WebhookType, event: WebhookEvent) {
+		const current = webhookEventsInputs[type];
+		if (current.includes(event)) {
+			webhookEventsInputs[type] = current.filter((e) => e !== event);
+		} else {
+			webhookEventsInputs[type] = [...current, event];
+		}
+	}
+
+	// Load webhook configs on mount
+	$effect(() => {
+		loadWebhooks();
+	});
 </script>
 
 <!-- Profile Tab -->
@@ -155,7 +410,7 @@
 			{/if}
 			<div>
 				<p class="text-lg font-semibold text-white">{profile?.full_name || '-'}</p>
-				<p class="text-sm text-gray-500">{profile?.email || '-'}</p>
+				<p class="text-sm text-gray-400">{profile?.email || '-'}</p>
 				<span class="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-brand-primary/10 text-brand-primary font-medium">
 					{profile?.role === 'admin' ? 'Admin' : profile?.role === 'master_ib' ? 'Master IB' : 'Client'}
 				</span>
@@ -257,7 +512,7 @@
 			</div>
 		</div>
 
-		<p class="text-xs text-gray-600 mt-4">
+		<p class="text-xs text-gray-400 mt-4">
 			อีเมลและรูปโปรไฟล์จะซิงค์จากบัญชี Google ของคุณ หากต้องการเปลี่ยนแปลง กรุณาอัปเดตที่บัญชี Google
 		</p>
 	</div>
@@ -310,7 +565,7 @@
 
 					<div class="text-center">
 						<p class="text-sm font-medium {theme.mode === opt.value ? 'text-brand-primary' : 'text-white'}">{opt.label}</p>
-						<p class="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+						<p class="text-xs text-gray-400 mt-0.5">{opt.desc}</p>
 					</div>
 
 					{#if theme.mode === opt.value}
@@ -335,25 +590,25 @@
 		{#if clientAccount}
 			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				<div class="rounded-lg bg-dark-bg p-4">
-					<p class="text-xs text-gray-500 mb-1">MT5 Account</p>
+					<p class="text-xs text-gray-400 mb-1">MT5 Account</p>
 					<p class="text-sm text-white font-mono">{clientAccount.mt5_account_id}</p>
 				</div>
 				<div class="rounded-lg bg-dark-bg p-4">
-					<p class="text-xs text-gray-500 mb-1">เซิร์ฟเวอร์</p>
+					<p class="text-xs text-gray-400 mb-1">เซิร์ฟเวอร์</p>
 					<p class="text-sm text-white">{clientAccount.mt5_server}</p>
 				</div>
 				<div class="rounded-lg bg-dark-bg p-4">
-					<p class="text-xs text-gray-500 mb-1">โบรกเกอร์</p>
+					<p class="text-xs text-gray-400 mb-1">โบรกเกอร์</p>
 					<p class="text-sm text-white">
 						{getBrokerName(clientAccount)}
 					</p>
 				</div>
 				<div class="rounded-lg bg-dark-bg p-4">
-					<p class="text-xs text-gray-500 mb-1">ชื่อบัญชี</p>
+					<p class="text-xs text-gray-400 mb-1">ชื่อบัญชี</p>
 					<p class="text-sm text-white">{clientAccount.client_name}</p>
 				</div>
 				<div class="rounded-lg bg-dark-bg p-4">
-					<p class="text-xs text-gray-500 mb-1">สถานะ</p>
+					<p class="text-xs text-gray-400 mb-1">สถานะ</p>
 					<div class="flex items-center gap-2">
 						<span class="w-2 h-2 rounded-full {clientAccount.status === 'approved' ? 'bg-green-500' : 'bg-yellow-500'}"></span>
 						<p class="text-sm text-white">
@@ -362,21 +617,21 @@
 					</div>
 				</div>
 				<div class="rounded-lg bg-dark-bg p-4">
-					<p class="text-xs text-gray-500 mb-1">ซิงค์ล่าสุด</p>
+					<p class="text-xs text-gray-400 mb-1">ซิงค์ล่าสุด</p>
 					<p class="text-sm text-white">{formatSyncDate(clientAccount.last_synced_at)}</p>
 				</div>
 			</div>
 			{#if clientAccount.sync_count > 0}
-				<p class="text-xs text-gray-600 mt-3">ซิงค์ทั้งหมด {clientAccount.sync_count.toLocaleString()} ครั้ง</p>
+				<p class="text-xs text-gray-400 mt-3">ซิงค์ทั้งหมด {clientAccount.sync_count.toLocaleString()} ครั้ง</p>
 			{/if}
 		{:else}
 			<!-- Empty state -->
 			<div class="text-center py-8">
-				<svg class="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
 				</svg>
 				<p class="text-sm text-gray-400 mb-1">ยังไม่มีบัญชีเทรดที่เชื่อมต่อ</p>
-				<p class="text-xs text-gray-600">กรุณาติดต่อ IB ของคุณเพื่อเชื่อมต่อบัญชี MT5</p>
+				<p class="text-xs text-gray-400">กรุณาติดต่อ IB ของคุณเพื่อเชื่อมต่อบัญชี MT5</p>
 			</div>
 		{/if}
 	</div>
@@ -395,7 +650,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-white">การแจ้งเตือนผ่าน Push</p>
-					<p class="text-xs text-gray-500">รับแจ้งเตือนผ่านเบราว์เซอร์</p>
+					<p class="text-xs text-gray-400">รับแจ้งเตือนผ่านเบราว์เซอร์</p>
 				</div>
 				<button
 					onclick={() => pushEnabled = !pushEnabled}
@@ -412,7 +667,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-white">อีเมลสรุปรายวัน</p>
-					<p class="text-xs text-gray-500">รับสรุปผลเทรดทุกสิ้นวัน</p>
+					<p class="text-xs text-gray-400">รับสรุปผลเทรดทุกสิ้นวัน</p>
 				</div>
 				<button
 					onclick={() => dailyEmailEnabled = !dailyEmailEnabled}
@@ -429,7 +684,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-white">แจ้งเตือนเทรด</p>
-					<p class="text-xs text-gray-500">รับแจ้งเตือนเมื่อมีเทรดใหม่หรือปิดเทรด</p>
+					<p class="text-xs text-gray-400">รับแจ้งเตือนเมื่อมีเทรดใหม่หรือปิดเทรด</p>
 				</div>
 				<button
 					onclick={() => tradeAlertsEnabled = !tradeAlertsEnabled}
@@ -446,7 +701,7 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-white">สรุปรายสัปดาห์</p>
-					<p class="text-xs text-gray-500">รับสรุปผลการเทรดรายสัปดาห์ทุกวันจันทร์</p>
+					<p class="text-xs text-gray-400">รับสรุปผลการเทรดรายสัปดาห์ทุกวันจันทร์</p>
 				</div>
 				<button
 					onclick={() => weeklyRecapEnabled = !weeklyRecapEnabled}
@@ -495,6 +750,338 @@
 		{#if notifsMessage}
 			<p class="text-xs mt-3 {notifsMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}">
 				{notifsMessage.text}
+			</p>
+		{/if}
+	</div>
+
+	<!-- Webhook Integrations -->
+	<div class="rounded-xl border border-dark-border bg-dark-surface p-6">
+		<div class="flex items-center gap-2 mb-1">
+			<svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+			</svg>
+			<h2 class="text-lg font-semibold">Webhook</h2>
+		</div>
+		<p class="text-xs text-gray-400 mb-5">รับการแจ้งเตือนการเทรดผ่าน LINE Notify หรือ Discord Webhook</p>
+
+		{#if webhookLoading}
+			<div class="flex items-center gap-2 text-sm text-gray-400 py-4">
+				<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+				</svg>
+				กำลังโหลด...
+			</div>
+		{:else}
+			<div class="space-y-6">
+				{#each ([['line', 'LINE Notify', 'https://notify-api.line.me/api/notify'], ['discord', 'Discord Webhook', 'https://discord.com/api/webhooks/...']] as const) as [type, label, placeholder]}
+					<div class="rounded-lg border border-dark-border p-4">
+						<!-- Header -->
+						<div class="flex items-center justify-between mb-3">
+							<div class="flex items-center gap-2">
+								<span class="text-sm font-medium text-white">{label}</span>
+								{#if webhookConfigs[type]}
+									<span class="px-1.5 py-0.5 rounded text-xs font-medium {webhookActiveInputs[type] ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'}">
+										{webhookActiveInputs[type] ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+									</span>
+								{/if}
+							</div>
+							<!-- Active toggle (only if config exists) -->
+							{#if webhookConfigs[type]}
+								<button
+									onclick={() => { webhookActiveInputs[type] = !webhookActiveInputs[type]; }}
+									class="w-11 h-6 rounded-full transition-colors relative {webhookActiveInputs[type] ? 'bg-brand-primary' : 'bg-dark-bg border border-dark-border'}"
+									role="switch"
+									aria-checked={webhookActiveInputs[type]}
+									aria-label="เปิด/ปิด {label}"
+								>
+									<div class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform {webhookActiveInputs[type] ? 'left-[22px]' : 'left-0.5'}"></div>
+								</button>
+							{/if}
+						</div>
+
+						<!-- URL Input -->
+						<div class="mb-3">
+							<label class="label text-xs" for="webhook-url-{type}">Webhook URL</label>
+							<input
+								id="webhook-url-{type}"
+								type="url"
+								bind:value={webhookUrlInputs[type]}
+								{placeholder}
+								class="input font-mono text-xs"
+								disabled={webhookSaving[type]}
+							/>
+						</div>
+
+						<!-- Events checkboxes -->
+						<div class="mb-4">
+							<p class="label text-xs mb-2">รับการแจ้งเตือนเมื่อ</p>
+							<div class="flex flex-wrap gap-3">
+								{#each ALL_EVENTS as ev}
+									<label class="flex items-center gap-2 cursor-pointer select-none">
+										<input
+											type="checkbox"
+											class="w-4 h-4 rounded border border-dark-border accent-brand-primary"
+											checked={webhookEventsInputs[type].includes(ev.value)}
+											onchange={() => toggleWebhookEvent(type, ev.value)}
+											disabled={webhookSaving[type]}
+										/>
+										<span class="text-xs text-gray-300">{ev.label}</span>
+									</label>
+								{/each}
+							</div>
+						</div>
+
+						<!-- Action buttons -->
+						<div class="flex items-center gap-2 flex-wrap">
+							<button
+								onclick={() => saveWebhook(type)}
+								disabled={webhookSaving[type] || !webhookUrlInputs[type]}
+								class="px-3 py-1.5 rounded-lg bg-brand-primary text-white text-xs font-medium hover:bg-brand-primary/90 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+							>
+								{#if webhookSaving[type]}
+									<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+										<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+										<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+									</svg>
+								{/if}
+								บันทึก
+							</button>
+
+							{#if webhookConfigs[type]}
+								<button
+									onclick={() => testWebhook(type)}
+									disabled={webhookTesting[type] || webhookSaving[type]}
+									class="px-3 py-1.5 rounded-lg border border-dark-border text-gray-300 text-xs hover:text-white hover:bg-dark-hover disabled:opacity-50 transition-colors flex items-center gap-1.5"
+								>
+									{#if webhookTesting[type]}
+										<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+										</svg>
+									{:else}
+										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+									{/if}
+									ทดสอบ
+								</button>
+
+								<button
+									onclick={() => deleteWebhook(type)}
+									disabled={webhookSaving[type]}
+									class="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-50 transition-colors"
+								>
+									ลบ
+								</button>
+							{/if}
+						</div>
+
+						{#if webhookMessages[type]}
+							<p class="text-xs mt-2 {webhookMessages[type]?.type === 'success' ? 'text-green-400' : 'text-red-400'}">
+								{webhookMessages[type]?.text}
+							</p>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
+	</div>
+
+	<!-- API Keys -->
+	<div class="rounded-xl border border-dark-border bg-dark-surface p-6">
+		<div class="flex items-center gap-2 mb-1">
+			<svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+			</svg>
+			<h2 class="text-lg font-semibold">API Keys</h2>
+		</div>
+		<p class="text-xs text-gray-400 mb-5">สร้าง API Key เพื่อเข้าถึงข้อมูลพอร์ตโฟลิโอผ่าน REST API (read-only)</p>
+
+		{#if apiKeyMessage}
+			<div class="mb-4 p-3 rounded-lg text-xs {apiKeyMessage.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">
+				{apiKeyMessage.text}
+			</div>
+		{/if}
+
+		<!-- Newly created key reveal -->
+		{#if newKeyRevealed}
+			<div class="mb-5 p-4 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
+				<p class="text-sm font-medium text-yellow-400 mb-2">บันทึกคีย์นี้ไว้ จะไม่แสดงอีก</p>
+				<div class="flex items-center gap-2">
+					<code class="flex-1 text-xs bg-dark-bg rounded px-3 py-2 text-white font-mono break-all select-all">{newKeyRevealed}</code>
+					<button
+						onclick={() => copyToClipboard(newKeyRevealed!)}
+						class="shrink-0 px-3 py-2 rounded-lg border border-dark-border text-gray-300 text-xs hover:text-white hover:bg-dark-hover transition-colors"
+					>
+						คัดลอก
+					</button>
+				</div>
+				<button
+					onclick={() => newKeyRevealed = null}
+					class="mt-2 text-xs text-gray-400 hover:text-white transition-colors"
+				>
+					ปิด
+				</button>
+			</div>
+		{/if}
+
+		<!-- Create new key -->
+		<div class="flex items-end gap-2 mb-5">
+			<div class="flex-1">
+				<label class="label text-xs" for="api-key-name">ชื่อ API Key</label>
+				<input
+					id="api-key-name"
+					type="text"
+					bind:value={newKeyName}
+					placeholder="e.g. My Trading Bot"
+					class="input text-sm"
+					maxlength={100}
+					disabled={creatingKey}
+					onkeydown={(e) => { if (e.key === 'Enter') createApiKey(); }}
+				/>
+			</div>
+			<button
+				onclick={createApiKey}
+				disabled={creatingKey || !newKeyName.trim()}
+				class="shrink-0 px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+			>
+				{#if creatingKey}
+					<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+					</svg>
+				{/if}
+				สร้าง API Key ใหม่
+			</button>
+		</div>
+
+		<!-- Existing keys table -->
+		{#if apiKeys.length > 0}
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
+					<thead>
+						<tr class="border-b border-dark-border text-xs text-gray-400">
+							<th class="text-left py-2 pr-3 font-medium">ชื่อ</th>
+							<th class="text-left py-2 pr-3 font-medium">Key</th>
+							<th class="text-left py-2 pr-3 font-medium hidden sm:table-cell">Scopes</th>
+							<th class="text-left py-2 pr-3 font-medium hidden md:table-cell">ใช้ล่าสุด</th>
+							<th class="text-left py-2 pr-3 font-medium hidden md:table-cell">สร้างเมื่อ</th>
+							<th class="text-right py-2 font-medium">จัดการ</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each apiKeys as key (key.id)}
+							<tr class="border-b border-dark-border/50 {!key.is_active ? 'opacity-40' : ''}">
+								<td class="py-3 pr-3">
+									<span class="text-white">{key.name}</span>
+									{#if !key.is_active}
+										<span class="ml-1 text-xs text-red-400">(ยกเลิกแล้ว)</span>
+									{/if}
+									{#if key.expires_at && new Date(key.expires_at) < new Date()}
+										<span class="ml-1 text-xs text-yellow-400">(หมดอายุ)</span>
+									{/if}
+								</td>
+								<td class="py-3 pr-3">
+									<code class="text-xs font-mono text-gray-300">{key.key_prefix}...</code>
+								</td>
+								<td class="py-3 pr-3 hidden sm:table-cell">
+									<div class="flex flex-wrap gap-1">
+										{#each key.scopes as scope}
+											<span class="px-1.5 py-0.5 rounded text-xs bg-dark-bg text-gray-300">{scope}</span>
+										{/each}
+									</div>
+								</td>
+								<td class="py-3 pr-3 text-xs text-gray-400 hidden md:table-cell">{formatKeyDate(key.last_used_at)}</td>
+								<td class="py-3 pr-3 text-xs text-gray-400 hidden md:table-cell">{formatKeyDate(key.created_at)}</td>
+								<td class="py-3 text-right">
+									{#if key.is_active}
+										{#if confirmRevokeId === key.id}
+											<div class="flex items-center justify-end gap-1">
+												<span class="text-xs text-yellow-400 mr-1">ยืนยัน?</span>
+												<button
+													onclick={() => revokeApiKey(key.id)}
+													disabled={revokingId === key.id}
+													class="px-2 py-1 rounded text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
+												>
+													{revokingId === key.id ? '...' : 'ใช่'}
+												</button>
+												<button
+													onclick={() => confirmRevokeId = null}
+													class="px-2 py-1 rounded text-xs border border-dark-border text-gray-400 hover:text-white transition-colors"
+												>
+													ไม่
+												</button>
+											</div>
+										{:else}
+											<button
+												onclick={() => confirmRevokeId = key.id}
+												class="px-2 py-1 rounded text-xs border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+											>
+												ยกเลิก
+											</button>
+										{/if}
+									{/if}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{:else}
+			<div class="text-center py-6">
+				<p class="text-sm text-gray-400">ยังไม่มี API Key</p>
+				<p class="text-xs text-gray-500 mt-1">สร้าง API Key เพื่อเข้าถึงข้อมูลผ่าน REST API</p>
+			</div>
+		{/if}
+	</div>
+
+	<!-- My Data Export -->
+	<div class="rounded-xl border border-dark-border bg-dark-surface p-6">
+		<div class="flex items-center gap-2 mb-4">
+			<svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+			</svg>
+			<h2 class="text-lg font-semibold">ข้อมูลของฉัน</h2>
+		</div>
+
+		<p class="text-sm text-gray-400 mb-4">
+			ดาวน์โหลดข้อมูลทั้งหมดของคุณในรูปแบบ JSON และ CSV
+		</p>
+
+		{#if clientAccount}
+			<p class="text-xs text-gray-500 mb-4">
+				ไฟล์ ZIP ประกอบด้วย: เทรด, บันทึกรายวัน, สถิติรายวัน, เพลย์บุ๊ก และ checklist
+			</p>
+		{/if}
+
+		<button
+			onclick={downloadExport}
+			disabled={exporting || !clientAccount}
+			class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-medium hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+		>
+			{#if exporting}
+				<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+				</svg>
+				กำลังเตรียมไฟล์...
+			{:else}
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+				</svg>
+				ดาวน์โหลดข้อมูล
+			{/if}
+		</button>
+
+		{#if !clientAccount}
+			<p class="text-xs text-gray-500 mt-2">ต้องมีบัญชีเทรดที่อนุมัติแล้วจึงจะดาวน์โหลดได้</p>
+		{/if}
+
+		{#if exportMessage}
+			<p class="text-xs mt-3 {exportMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}">
+				{exportMessage.text}
 			</p>
 		{/if}
 	</div>
