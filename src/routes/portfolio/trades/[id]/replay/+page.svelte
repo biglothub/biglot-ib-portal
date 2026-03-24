@@ -33,6 +33,14 @@
 	let loading = $state(true);
 	let showMobileInfo = $state(false);
 
+	// Peak P&L tracker
+	let peakPnl = $state(0);
+	let maxDrawdown = $state(0);
+
+	// Pause-on-entry
+	let hasPassedEntry = $state(false);
+	let showEntryBanner = $state(false);
+
 	let availableTimeframes = $derived(
 		(chartContexts || []).map((c: TradeChartContext) => c.timeframe)
 	);
@@ -59,6 +67,45 @@
 	let hasReachedEntry = $derived(currentBar != null && currentBar.time >= entryTimestamp);
 	let hasReachedExit = $derived(currentBar != null && currentBar.time >= exitTimestamp);
 	let progressPercent = $derived(totalBars > 1 ? (currentIndex / (totalBars - 1)) * 100 : 0);
+
+	// Session open markers (Asian, London, NY)
+	let sessionMarkers = $derived.by(() => {
+		if (!allBars.length) return [];
+		const visibleBars = allBars.slice(0, currentIndex + 1);
+		if (visibleBars.length === 0) return [];
+
+		const firstTime = visibleBars[0].time;
+		const lastTime = visibleBars[visibleBars.length - 1].time;
+		const barTimeSet = new Set(visibleBars.map((b: { time: number }) => b.time));
+
+		const sessions = [
+			{ hour: 0, color: '#3b82f6', text: 'AS' },
+			{ hour: 7, color: '#f59e0b', text: 'LN' },
+			{ hour: 12, color: '#22c55e', text: 'NY' }
+		];
+
+		const markers: SeriesMarker<Time>[] = [];
+		const startDate = new Date(firstTime * 1000);
+		startDate.setUTCHours(0, 0, 0, 0);
+		const endDate = new Date(lastTime * 1000);
+		endDate.setUTCHours(23, 59, 59, 999);
+
+		for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+			for (const session of sessions) {
+				const sessionTime = Math.floor(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), session.hour)).getTime() / 1000);
+				if (sessionTime >= firstTime && sessionTime <= lastTime && barTimeSet.has(sessionTime)) {
+					markers.push({
+						time: sessionTime as unknown as Time,
+						position: 'belowBar',
+						color: session.color,
+						shape: 'arrowUp',
+						text: session.text
+					});
+				}
+			}
+		}
+		return markers;
+	});
 
 	// P&L calculation: unrealized P&L from entry to current bar
 	let pnlData = $derived(computePnlData());
@@ -102,6 +149,29 @@
 	let maxPnl = $derived(pnlData.length > 0 ? pnlData.reduce((max, p) => p.value > max ? p.value : max, -Infinity) : 0);
 	let minPnl = $derived(pnlData.length > 0 ? pnlData.reduce((min, p) => p.value < min ? p.value : min, Infinity) : 0);
 
+	// Track peak P&L and max drawdown as replay progresses
+	$effect(() => {
+		if (currentPnl > peakPnl) peakPnl = currentPnl;
+		if (currentPnl < maxDrawdown) maxDrawdown = currentPnl;
+	});
+
+	// Pause-on-entry: auto-pause when replay first reaches trade open time
+	$effect(() => {
+		if (hasReachedEntry && !hasPassedEntry) {
+			hasPassedEntry = true;
+			showEntryBanner = true;
+			isPlaying = false;
+			clearTimer();
+		}
+	});
+
+	// Dismiss entry banner when user resumes playback
+	$effect(() => {
+		if (isPlaying && showEntryBanner) {
+			showEntryBanner = false;
+		}
+	});
+
 	// Keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -132,8 +202,8 @@
 		const visibleBars = allBars.slice(0, currentIndex + 1);
 		mainSeries.setData(visibleBars);
 
-		// Entry/exit markers
-		const markers: SeriesMarker<Time>[] = [];
+		// Entry/exit markers + session markers
+		const markers: SeriesMarker<Time>[] = [...sessionMarkers];
 		if (hasReachedEntry) {
 			markers.push({
 				time: entryTimestamp as unknown as Time,
@@ -152,6 +222,7 @@
 				text: `Exit ${formatNumber(trade.close_price, 5)}`
 			});
 		}
+		markers.sort((a, b) => (a.time as unknown as number) - (b.time as unknown as number));
 		mainSeries.setMarkers(markers);
 
 		// SL/TP price lines
@@ -212,6 +283,10 @@
 	function reset() {
 		pause();
 		currentIndex = 0;
+		peakPnl = 0;
+		maxDrawdown = 0;
+		hasPassedEntry = false;
+		showEntryBanner = false;
 		// Remove price lines on reset
 		if (slLine) { mainSeries?.removePriceLine(slLine); slLine = null; }
 		if (tpLine) { mainSeries?.removePriceLine(tpLine); tpLine = null; }
@@ -414,6 +489,10 @@
 		if (currentContext) {
 			pause();
 			currentIndex = 0;
+			peakPnl = 0;
+			maxDrawdown = 0;
+			hasPassedEntry = false;
+			showEntryBanner = false;
 			if (slLine) { mainSeries?.removePriceLine(slLine); slLine = null; }
 			if (tpLine) { mainSeries?.removePriceLine(tpLine); tpLine = null; }
 			if (entryLine) { mainSeries?.removePriceLine(entryLine); entryLine = null; }
@@ -609,13 +688,24 @@
 					{/if}
 
 					{#if hasReachedEntry && pnlData.length > 0}
-						<span class="hidden sm:inline text-gray-400">
-							Max: <span class="text-green-400">{formatCurrency(maxPnl)}</span>
-							Min: <span class="text-red-400">{formatCurrency(minPnl)}</span>
+						<span class="hidden sm:inline px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
+							Peak: {formatCurrency(peakPnl)}
+						</span>
+						<span class="hidden sm:inline px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-medium">
+							Max DD: {formatCurrency(maxDrawdown)}
 						</span>
 					{/if}
 				</div>
 			</div>
+
+			<!-- Pause-on-entry banner -->
+			{#if showEntryBanner}
+				<div class="flex-none px-4 py-2 bg-yellow-500/10 border-b border-yellow-500/20 text-center">
+					<span class="text-sm text-yellow-400 font-medium">
+						ถึงจุด Entry แล้ว — กด Space เพื่อเล่นต่อ
+					</span>
+				</div>
+			{/if}
 
 			<!-- Charts area -->
 			<div class="flex-1 flex flex-col min-h-0" class:hidden={loading}>

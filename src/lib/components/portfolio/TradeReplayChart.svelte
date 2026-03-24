@@ -60,6 +60,49 @@
 	let hasReachedExit = $derived(currentBar != null && currentBar.time >= exitTimestamp);
 	let progressPercent = $derived(totalBars > 1 ? (currentIndex / (totalBars - 1)) * 100 : 0);
 
+	// Compute session open markers (Asian, London, NY) for visible bars
+	let sessionMarkers = $derived.by(() => {
+		if (!allBars.length) return [];
+		const visibleBars = allBars.slice(0, currentIndex + 1);
+		if (visibleBars.length === 0) return [];
+
+		const firstTime = visibleBars[0].time;
+		const lastTime = visibleBars[visibleBars.length - 1].time;
+		const barTimeSet = new Set(visibleBars.map((b) => b.time));
+
+		// Session definitions: hour in UTC
+		const sessions = [
+			{ hour: 0, color: '#3b82f6', text: 'AS' },   // Asian open
+			{ hour: 7, color: '#f59e0b', text: 'LN' },   // London open
+			{ hour: 12, color: '#22c55e', text: 'NY' }    // NY open
+		];
+
+		const markers: SeriesMarker<Time>[] = [];
+
+		// Iterate each day in the range
+		const startDate = new Date(firstTime * 1000);
+		startDate.setUTCHours(0, 0, 0, 0);
+		const endDate = new Date(lastTime * 1000);
+		endDate.setUTCHours(23, 59, 59, 999);
+
+		for (let d = new Date(startDate); d <= endDate; d.setUTCDate(d.getUTCDate() + 1)) {
+			for (const session of sessions) {
+				const sessionTime = Math.floor(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), session.hour)).getTime() / 1000);
+				if (sessionTime >= firstTime && sessionTime <= lastTime && barTimeSet.has(sessionTime)) {
+					markers.push({
+						time: sessionTime as unknown as Time,
+						position: 'belowBar',
+						color: session.color,
+						shape: 'arrowUp',
+						text: session.text
+					});
+				}
+			}
+		}
+
+		return markers;
+	});
+
 	// Compute unrealized P&L for each bar while in trade
 	// Uses ratio-based scaling from actual trade profit for symbol-agnostic accuracy
 	let pnlData = $derived.by(() => {
@@ -100,8 +143,8 @@
 			allBars.slice(0, currentIndex + 1).map((b) => ({ ...b, time: b.time as unknown as Time }))
 		);
 
-		// Markers
-		const markers: SeriesMarker<Time>[] = [];
+		// Markers: session markers + entry/exit
+		const markers: SeriesMarker<Time>[] = [...sessionMarkers];
 		if (hasReachedEntry && trade) {
 			markers.push({
 				time: entryTimestamp as unknown as Time,
@@ -120,6 +163,8 @@
 				text: `Exit ${formatNumber(trade.close_price, 5)}`
 			});
 		}
+		// lightweight-charts requires markers sorted by time
+		markers.sort((a, b) => (a.time as unknown as number) - (b.time as unknown as number));
 		series.setMarkers(markers);
 
 		// SL/TP price lines
