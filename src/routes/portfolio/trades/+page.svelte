@@ -12,6 +12,7 @@
 	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
 	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
 	import VirtualList from '$lib/components/shared/VirtualList.svelte';
+	import TradeComparePanel from '$lib/components/portfolio/TradeComparePanel.svelte';
 
 	let { data } = $props();
 	let trades = $derived(data.trades || []);
@@ -30,6 +31,18 @@
 	let groupBy = $state<'none' | 'day' | 'session' | 'setup'>('day');
 	let showImportModal = $state(false);
 	let exportLoading = $state(false);
+	let comparePanelOpen = $state(false);
+
+	function openCompare() {
+		comparePanelOpen = true;
+	}
+
+	function removeFromCompare(id: string) {
+		const next = new Set(selectedIds);
+		next.delete(id);
+		selectedIds = next;
+		if (next.size < 2) comparePanelOpen = false;
+	}
 	const totalPages = $derived(Math.ceil(total / pageSize));
 
 	// --- Bulk selection state ---
@@ -240,23 +253,23 @@
 
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="card">
-			<div class="text-xs text-gray-500">เทรดที่กรอง</div>
+			<div class="text-xs text-gray-400">เทรดที่กรอง</div>
 			<div class="mt-1 text-2xl font-semibold text-white">{total}</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">ยังไม่ Review</div>
+			<div class="text-xs text-gray-400">ยังไม่ Review</div>
 			<div class="mt-1 text-2xl font-semibold text-amber-300">
 				{trades.filter((trade: Trade) => getTradeReviewStatus(trade) === 'unreviewed').length}
 			</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">ไม่มี Notes</div>
+			<div class="text-xs text-gray-400">ไม่มี Notes</div>
 			<div class="mt-1 text-2xl font-semibold text-brand-300">
 				{trades.filter((trade: Trade) => (trade.trade_notes || []).length === 0).length}
 			</div>
 		</div>
 		<div class="card">
-			<div class="text-xs text-gray-500">ไม่มีไฟล์แนบ</div>
+			<div class="text-xs text-gray-400">ไม่มีไฟล์แนบ</div>
 			<div class="mt-1 text-2xl font-semibold text-rose-300">
 				{trades.filter((trade: Trade) => (trade.trade_attachments || []).length === 0).length}
 			</div>
@@ -328,6 +341,20 @@
 				{/if}
 			</div>
 
+		<!-- Compare button: visible when 2–4 trades selected -->
+		{#if selectionCount >= 2 && selectionCount <= 4}
+			<button
+				type="button"
+				onclick={openCompare}
+				class="px-4 py-1.5 text-sm rounded border border-brand-primary/60 text-brand-primary hover:bg-brand-primary/10 font-medium flex items-center gap-1.5 transition-colors"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+				</svg>
+				เปรียบเทียบ ({selectionCount})
+			</button>
+		{/if}
+
 			<button
 				type="button"
 				onclick={clearSelection}
@@ -343,7 +370,7 @@
 			หน้า {currentPage}/{Math.max(totalPages, 1)}
 		</div>
 		<div class="flex items-center gap-2">
-			<label for="group-by" class="text-xs text-gray-500">จัดกลุ่มตาม</label>
+			<label for="group-by" class="text-xs text-gray-400">จัดกลุ่มตาม</label>
 			<select id="group-by" bind:value={groupBy} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 				<option value="none">ไม่จัดกลุ่ม</option>
 				<option value="day">วัน</option>
@@ -373,7 +400,7 @@
 							/>
 							<h3 class="text-sm font-medium text-white">{group.label}</h3>
 						</div>
-						<span class="text-xs text-gray-500">{group.items.length} เทรด</span>
+						<span class="text-xs text-gray-400">{group.items.length} เทรด</span>
 					</div>
 					<!-- Mobile card list (hidden on md+) — virtual scrolled for large groups -->
 				{#if group.items.length > 10}
@@ -414,7 +441,7 @@
 				<div class="hidden md:block overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead>
-								<tr class="border-b border-dark-border text-gray-500 text-xs">
+								<tr class="border-b border-dark-border text-gray-400 text-xs">
 									<th class="w-8 py-2"></th>
 									<th class="text-left py-2">เทรด</th>
 									<th class="text-left py-2">รีวิว</th>
@@ -455,7 +482,7 @@
 										</td>
 										<td class="py-3">
 											<div class="font-medium text-white">{trade.symbol}</div>
-											<div class="text-[11px] text-gray-500">
+											<div class="text-[11px] text-gray-400">
 												{trade.type} • {trade.lot_size} lots • {formatNumber(trade.open_price, 5)} → {formatNumber(trade.close_price, 5)}
 											</div>
 										</td>
@@ -493,14 +520,14 @@
 													negative={ins.filter((i: { category: string }) => i.category === 'negative').length}
 												/>
 											{:else}
-												<span class="text-xs text-gray-600">—</span>
+												<span class="text-xs text-gray-400">—</span>
 											{/if}
 										</td>
 										<td class="py-3 text-center">
 											{#if tradeScores[trade.id] !== undefined}
 												<QualityScoreBar score={tradeScores[trade.id]} />
 											{:else}
-												<span class="text-xs text-gray-600">—</span>
+												<span class="text-xs text-gray-400">—</span>
 											{/if}
 										</td>
 										<td class="py-3 text-center">
@@ -510,13 +537,13 @@
 													{r >= 0 ? '+' : ''}{r.toFixed(1)}R
 												</span>
 											{:else}
-												<span class="text-xs text-gray-600">—</span>
+												<span class="text-xs text-gray-400">—</span>
 											{/if}
 										</td>
 										<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 											{formatCurrency(trade.profit)}
 										</td>
-										<td class="py-3 text-right text-gray-500">
+										<td class="py-3 text-right text-gray-400">
 											{formatDateTime(trade.close_time)}
 										</td>
 									</tr>
@@ -529,7 +556,7 @@
 		</div>
 
 		<!-- Count indicator -->
-		<div class="text-center text-xs text-gray-500">
+		<div class="text-center text-xs text-gray-400">
 			แสดง {trades.length} จาก {total} รายการ
 		</div>
 
@@ -571,3 +598,15 @@
 </div>
 
 <TradeImportModal bind:open={showImportModal} />
+
+{#if comparePanelOpen}
+	{@const selectedTrades = trades.filter((t: Trade) => selectedIds.has(t.id))}
+	<TradeComparePanel
+		trades={selectedTrades}
+		{playbooks}
+		tradeScores={tradeScores}
+		tradeInsights={tradeInsights}
+		onclose={() => comparePanelOpen = false}
+		onremove={removeFromCompare}
+	/>
+{/if}
