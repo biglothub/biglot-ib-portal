@@ -3,27 +3,30 @@
 	import { browser } from '$app/environment';
 
 	let showUpdate = $state(false);
+	let waitingWorker: ServiceWorker | null = null;
 
 	onMount(() => {
 		if (!browser || !('serviceWorker' in navigator)) return;
 
-		// Only show update when controller *changes* (not on first activation)
-		let prevController = navigator.serviceWorker.controller;
+		// controllerchange fires when waiting SW activates after SKIP_WAITING
 		navigator.serviceWorker.addEventListener('controllerchange', () => {
-			if (prevController) {
-				showUpdate = true;
-			}
-			prevController = navigator.serviceWorker.controller;
+			window.location.reload();
 		});
 
-		// Also check for waiting service worker on load
 		navigator.serviceWorker.ready.then((registration) => {
+			// If there's already a waiting worker on load, show prompt
+			if (registration.waiting && navigator.serviceWorker.controller) {
+				waitingWorker = registration.waiting;
+				showUpdate = true;
+			}
+
 			registration.addEventListener('updatefound', () => {
 				const newWorker = registration.installing;
 				if (!newWorker) return;
 
 				newWorker.addEventListener('statechange', () => {
 					if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+						waitingWorker = newWorker;
 						showUpdate = true;
 					}
 				});
@@ -32,7 +35,12 @@
 	});
 
 	function handleUpdate() {
-		window.location.reload();
+		if (waitingWorker) {
+			waitingWorker.postMessage('SKIP_WAITING');
+			// reload happens in controllerchange listener
+		} else {
+			window.location.reload();
+		}
 	}
 </script>
 

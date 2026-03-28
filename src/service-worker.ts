@@ -22,9 +22,16 @@ sw.addEventListener('install', (event) => {
 		(async () => {
 			const cache = await caches.open(CACHE_NAME);
 			await cache.addAll([...PRECACHE_ASSETS, '/offline']);
-			await sw.skipWaiting();
+			// Do NOT skipWaiting here — let the UI prompt the user first
 		})()
 	);
+});
+
+// Allow UI to trigger activation after user confirms update
+sw.addEventListener('message', (event) => {
+	if (event.data === 'SKIP_WAITING') {
+		sw.skipWaiting();
+	}
 });
 
 // Activate: clean old caches
