@@ -19,7 +19,7 @@ test.describe('Login Page', () => {
 	test('shows email/password form for Admin/IB', async ({ page }) => {
 		await expect(page.getByLabel('อีเมล')).toBeVisible();
 		await expect(page.getByLabel('รหัสผ่าน')).toBeVisible();
-		await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true })).toBeVisible();
 	});
 
 	test('shows admin/IB divider text', async ({ page }) => {
@@ -39,13 +39,20 @@ test.describe('Login Page', () => {
 	});
 
 	test('submit button shows loading state on click', async ({ page }) => {
+		// Delay auth request so the loading state stays visible long enough to assert
+		await page.route('**/auth/**', async (route) => {
+			await new Promise((resolve) => setTimeout(resolve, 500));
+			await route.abort();
+		});
+
 		await page.getByLabel('อีเมล').fill('test@example.com');
 		await page.getByLabel('รหัสผ่าน').fill('password123');
 
-		const submitBtn = page.getByRole('button', { name: 'เข้าสู่ระบบ' });
+		// Use type="submit" locator — stable even when button text changes to loading state
+		const submitBtn = page.locator('button[type="submit"]');
 		await submitBtn.click();
 
-		// Button should show loading text briefly
+		// Button should show loading text while request is in-flight
 		await expect(submitBtn).toContainText('กำลังเข้าสู่ระบบ');
 	});
 

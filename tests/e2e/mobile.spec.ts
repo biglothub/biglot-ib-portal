@@ -1,7 +1,8 @@
 import { test, expect, devices } from '@playwright/test';
 
+test.use({ viewport: devices['iPhone 13'].viewport, userAgent: devices['iPhone 13'].userAgent });
+
 test.describe('Mobile Responsiveness', () => {
-	test.use(devices['iPhone 13']);
 
 	test('login page renders correctly on mobile', async ({ page }) => {
 		await page.goto('/auth/login');
