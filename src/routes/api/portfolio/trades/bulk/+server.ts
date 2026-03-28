@@ -1,4 +1,6 @@
 import { rateLimit } from '$lib/server/rate-limit';
+import { invalidateCachePattern } from '$lib/server/cache';
+import { invalidateBaseDataCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 
@@ -40,9 +42,10 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		return json({ message: tradeError.message }, { status: 500 });
 	}
 
-	type TradeWithAccount = { id: string; client_accounts?: { user_id: string } | null };
+	type TradeWithAccount = { id: string; client_account_id: string; client_accounts?: { user_id: string } | null };
+	const allTrades = (trades ?? []) as unknown as TradeWithAccount[];
 	const ownedIds = new Set(
-		((trades ?? []) as unknown as TradeWithAccount[])
+		allTrades
 			.filter((t: TradeWithAccount) => t.client_accounts?.user_id === profile.id)
 			.map((t: TradeWithAccount) => t.id)
 	);
@@ -74,6 +77,11 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 
 		if (error) return json({ message: error.message }, { status: 500 });
 
+		// Invalidate caches for all affected accounts
+		const accountIds = new Set(allTrades.map(t => t.client_account_id));
+		accountIds.forEach(id => invalidateBaseDataCache(id));
+		void invalidateCachePattern('portfolio:trades:');
+
 		return json({ success: true, affected: trade_ids.length });
 	}
 
@@ -96,6 +104,11 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 			.upsert(rows, { onConflict: 'trade_id' });
 
 		if (error) return json({ message: error.message }, { status: 500 });
+
+		// Invalidate caches for all affected accounts
+		const accountIds = new Set(allTrades.map(t => t.client_account_id));
+		accountIds.forEach(id => invalidateBaseDataCache(id));
+		void invalidateCachePattern('portfolio:trades:');
 
 		return json({ success: true, affected: trade_ids.length });
 	}

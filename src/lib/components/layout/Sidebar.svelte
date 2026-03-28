@@ -69,6 +69,10 @@
 
 	const isInPortfolio = $derived($page.url.pathname.startsWith('/portfolio'));
 
+	// Preserve account_id in sidebar links so beforeNavigate doesn't have to cancel + re-navigate
+	const accountIdParam = $derived($page.url.searchParams.get('account_id'));
+	const withAccountId = (href: string) => accountIdParam ? `${href}?account_id=${accountIdParam}` : href;
+
 	const roleLabel = $derived(
 		profile?.role === 'admin' ? 'Admin' :
 		profile?.role === 'master_ib' ? 'Master IB' :
@@ -129,7 +133,7 @@
 	<nav class="p-3 space-y-0.5">
 		{#each links as link}
 			<a
-				href={link.href}
+				href={link.href.startsWith('/portfolio') ? withAccountId(link.href) : link.href}
 				title={collapsed ? link.label : ''}
 				class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
 					{collapsed ? 'justify-center' : ''}
@@ -150,7 +154,7 @@
 			<div class="pt-1 {collapsed ? '' : 'pl-2 border-l border-dark-border ml-4'}">
 				{#each portfolioSubLinks as sub}
 					<a
-						href={sub.href}
+						href={withAccountId(sub.href)}
 						title={collapsed ? sub.label : ''}
 						class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors
 							{collapsed ? 'justify-center' : ''}

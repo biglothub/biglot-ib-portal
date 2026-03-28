@@ -9,7 +9,7 @@ export async function verifyTradeOwnership(
 	supabase: SupabaseClient,
 	tradeId: string,
 	userId: string
-): Promise<{ ok: true } | { ok: false; response: Response }> {
+): Promise<{ ok: true; accountId: string } | { ok: false; response: Response }> {
 	const { data: trade, error } = await supabase
 		.from('trades')
 		.select('client_account_id')
@@ -30,7 +30,7 @@ export async function verifyTradeOwnership(
 		return { ok: false, response: json({ message: 'Forbidden' }, { status: 403 }) };
 	}
 
-	return { ok: true };
+	return { ok: true, accountId: trade.client_account_id };
 }
 
 /**

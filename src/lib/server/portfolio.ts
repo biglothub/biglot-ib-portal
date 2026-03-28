@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import { computeAnalytics } from '$lib/analytics';
 import {
 	applyPortfolioFilters,
@@ -30,29 +31,56 @@ function capRatio(numerator: number, denominator: number): number {
 	return numerator > 0 ? MAX_RATIO : 0;
 }
 
+// ── Process-level base data cache ───────────────────────────────────────
+// Caches the full PortfolioBaseData result in-process (no serialization).
+// This avoids re-querying Supabase on every SvelteKit server-side navigation.
+const baseDataCache = new Map<string, { data: PortfolioBaseData; expiresAt: number }>();
+const BASE_DATA_TTL_MS = 60_000; // 1 minute — short enough to stay fresh
+
+export function invalidateBaseDataCache(accountId: string): void {
+	for (const key of [...baseDataCache.keys()]) {
+		if (key.startsWith(accountId)) baseDataCache.delete(key);
+	}
+}
+
 export async function fetchPortfolioBaseData(
 	supabase: SupabaseClient,
 	accountId: string,
 	userId: string
 ): Promise<PortfolioBaseData> {
+	// Check process-level cache first (no serialization overhead)
+	const cacheKey = `${accountId}:${userId}`;
+	const cached = baseDataCache.get(cacheKey);
+	if (cached && Date.now() < cached.expiresAt) {
+		if (dev) console.log(`[baseData] HIT process cache for ${accountId.slice(0, 8)}…`);
+		return cached.data;
+	}
+
+	const tradesCacheKey = `portfolio:trades:${accountId}`;
 	const dailyStatsCacheKey = `portfolio:daily_stats:${accountId}`;
+	const journalsCacheKey = `portfolio:journals:${accountId}:${userId}`;
 	const playbooksCacheKey = `portfolio:playbooks:${userId}`;
 
 	// Check hot-data cache before hitting the DB
-	const [cachedDailyStats, cachedPlaybooks] = await Promise.all([
+	const [cachedTrades, cachedDailyStats, cachedJournals, cachedPlaybooks] = await Promise.all([
+		getCache<Trade[]>(tradesCacheKey),
 		getCache<DailyStats[]>(dailyStatsCacheKey),
+		getCache<DailyJournal[]>(journalsCacheKey),
 		getCache<Playbook[]>(playbooksCacheKey)
 	]);
 
 	const [tradesRes, dailyStatsRes, journalsRes, playbooksRes, savedViewsRes, progressGoalsRes] =
 		await Promise.allSettled([
-			supabase
-				.from('trades')
-				.select(
-					'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id), trade_reviews(id, review_status, playbook_id, broken_rules, entry_reason, mistake_summary, lesson_summary, followed_plan, setup_quality_score, discipline_score, execution_score, confidence_at_entry, playbooks(id, name)), trade_attachments(id)'
-				)
-				.eq('client_account_id', accountId)
-				.order('close_time', { ascending: false }),
+			// Use cached trades if available, otherwise query DB
+			cachedTrades
+				? Promise.resolve({ data: cachedTrades, error: null })
+				: supabase
+						.from('trades')
+						.select(
+							'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id), trade_reviews(id, review_status, playbook_id, broken_rules, entry_reason, mistake_summary, lesson_summary, followed_plan, setup_quality_score, discipline_score, execution_score, confidence_at_entry, playbooks(id, name)), trade_attachments(id)'
+						)
+						.eq('client_account_id', accountId)
+						.order('close_time', { ascending: false }),
 			// Use cached daily_stats if available, otherwise query DB
 			cachedDailyStats
 				? Promise.resolve({ data: cachedDailyStats, error: null })
@@ -61,12 +89,15 @@ export async function fetchPortfolioBaseData(
 						.select('*')
 						.eq('client_account_id', accountId)
 						.order('date', { ascending: true }),
-			supabase
-				.from('daily_journal')
-				.select('*')
-				.eq('client_account_id', accountId)
-				.eq('user_id', userId)
-				.order('date', { ascending: true }),
+			// Use cached journals if available, otherwise query DB
+			cachedJournals
+				? Promise.resolve({ data: cachedJournals, error: null })
+				: supabase
+						.from('daily_journal')
+						.select('*')
+						.eq('client_account_id', accountId)
+						.eq('user_id', userId)
+						.order('date', { ascending: true }),
 			// Use cached playbooks if available, otherwise query DB
 			cachedPlaybooks
 				? Promise.resolve({ data: cachedPlaybooks, error: null })
@@ -107,26 +138,39 @@ export async function fetchPortfolioBaseData(
 		return [];
 	};
 
+	const trades = getData(tradesRes, 'trades') as unknown as Trade[];
 	const dailyStats = getData(dailyStatsRes, 'dailyStats') as unknown as DailyStats[];
+	const journals = getData(journalsRes, 'journals') as unknown as DailyJournal[];
 	const playbooks = getData(playbooksRes, 'playbooks') as unknown as Playbook[];
 
 	// Populate cache for fresh DB results (fire-and-forget, never throws)
+	if (!cachedTrades && trades.length > 0) {
+		void setCache(tradesCacheKey, trades, 120); // 2 min — trades change often
+	}
 	if (!cachedDailyStats && dailyStats.length > 0) {
 		void setCache(dailyStatsCacheKey, dailyStats, 300);
+	}
+	if (!cachedJournals && journals.length > 0) {
+		void setCache(journalsCacheKey, journals, 300);
 	}
 	if (!cachedPlaybooks && playbooks.length > 0) {
 		void setCache(playbooksCacheKey, playbooks, 600);
 	}
 
-	return {
-		trades: getData(tradesRes, 'trades') as unknown as Trade[],
+	const result: PortfolioBaseData = {
+		trades,
 		dailyStats,
-		journals: getData(journalsRes, 'journals') as unknown as DailyJournal[],
+		journals,
 		playbooks,
 		savedViews: getData(savedViewsRes, 'savedViews') as unknown as PortfolioSavedView[],
 		progressGoals: mergeDefaultProgressGoals(getData(progressGoalsRes, 'progressGoals') as unknown as ProgressGoal[], accountId, userId),
 		warnings
 	};
+
+	// Store in process-level cache (no serialization — instant on next navigation)
+	baseDataCache.set(cacheKey, { data: result, expiresAt: Date.now() + BASE_DATA_TTL_MS });
+
+	return result;
 }
 
 export async function fetchTradeChartContext(supabase: SupabaseClient, tradeId: string) {
