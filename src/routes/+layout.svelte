@@ -11,7 +11,15 @@
 
 	let { data, children } = $props();
 	const profile = $derived(data.profile);
-	let sidebarCollapsed = $state(false);
+	let sidebarCollapsed = $state(
+		typeof localStorage !== 'undefined'
+			? localStorage.getItem('sidebar-collapsed') === 'true'
+			: false
+	);
+
+	$effect(() => {
+		localStorage.setItem('sidebar-collapsed', String(sidebarCollapsed));
+	});
 
 	const isAuthPage = $derived(!profile);
 

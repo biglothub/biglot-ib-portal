@@ -152,7 +152,7 @@
 
 		{#each orderedWidgetIds as widgetId (widgetId)}
 			{#if widgetId === 'primary_kpis'}
-				<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+				<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
 					<MetricCard
 						label="กำไร/ขาดทุนสุทธิ"
 						value={formatPnl(kpi.netPnl, $displayUnit, latestStats?.balance)}
@@ -170,14 +170,24 @@
 						label="อัตราส่วนกำไร"
 						value={kpi.profitFactor >= 999 ? '∞' : formatNumber(kpi.profitFactor)}
 						color={kpi.profitFactor >= 1 ? 'text-green-400' : 'text-red-400'}
-						donutPercent={Math.min((kpi.profitFactor / 3) * 100, 100)}
+						gaugeValue={kpi.profitFactor >= 999 ? 3 : kpi.profitFactor}
+						gaugeMax={3}
 					/>
 					<MetricCard
 						label="อัตราชนะ (วัน)"
 						value={formatPercent(kpi.dayWinRate).replace('+', '')}
 						color={kpi.dayWinRate >= 50 ? 'text-green-400' : 'text-amber-400'}
 						donutPercent={kpi.dayWinRate}
-						subValue={kpi.totalTradingDays > 0 ? `${kpi.profitableDays}W / ${kpi.totalTradingDays - kpi.profitableDays}L วัน` : ''}
+						tradeCount={kpi.totalTradingDays > 0 ? { wins: kpi.profitableDays, losses: kpi.totalTradingDays - kpi.profitableDays } : undefined}
+					/>
+					<MetricCard
+						label="ค่าเฉลี่ย ชนะ/แพ้"
+						value={kpi.avgWinLossRatio >= 999 ? '∞' : formatNumber(kpi.avgWinLossRatio, 2)}
+						color={kpi.avgWinLossRatio >= 1 ? 'text-green-400' : 'text-red-400'}
+						barData={kpi.avgWin > 0 || kpi.avgLoss > 0 ? {
+							left: { value: formatPnl(kpi.avgWin, $displayUnit, latestStats?.balance), color: 'text-green-400' },
+							right: { value: formatPnl(-kpi.avgLoss, $displayUnit, latestStats?.balance), color: 'text-red-400' }
+						} : undefined}
 					/>
 				</div>
 			{:else if widgetId === 'secondary_kpis'}

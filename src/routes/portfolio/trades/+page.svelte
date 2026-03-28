@@ -6,6 +6,7 @@
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import InsightBadge from '$lib/components/portfolio/InsightBadge.svelte';
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
+	import TradeProfitBadge from '$lib/components/portfolio/TradeProfitBadge.svelte';
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
 	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
 	import type { Trade, TradeTagAssignment, Playbook } from '$lib/types';
@@ -444,6 +445,7 @@
 								<tr class="border-b border-dark-border text-gray-400 text-xs">
 									<th class="w-8 py-2"></th>
 									<th class="text-left py-2">เทรด</th>
+									<th class="text-left py-2 whitespace-nowrap">สถานะ</th>
 									<th class="text-left py-2">รีวิว</th>
 									<th class="text-left py-2">Playbook</th>
 									<th class="text-left py-2">แท็ก</th>
@@ -471,7 +473,7 @@
 										onkeydown={(e) => handleRowKeydown(e, trade.id)}
 									>
 										<!-- Checkbox cell — stops row click propagation -->
-										<td class="py-3 pr-2 checkbox-cell" onclick={(e) => e.stopPropagation()}>
+										<td class="py-2.5 pr-2 checkbox-cell" onclick={(e) => e.stopPropagation()}>
 											<input
 												type="checkbox"
 												checked={selectedIds.has(trade.id)}
@@ -480,19 +482,22 @@
 												aria-label="เลือก trade {trade.symbol}"
 											/>
 										</td>
-										<td class="py-3">
+										<td class="py-2.5">
 											<div class="font-medium text-white">{trade.symbol}</div>
 											<div class="text-[11px] text-gray-400">
 												{trade.type} • {trade.lot_size} lots • {formatNumber(trade.open_price, 5)} → {formatNumber(trade.close_price, 5)}
 											</div>
 										</td>
-										<td class="py-3">
+										<td class="py-2.5">
+											<TradeProfitBadge profit={trade.profit} />
+										</td>
+										<td class="py-2.5">
 											<ReviewStatusBadge status={getTradeReviewStatus(trade)} />
 										</td>
-										<td class="py-3 text-gray-300">
+										<td class="py-2.5 text-gray-300">
 											{playbooks.find((playbook: Playbook) => playbook.id === getTradePlaybookId(trade))?.name || '-'}
 										</td>
-										<td class="py-3">
+										<td class="py-2.5">
 											<div class="flex flex-wrap gap-1">
 												{#each (trade.trade_tag_assignments || []).slice(0, 3) as assignment}
 													{#if assignment.trade_tags}
@@ -505,13 +510,13 @@
 												{/each}
 											</div>
 										</td>
-										<td class="py-3 text-center text-gray-300">
+										<td class="py-2.5 text-center text-gray-300">
 											{(trade.trade_notes || []).length || '—'}
 										</td>
-										<td class="py-3 text-center text-gray-300">
+										<td class="py-2.5 text-center text-gray-300">
 											{(trade.trade_attachments || []).length || '—'}
 										</td>
-										<td class="py-3 text-center">
+										<td class="py-2.5 text-center">
 											{#if tradeInsights[trade.id]}
 												{@const ins = tradeInsights[trade.id]}
 												<InsightBadge
@@ -523,14 +528,14 @@
 												<span class="text-xs text-gray-400">—</span>
 											{/if}
 										</td>
-										<td class="py-3 text-center">
+										<td class="py-2.5 text-center">
 											{#if tradeScores[trade.id] !== undefined}
 												<QualityScoreBar score={tradeScores[trade.id]} />
 											{:else}
 												<span class="text-xs text-gray-400">—</span>
 											{/if}
 										</td>
-										<td class="py-3 text-center">
+										<td class="py-2.5 text-center">
 											{#if tradeExecutionMetrics[trade.id]?.rMultiple != null}
 												{@const r = tradeExecutionMetrics[trade.id].rMultiple}
 												<span class="text-xs font-mono {r >= 1 ? 'text-green-400' : r >= 0 ? 'text-amber-400' : 'text-red-400'}">
@@ -540,10 +545,10 @@
 												<span class="text-xs text-gray-400">—</span>
 											{/if}
 										</td>
-										<td class="py-3 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
+										<td class="py-2.5 text-right font-medium {trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">
 											{formatCurrency(trade.profit)}
 										</td>
-										<td class="py-3 text-right text-gray-400">
+										<td class="py-2.5 text-right text-gray-400">
 											{formatDateTime(trade.close_time)}
 										</td>
 									</tr>
