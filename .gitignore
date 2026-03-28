@@ -40,6 +40,9 @@ QA_REPORT.md
 .dev-server.pid
 .dev-session-sha
 
+# Vercel
+.vercel/
+
 # Playwright
 test-results/
 playwright-report/

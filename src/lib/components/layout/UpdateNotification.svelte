@@ -7,8 +7,13 @@
 	onMount(() => {
 		if (!browser || !('serviceWorker' in navigator)) return;
 
+		// Only show update when controller *changes* (not on first activation)
+		let prevController = navigator.serviceWorker.controller;
 		navigator.serviceWorker.addEventListener('controllerchange', () => {
-			showUpdate = true;
+			if (prevController) {
+				showUpdate = true;
+			}
+			prevController = navigator.serviceWorker.controller;
 		});
 
 		// Also check for waiting service worker on load
