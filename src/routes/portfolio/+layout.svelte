@@ -352,26 +352,6 @@
 		</div>
 	</div>
 
-	{#if account}
-		<!-- Tab Navigation (desktop only) -->
-		<div role="tablist" aria-label="หน้าพอร์ต" class="hidden md:flex gap-1 border-b border-dark-border overflow-x-auto">
-			{#each tabs as tab}
-				<a
-					href={tab.href}
-					role="tab"
-					aria-selected={isActive(tab.base)}
-					data-sveltekit-preload-data="tap"
-					class="px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors
-						{isActive(tab.base)
-							? 'text-brand-primary border-b-2 border-brand-primary'
-							: 'text-gray-400 hover:text-gray-300'}"
-				>
-					{tab.label}
-				</a>
-			{/each}
-		</div>
-	{/if}
-
 	{#if $navigating && $navigating.to?.url.pathname.startsWith('/portfolio')}
 		<PortfolioSkeleton />
 	{:else}
