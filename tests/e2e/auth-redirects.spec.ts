@@ -86,37 +86,36 @@ test.describe('Auth Redirects', () => {
 		expect(response?.status()).toBe(200);
 	});
 
-	// ─── API endpoints return 4xx for unauthenticated requests ──────────────
+	// ─── API endpoints redirect unauthenticated requests to login ──────────
+	// SvelteKit hooks intercept ALL routes including /api/* and redirect to
+	// /auth/login (303) when no session. Playwright follows the redirect,
+	// so we verify the final URL landed on the login page.
 
-	test('POST /api/portfolio/journal without auth returns 4xx', async ({ request }) => {
+	test('POST /api/portfolio/journal without auth redirects to login', async ({ request }) => {
 		const response = await request.post('/api/portfolio/journal', {
 			data: { date: '2024-01-15', mood: 3 }
 		});
-		expect(response.status()).toBeGreaterThanOrEqual(400);
-		expect(response.status()).toBeLessThan(500);
+		expect(response.url()).toContain('/auth/login');
 	});
 
-	test('POST /api/portfolio/notebook without auth returns 4xx', async ({ request }) => {
+	test('POST /api/portfolio/notebook without auth redirects to login', async ({ request }) => {
 		const response = await request.post('/api/portfolio/notebook', {
 			data: { action: 'ensure_folders' }
 		});
-		expect(response.status()).toBeGreaterThanOrEqual(400);
-		expect(response.status()).toBeLessThan(500);
+		expect(response.url()).toContain('/auth/login');
 	});
 
-	test('POST /api/admin/approve without auth returns 4xx', async ({ request }) => {
+	test('POST /api/admin/approve without auth redirects to login', async ({ request }) => {
 		const response = await request.post('/api/admin/approve', {
 			data: { account_id: 'test', action: 'approved' }
 		});
-		expect(response.status()).toBeGreaterThanOrEqual(400);
-		expect(response.status()).toBeLessThan(500);
+		expect(response.url()).toContain('/auth/login');
 	});
 
-	test('POST /api/ib/clients without auth returns 4xx', async ({ request }) => {
+	test('POST /api/ib/clients without auth redirects to login', async ({ request }) => {
 		const response = await request.post('/api/ib/clients', {
 			data: { client_name: 'Test', email: 'test@test.com' }
 		});
-		expect(response.status()).toBeGreaterThanOrEqual(400);
-		expect(response.status()).toBeLessThan(500);
+		expect(response.url()).toContain('/auth/login');
 	});
 });
