@@ -106,6 +106,13 @@ const authHandle: Handle = async ({ event, resolve }) => {
 			throw redirect(303, role === 'admin' ? '/admin' : role === 'master_ib' ? '/ib' : '/auth/login');
 		}
 	}
+	// Resolve client's selected account_id from URL so layout doesn't depend on url
+	if (path.startsWith('/portfolio') && role === 'client') {
+		const selectedAccountId = event.url.searchParams.get('account_id');
+		if (selectedAccountId) {
+			event.locals.selectedAccountId = selectedAccountId;
+		}
+	}
 
 	// Redirect root based on role
 	if (path === '/') {
