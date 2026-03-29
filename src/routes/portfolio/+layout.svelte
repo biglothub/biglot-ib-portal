@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { page, navigating } from '$app/stores';
-	import { afterNavigate, goto, invalidate, replaceState } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { timeAgo } from '$lib/utils';
 	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
 	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
@@ -141,9 +141,9 @@
 		{ value: 'pips', label: 'p' }
 	];
 
-	// The active account_id — from admin view or user's account selection
+	// The active account_id — from server data, not URL (avoids re-renders from URL changes)
 	const activeAccountId = $derived(
-		isAdminView ? viewAsAccountId : $page.url.searchParams.get('account_id')
+		isAdminView ? viewAsAccountId : account?.id || null
 	);
 
 	/** Build tab href — preserves account_id param for admin view or account switching */
@@ -156,16 +156,6 @@
 	$effect(() => {
 		adminViewAccountId.set(viewAsAccountId || null);
 		return () => adminViewAccountId.set(null);
-	});
-
-	// Update URL display with account_id after navigation (server resolves it via hooks)
-	afterNavigate(({ to }) => {
-		if (!activeAccountId || !to?.url) return;
-		if (to.url.pathname.startsWith('/portfolio') && !to.url.searchParams.has('account_id')) {
-			const url = new URL(to.url);
-			url.searchParams.set('account_id', activeAccountId);
-			replaceState(url.pathname + url.search, {});
-		}
 	});
 
 	// Push market news to the store so the sidebar can display it
