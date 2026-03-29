@@ -12,10 +12,15 @@
 		{ id: 'journal', label: 'Journal', icon: '📓' },
 		{ id: 'notebook', label: 'Notebook', icon: '📝' },
 		{ id: 'reports', label: 'Reports', icon: '📈' },
+		{ id: 'calendar', label: 'Calendar', icon: '🗓️' },
 		{ id: 'playbook', label: 'Playbook', icon: '📘' },
 		{ id: 'progress', label: 'Progress', icon: '🎯' },
+		{ id: 'livetrade', label: 'Live Trade', icon: '🎙️' },
+		{ id: 'multiaccount', label: 'Multi-Account', icon: '🏦' },
+		{ id: 'social', label: 'Social', icon: '🏆' },
 		{ id: 'analysis', label: 'Gold Analysis', icon: '🥇' },
-		{ id: 'ai', label: 'AI Chat', icon: '🤖' }
+		{ id: 'ai', label: 'AI Chat', icon: '🤖' },
+		{ id: 'tools', label: 'Tools', icon: '🔧' }
 	];
 </script>
 
@@ -129,7 +134,7 @@
 								<li><span class="text-white font-medium">Cost of mistakes</span> — จำนวน rule breaks + มูลค่าความเสียหาย</li>
 								<li><span class="text-white font-medium">Setup Performance</span> — playbook ไหนทำกำไรสูงสุด</li>
 								<li><span class="text-white font-medium">Open Positions</span> — ตำแหน่งที่เปิดอยู่พร้อม P/L ปัจจุบัน</li>
-								<li><span class="text-white font-medium">Trading Calendar</span> — ปฏิทินสีตาม P/L รายวัน</li>
+								<li><span class="text-white font-medium">Trading Calendar</span> — ปฏิทินสีตาม P&L รายวัน</li>
 								<li><span class="text-white font-medium">Recent Trades</span> — 8 trades ล่าสุดพร้อม review status</li>
 							</ul>
 						</div>
@@ -177,7 +182,7 @@
 				<div class="space-y-5">
 					<div>
 						<h3 class="text-base font-semibold text-white mb-1">Trades — กล่องรีวิว</h3>
-						<p class="text-sm text-gray-400">ดู trade ทั้งหมด กรอง จัดกลุ่ม และรีวิวแต่ละ trade อย่างละเอียด</p>
+						<p class="text-sm text-gray-400">ดู trade ทั้งหมด กรอง จัดกลุ่ม รีวิว Bulk Actions และ CSV Import/Export</p>
 					</div>
 
 					<div class="space-y-4">
@@ -189,7 +194,7 @@
 								<li>สถานะ Review, Playbook, Tags, มี Notes / Attachments หรือไม่</li>
 								<li>ผลลัพธ์ (Win/Loss/Breakeven), ระยะเวลาถือ (Scalp/Intraday/Swing/Position)</li>
 							</ul>
-							<p class="mt-2 text-sm text-gray-400">กด <span class="text-white">Save View</span> เพื่อบันทึก filter ที่ใช้บ่อย</p>
+							<p class="mt-2 text-sm text-gray-400">กด <span class="text-white">Save View</span> เพื่อบันทึก filter ที่ใช้บ่อย — เรียกใช้ซ้ำได้จาก Saved Views</p>
 						</div>
 
 						<div class="rounded-xl border border-dark-border p-4">
@@ -201,7 +206,25 @@
 						</div>
 
 						<div class="rounded-xl border border-dark-border p-4">
-							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — กดเข้า Trade Detail</div>
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — Bulk Actions</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">เลือกหลาย trades</span> — ติ๊กเลือก trades ที่ต้องการ หรือกด Select All</li>
+								<li><span class="text-white font-medium">Bulk Tag</span> — เพิ่ม/ลบ tags ให้ trades ที่เลือกพร้อมกัน</li>
+								<li><span class="text-white font-medium">Bulk Playbook</span> — กำหนด playbook ให้หลาย trades ในครั้งเดียว</li>
+								<li><span class="text-white font-medium">Bulk Review</span> — mark reviewed หลาย trades พร้อมกัน</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 4 — CSV Import / Export</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Import CSV</span> — นำเข้า trades จากไฟล์ CSV (รองรับ MT4/MT5 format) กดปุ่ม Import ด้านบน → เลือกไฟล์ → map columns → confirm</li>
+								<li><span class="text-white font-medium">Export CSV</span> — ส่งออก trades ที่กรองแล้วเป็น CSV ดาวน์โหลดไปใช้ใน Excel/Google Sheets</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 5 — กดเข้า Trade Detail</div>
 							<ul class="mt-1 space-y-1 text-sm text-gray-400">
 								<li><span class="text-white font-medium">Trade Insights</span> — AI วิเคราะห์ trade นี้อัตโนมัติ (10 rules: no SL, loss streak, exceed avg profit, long hold, etc.)</li>
 								<li><span class="text-white font-medium">Quality Score</span> — คะแนนคุณภาพ 0-100 พร้อม gradient bar</li>
@@ -210,6 +233,16 @@
 								<li><span class="text-white font-medium">Review</span> — เลือก Playbook, เหตุผลเข้า/ออก, ข้อผิดพลาด, บทเรียน, คะแนนวินัย 4 มิติ</li>
 								<li><span class="text-white font-medium">Attachments</span> — แนบลิงก์หรือ chart screenshot</li>
 								<li><span class="text-white font-medium">Chart Context</span> — ดู candlestick chart ของ trade + entry/exit markers</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 6 — Trade Replay</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Replay Mode</span> — ในหน้า Trade Detail กดปุ่ม Replay เพื่อย้อนดู price action ของ trade</li>
+								<li><span class="text-white font-medium">Playback Controls</span> — Play/Pause, ปรับความเร็ว (1x, 2x, 5x, 10x), เลื่อน timeline</li>
+								<li><span class="text-white font-medium">Entry/Exit Markers</span> — จุด entry และ exit ปักบน chart ให้เห็นชัด</li>
+								<li><span class="text-white font-medium">ประโยชน์</span> — ทบทวนว่า trade เข้า/ออกถูกจังหวะหรือไม่ ฝึกสังเกต pattern ย้อนหลัง</li>
 							</ul>
 						</div>
 					</div>
@@ -343,11 +376,46 @@
 					</div>
 				</div>
 
+			{:else if activeSection === 'calendar'}
+				<div class="space-y-5">
+					<div>
+						<h3 class="text-base font-semibold text-white mb-1">Calendar — ปฏิทินเทรดเต็มหน้าจอ</h3>
+						<p class="text-sm text-gray-400">ปฏิทินขนาดใหญ่แสดง P&L รายวัน/รายเดือน พร้อมสรุปสถิติ ใช้วางแผนและทบทวนผลงานระยะยาว</p>
+					</div>
+
+					<div class="space-y-4">
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 1 — ดูภาพรวมรายเดือน</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Monthly Grid</span> — ปฏิทินเต็มหน้าจอแสดง P&L ทุกวัน สีเขียว = กำไร, สีแดง = ขาดทุน</li>
+								<li><span class="text-white font-medium">Daily P&L</span> — ตัวเลข P&L แสดงในแต่ละช่องวัน</li>
+								<li><span class="text-white font-medium">Trade Count</span> — จำนวน trades ของแต่ละวัน</li>
+								<li>ใช้ปุ่ม <span class="text-white">◀ ▶</span> เปลี่ยนเดือน หรือกด Today เพื่อกลับเดือนปัจจุบัน</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 2 — สรุปสถิติรายเดือน</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Monthly P&L</span> — กำไร/ขาดทุนรวมของเดือน</li>
+								<li><span class="text-white font-medium">Trading Days</span> — จำนวนวันที่เทรด</li>
+								<li><span class="text-white font-medium">Win Days / Loss Days</span> — จำนวนวันกำไรและวันขาดทุน</li>
+								<li><span class="text-white font-medium">Best / Worst Day</span> — วันที่ทำกำไรสูงสุดและขาดทุนมากสุด</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — คลิกวันเพื่อดูรายละเอียด</div>
+							<p class="text-sm text-gray-400">กดที่วันใดก็ได้ → ดู trades ของวันนั้น, P&L breakdown, และลิงก์ไปยัง Day View / Journal ของวันนั้นโดยตรง</p>
+						</div>
+					</div>
+				</div>
+
 			{:else if activeSection === 'playbook'}
 				<div class="space-y-5">
 					<div>
 						<h3 class="text-base font-semibold text-white mb-1">Playbook — จัดการ Trading Setup</h3>
-						<p class="text-sm text-gray-400">สร้าง setup เพื่อใช้อ้างอิงเมื่อรีวิว trades ดู performance ของแต่ละ setup</p>
+						<p class="text-sm text-gray-400">สร้าง setup เพื่อใช้อ้างอิงเมื่อรีวิว trades ดู performance ของแต่ละ setup + เรียกดู Community Playbooks</p>
 					</div>
 
 					<div class="space-y-4">
@@ -365,6 +433,17 @@
 						<div class="rounded-xl border border-dark-border p-4">
 							<div class="text-xs font-semibold text-brand-primary mb-2">Step 2 — ดู Performance</div>
 							<p class="text-sm text-gray-400">แต่ละ playbook แสดง: จำนวน trades, win rate, profit factor, expectancy, total P&L — ใช้ดูว่า setup ไหน <span class="text-green-400">ทำงานจริง</span> และไหน <span class="text-red-400">ควรเลิกใช้</span></p>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — Community Playbooks</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Tab Community</span> — สลับไปแท็บ Community เพื่อดู playbooks ที่ trader คนอื่นแชร์ไว้</li>
+								<li><span class="text-white font-medium">Browse & Search</span> — ค้นหา playbook ตามชื่อ, symbol, strategy type</li>
+								<li><span class="text-white font-medium">Copy to Mine</span> — กด Copy เพื่อนำ playbook ของคนอื่นมาใช้ในพอร์ตของคุณ</li>
+								<li><span class="text-white font-medium">Share</span> — แชร์ playbook ของคุณให้ community ได้จากปุ่ม Share ใน playbook ของตัวเอง</li>
+								<li><span class="text-white font-medium">Rating & Downloads</span> — ดูคะแนนและจำนวนคนที่นำไปใช้</li>
+							</ul>
 						</div>
 					</div>
 				</div>
@@ -401,9 +480,119 @@
 							<p class="text-sm text-gray-400">ตารางวิเคราะห์ per-rule:</p>
 							<ul class="mt-1 space-y-1 text-sm text-gray-400">
 								<li><span class="text-white font-medium">Condition</span> — เงื่อนไขของ rule</li>
-								<li><span class="text-white font-medium">Streak</span> — จำนวนวันติดต่อกันที่ทำตาม (มีไฟ 🔥 เมื่อ 7+ วัน)</li>
+								<li><span class="text-white font-medium">Streak</span> — จำนวนวันติดต่อกันที่ทำตาม (มีไฟ เมื่อ 7+ วัน)</li>
 								<li><span class="text-white font-medium">Avg P&L (followed)</span> — P&L เฉลี่ยของวันที่ทำตาม rule</li>
 								<li><span class="text-white font-medium">Follow Rate</span> — % วันที่ทำตาม + progress bar</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+			{:else if activeSection === 'livetrade'}
+				<div class="space-y-5">
+					<div>
+						<h3 class="text-base font-semibold text-white mb-1">Live Trade — ตาราง Coach / Live Session</h3>
+						<p class="text-sm text-gray-400">ดูตารางเทรดสดกับ coach, เข้าร่วม session, และดู session ย้อนหลัง</p>
+					</div>
+
+					<div class="space-y-4">
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 1 — ดูตาราง Coach Schedule</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Schedule List</span> — รายการ live session ที่กำลังจะมาถึง (วัน, เวลา, coach, หัวข้อ)</li>
+								<li><span class="text-white font-medium">Status Badge</span> — LIVE (กำลังถ่ายทอด), Upcoming (เร็วๆ นี้), Completed (จบแล้ว)</li>
+								<li><span class="text-white font-medium">Coach Profile</span> — ดูประวัติและสถิติของ coach</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 2 — เข้าร่วม Live Session</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Join</span> — กดปุ่ม Join เมื่อ session เป็น LIVE เพื่อเข้าร่วม</li>
+								<li><span class="text-white font-medium">Set Reminder</span> — กดปุ่มเตือนเพื่อรับ notification ก่อน session เริ่ม</li>
+								<li><span class="text-white font-medium">Chat</span> — พิมพ์คำถามในห้อง chat ระหว่าง live session</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — ดู Session ย้อนหลัง</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Replay</span> — session ที่จบแล้วสามารถดูย้อนหลังได้</li>
+								<li><span class="text-white font-medium">Key Takeaways</span> — สรุปประเด็นสำคัญจาก session</li>
+								<li><span class="text-white font-medium">Related Trades</span> — trades ที่เกี่ยวข้องกับ session นั้นๆ</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+			{:else if activeSection === 'multiaccount'}
+				<div class="space-y-5">
+					<div>
+						<h3 class="text-base font-semibold text-white mb-1">Multi-Account — จัดการหลายบัญชี</h3>
+						<p class="text-sm text-gray-400">เชื่อมต่อหลายบัญชี MT5 เปรียบเทียบ performance และสลับดูข้อมูลแต่ละบัญชี</p>
+					</div>
+
+					<div class="space-y-4">
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 1 — เพิ่มบัญชี</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Add Account</span> — กดปุ่มเพิ่มบัญชีใหม่ กรอก MT5 account number และ server</li>
+								<li><span class="text-white font-medium">Account Label</span> — ตั้งชื่อ label ให้จำง่าย เช่น "Gold Account", "Prop Firm"</li>
+								<li><span class="text-white font-medium">Auto Sync</span> — ระบบ sync trades จากทุกบัญชีอัตโนมัติ</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 2 — สลับบัญชี</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Account Switcher</span> — dropdown เลือกบัญชีที่ต้องการดู ข้อมูลทั้งหมดจะเปลี่ยนตามบัญชี</li>
+								<li><span class="text-white font-medium">All Accounts</span> — เลือก "All" เพื่อดูข้อมูลรวมทุกบัญชี</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — เปรียบเทียบบัญชี</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Account Comparison</span> — ตารางเปรียบเทียบ KPI ของแต่ละบัญชี (P&L, Win Rate, PF, Drawdown)</li>
+								<li><span class="text-white font-medium">Equity Overlay</span> — กราฟ equity ซ้อนกันเพื่อดู performance ของแต่ละบัญชี</li>
+								<li><span class="text-white font-medium">Combined Stats</span> — สถิติรวมทุกบัญชีรวมกัน</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+			{:else if activeSection === 'social'}
+				<div class="space-y-5">
+					<div>
+						<h3 class="text-base font-semibold text-white mb-1">Social — Leaderboard & Community</h3>
+						<p class="text-sm text-gray-400">ดูอันดับ trader, เปรียบเทียบ performance กับคนอื่น, และแชร์ผลงาน</p>
+					</div>
+
+					<div class="space-y-4">
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 1 — Leaderboard</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Rankings</span> — ดูอันดับ trader ตาม P&L, Win Rate, Profit Factor, Consistency</li>
+								<li><span class="text-white font-medium">Timeframe</span> — สลับช่วงเวลา: สัปดาห์นี้, เดือนนี้, All-time</li>
+								<li><span class="text-white font-medium">Your Rank</span> — เห็นอันดับของตัวเอง highlight ชัดเจน</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 2 — Trader Profiles</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Public Profile</span> — กดชื่อ trader เพื่อดู profile: สถิติ, equity curve, win rate, badges</li>
+								<li><span class="text-white font-medium">Follow</span> — ติดตาม trader ที่สนใจเพื่อดูอัปเดตผลงาน</li>
+								<li><span class="text-white font-medium">Compare</span> — เทียบ performance ของคุณกับ trader คนอื่น</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — Achievements & Badges</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Badges</span> — รับ badge เมื่อทำผลงานถึงเป้า (เช่น 7-Day Streak, 100 Trades Reviewed, Profit Factor 2+)</li>
+								<li><span class="text-white font-medium">Share Stats</span> — แชร์สถิติเด่นเป็นรูปภาพสวยๆ ไปลง social media</li>
+								<li><span class="text-white font-medium">Privacy</span> — ตั้งค่า privacy เลือกว่าจะแสดงข้อมูลอะไรใน public profile</li>
 							</ul>
 						</div>
 					</div>
@@ -466,17 +655,92 @@
 						</div>
 					</div>
 				</div>
+
+			{:else if activeSection === 'tools'}
+				<div class="space-y-5">
+					<div>
+						<h3 class="text-base font-semibold text-white mb-1">Tools — เครื่องมือและทางลัด</h3>
+						<p class="text-sm text-gray-400">ฟีเจอร์เสริมที่ช่วยให้การใช้งานเร็วขึ้น: Quick Trade Entry, Keyboard Shortcuts, Command Palette, Dashboard Customizer และอื่นๆ</p>
+					</div>
+
+					<div class="space-y-4">
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Quick Trade Entry</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Manual Trade</span> — เพิ่ม trade ด้วยมือ กรอก Symbol, Direction, Lot, Entry/Exit Price, เวลาเปิด/ปิด</li>
+								<li><span class="text-white font-medium">Quick Add</span> — ฟอร์มย่อสำหรับบันทึก trade เร็วๆ โดยกรอกแค่ข้อมูลหลัก</li>
+								<li><span class="text-white font-medium">ใช้เมื่อไหร่</span> — เมื่อ trade ไม่ได้ sync จาก MT5 อัตโนมัติ หรือต้องการเพิ่ม trade จากแพลตฟอร์มอื่น</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Sync (ซิงค์ข้อมูล)</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Manual Sync</span> — กดปุ่ม Sync เพื่อดึง trades/positions/equity ล่าสุดจาก MT5</li>
+								<li><span class="text-white font-medium">Auto Sync</span> — ระบบ sync อัตโนมัติทุกช่วงเวลาที่ตั้งไว้</li>
+								<li><span class="text-white font-medium">Sync Status</span> — ดูสถานะ sync ล่าสุด (เวลา, จำนวน trades ใหม่)</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Command Palette</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">เปิด</span> — กด <span class="text-white font-mono">Ctrl+K</span> (Windows) หรือ <span class="text-white font-mono">Cmd+K</span> (Mac)</li>
+								<li><span class="text-white font-medium">ค้นหา</span> — พิมพ์ชื่อหน้า, คำสั่ง, หรือ trade เพื่อไปที่นั่นทันที</li>
+								<li><span class="text-white font-medium">Quick Actions</span> — เช่น "New Journal", "Sync Trades", "Open AI Chat"</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Keyboard Shortcuts</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-mono">Ctrl/Cmd + K</span> — เปิด Command Palette</li>
+								<li><span class="text-white font-mono">Ctrl/Cmd + /</span> — เปิด AI Chat</li>
+								<li><span class="text-white font-mono">Ctrl/Cmd + J</span> — ไปหน้า Journal</li>
+								<li><span class="text-white font-mono">Ctrl/Cmd + S</span> — Sync trades</li>
+								<li><span class="text-white font-mono">?</span> — แสดง shortcuts ทั้งหมด</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Saved Views</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Save</span> — บันทึก filter + sort ที่ใช้บ่อยเป็น View (ตั้งชื่อได้)</li>
+								<li><span class="text-white font-medium">Load</span> — กดเลือก Saved View เพื่อเรียกใช้ filter ทันที</li>
+								<li><span class="text-white font-medium">Share</span> — แชร์ View ให้คนอื่นใช้ filter เดียวกัน</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Dashboard Customizer</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Widget Layout</span> — ลาก-วาง widgets บน Overview dashboard ปรับตำแหน่งตามใจ</li>
+								<li><span class="text-white font-medium">Show/Hide</span> — เลือก widgets ที่ต้องการแสดง ซ่อน widgets ที่ไม่ใช้</li>
+								<li><span class="text-white font-medium">Reset</span> — กด Reset เพื่อกลับ layout เริ่มต้น</li>
+							</ul>
+						</div>
+
+						<div class="rounded-xl border border-dark-border p-4">
+							<div class="text-xs font-semibold text-brand-primary mb-2">Start My Day</div>
+							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
+								<li><span class="text-white font-medium">Morning Routine</span> — กดปุ่ม "Start My Day" เพื่อเริ่ม flow ประจำวัน</li>
+								<li><span class="text-white font-medium">Guided Steps</span> — ระบบพาทำ: ดูผลงานเมื่อวาน → เขียน pre-market plan → ทำ checklist → ดู analysis</li>
+								<li><span class="text-white font-medium">Daily Summary</span> — สรุปสิ่งที่ต้องทำวันนี้: trades ที่ยังไม่ review, journal ที่ยังไม่เขียน</li>
+							</ul>
+						</div>
+					</div>
+				</div>
 			{/if}
 
 			<!-- Tips section -->
 			<div class="rounded-xl border border-brand-primary/20 bg-brand-primary/5 p-4">
 				<div class="text-xs font-semibold text-brand-primary mb-2">Daily Workflow แนะนำ</div>
 				<ul class="space-y-1.5 text-sm text-gray-400">
-					<li>1. เช้า — เปิด <span class="text-white">Day View</span> ดูวันก่อน → เปิด <span class="text-white">Journal</span> เขียน pre-market plan</li>
-					<li>2. ระหว่างวัน — ดู <span class="text-white">Gold Analysis</span> ก่อนเทรด</li>
-					<li>3. หลังเทรด — ไป <span class="text-white">Trades</span> รีวิวทุก trade + ใส่ tags + notes</li>
+					<li>1. เช้า — กด <span class="text-white">Start My Day</span> หรือเปิด <span class="text-white">Day View</span> ดูวันก่อน → เปิด <span class="text-white">Journal</span> เขียน pre-market plan</li>
+					<li>2. ระหว่างวัน — ดู <span class="text-white">Gold Analysis</span> ก่อนเทรด → เข้า <span class="text-white">Live Trade</span> ดู session กับ coach</li>
+					<li>3. หลังเทรด — ไป <span class="text-white">Trades</span> รีวิวทุก trade + ใส่ tags + notes → ใช้ <span class="text-white">Trade Replay</span> ทบทวน</li>
 					<li>4. ก่อนนอน — เปิด <span class="text-white">Progress</span> check daily checklist + เขียน post-market journal</li>
-					<li>5. สัปดาห์ละครั้ง — เปิด <span class="text-white">Reports</span> วิเคราะห์ภาพรวม + ถาม <span class="text-white">AI Chat</span></li>
+					<li>5. สัปดาห์ละครั้ง — เปิด <span class="text-white">Reports</span> + <span class="text-white">Calendar</span> วิเคราะห์ภาพรวม + ถาม <span class="text-white">AI Chat</span> + ดู <span class="text-white">Leaderboard</span></li>
 				</ul>
 			</div>
 		</div>
