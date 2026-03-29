@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
-import { invalidateCache } from '$lib/server/cache';
 import { invalidateBaseDataCache } from '$lib/server/portfolio';
 import { sendTradeSync } from '$lib/server/webhooks';
 import type { Trade } from '$lib/types';
@@ -39,12 +38,8 @@ export const POST: RequestHandler = async ({ locals }) => {
 		.update({ sync_requested_at: now })
 		.eq('id', account.id);
 
-	// Invalidate caches so the next page load fetches fresh data after sync
+	// Invalidate all caches so the next page load fetches fresh data after sync
 	invalidateBaseDataCache(account.id);
-	await Promise.all([
-		invalidateCache(`portfolio:daily_stats:${account.id}`),
-		invalidateCache(`portfolio:trades:${account.id}`)
-	]);
 
 	// Fire trade_sync webhook (non-blocking — silent fail on error)
 	// Fetch the latest trades so the webhook payload has real data

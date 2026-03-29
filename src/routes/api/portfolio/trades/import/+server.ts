@@ -1,6 +1,5 @@
 import { rateLimit } from '$lib/server/rate-limit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
-import { invalidateCache } from '$lib/server/cache';
 import { invalidateBaseDataCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
@@ -291,7 +290,6 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 	});
 
 	invalidateBaseDataCache(account.id);
-	void invalidateCache(`portfolio:trades:${account.id}`);
 
 	return json({
 		success: true,

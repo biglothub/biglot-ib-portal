@@ -1,7 +1,6 @@
 import { rateLimit } from '$lib/server/rate-limit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
-import { invalidateCache } from '$lib/server/cache';
-import { invalidateBaseDataCache } from '$lib/server/portfolio';
+import { invalidateTradesCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 
@@ -92,8 +91,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		return json({ message: 'เกิดข้อผิดพลาดในการบันทึกเทรด กรุณาลองใหม่' }, { status: 500 });
 	}
 
-	invalidateBaseDataCache(account.id);
-	void invalidateCache(`portfolio:trades:${account.id}`);
+	invalidateTradesCache(account.id);
 
 	return json({ id: data.id }, { status: 201 });
 };

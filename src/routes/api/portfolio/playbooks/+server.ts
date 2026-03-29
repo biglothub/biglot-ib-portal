@@ -1,7 +1,6 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
-import { invalidateCachePattern } from '$lib/server/cache';
-import { invalidateBaseDataCache } from '$lib/server/portfolio';
+import { invalidatePlaybooksCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -100,8 +99,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
-	invalidateBaseDataCache(account.id);
-	await invalidateCachePattern('portfolio:playbooks:');
+	invalidatePlaybooksCache(account.id);
 
 	return json({ success: true, playbook: data });
 };
@@ -131,7 +129,8 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
-	await invalidateCachePattern('portfolio:playbooks:');
+	// No account context in DELETE — empty string clears all process cache entries
+	invalidatePlaybooksCache('');
 
 	return json({ success: true });
 };

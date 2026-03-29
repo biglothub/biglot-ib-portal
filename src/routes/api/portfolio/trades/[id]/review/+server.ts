@@ -1,6 +1,5 @@
 import { rateLimit } from '$lib/server/rate-limit';
-import { invalidateCache } from '$lib/server/cache';
-import { invalidateBaseDataCache } from '$lib/server/portfolio';
+import { invalidateTradesCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import { verifyTradeOwnership } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
@@ -87,8 +86,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
-	invalidateBaseDataCache(accountId);
-	void invalidateCache(`portfolio:trades:${accountId}`);
+	invalidateTradesCache(accountId);
 
 	return json({ success: true, review: data });
 };

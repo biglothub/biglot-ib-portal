@@ -1,7 +1,6 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
-import { invalidateCache } from '$lib/server/cache';
-import { invalidateBaseDataCache } from '$lib/server/portfolio';
+import { invalidateJournalsCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -89,8 +88,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
-	invalidateBaseDataCache(account.id);
-	void invalidateCache(`portfolio:journals:${account.id}:${locals.profile!.id}`);
+	invalidateJournalsCache(account.id);
 
 	return json({ success: true, journal: data });
 };

@@ -1,6 +1,5 @@
 import { rateLimit } from '$lib/server/rate-limit';
-import { invalidateCachePattern } from '$lib/server/cache';
-import { invalidateBaseDataCache } from '$lib/server/portfolio';
+import { invalidateTradesCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 
@@ -79,8 +78,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 
 		// Invalidate caches for all affected accounts
 		const accountIds = new Set(allTrades.map(t => t.client_account_id));
-		accountIds.forEach(id => invalidateBaseDataCache(id));
-		void invalidateCachePattern('portfolio:trades:');
+		accountIds.forEach(id => invalidateTradesCache(id));
 
 		return json({ success: true, affected: trade_ids.length });
 	}
@@ -107,8 +105,7 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 
 		// Invalidate caches for all affected accounts
 		const accountIds = new Set(allTrades.map(t => t.client_account_id));
-		accountIds.forEach(id => invalidateBaseDataCache(id));
-		void invalidateCachePattern('portfolio:trades:');
+		accountIds.forEach(id => invalidateTradesCache(id));
 
 		return json({ success: true, affected: trade_ids.length });
 	}

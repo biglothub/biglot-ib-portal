@@ -9,7 +9,7 @@ import {
 	getTradeReviewStatus,
 	getTradeSession
 } from '$lib/portfolio';
-import { getCache, setCache } from '$lib/server/cache';
+import { getCache, setCache, invalidateCache, invalidateCachePattern } from '$lib/server/cache';
 import type {
 	DailyJournal,
 	DailyStats,
@@ -37,10 +37,43 @@ function capRatio(numerator: number, denominator: number): number {
 const baseDataCache = new Map<string, { data: PortfolioBaseData; expiresAt: number }>();
 const BASE_DATA_TTL_MS = 60_000; // 1 minute — short enough to stay fresh
 
+// Stampede protection: deduplicate concurrent fetches for the same cache key
+const pendingFetches = new Map<string, Promise<PortfolioBaseData>>();
+
+/** Invalidate ALL cached data for an account (trades, journals, playbooks, etc.) */
 export function invalidateBaseDataCache(accountId: string): void {
 	for (const key of [...baseDataCache.keys()]) {
 		if (key.startsWith(accountId)) baseDataCache.delete(key);
 	}
+	// Also clear all Redis/memory caches for this account
+	void invalidateCachePattern(`portfolio:trades:${accountId}`);
+	void invalidateCachePattern(`portfolio:daily_stats:${accountId}`);
+	void invalidateCachePattern(`portfolio:journals:${accountId}`);
+	void invalidateCachePattern(`portfolio:playbooks:`);
+}
+
+/** Invalidate only trades-related cache (for tag/review/manual trade mutations) */
+export function invalidateTradesCache(accountId: string): void {
+	for (const key of [...baseDataCache.keys()]) {
+		if (key.startsWith(accountId)) baseDataCache.delete(key);
+	}
+	void invalidateCache(`portfolio:trades:${accountId}`);
+}
+
+/** Invalidate only journals cache */
+export function invalidateJournalsCache(accountId: string): void {
+	for (const key of [...baseDataCache.keys()]) {
+		if (key.startsWith(accountId)) baseDataCache.delete(key);
+	}
+	void invalidateCachePattern(`portfolio:journals:${accountId}`);
+}
+
+/** Invalidate only playbooks cache */
+export function invalidatePlaybooksCache(accountId: string): void {
+	for (const key of [...baseDataCache.keys()]) {
+		if (key.startsWith(accountId)) baseDataCache.delete(key);
+	}
+	void invalidateCachePattern(`portfolio:playbooks:`);
 }
 
 export async function fetchPortfolioBaseData(
@@ -55,6 +88,30 @@ export async function fetchPortfolioBaseData(
 		if (dev) console.log(`[baseData] HIT process cache for ${accountId.slice(0, 8)}…`);
 		return cached.data;
 	}
+
+	// Stampede protection: if another request is already fetching, await it
+	const pending = pendingFetches.get(cacheKey);
+	if (pending) {
+		if (dev) console.log(`[baseData] JOIN pending fetch for ${accountId.slice(0, 8)}…`);
+		return pending;
+	}
+
+	const fetchPromise = doFetchPortfolioBaseData(supabase, accountId, userId, cacheKey);
+	pendingFetches.set(cacheKey, fetchPromise);
+
+	try {
+		return await fetchPromise;
+	} finally {
+		pendingFetches.delete(cacheKey);
+	}
+}
+
+async function doFetchPortfolioBaseData(
+	supabase: SupabaseClient,
+	accountId: string,
+	userId: string,
+	cacheKey: string
+): Promise<PortfolioBaseData> {
 
 	const tradesCacheKey = `portfolio:trades:${accountId}`;
 	const dailyStatsCacheKey = `portfolio:daily_stats:${accountId}`;
@@ -145,7 +202,7 @@ export async function fetchPortfolioBaseData(
 
 	// Populate cache for fresh DB results (fire-and-forget, never throws)
 	if (!cachedTrades && trades.length > 0) {
-		void setCache(tradesCacheKey, trades, 120); // 2 min — trades change often
+		void setCache(tradesCacheKey, trades, 300); // 5 min — invalidateBaseDataCache handles mutations
 	}
 	if (!cachedDailyStats && dailyStats.length > 0) {
 		void setCache(dailyStatsCacheKey, dailyStats, 300);
@@ -183,8 +240,24 @@ export async function fetchTradeChartContext(supabase: SupabaseClient, tradeId: 
 	return data || [];
 }
 
-export function buildDailyHistory(trades: Trade[]) {
+type DailyHistoryEntry = {
+	date: string;
+	profit: number;
+	totalTrades: number;
+	reviewedTrades: number;
+	winRate: number;
+	bestTrade: number;
+	worstTrade: number;
+};
+
+// Memoize buildDailyHistory by array reference — same array in same request = cached result
+const dailyHistoryMemo = new WeakMap<Trade[], DailyHistoryEntry[]>();
+
+export function buildDailyHistory(trades: Trade[]): DailyHistoryEntry[] {
 	if (!trades || trades.length === 0) return [];
+
+	const cached = dailyHistoryMemo.get(trades);
+	if (cached) return cached;
 
 	const dailyMap = new Map<string, { profit: number; profitValues: number[]; reviewed: number }>();
 
@@ -201,7 +274,7 @@ export function buildDailyHistory(trades: Trade[]) {
 		if (reviewStatus === 'reviewed') day.reviewed += 1;
 	}
 
-	return Array.from(dailyMap.entries())
+	const result = Array.from(dailyMap.entries())
 		.map(([date, data]) => {
 			const wins = data.profitValues.filter((p) => p > 0);
 			const losses = data.profitValues.filter((p) => p < 0);
@@ -216,6 +289,9 @@ export function buildDailyHistory(trades: Trade[]) {
 			};
 		})
 		.sort((a, b) => a.date.localeCompare(b.date));
+
+	dailyHistoryMemo.set(trades, result);
+	return result;
 }
 
 /**
