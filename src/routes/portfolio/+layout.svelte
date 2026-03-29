@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { page, navigating } from '$app/stores';
-	import { beforeNavigate, goto, invalidate } from '$app/navigation';
+	import { afterNavigate, goto, invalidate, replaceState } from '$app/navigation';
 	import { timeAgo } from '$lib/utils';
 	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
 	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
@@ -28,17 +29,18 @@
 	let commandPaletteRef = $state<CommandPalette | null>(null);
 
 	// Initialize keyboard shortcut listener
+	// Register shortcuts once — actions read tabHref at invocation time, not registration time
 	$effect(() => {
 		const destroy = initShortcuts();
 
 		const navShortcuts = [
-			{ id: 'nav-overview', keys: ['g+o'], description: 'ภาพรวม', group: 'การนำทาง', action: () => goto(tabHref('/portfolio')) },
-			{ id: 'nav-trades', keys: ['g+t'], description: 'เทรด', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/trades')) },
-			{ id: 'nav-journal', keys: ['g+j'], description: 'บันทึก', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/journal')) },
-			{ id: 'nav-analytics', keys: ['g+a'], description: 'รายงาน', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/analytics')) },
-			{ id: 'nav-notebook', keys: ['g+n'], description: 'สมุดโน้ต', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/notebook')) },
-			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/playbook')) },
-			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', action: () => goto(tabHref('/portfolio/progress')) },
+			{ id: 'nav-overview', keys: ['g+o'], description: 'ภาพรวม', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio'))) },
+			{ id: 'nav-trades', keys: ['g+t'], description: 'เทรด', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/trades'))) },
+			{ id: 'nav-journal', keys: ['g+j'], description: 'บันทึก', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/journal'))) },
+			{ id: 'nav-analytics', keys: ['g+a'], description: 'รายงาน', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/analytics'))) },
+			{ id: 'nav-notebook', keys: ['g+n'], description: 'สมุดโน้ต', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/notebook'))) },
+			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/playbook'))) },
+			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/progress'))) },
 			{ id: 'help-modal', keys: ['?'], description: 'แสดง Keyboard Shortcuts', group: 'อื่นๆ', action: () => (shortcutsOpen = true) },
 			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false; } },
 		];
@@ -156,14 +158,13 @@
 		return () => adminViewAccountId.set(null);
 	});
 
-	// Auto-append account_id to all portfolio navigations when an account is explicitly selected
-	beforeNavigate(({ to, cancel }) => {
+	// Update URL display with account_id after navigation (server resolves it via hooks)
+	afterNavigate(({ to }) => {
 		if (!activeAccountId || !to?.url) return;
 		if (to.url.pathname.startsWith('/portfolio') && !to.url.searchParams.has('account_id')) {
-			cancel();
 			const url = new URL(to.url);
 			url.searchParams.set('account_id', activeAccountId);
-			goto(url.pathname + url.search, { replaceState: false });
+			replaceState(url.pathname + url.search, {});
 		}
 	});
 
