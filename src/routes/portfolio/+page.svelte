@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MetricCard from '$lib/components/shared/MetricCard.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import DeferRender from '$lib/components/shared/DeferRender.svelte';
 	import EquityChart from '$lib/components/charts/EquityChart.svelte';
 	import DailyPnlChart from '$lib/components/charts/DailyPnlChart.svelte';
 	import CumulativePnlChart from '$lib/components/charts/CumulativePnlChart.svelte';
@@ -217,37 +218,45 @@
 				</div>
 			{:else if widgetId === 'equity_chart'}
 				{#if (equitySnapshots && equitySnapshots.length > 1) || (equityCurve && equityCurve.length > 1)}
-					<div class="card">
-						<EquityChart {equitySnapshots} {equityCurve} />
-					</div>
+					<DeferRender>
+						<div class="card">
+							<EquityChart {equitySnapshots} {equityCurve} />
+						</div>
+					</DeferRender>
 				{/if}
 			{:else if widgetId === 'cumulative_pnl'}
 				{#if kpi.cumulativePnl && kpi.cumulativePnl.length > 1}
-					<div class="card">
-						<CumulativePnlChart data={kpi.cumulativePnl} />
-					</div>
+					<DeferRender>
+						<div class="card">
+							<CumulativePnlChart data={kpi.cumulativePnl} />
+						</div>
+					</DeferRender>
 				{/if}
 			{:else if widgetId === 'daily_pnl'}
 				{#if dailyHistory && dailyHistory.length > 0}
-					<div class="card">
-						<DailyPnlChart {dailyHistory} />
-					</div>
+					<DeferRender>
+						<div class="card">
+							<DailyPnlChart {dailyHistory} />
+						</div>
+					</DeferRender>
 				{/if}
 			{:else if widgetId === 'health_radar'}
-				<div class="xl:col-span-1 space-y-4">
-					<HealthScoreCard score={healthScore?.score || 0} />
-					<div class="card">
-					<TradingScoreRadar
-						winRate={kpi.tradeWinRate}
-						profitFactor={kpi.profitFactor >= 999 ? 3 : kpi.profitFactor}
-						avgWin={kpi.avgWin}
-						avgLoss={kpi.avgLoss}
-						recoveryFactor={kpi.recoveryFactor || 0}
-						maxDrawdownPct={kpi.maxDrawdownPct || 0}
-						consistency={kpi.consistency || 0}
-					/>
+				<DeferRender>
+					<div class="xl:col-span-1 space-y-4">
+						<HealthScoreCard score={healthScore?.score || 0} />
+						<div class="card">
+						<TradingScoreRadar
+							winRate={kpi.tradeWinRate}
+							profitFactor={kpi.profitFactor >= 999 ? 3 : kpi.profitFactor}
+							avgWin={kpi.avgWin}
+							avgLoss={kpi.avgLoss}
+							recoveryFactor={kpi.recoveryFactor || 0}
+							maxDrawdownPct={kpi.maxDrawdownPct || 0}
+							consistency={kpi.consistency || 0}
+						/>
+						</div>
 					</div>
-				</div>
+				</DeferRender>
 			{:else if widgetId === 'command_center'}
 				<div class="card space-y-4">
 					<div>
@@ -432,17 +441,23 @@
 					{/if}
 				</div>
 			{:else if widgetId === 'mini_calendar'}
-				<div class="card">
-					<div>
-						<p class="text-[10px] uppercase tracking-[0.24em] text-gray-400">ปฏิทินเทรด</p>
-						<h2 class="mt-1 text-lg font-semibold text-white mb-3">กิจกรรมรายเดือน</h2>
+				<DeferRender>
+					<div class="card">
+						<div>
+							<p class="text-[10px] uppercase tracking-[0.24em] text-gray-400">ปฏิทินเทรด</p>
+							<h2 class="mt-1 text-lg font-semibold text-white mb-3">กิจกรรมรายเดือน</h2>
+						</div>
+						<MiniCalendar {dailyHistory} />
 					</div>
-					<MiniCalendar {dailyHistory} />
-				</div>
+				</DeferRender>
 			{:else if widgetId === 'ai_coach'}
-				<AiCoachCard />
+				<DeferRender>
+					<AiCoachCard />
+				</DeferRender>
 			{:else if widgetId === 'risk_calculator'}
-				<RiskCalculator accountBalance={latestStats?.balance || 0} />
+				<DeferRender>
+					<RiskCalculator accountBalance={latestStats?.balance || 0} />
+				</DeferRender>
 			{:else if widgetId === 'sync_status'}
 				<div class="card">
 					<div>

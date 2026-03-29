@@ -40,12 +40,20 @@
 	// Restore hidden playbook if its pending delete was cancelled
 	$effect(() => {
 		const currentPendingIds = new Set(getPendingDeletes().map((d) => d.id));
-		pendingPlaybookDeleteIds.forEach((pendingId, playbookId) => {
+		// Snapshot current state to avoid mutating reactive values we're reading
+		const pendingEntries = [...pendingPlaybookDeleteIds.entries()];
+		const toRestore: string[] = [];
+		for (const [playbookId, pendingId] of pendingEntries) {
 			if (!currentPendingIds.has(pendingId)) {
-				hiddenPlaybookIds = new Set([...hiddenPlaybookIds].filter((id) => id !== playbookId));
-				pendingPlaybookDeleteIds = new Map([...pendingPlaybookDeleteIds].filter(([k]) => k !== playbookId));
+				toRestore.push(playbookId);
 			}
-		});
+		}
+		if (toRestore.length > 0) {
+			// Batch mutations to avoid cascading re-renders
+			const restoreSet = new Set(toRestore);
+			hiddenPlaybookIds = new Set([...hiddenPlaybookIds].filter((id) => !restoreSet.has(id)));
+			pendingPlaybookDeleteIds = new Map(pendingEntries.filter(([k]) => !restoreSet.has(k)));
+		}
 	});
 
 	// Community tab state
@@ -333,9 +341,9 @@
 				</div>
 
 				<div>
-					<label for="example-trades" class="text-xs text-gray-400 mb-2 block">เทรดตัวอย่าง</label>
+					<label for="example-trades" class="text-xs text-gray-400 mb-2 block">เทรดตัวอย่าง (ล่าสุด 100 รายการ)</label>
 					<select id="example-trades" multiple bind:value={exampleTradeIds} class="w-full min-h-32 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-						{#each trades as trade}
+						{#each trades.slice(0, 100) as trade}
 							<option value={trade.id}>
 								{trade.symbol} • {trade.type} • {formatCurrency(trade.profit)}
 							</option>

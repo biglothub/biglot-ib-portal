@@ -1,11 +1,10 @@
 <script lang="ts">
 	import '../app.css';
 	import { navigating } from '$app/stores';
-	import { onNavigate } from '$app/navigation';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import NotificationBell from '$lib/components/layout/NotificationBell.svelte';
 	import ThemeToggle from '$lib/components/layout/ThemeToggle.svelte';
-	import UpdateNotification from '$lib/components/layout/UpdateNotification.svelte';
+
 	import InstallPrompt from '$lib/components/layout/InstallPrompt.svelte';
 	import PushPermission from '$lib/components/layout/PushPermission.svelte';
 
@@ -23,16 +22,6 @@
 
 	const isAuthPage = $derived(!profile);
 
-	// View Transitions — smooth page swap
-	onNavigate((navigation) => {
-		if (!document.startViewTransition) return;
-		return new Promise((resolve) => {
-			document.startViewTransition(async () => {
-				resolve();
-				await navigation.complete;
-			});
-		});
-	});
 </script>
 
 {#if $navigating}
@@ -40,8 +29,6 @@
 		<div class="h-full bg-gradient-to-r from-brand-primary to-brand-300 animate-progress-bar rounded-r"></div>
 	</div>
 {/if}
-
-<UpdateNotification />
 
 {#if isAuthPage}
 	{@render children()}

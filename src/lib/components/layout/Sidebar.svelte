@@ -67,11 +67,20 @@
 		clientLinks
 	);
 
-	const isInPortfolio = $derived($page.url.pathname.startsWith('/portfolio'));
+	const currentPath = $derived($page.url.pathname);
+	const isInPortfolio = $derived(currentPath.startsWith('/portfolio'));
 
-	// Preserve account_id in sidebar links so beforeNavigate doesn't have to cancel + re-navigate
+	// Preserve account_id in sidebar links so afterNavigate doesn't have to re-navigate
 	const accountIdParam = $derived($page.url.searchParams.get('account_id'));
 	const withAccountId = (href: string) => accountIdParam ? `${href}?account_id=${accountIdParam}` : href;
+
+	// Pre-compute active states once per navigation (avoid re-evaluating in each link's class expression)
+	const activeSubLink = $derived(
+		portfolioSubLinks.find(s => s.exact ? currentPath === s.href : currentPath.startsWith(s.href))?.href ?? ''
+	);
+	const activeMainLink = $derived(
+		links.find(l => l.exact ? currentPath === l.href : currentPath === l.href || currentPath.startsWith(l.href + '/'))?.href ?? ''
+	);
 
 	const roleLabel = $derived(
 		profile?.role === 'admin' ? 'Admin' :
@@ -137,7 +146,7 @@
 				title={collapsed ? link.label : ''}
 				class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
 					{collapsed ? 'justify-center' : ''}
-					{(link.exact ? $page.url.pathname === link.href : $page.url.pathname === link.href || $page.url.pathname.startsWith(link.href + '/'))
+					{activeMainLink === link.href
 						? 'bg-brand-600/10 text-brand-400 font-medium'
 						: 'text-gray-400 hover:text-white hover:bg-dark-hover'}"
 				onclick={() => mobileOpen = false}
@@ -158,7 +167,7 @@
 						title={collapsed ? sub.label : ''}
 						class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors
 							{collapsed ? 'justify-center' : ''}
-							{(sub.exact ? $page.url.pathname === sub.href : $page.url.pathname.startsWith(sub.href))
+							{activeSubLink === sub.href
 								? 'text-brand-400 font-medium bg-brand-600/10'
 								: 'text-gray-500 hover:text-gray-300 hover:bg-dark-hover'}"
 						onclick={() => mobileOpen = false}
@@ -180,7 +189,7 @@
 			title={collapsed ? 'ตั้งค่า' : ''}
 			class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
 				{collapsed ? 'justify-center' : ''}
-				{$page.url.pathname.startsWith('/settings')
+				{currentPath.startsWith('/settings')
 					? 'bg-brand-600/10 text-brand-400 font-medium'
 					: 'text-gray-400 hover:text-white hover:bg-dark-hover'}"
 			onclick={() => mobileOpen = false}

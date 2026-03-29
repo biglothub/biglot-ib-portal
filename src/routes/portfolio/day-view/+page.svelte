@@ -401,8 +401,8 @@
 								<tbody>
 									{#each weekData.trades as trade}
 										<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
-											<td class="py-3 text-gray-400 text-xs">{new Date(trade.close_time).toLocaleDateString('th-TH', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
-											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
+											<td class="py-3 text-gray-400 text-xs">{trade.close_time?.slice(5, 10)}</td>
+											<td class="py-3 text-gray-400">{trade.close_time?.slice(11, 16)}</td>
 											<td class="py-3">
 												<a href="/portfolio/trades/{trade.id}" class="font-medium text-white hover:text-brand-primary">{trade.symbol}</a>
 											</td>

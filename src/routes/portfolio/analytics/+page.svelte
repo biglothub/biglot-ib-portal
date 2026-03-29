@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { navigating } from '$app/stores';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import OverviewTab from '$lib/components/analytics/OverviewTab.svelte';
@@ -23,8 +22,8 @@
 	const tagBreakdown = $derived(rawTagBreakdown as TagBreakdown | null | undefined);
 	const dayOfWeekReport = $derived(rawDayOfWeekReport as DayOfWeekReport | null | undefined);
 
-	// Sub-tab state from URL
-	let activeTab = $derived($page.url.searchParams.get('tab') || 'overview');
+	// Sub-tab state — local + URL sync
+	let activeTab = $state($page.url.searchParams.get('tab') || 'overview');
 
 	const subTabs = [
 		{ key: 'overview', label: 'ภาพรวม' },
@@ -41,9 +40,7 @@
 	];
 
 	function switchTab(tab: string) {
-		const params = new URLSearchParams($page.url.searchParams);
-		params.set('tab', tab);
-		goto(`/portfolio/analytics?${params.toString()}`, { keepFocus: true, noScroll: true });
+		activeTab = tab;
 	}
 
 	// Export PDF

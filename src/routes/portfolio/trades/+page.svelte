@@ -193,6 +193,23 @@
 		}
 	}
 
+	// Pre-compute stats once (avoid triple-filtering in template)
+	const quickStats = $derived.by(() => {
+		let unreviewed = 0, noNotes = 0, noAttachments = 0;
+		for (const t of trades) {
+			if (getTradeReviewStatus(t) === 'unreviewed') unreviewed++;
+			if (!t.trade_notes || t.trade_notes.length === 0) noNotes++;
+			if (!t.trade_attachments || t.trade_attachments.length === 0) noAttachments++;
+		}
+		return { unreviewed, noNotes, noAttachments };
+	});
+
+	// Build playbook lookup Map once (O(1) per trade instead of .find())
+	const playbookMap = $derived(new Map(playbooks.map((p: Playbook) => [p.id, p.name])));
+
+	// Cached Thai date formatter (avoid creating Intl objects per trade)
+	const thaiDayFmt = new Intl.DateTimeFormat('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+
 	const groupedTrades = $derived.by(() => {
 		if (groupBy === 'none') {
 			return [{ label: 'เทรดทั้งหมด', items: trades }];
@@ -200,18 +217,17 @@
 
 		const groups = new Map<string, any[]>();
 		for (const trade of trades) {
-				const label =
-				groupBy === 'day'
-					? new Date(trade.close_time || new Date().toISOString()).toLocaleDateString('th-TH', {
-							weekday: 'short',
-							day: 'numeric',
-							month: 'short'
-						})
-					: groupBy === 'session'
-						? getTradeSession(trade.close_time).toUpperCase()
-						: playbooks.find((playbook: Playbook) => playbook.id === getTradePlaybookId(trade))?.name ||
-							(trade.trade_tag_assignments || []).find((assignment: TradeTagAssignment) => assignment.trade_tags?.category === 'setup')?.trade_tags?.name ||
-							'ไม่มี Setup';
+			let label: string;
+			if (groupBy === 'day') {
+				label = thaiDayFmt.format(new Date(trade.close_time || Date.now()));
+			} else if (groupBy === 'session') {
+				label = getTradeSession(trade.close_time).toUpperCase();
+			} else {
+				const pbId = getTradePlaybookId(trade);
+				label = (pbId && playbookMap.get(pbId)) ||
+					(trade.trade_tag_assignments || []).find((a: TradeTagAssignment) => a.trade_tags?.category === 'setup')?.trade_tags?.name ||
+					'ไม่มี Setup';
+			}
 
 			if (!groups.has(label)) groups.set(label, []);
 			groups.get(label)!.push(trade);
@@ -260,19 +276,19 @@
 		<div class="card">
 			<div class="text-xs text-gray-400">ยังไม่ Review</div>
 			<div class="mt-1 text-2xl font-semibold text-amber-300">
-				{trades.filter((trade: Trade) => getTradeReviewStatus(trade) === 'unreviewed').length}
+				{quickStats.unreviewed}
 			</div>
 		</div>
 		<div class="card">
 			<div class="text-xs text-gray-400">ไม่มี Notes</div>
 			<div class="mt-1 text-2xl font-semibold text-brand-300">
-				{trades.filter((trade: Trade) => (trade.trade_notes || []).length === 0).length}
+				{quickStats.noNotes}
 			</div>
 		</div>
 		<div class="card">
 			<div class="text-xs text-gray-400">ไม่มีไฟล์แนบ</div>
 			<div class="mt-1 text-2xl font-semibold text-rose-300">
-				{trades.filter((trade: Trade) => (trade.trade_attachments || []).length === 0).length}
+				{quickStats.noAttachments}
 			</div>
 		</div>
 	</div>
