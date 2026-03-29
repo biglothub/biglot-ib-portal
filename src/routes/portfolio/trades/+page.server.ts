@@ -1,6 +1,6 @@
 import { applyPortfolioFilters, parsePortfolioFilters } from '$lib/portfolio';
 import { buildFilterOptions } from '$lib/server/portfolio';
-import { evaluateAllInsights, calculateAllQualityScores, calculateAllExecutionMetrics } from '$lib/server/insights/engine';
+import { evaluateInsightsForSubset, calculateQualityScoresForSubset, calculateAllExecutionMetrics } from '$lib/server/insights/engine';
 import type { PortfolioSavedView } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
@@ -8,7 +8,8 @@ const PAGE_SIZE = 25;
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, baseData, tags = [], playbooks = [], savedViews = [] } = parentData;
+	const { account, tags = [], playbooks = [], savedViews = [] } = parentData;
+	const baseData = locals.portfolioBaseData;
 
 	if (!account || !locals.profile || !baseData) {
 		return {
@@ -32,10 +33,10 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const total = filteredTrades.length;
 	const pagedTrades = filteredTrades.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-	// Compute insights and quality scores with full context, but only extract for paged trades
+	// Build context from all filtered trades, but only evaluate rules for the paged subset
 	// Execution metrics are per-trade (no context needed) — compute only for paged trades
-	const allInsightsMap = evaluateAllInsights(filteredTrades);
-	const allScoresMap = calculateAllQualityScores(filteredTrades);
+	const allInsightsMap = evaluateInsightsForSubset(filteredTrades, pagedTrades);
+	const allScoresMap = calculateQualityScoresForSubset(filteredTrades, pagedTrades);
 	const allMetricsMap = calculateAllExecutionMetrics(pagedTrades);
 
 	// Convert maps to plain objects for serialization (only for paged trades)

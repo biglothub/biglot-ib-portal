@@ -117,28 +117,40 @@ export function evaluateTradeInsights(trade: Trade, allTrades: Trade[]): Insight
  * Returns a Map: tradeId -> InsightResult[]
  */
 export function evaluateAllInsights(trades: Trade[]): Map<string, InsightResult[]> {
+	return evaluateInsightsForSubset(trades, trades);
+}
+
+/**
+ * Evaluate insights for a subset of trades, using all trades for context.
+ * Builds symbol contexts and sorted index from contextTrades,
+ * but only runs rule evaluation on evaluateTrades.
+ */
+export function evaluateInsightsForSubset(
+	contextTrades: Trade[],
+	evaluateTrades: Trade[]
+): Map<string, InsightResult[]> {
 	const results = new Map<string, InsightResult[]>();
 
-	// Pre-compute symbol contexts once
+	// Pre-compute symbol contexts once from full context
 	const symbolContextCache = new Map<string, TradeContext>();
 
-	// Pre-sort for previousTrade lookup
-	const sorted = [...trades].sort((a, b) =>
+	// Pre-sort for previousTrade lookup (from full context)
+	const sorted = [...contextTrades].sort((a, b) =>
 		new Date(a.open_time).getTime() - new Date(b.open_time).getTime()
 	);
 	const tradeIndexMap = new Map<string, number>();
 	sorted.forEach((t, i) => tradeIndexMap.set(t.id, i));
 
-	for (const trade of trades) {
+	for (const trade of evaluateTrades) {
 		if (!symbolContextCache.has(trade.symbol)) {
-			symbolContextCache.set(trade.symbol, buildTradeContext(trade, trades));
+			symbolContextCache.set(trade.symbol, buildTradeContext(trade, contextTrades));
 		}
 		const symbolContext = symbolContextCache.get(trade.symbol)!;
 
 		// Add previousTrade and allTrades to context
 		const idx = tradeIndexMap.get(trade.id) ?? -1;
 		const previousTrade = idx > 0 ? sorted[idx - 1] : undefined;
-		const context: TradeContext = { ...symbolContext, allTrades: trades, previousTrade };
+		const context: TradeContext = { ...symbolContext, allTrades: contextTrades, previousTrade };
 
 		const tradeInsights: InsightResult[] = [];
 		for (const rule of ALL_RULES) {
@@ -437,12 +449,23 @@ export function calculateQualityScore(trade: Trade, context: TradeContext): numb
  * Batch calculate quality scores for all trades
  */
 export function calculateAllQualityScores(trades: Trade[]): Map<string, number> {
+	return calculateQualityScoresForSubset(trades, trades);
+}
+
+/**
+ * Calculate quality scores for a subset of trades, using all trades for context.
+ * Builds symbol contexts from contextTrades but only scores evaluateTrades.
+ */
+export function calculateQualityScoresForSubset(
+	contextTrades: Trade[],
+	evaluateTrades: Trade[]
+): Map<string, number> {
 	const scores = new Map<string, number>();
 	const symbolContextCache = new Map<string, TradeContext>();
 
-	for (const trade of trades) {
+	for (const trade of evaluateTrades) {
 		if (!symbolContextCache.has(trade.symbol)) {
-			symbolContextCache.set(trade.symbol, buildTradeContext(trade, trades));
+			symbolContextCache.set(trade.symbol, buildTradeContext(trade, contextTrades));
 		}
 		const context = symbolContextCache.get(trade.symbol)!;
 		scores.set(trade.id, calculateQualityScore(trade, context));
