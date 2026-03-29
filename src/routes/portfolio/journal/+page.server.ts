@@ -10,7 +10,8 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, baseData, tags = [], playbooks = [] } = parentData;
+	const { account, tags = [], playbooks = [] } = parentData;
+	const baseData = locals.portfolioBaseData;
 	const profile = locals.profile;
 
 	if (!account || !profile || !baseData) {

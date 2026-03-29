@@ -15,7 +15,8 @@ const TODAY = () => new Date().toISOString().split('T')[0];
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, baseData, tags = [], playbooks = [] } = parentData;
+	const { account, tags = [], playbooks = [] } = parentData;
+	const baseData = locals.portfolioBaseData;
 	const supabase = locals.supabase;
 
 	if (!account || !locals.profile || !baseData) {

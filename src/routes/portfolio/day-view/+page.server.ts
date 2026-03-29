@@ -4,9 +4,10 @@ import { toThaiDateString } from '$lib/utils';
 import type { Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ parent, url }) => {
+export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, baseData } = parentData;
+	const { account } = parentData;
+	const baseData = locals.portfolioBaseData;
 
 	if (!account || !baseData) {
 		return {

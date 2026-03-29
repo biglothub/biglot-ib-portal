@@ -3,7 +3,8 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, locals }) => {
 	const parentData = await parent();
-	const { account, baseData, tags = [] } = parentData;
+	const { account, tags = [] } = parentData;
+	const baseData = locals.portfolioBaseData;
 	const profile = locals.profile;
 
 	if (!account || !profile || !baseData) {
@@ -31,7 +32,11 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		playbooks: baseData.playbooks,
 		setupPerformance: buildSetupPerformance(baseData.trades),
 		tags,
-		trades: baseData.trades.slice(0, 50),
+		trades: baseData.trades.slice(0, 50).map(t => ({
+			id: t.id, symbol: t.symbol, type: t.type, profit: t.profit,
+			open_time: t.open_time, close_time: t.close_time, lot_size: t.lot_size,
+			trade_reviews: (t.trade_reviews || []).map((r: any) => ({ playbook_id: r.playbook_id }))
+		})),
 		templates,
 		clonedTemplateIds
 	};

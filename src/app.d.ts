@@ -20,6 +20,10 @@ declare global {
 			/** Admin "View As" mode — set when admin views a client's portfolio */
 			viewAsAccountId?: string;
 			viewAsUserId?: string;
+			/** Server-only portfolio data — never serialized to client */
+			portfolioBaseData?: import('$lib/types').PortfolioBaseData | null;
+			/** Client's selected account_id from URL (resolved in hooks) */
+			selectedAccountId?: string;
 		}
 		interface PageData {
 			user: User | null;

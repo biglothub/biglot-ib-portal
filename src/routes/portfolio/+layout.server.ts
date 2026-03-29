@@ -1,11 +1,13 @@
+import { dev } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
 import { fetchPortfolioBaseData } from '$lib/server/portfolio';
 import { getCache, setCache } from '$lib/server/cache';
-import type { ClientAccount } from '$lib/types';
+import { accountsCache, tagsCache, bridgeCache, LAYOUT_CACHE_TTL_MS, type AccountRow } from '$lib/server/layout-cache';
+import type { TradeTag } from '$lib/types';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
+export const load: LayoutServerLoad = async ({ locals, depends }) => {
 	const isAdminView = !!locals.viewAsAccountId;
 
 	// Only clients and admin-viewing-as can access portfolio routes
@@ -29,7 +31,6 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	const supabase = isAdminView ? createSupabaseServiceClient() : locals.supabase;
 	const effectiveUserId = isAdminView ? locals.viewAsUserId! : locals.profile!.id;
 
-	type AccountRow = Pick<ClientAccount, 'id' | 'client_name' | 'mt5_account_id' | 'mt5_server' | 'status' | 'last_synced_at'>;
 	let account: AccountRow | null = null;
 	let allAccounts: AccountRow[] = [];
 
@@ -42,17 +43,23 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 			.single();
 		account = data;
 	} else {
-		// Client viewing: load all approved accounts
-		const { data: accounts } = await supabase
-			.from('client_accounts')
-			.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
-			.eq('status', 'approved')
-			.order('created_at', { ascending: true });
+		// Client viewing: check process cache first
+		const cachedAccounts = accountsCache.get(effectiveUserId);
+		if (cachedAccounts && Date.now() < cachedAccounts.expiresAt) {
+			allAccounts = cachedAccounts.data;
+			if (dev) console.log(`[layout] HIT accounts cache`);
+		} else {
+			const { data: accounts } = await supabase
+				.from('client_accounts')
+				.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
+				.eq('status', 'approved')
+				.order('created_at', { ascending: true });
+			allAccounts = (accounts || []) as AccountRow[];
+			accountsCache.set(effectiveUserId, { data: allAccounts, expiresAt: Date.now() + LAYOUT_CACHE_TTL_MS });
+		}
 
-		allAccounts = accounts || [];
-
-		// Select account by URL param or default to first
-		const selectedAccountId = url.searchParams.get('account_id');
+		// Select account by URL param (resolved in hooks.server.ts) or default to first
+		const selectedAccountId = locals.selectedAccountId;
 		if (selectedAccountId) {
 			account = allAccounts.find(a => a.id === selectedAccountId) ?? null;
 		}
@@ -62,11 +69,11 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 	}
 
 	if (!account || !locals.profile) {
+		locals.portfolioBaseData = null;
 		return {
 			account,
 			allAccounts,
 			tags: [],
-			baseData: null,
 			playbooks: [],
 			savedViews: [],
 			userId: locals.profile?.id,
@@ -100,31 +107,57 @@ export const load: LayoutServerLoad = async ({ locals, depends, url }) => {
 		}
 	).catch(() => []);
 
-	// Critical data: baseData is essential, tags and bridgeHealth are non-critical
-	const [tagsRes, baseData, bridgeHealthRes] = await Promise.allSettled([
-		supabase
-			.from('trade_tags')
-			.select('*')
-			.eq('user_id', effectiveUserId)
-			.order('category', { ascending: true }),
+	// Check process cache for tags and bridge health
+	const cachedTags = tagsCache.get(effectiveUserId);
+	const cachedBridge = bridgeCache.get('singleton');
+	const now = Date.now();
+
+	const needTags = !cachedTags || now >= cachedTags.expiresAt;
+	const needBridge = !cachedBridge || now >= cachedBridge.expiresAt;
+
+	if (dev && !needTags) console.log(`[layout] HIT tags cache`);
+	if (dev && !needBridge) console.log(`[layout] HIT bridge cache`);
+
+	// Run baseData + only the queries we actually need
+	const [baseDataResult, tagsResult, bridgeResult] = await Promise.allSettled([
 		fetchPortfolioBaseData(supabase, account.id, effectiveUserId),
-		supabase.from('bridge_health').select('status, last_heartbeat').eq('id', 'singleton').maybeSingle()
+		needTags
+			? supabase
+					.from('trade_tags')
+					.select('*')
+					.eq('user_id', effectiveUserId)
+					.order('category', { ascending: true })
+			: Promise.resolve({ data: cachedTags!.data, error: null }),
+		needBridge
+			? supabase.from('bridge_health').select('status, last_heartbeat').eq('id', 'singleton').maybeSingle()
+			: Promise.resolve({ data: cachedBridge!.data, error: null })
 	]);
 
 	// baseData is critical — let failure propagate
-	if (baseData.status === 'rejected') {
-		throw baseData.reason;
+	if (baseDataResult.status === 'rejected') {
+		throw baseDataResult.reason;
+	}
+	const resolvedBaseData = baseDataResult.value;
+
+	// Store on locals (server-only) — never serialized to client
+	locals.portfolioBaseData = resolvedBaseData;
+
+	const tags = (tagsResult.status === 'fulfilled' ? (tagsResult.value as { data: TradeTag[] | null }).data || [] : []) as TradeTag[];
+	if (needTags) {
+		tagsCache.set(effectiveUserId, { data: tags, expiresAt: now + LAYOUT_CACHE_TTL_MS });
 	}
 
-	const tags = tagsRes.status === 'fulfilled' ? tagsRes.value.data || [] : [];
-	const bridgeHealth = bridgeHealthRes.status === 'fulfilled' ? bridgeHealthRes.value.data : null;
-	const resolvedBaseData = baseData.value;
+	const bridgeHealth = bridgeResult.status === 'fulfilled'
+		? (bridgeResult.value as { data: { status: string | null; last_heartbeat: string | null } | null }).data
+		: null;
+	if (needBridge) {
+		bridgeCache.set('singleton', { data: bridgeHealth, expiresAt: now + LAYOUT_CACHE_TTL_MS });
+	}
 
 	return {
 		account,
 		allAccounts,
 		tags,
-		baseData: resolvedBaseData,
 		playbooks: resolvedBaseData?.playbooks ?? [],
 		savedViews: resolvedBaseData?.savedViews ?? [],
 		userId: effectiveUserId,
