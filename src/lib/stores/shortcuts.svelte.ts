@@ -91,10 +91,25 @@ export function initShortcuts() {
 }
 
 export function registerShortcut(shortcut: ShortcutDef) {
-	// Avoid duplicates
+	// Avoid duplicates — mutate in place to avoid reactive cascade
 	if (!shortcuts.find((s) => s.id === shortcut.id)) {
-		shortcuts = [...shortcuts, shortcut];
+		shortcuts.push(shortcut);
 	}
+}
+
+export function registerShortcuts(defs: ShortcutDef[]) {
+	// Batch register — single reactive update instead of N
+	const existing = new Set(shortcuts.map(s => s.id));
+	const toAdd = defs.filter(d => !existing.has(d.id));
+	if (toAdd.length > 0) {
+		shortcuts = [...shortcuts, ...toAdd];
+	}
+}
+
+export function unregisterShortcuts(ids: string[]) {
+	// Batch unregister — single reactive update instead of N
+	const removeSet = new Set(ids);
+	shortcuts = shortcuts.filter((s) => !removeSet.has(s.id));
 }
 
 export function unregisterShortcut(id: string) {

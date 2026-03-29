@@ -16,7 +16,7 @@
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
 	import ShortcutsHelp from '$lib/components/shared/ShortcutsHelp.svelte';
-	import { registerShortcut, unregisterShortcut, initShortcuts } from '$lib/stores/shortcuts.svelte';
+	import { registerShortcuts, unregisterShortcuts, initShortcuts } from '$lib/stores/shortcuts.svelte';
 	import CommandPalette from '$lib/components/shared/CommandPalette.svelte';
 	import NetworkStatus from '$lib/components/shared/NetworkStatus.svelte';
 	import UndoToast from '$lib/components/shared/UndoToast.svelte';
@@ -45,10 +45,10 @@
 			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false; } },
 		];
 
-		navShortcuts.forEach(registerShortcut);
+		registerShortcuts(navShortcuts);
 
 		return () => {
-			navShortcuts.forEach((s) => unregisterShortcut(s.id));
+			unregisterShortcuts(navShortcuts.map(s => s.id));
 			destroy();
 		};
 	});
