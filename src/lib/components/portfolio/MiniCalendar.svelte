@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { formatCurrency } from '$lib/utils';
 
-	let { dailyHistory = [] }: {
+	let { dailyHistory = [], onDayClick }: {
 		dailyHistory?: Array<{ date: string; profit: number; totalTrades: number }>;
+		onDayClick?: (date: string) => void;
 	} = $props();
 
 	let year = $state(new Date().getFullYear());
@@ -73,21 +74,25 @@
 			{#if day.day === 0}
 				<div></div>
 			{:else}
-				<div class="rounded-md p-1 text-center min-h-[36px] flex flex-col items-center justify-center
+				<button
+				onclick={() => onDayClick?.(day.date)}
+				disabled={!onDayClick}
+				class="w-full rounded-md p-1 text-center min-h-[36px] flex flex-col items-center justify-center transition-colors
 					{day.profit != null
 						? day.profit >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'
-						: ''}"
-					title={day.profit != null ? `${formatCurrency(day.profit)} (${day.trades} trades)` : ''}
-				>
-					<div class="text-[11px] font-medium {day.profit != null ? day.profit >= 0 ? 'text-green-400' : 'text-red-400' : 'text-gray-400'}">
-						{day.day}
-					</div>
-					{#if day.trades}
-						<div class="text-[8px] {day.profit != null && day.profit >= 0 ? 'text-green-500/60' : 'text-red-500/60'}">
-							{day.trades}t
-						</div>
-					{/if}
+						: ''}
+					{onDayClick && day.trades ? 'hover:ring-1 hover:ring-gray-500 cursor-pointer' : 'cursor-default'}"
+				title={day.profit != null ? `${formatCurrency(day.profit)} (${day.trades} trades)` : ''}
+			>
+				<div class="text-[11px] font-medium {day.profit != null ? day.profit >= 0 ? 'text-green-400' : 'text-red-400' : 'text-gray-400'}">
+					{day.day}
 				</div>
+				{#if day.trades}
+					<div class="text-[8px] {day.profit != null && day.profit >= 0 ? 'text-green-500/60' : 'text-red-500/60'}">
+						{day.trades}t
+					</div>
+				{/if}
+			</button>
 			{/if}
 		{/each}
 	</div>
