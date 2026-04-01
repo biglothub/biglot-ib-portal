@@ -1,8 +1,29 @@
+import { createSupabaseServiceClient } from '$lib/server/supabase';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const supabase = locals.supabase;
+	const supabase = createSupabaseServiceClient();
+	const profile = locals.profile!;
+
+	// Ownership check: verify this client belongs to the current IB
+	if (profile.role === 'master_ib') {
+		const { data: ib } = await locals.supabase
+			.from('master_ibs')
+			.select('id')
+			.eq('user_id', profile.id)
+			.single();
+		if (!ib) throw error(403, 'IB profile not found');
+
+		const { data: ownerCheck } = await supabase
+			.from('client_accounts')
+			.select('id')
+			.eq('id', params.id)
+			.eq('master_ib_id', ib.id)
+			.single();
+		if (!ownerCheck) throw error(403, 'Access denied');
+	}
+
 	const thirtyDaysAgo = new Date();
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 

@@ -85,22 +85,34 @@ const authHandle: Handle = async ({ event, resolve }) => {
 		throw redirect(303, role === 'client' ? '/portfolio' : '/auth/login');
 	}
 	if (path.startsWith('/portfolio') && role !== 'client') {
-		// Allow admin to view client portfolios via ?account_id=xxx
+		// Allow admin/master_ib to view client portfolios via ?account_id=xxx
 		const accountId = event.url.searchParams.get('account_id');
-		if (role === 'admin' && accountId) {
-			// Look up account to get the client's user_id (service client bypasses RLS)
+		if ((role === 'admin' || role === 'master_ib') && accountId) {
 			const service = createSupabaseServiceClient();
-			const { data: account } = await service
+
+			let query = service
 				.from('client_accounts')
-				.select('id, user_id')
-				.eq('id', accountId)
-				.single();
+				.select('id, user_id, master_ib_id')
+				.eq('id', accountId);
+
+			// For master_ib, verify ownership
+			if (role === 'master_ib') {
+				const { data: ib } = await service
+					.from('master_ibs')
+					.select('id')
+					.eq('user_id', user!.id)
+					.single();
+				if (!ib) throw redirect(303, '/ib');
+				query = query.eq('master_ib_id', ib.id);
+			}
+
+			const { data: account } = await query.single();
 
 			if (account) {
 				event.locals.viewAsAccountId = account.id;
 				event.locals.viewAsUserId = account.user_id;
 			} else {
-				throw redirect(303, '/admin');
+				throw redirect(303, role === 'admin' ? '/admin' : '/ib');
 			}
 		} else {
 			throw redirect(303, role === 'admin' ? '/admin' : role === 'master_ib' ? '/ib' : '/auth/login');

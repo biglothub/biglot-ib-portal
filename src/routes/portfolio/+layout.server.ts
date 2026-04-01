@@ -21,7 +21,7 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 
 	// Guard: ensure required context exists before proceeding
 	if (isAdminView && !locals.viewAsUserId) {
-		throw redirect(303, '/admin/clients');
+		throw redirect(303, locals.profile?.role === 'master_ib' ? '/ib/clients' : '/admin/clients');
 	}
 	if (!isAdminView && !locals.profile) {
 		throw redirect(303, '/auth/login');
