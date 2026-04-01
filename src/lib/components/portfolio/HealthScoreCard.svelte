@@ -1,23 +1,28 @@
 <script lang="ts">
 	let {
 		score = 0,
+		noData = false,
 		label = 'สุขภาพการเทรด'
 	}: {
 		score?: number;
+		noData?: boolean;
 		label?: string;
 	} = $props();
 
-	const clampedScore = $derived(Math.max(0, Math.min(100, Math.round(score))));
+	const clampedScore = $derived(noData ? 0 : Math.max(0, Math.min(100, Math.round(score))));
 	const scoreColor = $derived(
+		noData ? 'text-gray-500' :
 		clampedScore >= 70 ? 'text-green-400' : clampedScore >= 40 ? 'text-amber-400' : 'text-red-400'
 	);
 	const ringColor = $derived(
+		noData ? '#525252' :
 		clampedScore >= 70 ? '#22c55e' : clampedScore >= 40 ? '#f59e0b' : '#ef4444'
 	);
 	const circumference = 2 * Math.PI * 40;
-	const strokeDasharray = $derived(`${(clampedScore / 100) * circumference} ${circumference}`);
+	const strokeDasharray = $derived(noData ? `0 ${circumference}` : `${(clampedScore / 100) * circumference} ${circumference}`);
 
 	const scoreLabel = $derived(
+		noData ? 'ยังไม่มีข้อมูล' :
 		clampedScore >= 80 ? 'ยอดเยี่ยม' :
 		clampedScore >= 60 ? 'ดี' :
 		clampedScore >= 40 ? 'ปานกลาง' :
@@ -43,7 +48,7 @@
 				/>
 			</svg>
 			<div class="absolute inset-0 flex items-center justify-center">
-				<span class="text-lg font-bold {scoreColor}">{clampedScore}</span>
+				<span class="text-lg font-bold {scoreColor}">{noData ? '–' : clampedScore}</span>
 			</div>
 		</div>
 		<!-- Label -->

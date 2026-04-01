@@ -243,7 +243,7 @@
 			{:else if widgetId === 'health_radar'}
 				<DeferRender>
 					<div class="xl:col-span-1 space-y-4">
-						<HealthScoreCard score={healthScore?.score || 0} />
+						<HealthScoreCard score={healthScore?.score || 0} noData={healthScore?.noData ?? false} />
 						<div class="card">
 						<TradingScoreRadar
 							winRate={kpi.tradeWinRate}

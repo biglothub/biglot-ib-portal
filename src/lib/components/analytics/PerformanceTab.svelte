@@ -6,7 +6,7 @@
 	let { calendarDays, kpiMetrics, healthScore } = $props<{
 		calendarDays: Array<{ date: string; pnl: number; trades: number }> | null | undefined;
 		kpiMetrics: ReturnType<typeof import('$lib/server/portfolio').buildKpiMetrics> | null | undefined;
-		healthScore: { score: number } | null | undefined;
+		healthScore: { score: number; noData?: boolean } | null | undefined;
 	}>();
 
 	let ConfigurableMetricChart = $state<Component | null>(null);
@@ -76,7 +76,7 @@
 
 	{#if healthScore}
 		<div class="mt-4 max-w-xs">
-			<HealthScoreCard score={healthScore.score} />
+			<HealthScoreCard score={healthScore.score} noData={healthScore.noData ?? false} />
 		</div>
 	{/if}
 {/if}

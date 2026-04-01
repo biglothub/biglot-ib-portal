@@ -311,6 +311,7 @@ export function calculateAllExecutionMetrics(trades: Trade[]): Map<string, Execu
  * Matches the normalization logic in TradingScoreRadar.svelte
  */
 export function calculateHealthScore(kpi: {
+	totalTrades?: number;
 	tradeWinRate?: number;
 	profitFactor?: number;
 	avgWin?: number;
@@ -318,7 +319,11 @@ export function calculateHealthScore(kpi: {
 	recoveryFactor?: number;
 	maxDrawdownPct?: number;
 	consistency?: number;
-}): { score: number; axes: number[] } {
+}): { score: number; axes: number[]; noData: boolean } {
+	if (!kpi.totalTrades) {
+		return { score: -1, axes: [0, 0, 0, 0, 0, 0], noData: true };
+	}
+
 	const nWinRate = Math.min(Math.max(kpi.tradeWinRate || 0, 0), 100);
 	const nPF = Math.min(((kpi.profitFactor || 0) / 3) * 100, 100);
 	const wlRatio = (kpi.avgLoss || 0) !== 0
@@ -340,7 +345,7 @@ export function calculateHealthScore(kpi: {
 		nConsistency * 0.15
 	);
 
-	return { score, axes };
+	return { score, axes, noData: false };
 }
 
 // ==========================================
