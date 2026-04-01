@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { formatCurrency, formatNumber } from '$lib/utils';
 	import { buildPerformanceMetricSeries, makeCumulative, AVAILABLE_METRICS } from '$lib/performance-metrics';
 	import type { IChartApi, ISeriesApi, MouseEventParams } from 'lightweight-charts';
@@ -21,8 +21,9 @@
 	let chartContainer = $state<HTMLDivElement>(undefined!);
 	let chart: IChartApi | null;
 	let series: ISeriesApi<'Histogram'> | ISeriesApi<'Area'> | null;
-	let selectedMetric = $state(defaultMetric);
-	let selectedTimeframe = $state(defaultTimeframe);
+	// untrack() snapshots the initial prop value without creating a reactive dependency
+	let selectedMetric = $state<string>(untrack(() => defaultMetric));
+	let selectedTimeframe = $state<string>(untrack(() => defaultTimeframe));
 
 	let tooltipVisible = $state(false);
 	let tooltipX = $state(0);

@@ -151,6 +151,9 @@ def build_trade_chart_context_rows(mt5_module, trade_rows):
     return rows
 
 
+# --- MT5 global lock (MT5 Python is NOT thread-safe) ---
+_mt5_lock = threading.Lock()
+
 # --- Per-account failure tracking ---
 _account_failures = {}  # account_id -> {'consecutive': int, 'skip_until_cycle': int}
 _cycle_count = 0
@@ -186,7 +189,7 @@ def _record_success(account_id):
 def get_approved_accounts():
     """Fetch only approved client accounts."""
     response = supabase.table('client_accounts') \
-        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id, sync_count, last_synced_at') \
+        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id, sync_count, last_synced_at, sync_requested_at') \
         .eq('status', 'approved') \
         .execute()
     return response.data or []
@@ -295,33 +298,52 @@ def sync_client_account(account):
     masked_id = mask_account_id(account['mt5_account_id'])
 
     try:
-        authorized = retry_mt5(
-            mt5.login,
-            mt5_id,
-            decrypt_password(account['mt5_investor_password']),
-            account['mt5_server']
-        )
-        if not authorized:
-            error_msg = f"Login failed: {mt5.last_error()}"
-            supabase.table('client_accounts').update({
-                'sync_error': error_msg,
-                'last_synced_at': datetime.now(timezone.utc).isoformat()
-            }).eq('id', account_id).execute()
-            log.warning(f"[{masked_id}] {error_msg}")
-            _record_failure(account_id)
-            return False
+        # MT5 is NOT thread-safe — acquire lock for all MT5 calls
+        with _mt5_lock:
+            authorized = retry_mt5(
+                mt5.login,
+                mt5_id,
+                decrypt_password(account['mt5_investor_password']),
+                account['mt5_server']
+            )
+            if not authorized:
+                error_msg = f"Login failed: {mt5.last_error()}"
+                supabase.table('client_accounts').update({
+                    'sync_error': error_msg,
+                    'last_synced_at': datetime.now(timezone.utc).isoformat()
+                }).eq('id', account_id).execute()
+                log.warning(f"[{masked_id}] {error_msg}")
+                _record_failure(account_id)
+                return False
 
-        info = mt5.account_info()
-        if not info:
-            supabase.table('client_accounts').update({
-                'sync_error': 'account_info() returned None',
-                'last_synced_at': datetime.now(timezone.utc).isoformat()
-            }).eq('id', account_id).execute()
-            log.warning(f"[{masked_id}] account_info() returned None")
-            _record_failure(account_id)
-            return False
+            info = mt5.account_info()
+            if not info:
+                supabase.table('client_accounts').update({
+                    'sync_error': 'account_info() returned None',
+                    'last_synced_at': datetime.now(timezone.utc).isoformat()
+                }).eq('id', account_id).execute()
+                log.warning(f"[{masked_id}] account_info() returned None")
+                _record_failure(account_id)
+                return False
 
-        now = datetime.now(timezone.utc)
+            now = datetime.now(timezone.utc)
+
+            # 2. Open positions
+            positions = mt5.positions_get()
+
+            # 3. Closed trades — incremental fetch
+            last_synced = account.get('last_synced_at')
+            if last_synced:
+                fetch_from = _parse_iso_datetime(last_synced) - timedelta(days=1)
+            else:
+                fetch_from = TRADE_START
+
+            fetch_to = datetime.now(timezone.utc)
+            _from = fetch_from.replace(tzinfo=timezone.utc) if fetch_from.tzinfo is None else fetch_from
+            _to = fetch_to + timedelta(days=1)
+            deals = mt5.history_deals_get(_from, _to)
+            log.info(f"[{masked_id}] history_deals_get({fetch_from.date()} -> {fetch_to.date()}): {len(deals) if deals is not None else 'None'} deals, last_error={mt5.last_error()}")
+        # --- MT5 lock released — Supabase operations below ---
 
         # 1. Equity snapshot (every N minutes)
         minute = now.minute
@@ -343,7 +365,6 @@ def sync_client_account(account):
             )
 
         # 2. Open positions — upsert + cleanup stale
-        positions = mt5.positions_get()
         current_tickets = set()
         if positions:
             rows = []
@@ -388,15 +409,7 @@ def sync_client_account(account):
                     .execute()
             log.debug(f"[{masked_id}] Cleaned {len(stale_ids)} stale positions")
 
-        # 3. Closed trades — incremental fetch
-        last_synced = account.get('last_synced_at')
-        if last_synced:
-            fetch_from = _parse_iso_datetime(last_synced) - timedelta(days=1)
-        else:
-            fetch_from = TRADE_START
-
         trades_to_upsert = []
-        deals = mt5.history_deals_get(fetch_from, datetime.now())
         if deals:
             position_deals = defaultdict(list)
             for deal in deals:
@@ -448,6 +461,7 @@ def sync_client_account(account):
                     'pips': round(pips, 1)
                 })
 
+            log.info(f"[{masked_id}] trades_to_upsert: {len(trades_to_upsert)}")
             if trades_to_upsert:
                 retry_supabase(
                     lambda: supabase.table('trades').upsert(
@@ -498,7 +512,8 @@ def sync_client_account(account):
         supabase.table('client_accounts').update({
             'last_synced_at': now.isoformat(),
             'sync_error': None,
-            'sync_count': (account.get('sync_count') or 0) + 1
+            'sync_count': (account.get('sync_count') or 0) + 1,
+            'sync_requested_at': None
         }).eq('id', account_id).execute()
 
         _record_success(account_id)
@@ -570,6 +585,9 @@ def main():
 
                 if skipped:
                     log.info(f"Skipping {skipped} accounts (consecutive failures)")
+
+                # Prioritize accounts with a pending manual sync request
+                accounts_to_sync.sort(key=lambda a: a.get('sync_requested_at') is None)
 
                 log.info(f"Syncing {len(accounts_to_sync)} accounts (workers={MAX_WORKERS})...")
 

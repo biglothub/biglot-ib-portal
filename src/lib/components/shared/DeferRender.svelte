@@ -5,18 +5,20 @@
 	let { delay = 0, children }: { delay?: number; children: any } = $props();
 	let visible = $state(!browser);
 
-	if (browser) {
+	$effect(() => {
+		if (!browser) return;
 		if (delay > 0) {
-			setTimeout(() => { visible = true; }, delay);
+			const timer = setTimeout(() => { visible = true; }, delay);
+			return () => clearTimeout(timer);
 		} else {
 			// Use double rAF to let the browser paint the critical content first
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					visible = true;
-				});
+			let raf2: number;
+			const raf1 = requestAnimationFrame(() => {
+				raf2 = requestAnimationFrame(() => { visible = true; });
 			});
+			return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
 		}
-	}
+	});
 </script>
 
 {#if visible}

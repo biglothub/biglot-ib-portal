@@ -1,7 +1,7 @@
 <script lang="ts">
 	let { profit }: { profit: number } = $props();
-	const isWin = profit > 0.005;
-	const isLoss = profit < -0.005;
+	const isWin = $derived(profit > 0.005);
+	const isLoss = $derived(profit < -0.005);
 </script>
 
 {#if isWin}

@@ -31,11 +31,23 @@ export const load: PageServerLoad = async ({ params }) => {
 			.limit(50)
 	]);
 
-	const getValue = (res: PromiseSettledResult<{ data: unknown; error: unknown }>) =>
-		res.status === 'fulfilled' ? res.value.data : null;
+	const getValue = (res: PromiseSettledResult<{ data: unknown; error: unknown }>) => {
+		if (res.status !== 'fulfilled') return null;
+		if (res.value.error) {
+			console.error('[admin/clients] query error:', res.value.error);
+			return null;
+		}
+		return res.value.data;
+	};
 
 	const account = getValue(accountRes);
 	if (!account) throw error(404, 'Account not found');
+
+	console.log('[admin/clients] tradesRes status:', tradesRes.status);
+	if (tradesRes.status === 'fulfilled') {
+		console.log('[admin/clients] trades error:', tradesRes.value.error);
+		console.log('[admin/clients] trades count:', Array.isArray(tradesRes.value.data) ? tradesRes.value.data.length : tradesRes.value.data);
+	}
 
 	return {
 		account,
