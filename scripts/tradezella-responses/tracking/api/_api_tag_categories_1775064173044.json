@@ -1,0 +1,32 @@
+{
+  "url": "https://api.tradezella.com/api/tag_categories",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    {
+      "id": 1504321,
+      "title": "mistakes",
+      "is_default": true,
+      "color": "#f7c71b",
+      "position": 0,
+      "slug": "mistakes",
+      "user_id": 620957,
+      "created_at": "2025-11-26T08:52:47.381Z",
+      "updated_at": "2025-11-26T08:52:47.381Z",
+      "user_tags": []
+    },
+    {
+      "id": 1504322,
+      "title": "custom_tags",
+      "is_default": true,
+      "color": "#56c185",
+      "position": 1,
+      "slug": "custom_tags",
+      "user_id": 620957,
+      "created_at": "2025-11-26T08:52:47.396Z",
+      "updated_at": "2025-11-26T08:52:47.396Z",
+      "user_tags": []
+    }
+  ],
+  "requestBody": null
+}

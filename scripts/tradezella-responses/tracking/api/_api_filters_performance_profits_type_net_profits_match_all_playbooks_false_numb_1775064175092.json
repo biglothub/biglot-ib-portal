@@ -1,0 +1,12 @@
+{
+  "url": "https://api.tradezella.com/api/filters/performance?profits_type=net_profits&match_all_playbooks=false&number_format=currency",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    {
+      "date": "2026-04-01",
+      "profits": "0.32"
+    }
+  ],
+  "requestBody": null
+}

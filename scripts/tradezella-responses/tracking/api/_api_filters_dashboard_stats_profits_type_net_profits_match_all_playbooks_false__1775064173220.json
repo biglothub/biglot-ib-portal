@@ -1,0 +1,58 @@
+{
+  "url": "https://api.tradezella.com/api/filters/dashboard_stats?profits_type=net_profits&match_all_playbooks=false&number_format=currency",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "average_per_trade_profits": "0.01066666666666666667",
+    "maximum_profits": "5.39",
+    "minimum_profits": "-1.37",
+    "total_gain_loss": "0.32",
+    "total_sum": "0.32",
+    "total_commissions": "0.0",
+    "total_fees": "0.0",
+    "total_swap": "0.0",
+    "trade_count": 15,
+    "average_hold_time": "N/A",
+    "average_trade_profits": "N/A",
+    "winning_days": 1,
+    "losing_days": 0,
+    "winning_trades_count": 4,
+    "losing_trades_count": 11,
+    "scratch_trades": 0,
+    "profit_factor": "1.02",
+    "average_winning_trade": "3.8475",
+    "average_losing_trade": "-1.37",
+    "trade_expectancy": "0.0213333333333331225",
+    "winning_trades_sum": "15.39",
+    "losing_trades_sum": "-15.07",
+    "breakeven_days": 0,
+    "day_streaks": {
+      "winning": 1,
+      "losing": 0,
+      "current_winning": 1,
+      "current_losing": 0
+    },
+    "trade_streaks": {
+      "max_wins": 4,
+      "max_losses": 11,
+      "max_be": 0,
+      "current_losing_streak": 0,
+      "current_winning_streak": 4
+    },
+    "max_drawdown": {
+      "date": "2026-03-31",
+      "drawdown": 0,
+      "percent": 0
+    },
+    "average_drawdown": {
+      "drawdown": 0,
+      "percent": 0
+    },
+    "current_drawdown": {
+      "date": "2026-04-01",
+      "drawdown": "0.0"
+    },
+    "initial_balance": "1000.0"
+  },
+  "requestBody": null
+}

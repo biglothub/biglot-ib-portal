@@ -1,0 +1,23 @@
+{
+  "url": "https://api.tradezella.com/api/zella_scores/current?profits_type=net_profits&match_all_playbooks=false",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "win_rate_value": "26.67",
+    "profit_factor_value": "1.02",
+    "avg_win_to_loss_value": "2.81",
+    "avg_profit": "0.02",
+    "total_profit": "0.32",
+    "win_rate": "44.0",
+    "profit_factor": "34.0",
+    "avg_win_to_loss": "93.0",
+    "consistency_value": "0.0",
+    "consistency": "0.0",
+    "max_drawdown_value": 0,
+    "max_drawdown": 100,
+    "recovery_factor": 100,
+    "recovery_factor_value": 100,
+    "zella_score": "58.7"
+  },
+  "requestBody": null
+}

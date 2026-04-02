@@ -1,0 +1,87 @@
+{
+  "url": "https://api.tradezella.com/api/global_config",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "mt4_error": false,
+    "mt5_error": false,
+    "ai_limits": {
+      "open_ai": {
+        "gpt-4o": [
+          {
+            "limit": 500000,
+            "interval": 60
+          },
+          {
+            "limit": 5000000,
+            "interval": 3600
+          },
+          {
+            "limit": 7000000,
+            "interval": 86400
+          }
+        ],
+        "o4-mini": [
+          {
+            "limit": 500000,
+            "interval": 60
+          },
+          {
+            "limit": 3000000,
+            "interval": 3600
+          },
+          {
+            "limit": 6999999,
+            "interval": 86400
+          }
+        ],
+        "gpt-5-mini": [
+          {
+            "limit": 500000,
+            "interval": 60
+          },
+          {
+            "limit": 3000000,
+            "interval": 3600
+          },
+          {
+            "limit": 6999999,
+            "interval": 86400
+          }
+        ],
+        "gpt-4o-mini": [
+          {
+            "limit": 500000,
+            "interval": 60
+          },
+          {
+            "limit": 3000000,
+            "interval": 3600
+          },
+          {
+            "limit": 6999999,
+            "interval": 86400
+          }
+        ]
+      },
+      "anthropic": {
+        "claude-sonnet-4-6": [
+          {
+            "limit": 300000,
+            "interval": 60
+          },
+          {
+            "limit": 3000000,
+            "interval": 3600
+          },
+          {
+            "limit": 29999999,
+            "interval": 86400
+          }
+        ]
+      }
+    },
+    "warning_message": ""
+  },
+  "requestBody": null
+}

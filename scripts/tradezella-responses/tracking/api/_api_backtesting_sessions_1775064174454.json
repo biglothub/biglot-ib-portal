@@ -1,0 +1,16 @@
+{
+  "url": "https://api.tradezella.com/api/backtesting/sessions",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "backtesting_sessions": [],
+    "total_count": 0,
+    "meta": {
+      "page_count": 1,
+      "item_count": 0,
+      "from": 0,
+      "to": 0
+    }
+  },
+  "requestBody": null
+}

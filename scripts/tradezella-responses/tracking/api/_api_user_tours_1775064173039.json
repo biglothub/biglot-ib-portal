@@ -1,0 +1,7 @@
+{
+  "url": "https://api.tradezella.com/api/user/tours",
+  "method": "GET",
+  "status": 200,
+  "body": {},
+  "requestBody": null
+}

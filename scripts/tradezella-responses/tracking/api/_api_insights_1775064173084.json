@@ -1,0 +1,24 @@
+{
+  "url": "https://api.tradezella.com/api/insights",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    {
+      "slug": "trade_red_to_green",
+      "name": "Red to Green Trade"
+    },
+    {
+      "slug": "trade_green_to_red",
+      "name": "Green to Red Trade"
+    },
+    {
+      "slug": "trade_drawdown_vs_profit_positive",
+      "name": "Profit exceeded drawdown 2 times"
+    },
+    {
+      "slug": "trade_most_time_in_drawdown",
+      "name": "Most Time in Drawdown"
+    }
+  ],
+  "requestBody": null
+}

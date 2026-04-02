@@ -1,0 +1,32 @@
+{
+  "url": "https://api.tradezella.com/api/filters/cumulative?profits_type=net_profits&match_all_playbooks=false&number_format=currency",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "cumulative": [
+      {
+        "2026-03-31": 0
+      },
+      {
+        "2026-04-01": "0.32"
+      }
+    ],
+    "drawdown": [
+      {
+        "2026-03-31": 0
+      },
+      {
+        "2026-04-01": "0.0"
+      }
+    ],
+    "peak": [
+      {
+        "2026-03-31": 0
+      },
+      {
+        "2026-04-01": "0.32"
+      }
+    ]
+  },
+  "requestBody": null
+}

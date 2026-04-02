@@ -1,0 +1,21 @@
+{
+  "url": "https://api.tradezella.com/api/user/get_onboarding",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "state": "onboarding",
+    "step": 6,
+    "version": 1,
+    "answers": {
+      "trading_experience": "< 1 year",
+      "broker": "mt5",
+      "securities": "Stocks:Forex",
+      "onboarding_goal": "Journal activities",
+      "heard_from": "YouTube"
+    },
+    "onboarded": true,
+    "preferences_saved": true,
+    "video_watched": true
+  },
+  "requestBody": null
+}

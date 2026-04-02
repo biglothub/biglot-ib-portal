@@ -1,0 +1,11 @@
+{
+  "url": "https://api.tradezella.com/api/filters/winrate?number_format=currency&profits_type=net_profits&match_all_playbooks=false",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "winners": 4,
+    "losers": 11,
+    "break_evens": 0
+  },
+  "requestBody": null
+}

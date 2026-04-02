@@ -1,0 +1,17 @@
+{
+  "url": "https://api.tradezella.com/api/user/get_logs_setting?log_type=daily_journal_log_settings",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    "open_time",
+    "symbol",
+    "side",
+    "instrument",
+    "net_profits",
+    "net_roi",
+    "realized_rr",
+    "playbook",
+    "tags"
+  ],
+  "requestBody": null
+}

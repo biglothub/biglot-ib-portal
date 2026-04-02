@@ -1,0 +1,42 @@
+{
+  "url": "https://api.tradezella.com/api/trades/last_import",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "id": "50d95f8e",
+    "to_date": "2026-04-01",
+    "from_date": "2026-04-01",
+    "user_id": 620957,
+    "created_at": "2026-04-01T15:37:02.763Z",
+    "updated_at": "2026-04-01T15:37:05.851Z",
+    "time_zone": "US/Eastern",
+    "account_id": "cd2a5afa",
+    "status": "Success",
+    "broker": "mt5",
+    "is_sync": true,
+    "tags": null,
+    "external_account_id": 760037,
+    "date_format": null,
+    "started_at": "2026-04-01T15:37:02.918Z",
+    "finished_at": "2026-04-01T15:37:05.850Z",
+    "transaction_count": 0,
+    "fixed_import_date": null,
+    "contract_multiplier": null,
+    "is_text": false,
+    "error_message": null,
+    "specific_from_date": null,
+    "status_info": null,
+    "broker_company_id": null,
+    "currency": null,
+    "log_info": {
+      "from_date": null,
+      "sync_trigger": "auto",
+      "last_manual_from_date": "2026-04-01",
+      "external_account_from_date": "2026-03-30T21:00:00.000Z"
+    },
+    "column_mapping": null,
+    "change": 0,
+    "last_sync_time": "2026-04-01T15:37:02.849Z"
+  },
+  "requestBody": null
+}

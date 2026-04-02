@@ -1,0 +1,58 @@
+{
+  "url": "https://api.tradezella.com/api/dashboard_templates?scope=tracking",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "selected_template": {
+      "selected": true,
+      "default": true,
+      "name": "Main template",
+      "top_widgets": [
+        "net_pl",
+        "win_percentage_by_trades",
+        "profit_factor",
+        "winning_percent_days",
+        "avg_win_loss_trade"
+      ],
+      "bottom_widgets": [
+        "zella_score",
+        "zella_assist",
+        "daily_net_cumulative_graph",
+        "net_daily_pl_graph",
+        "open_position",
+        "calendar_advanced",
+        "account_balance",
+        "drawdown_widget",
+        "trade_time_performance_scatter",
+        "trade_duration_performance_scatter"
+      ]
+    },
+    "templates": [
+      {
+        "selected": true,
+        "default": true,
+        "name": "Main template",
+        "top_widgets": [
+          "net_pl",
+          "win_percentage_by_trades",
+          "profit_factor",
+          "winning_percent_days",
+          "avg_win_loss_trade"
+        ],
+        "bottom_widgets": [
+          "zella_score",
+          "zella_assist",
+          "daily_net_cumulative_graph",
+          "net_daily_pl_graph",
+          "open_position",
+          "calendar_advanced",
+          "account_balance",
+          "drawdown_widget",
+          "trade_time_performance_scatter",
+          "trade_duration_performance_scatter"
+        ]
+      }
+    ]
+  },
+  "requestBody": null
+}

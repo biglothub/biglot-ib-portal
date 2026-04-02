@@ -1,0 +1,9 @@
+{
+  "url": "https://api.tradezella.com/api/account/max_calendar_event_date?number_format=currency&match_all_playbooks=false",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "max_date": "2026-04-01T05:22:11.000Z"
+  },
+  "requestBody": null
+}

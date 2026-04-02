@@ -1,0 +1,7 @@
+{
+  "url": "https://api.tradezella.com/api/account/current_timezone",
+  "method": "GET",
+  "status": 200,
+  "body": null,
+  "requestBody": null
+}

@@ -1,0 +1,13 @@
+{
+  "url": "https://api.tradezella.com/api/account/check_initial_balance",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    {
+      "puid": "cd2a5afa",
+      "has_initial_deposit": true,
+      "is_backtesting": false
+    }
+  ],
+  "requestBody": null
+}

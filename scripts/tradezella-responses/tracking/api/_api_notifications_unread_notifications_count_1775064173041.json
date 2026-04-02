@@ -1,0 +1,9 @@
+{
+  "url": "https://api.tradezella.com/api/notifications/unread_notifications_count",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "count": 1
+  },
+  "requestBody": null
+}

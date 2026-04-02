@@ -1,0 +1,7 @@
+{
+  "url": "https://api.tradezella.com/api/assist/day_start",
+  "method": "GET",
+  "status": 200,
+  "body": false,
+  "requestBody": null
+}

@@ -1,0 +1,386 @@
+{
+  "url": "https://api.tradezella.com/api/new_reports/available?filters%5Bstart_date%5D=2026-04-01&filters%5Bend_date%5D=2026-04-30&filters%5Bnumber_format%5D=currency&filters%5Bmatch_all_playbooks%5D=false&time_bucket=month&only_cumulative=true",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    {
+      "name": "cumulative_average_trading_day_duration",
+      "pretty_name": "Average trading months duration - cumulative",
+      "data_type": "time",
+      "group": "Time Analysis",
+      "tooltip_info": "The average length of time you were active in the market each trading day, measured from the first to the last trade execution of the day, across all applicable days."
+    },
+    {
+      "name": "cumulative_average_hold_time",
+      "pretty_name": "Avg hold time - cumulative",
+      "data_type": "time",
+      "group": "Time Analysis",
+      "tooltip_info": "Your average hold time, or how long you were in a trade, is based on ALL trades taken."
+    },
+    {
+      "name": "cumulative_average_loss",
+      "pretty_name": "Avg loss - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": null
+    },
+    {
+      "name": "cumulative_average_minimum_profits",
+      "pretty_name": "Avg max trade loss - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "The average minimum profits on all your trades."
+    },
+    {
+      "name": "cumulative_average_maximum_profits",
+      "pretty_name": "Avg max trade profit - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "The average maximum profits on all your trades."
+    },
+    {
+      "name": "cumulative_bucketed_average_pl",
+      "pretty_name": "Avg monthly net P&L - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "Shows the average profit or loss per trading day over the selected period."
+    },
+    {
+      "name": "cumulative_bucketed_avg_drawdown",
+      "pretty_name": "Avg monthly net drawdown",
+      "data_type": "currency",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "Shows the average drawdown during the selected period and the drawdown at the end of that period, or the current drawdown if no date filter is applied."
+    },
+    {
+      "name": "cumulative_bucketed_average_volume",
+      "pretty_name": "Avg monthly volume - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The average volume, or quantity of contracts/shares traded on a daily basis."
+    },
+    {
+      "name": "cumulative_bucketed_win_percentage",
+      "pretty_name": "Avg monthly win % - cumulative",
+      "data_type": "percentage",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "Reflects the percentage of your winning trading days out of total trading days."
+    },
+    {
+      "name": "cumulative_bucketed_average_win_loss",
+      "pretty_name": "Avg monthly win/loss - cumulative",
+      "data_type": "number",
+      "group": "Profitability",
+      "tooltip_info": "Displays average profit on winning days compared to the average loss on losing days during the selected period."
+    },
+    {
+      "name": "cumulative_average_pl",
+      "pretty_name": "Avg net trade P&L - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "The average P/L based on all your trades. What is your usual trade outcome? How much do you make on average on each trade?"
+    },
+    {
+      "name": "cumulative_average_win_loss",
+      "pretty_name": "Avg trade win/loss - cumulative",
+      "data_type": "number",
+      "group": "Profitability",
+      "tooltip_info": "Displays average profit on winning days compared to the average loss on losing days during the selected period."
+    },
+    {
+      "name": "cumulative_average_win",
+      "pretty_name": "Avg win - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": null
+    },
+    {
+      "name": "cumulative_average_planned_rr",
+      "pretty_name": "Avg. planned r-multiple - cumulative",
+      "data_type": "r_value",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "The average PLANNED R Multiple on all your trades. Note: This stat is based on trades where you manually inputted your profit target and stop loss for the trade."
+    },
+    {
+      "name": "cumulative_average_realized_rr",
+      "pretty_name": "Avg. realized r-multiple - cumulative",
+      "data_type": "r_value",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "The average REALIZED R Multiple on all your trades. Note: This stat is based on trades where you manually inputted your stop loss for the trade. This measures your R multiple on all your trades and takes the average to display your average R multiple on your trades."
+    },
+    {
+      "name": "cumulative_bucketed_breakeven_count",
+      "pretty_name": "Breakeven days - cumulative",
+      "data_type": "number",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "The number of trading days where your net result indicates neither a gain nor a loss. This usually means a net result of exactly $0, but you can adjust the thresholds in your breakeven settings."
+    },
+    {
+      "name": "cumulative_breakeven_count",
+      "pretty_name": "Breakeven trades - cumulative",
+      "data_type": "number",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "The number of trades where your net result was exactly $0, indicating neither a gain nor a loss."
+    },
+    {
+      "name": "cumulative_largest_loss",
+      "pretty_name": "Largest losing trade - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "The single trade with the highest realized loss, representing the most capital lost on a trade during the selected period."
+    },
+    {
+      "name": "cumulative_largest_profit",
+      "pretty_name": "Largest profitable trade - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "The single trade with the highest realized profit in your trading history for the selected period."
+    },
+    {
+      "name": "cumulative_logged_days_count",
+      "pretty_name": "Logged days - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The total number of days for which you created a note in your journal."
+    },
+    {
+      "name": "cumulative_longest_trade_duration",
+      "pretty_name": "Longest trade duration - cumulative",
+      "data_type": "time",
+      "group": "Time Analysis",
+      "tooltip_info": "The maximum time spent in a single trade, calculated from entry to exit. Shows the trade with the longest holding period during the selected timeframe."
+    },
+    {
+      "name": "cumulative_longs_breakeven_count",
+      "pretty_name": "Longs # of breakeven trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of long trades that closed with exactly $0 P&L (or around it based on your trade settings), resulting in neither profit nor loss."
+    },
+    {
+      "name": "cumulative_longs_loss_count",
+      "pretty_name": "Longs # of losing trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of loss-making trades executed as long positions during the selected period."
+    },
+    {
+      "name": "cumulative_longs_open_count",
+      "pretty_name": "Longs # of open trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of open (unclosed) long trades currently active or unclosed during the selected period."
+    },
+    {
+      "name": "cumulative_longs_total_count",
+      "pretty_name": "Longs # of trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "Total number of the trades executed as long positions during the selected period."
+    },
+    {
+      "name": "cumulative_longs_win_count",
+      "pretty_name": "Longs # of winning trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of profitable trades executed as long positions during the selected period."
+    },
+    {
+      "name": "cumulative_longs_win_rate",
+      "pretty_name": "Longs win % - cumulative",
+      "data_type": "percentage",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The percentage of winning trades based only on your long positions."
+    },
+    {
+      "name": "cumulative_losing_days_count",
+      "pretty_name": "Losing days - cumulative",
+      "data_type": "number",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "The cumulative number of trading days where you had a net loss. This tracks your unprofitable trading days over time."
+    },
+    {
+      "name": "cumulative_loss_count",
+      "pretty_name": "Loss # of trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The cumulative number of loss-making trades executed during the selected period. This tracks your trading activity and volume of unsuccessful trades over time."
+    },
+    {
+      "name": "cumulative_bucketed_max_loss_streak",
+      "pretty_name": "Max consecutive losing months - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The longest streak of consecutive trading days that ended in a loss."
+    },
+    {
+      "name": "cumulative_max_trade_loss_streak",
+      "pretty_name": "Max consecutive losses - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The highest number of back-to-back losing trades recorded without a win in between."
+    },
+    {
+      "name": "cumulative_bucketed_max_win_streak",
+      "pretty_name": "Max consecutive winning months - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The longest streak of consecutive trading days that ended in profit."
+    },
+    {
+      "name": "cumulative_max_trade_win_streak",
+      "pretty_name": "Max consecutive wins - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The highest number of back-to-back winning trades recorded without a loss in between."
+    },
+    {
+      "name": "cumulative_bucketed_max_drawdown",
+      "pretty_name": "Max monthly net drawdown - cumulative",
+      "data_type": "currency",
+      "group": "Risk & Drawdown",
+      "tooltip_info": "This is the max drawdown experienced for the defined period."
+    },
+    {
+      "name": "cumulative_max_trading_day_duration",
+      "pretty_name": "Max trading months duration - cumulative",
+      "data_type": "time",
+      "group": "Time Analysis",
+      "tooltip_info": "The longest active trading day duration, based on the time difference between the earliest and latest executed trades on a single day."
+    },
+    {
+      "name": "cumulative_bucketed_drawdown",
+      "pretty_name": "Monthly net drawdown - cumulative",
+      "data_type": "currency",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": null
+    },
+    {
+      "name": "cumulative_pl",
+      "pretty_name": "Net P&L - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "The total realized Profit and Loss (P/L) on all closed positions, for the date range selected."
+    },
+    {
+      "name": "cumulative_account_balance",
+      "pretty_name": "Net account balance",
+      "data_type": "currency",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": null
+    },
+    {
+      "name": "cumulative_open_trades_count",
+      "pretty_name": "Open trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The cumulative number of all open (unclosed) trades currently active or unclosed during the selected period."
+    },
+    {
+      "name": "cumulative_profit_factor",
+      "pretty_name": "Profit factor - cumulative",
+      "data_type": "number",
+      "group": "Profitability",
+      "tooltip_info": "Measure your profitability by comparing your gross profits to your gross losses."
+    },
+    {
+      "name": "cumulative_sharpe",
+      "pretty_name": "Sharpe ratio - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "Measures risk-adjusted returns. Higher values indicate better returns relative to volatility. Calculated using daily returns with 252 trading days annualization. Values above 1 are considered good."
+    },
+    {
+      "name": "cumulative_shorts_breakeven_count",
+      "pretty_name": "Shorts # of breakeven trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of short trades that closed with exactly $0 P&L (or around it based on your trade settings), resulting in neither profit nor loss."
+    },
+    {
+      "name": "cumulative_shorts_loss_count",
+      "pretty_name": "Shorts # of losing trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of loss-making trades executed as short positions during the selected period."
+    },
+    {
+      "name": "cumulative_shorts_open_count",
+      "pretty_name": "Shorts # of open trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of open (unclosed) short trades currently active or unclosed during the selected period."
+    },
+    {
+      "name": "cumulative_shorts_total_count",
+      "pretty_name": "Shorts # of trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "Total number of the trades executed as short positions during the selected period."
+    },
+    {
+      "name": "cumulative_shorts_win_count",
+      "pretty_name": "Shorts # of winning trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The number of profitable trades executed as short positions during the selected period."
+    },
+    {
+      "name": "cumulative_shorts_win_rate",
+      "pretty_name": "Shorts win % - cumulative",
+      "data_type": "percentage",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The percentage of winning trades based only on your short positions."
+    },
+    {
+      "name": "cumulative_sortino",
+      "pretty_name": "Sortino ratio - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "Measures risk-adjusted returns using only downside volatility. Unlike Sharpe, only penalizes losses, not upside volatility. Higher is better. Values above 1.5 are considered good."
+    },
+    {
+      "name": "cumulative_total_count",
+      "pretty_name": "Trade count - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": null
+    },
+    {
+      "name": "cumulative_trade_expectancy",
+      "pretty_name": "Trade expectancy - cumulative",
+      "data_type": "currency",
+      "group": "Profitability",
+      "tooltip_info": "How much you are expected to make on your future trades based on historical performance. For % view this is expected trade ROI."
+    },
+    {
+      "name": "cumulative_volume",
+      "pretty_name": "Volume - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The total volume, or quantity of contracts/shares traded."
+    },
+    {
+      "name": "cumulative_win_count",
+      "pretty_name": "Win # of trades - cumulative",
+      "data_type": "number",
+      "group": "Trading Activity & Volume",
+      "tooltip_info": "The cumulative number of profitable trades executed during the selected period. This tracks your trading activity and volume of successful trades over time."
+    },
+    {
+      "name": "cumulative_win_percentage",
+      "pretty_name": "Win % - cumulative",
+      "data_type": "percentage",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The percentage of winning trades out of your total trades."
+    },
+    {
+      "name": "cumulative_winning_days_count",
+      "pretty_name": "Winning days - cumulative",
+      "data_type": "number",
+      "group": "Streaks & Consistency",
+      "tooltip_info": "The cumulative number of trading days where you had a net profit. This tracks your successful trading days over time."
+    }
+  ],
+  "requestBody": null
+}

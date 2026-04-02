@@ -1,0 +1,9 @@
+{
+  "url": "https://api.tradezella.com/api/account/subscription_churn_hash",
+  "method": "POST",
+  "status": 200,
+  "body": {
+    "hash": "f1d766d2822e2b176be1a5153c6730a010f9e7060725fc8fa90f78e0bf0f0b11"
+  },
+  "requestBody": null
+}

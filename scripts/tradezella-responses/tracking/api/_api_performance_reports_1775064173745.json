@@ -1,0 +1,23 @@
+{
+  "url": "https://api.tradezella.com/api/performance_reports",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "reports": [
+      {
+        "public_uid": "490f3055",
+        "reportable_type": "FirstImportReport",
+        "created_at": "2026-04-01T09:34:43.886Z",
+        "current_phase": "market_data_ready",
+        "trade_count": 15,
+        "date_range": "Apr 01, 2026 - Apr 01, 2026 (0 days)",
+        "broker": "mt5",
+        "account_id": 2950131,
+        "account_name": "MT5 0888"
+      }
+    ],
+    "unviewed_count": 0,
+    "settings": null
+  },
+  "requestBody": null
+}

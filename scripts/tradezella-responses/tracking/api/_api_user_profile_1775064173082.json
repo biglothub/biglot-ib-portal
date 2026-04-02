@@ -1,0 +1,293 @@
+{
+  "url": "https://api.tradezella.com/api/user/profile",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "id": "c5af69af",
+    "first_name": "Phone",
+    "last_name": "Watching",
+    "email": "phoneforwatching@gmail.com",
+    "time_zone": "US/Eastern",
+    "username": "phoneforwatching",
+    "storage_usage": 0,
+    "journaling_experience": null,
+    "account_size": null,
+    "trading_experience": null,
+    "struggle": null,
+    "biggest_need": null,
+    "trading_style": null,
+    "bio": null,
+    "goal": null,
+    "display_currency": "USD",
+    "trading_frequency": null,
+    "onboarding_goal": null,
+    "broker": null,
+    "suggested_username": null,
+    "provider": "google_oauth2",
+    "consented_to_support_access_at": null,
+    "tour_progress": {},
+    "settings": {
+      "trade_details_settings": null,
+      "dashboard_settings": {
+        "hidden_stats": []
+      },
+      "trade_log_settings": [
+        "open_date",
+        "symbol",
+        "status",
+        "close_date",
+        "entry_price",
+        "exit_price",
+        "net_profits",
+        "net_roi",
+        "insights",
+        "setups",
+        "zella_score"
+      ],
+      "executed_trade_log_settings": [
+        "open_date",
+        "symbol",
+        "status",
+        "close_date",
+        "entry_price",
+        "exit_price",
+        "net_profits",
+        "net_roi",
+        "setups"
+      ],
+      "missed_trade_log_settings": [
+        "open_date",
+        "symbol",
+        "status",
+        "close_date",
+        "entry_price",
+        "exit_price",
+        "net_profits",
+        "net_roi",
+        "setups"
+      ],
+      "sample_trade_log_settings": [
+        "open_date",
+        "symbol",
+        "status",
+        "close_date",
+        "entry_price",
+        "exit_price",
+        "net_profits",
+        "net_roi",
+        "setups"
+      ],
+      "playbook_log_settings": [
+        "title",
+        "missed_trades",
+        "shared_users",
+        "cumulative_average_loss",
+        "cumulative_average_win",
+        "cumulative_pl",
+        "cumulative_profit_factor",
+        "cumulative_total_count",
+        "cumulative_trade_expectancy",
+        "cumulative_win_percentage"
+      ],
+      "playbook_grid_log_settings": [
+        "cumulative_win_percentage",
+        "cumulative_total_count",
+        "cumulative_profit_factor",
+        "cumulative_bucketed_win_percentage",
+        "cumulative_average_hold_time",
+        "cumulative_average_win_loss"
+      ],
+      "playbook_overview_log_settings": [
+        "total_net_profits",
+        "trades_count",
+        "win_rate",
+        "profit_factor",
+        "missed_trades",
+        "expectancy",
+        "rules_followed",
+        "average_winner",
+        "average_loser",
+        "largest_profit",
+        "largest_loss",
+        "winner_r_multiple",
+        "loser_r_multiple",
+        "total_r_multiple"
+      ],
+      "daily_journal_log_settings": [
+        "open_time",
+        "symbol",
+        "side",
+        "instrument",
+        "net_profits",
+        "net_roi",
+        "realized_rr",
+        "playbook",
+        "tags"
+      ],
+      "dashboard_widgets_selection_settings_top": [
+        "net_pl",
+        "win_percentage_by_trades",
+        "profit_factor",
+        "winning_percent_days",
+        "avg_win_loss_trade"
+      ],
+      "dashboard_widgets_selection_settings_bottom": [
+        "zella_score",
+        "zella_assist",
+        "daily_net_cumulative_graph",
+        "net_daily_pl_graph",
+        "open_position",
+        "calendar_advanced",
+        "account_balance",
+        "drawdown_widget",
+        "trade_time_performance_scatter",
+        "trade_duration_performance_scatter"
+      ],
+      "dashboard_templates": {
+        "Main template": {
+          "top_widgets": [
+            "net_pl",
+            "win_percentage_by_trades",
+            "profit_factor",
+            "winning_percent_days",
+            "avg_win_loss_trade"
+          ],
+          "bottom_widgets": [
+            "zella_score",
+            "zella_assist",
+            "daily_net_cumulative_graph",
+            "net_daily_pl_graph",
+            "open_position",
+            "calendar_advanced",
+            "account_balance",
+            "drawdown_widget",
+            "trade_time_performance_scatter",
+            "trade_duration_performance_scatter"
+          ],
+          "selected": true,
+          "default": true
+        }
+      },
+      "backtesting_templates": {
+        "Main template": {
+          "top_widgets": [
+            "net_pl",
+            "win_percentage_by_trades",
+            "profit_factor",
+            "winning_percent_days",
+            "avg_win_loss_trade"
+          ],
+          "bottom_widgets": [
+            "backtesting_performance",
+            "drawdown_widget",
+            "performance_calendar",
+            "backtesting_statistics"
+          ],
+          "selected": true,
+          "default": true
+        }
+      },
+      "report_settings": {
+        "overview_chart_series.global": {
+          "cumulative_bucketed_average_win_loss": {
+            "chartType": "column",
+            "color": "#4EBF94"
+          },
+          "cumulative_win_percentage": {
+            "chartType": "column",
+            "color": "#4EBF94"
+          },
+          "cumulative_pl": {
+            "chartType": "areaspline",
+            "positiveColor": "#4EBF94",
+            "negativeColor": "#F06363"
+          },
+          "cumulative_total_count": {
+            "chartType": "spline",
+            "color": "#2959DB"
+          }
+        },
+        "cross_analysis_dimension.SymbolReport": "month"
+      },
+      "stop_showing_share_modal": false,
+      "autoclose_expired_option_trades": false,
+      "dark_mode": false,
+      "can_invite_mentee": false,
+      "backtesting_settings": [
+        "name",
+        "symbol",
+        "playbook",
+        "start_balance",
+        "current_balance",
+        "net_profits",
+        "start_date",
+        "end_date",
+        "time_spent",
+        "trade_count",
+        "win_percentage",
+        "completion"
+      ],
+      "session_custom_settings": {
+        "next_session_settings": {
+          "start_at_asian_session": {
+            "label": "Start of Asian Session (New York Time)",
+            "time": "19:00",
+            "enabled": false
+          },
+          "start_at_london_session": {
+            "label": "Start of London Session (New York Time)",
+            "time": "02:00",
+            "enabled": false
+          },
+          "start_at_newyork_session": {
+            "label": "Start of New York Session (New York Time)",
+            "time": "08:00",
+            "enabled": true
+          },
+          "order": 1
+        },
+        "next_day_open_settings": {
+          "next_day_open": {
+            "label": "Next Day Open (New York Time)",
+            "time": "17:00",
+            "enabled": true
+          },
+          "order": 2
+        },
+        "next_silver_bullet_session_settings": {
+          "start_at_silver_bullet_london_session": {
+            "label": "Start of Silver Bullet London Session (New York Time)",
+            "time": "03:00",
+            "enabled": false
+          },
+          "start_at_london_session": {
+            "label": "Start of NY AM Session (New York Time)",
+            "time": "10:00",
+            "enabled": false
+          },
+          "start_at_newyork_session": {
+            "label": "Start of NY PM Session (New York Time)",
+            "time": "14:00",
+            "enabled": false
+          },
+          "order": 3
+        }
+      },
+      "backtesting_grid_settings": [
+        "completion",
+        "current_balance",
+        "net_profits",
+        "start_balance",
+        "trade_count",
+        "win_percentage"
+      ],
+      "backtesting_view_settings": {
+        "scalePositions": true
+      }
+    },
+    "profile_picture": null,
+    "is_admin_access": false,
+    "mfa_enabled": false
+  },
+  "requestBody": null
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://api.tradezella.com/api/account/stripe_current_subscription",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "id": "sub_1TB6ptLwlDhojlmCsRjPAcHK",
+    "customer_id": "cus_U9PfOXcKPg4gPL",
+    "price": 29,
+    "valid_until": "2026-04-15T05:03:33.000Z",
+    "interval": "month",
+    "stripe_status": "active",
+    "status": "active",
+    "default_payment_method": "pm_1TB6psLwlDhojlmCJqBA2kKH",
+    "plan_name": "basic_monthly"
+  },
+  "requestBody": null
+}

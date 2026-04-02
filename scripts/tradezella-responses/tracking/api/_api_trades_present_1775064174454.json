@@ -1,0 +1,9 @@
+{
+  "url": "https://api.tradezella.com/api/trades/present",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "trades_present": true
+  },
+  "requestBody": null
+}

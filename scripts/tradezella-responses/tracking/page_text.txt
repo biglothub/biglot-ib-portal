@@ -1,0 +1,255 @@
+1
+Add Trade
+Dashboard
+Day View
+Trade View
+Notebook
+Reports
+Strategies
+Trade Replay
+Pro
+Progress Tracker
+Resources
+
+Dashboard
+
+$
+Filters
+
+Date range
+
+All accounts
+​
+
+Last import: Apr 01, 2026 10:37 PM
+Resync
+
+Start my day
+
+Net P&L
+
+15
+
+$0.32
+
+Trade win %
+
+26.67%
+4
+0
+11
+
+Profit factor
+
+1.02
+
+Day win %
+
+100%
+1
+0
+0
+
+Avg win/loss trade
+
+2.81
+
+$3.85
+
+-$1.37
+
+Zella score
+
+Your Zella Score
+
+58.7
+
+0
+20
+40
+60
+80
+100
+Progress tracker
+Explore
+Sun
+Mon
+Tue
+Wed
+Thu
+Fri
+Sat
+Feb
+Mar
+
+Less
+
+More
+
+Today’s score
+
+2/5
+
+Daily checklist
+Daily net cumulative P&L
+Net daily P&L
+Recent trades
+Open positions
+No Open Positions to show here
+
+​
+This month
+
+Monthly stats:
+
+$0.32
+1 day
+Sun
+	
+Mon
+	
+Tue
+	
+Wed
+	
+Thu
+	
+Fri
+	
+Sat
+
+
+	
+	
+	
+1
+
+$0.32
+
+15 trades
+
+26.67%
+	
+2
+
+	
+3
+
+	
+4
+
+
+
+5
+
+	
+6
+
+	
+7
+
+	
+8
+
+	
+9
+
+	
+10
+
+	
+11
+
+
+
+12
+
+	
+13
+
+	
+14
+
+	
+15
+
+	
+16
+
+	
+17
+
+	
+18
+
+
+
+19
+
+	
+20
+
+	
+21
+
+	
+22
+
+	
+23
+
+	
+24
+
+	
+25
+
+
+
+26
+
+	
+27
+
+	
+28
+
+	
+29
+
+	
+30
+
+	
+	
+
+Week 1
+
+$0.32
+1 day
+
+Week 2
+
+$0
+0 days
+
+Week 3
+
+$0
+0 days
+
+Week 4
+
+$0
+0 days
+
+Week 5
+
+$0
+0 days
+Account balance
+Drawdown
+No drawdown data to show here
+
+Trade time performance
+Trade duration performance

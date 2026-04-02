@@ -1,0 +1,9 @@
+{
+  "url": "https://api.tradezella.com/api/trades/all_symbols",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    "XAUUSD"
+  ],
+  "requestBody": null
+}

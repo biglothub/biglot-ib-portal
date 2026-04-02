@@ -1,0 +1,21 @@
+{
+  "url": "https://api.tradezella.com/api/filters/account_balance_datum?profits_type=net_profits&match_all_playbooks=false&number_format=currency",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "result": [
+      {
+        "2026-04-01": 1000.32
+      }
+    ],
+    "balances": [
+      {
+        "2026-04-01": 1000
+      }
+    ],
+    "labels": [
+      "2026-04-01"
+    ]
+  },
+  "requestBody": null
+}

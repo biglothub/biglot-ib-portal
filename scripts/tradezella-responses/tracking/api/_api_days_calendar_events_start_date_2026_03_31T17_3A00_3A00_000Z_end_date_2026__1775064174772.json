@@ -1,0 +1,31 @@
+{
+  "url": "https://api.tradezella.com/api/days/calendar_events?start_date=2026-03-31T17%3A00%3A00.000Z&end_date=2026-04-30T17%3A00%3A00.000Z&number_format=currency&match_all_playbooks=false",
+  "method": "GET",
+  "status": 200,
+  "body": [
+    {
+      "id": [
+        null,
+        null
+      ],
+      "allDay": true,
+      "start": "2026-04-01",
+      "rendering": "background",
+      "profit": "0.32",
+      "percentage": "0.32",
+      "url": "trades/",
+      "total_trades": 15,
+      "is_breakeven": false,
+      "has_notes": false,
+      "ticks": "0.0",
+      "pips": "32.0",
+      "points": "0.0",
+      "net_roi": "0.01",
+      "breakeven_type": "price",
+      "r_value": "3.25264266",
+      "win_rate": "26.67",
+      "week_number": 1
+    }
+  ],
+  "requestBody": null
+}

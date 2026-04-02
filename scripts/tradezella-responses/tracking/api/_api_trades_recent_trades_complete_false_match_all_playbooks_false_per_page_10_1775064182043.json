@@ -1,0 +1,13 @@
+{
+  "url": "https://api.tradezella.com/api/trades/recent_trades?complete=false&match_all_playbooks=false&per_page=10",
+  "method": "GET",
+  "status": 200,
+  "body": {
+    "trades": [],
+    "page_count": 1,
+    "item_count": 0,
+    "from": 0,
+    "to": 0
+  },
+  "requestBody": null
+}
