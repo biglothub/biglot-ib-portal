@@ -59,12 +59,12 @@ const dateTimeFormatter = new Intl.DateTimeFormat('th-TH', {
 });
 
 export function formatCurrency(value: number | null | undefined, decimals = 2): string {
-	if (value == null) return '-';
+	if (value == null || !isFinite(value)) return '-';
 	return getCurrencyFormatter(decimals).format(value);
 }
 
 export function formatNumber(value: number | null | undefined, decimals = 2): string {
-	if (value == null) return '-';
+	if (value == null || !isFinite(value)) return '-';
 	return getNumberFormatter(decimals).format(value);
 }
 
@@ -115,10 +115,11 @@ export function formatPnl(
 	unit: import('./stores/displayUnit').DisplayUnit,
 	balance?: number | null
 ): string {
-	if (value == null) return '-';
+	if (value == null || !isFinite(value)) return '-';
 	if (unit === 'pct') {
-		if (!balance) return formatCurrency(value);
+		if (!balance || balance === 0) return formatCurrency(value);
 		const pct = (value / balance) * 100;
+		if (!isFinite(pct)) return '-';
 		return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
 	}
 	if (unit === 'pips') {
