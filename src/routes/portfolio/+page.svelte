@@ -53,6 +53,8 @@
 	let startMyDayOpen = $state(false);
 	let tradesTab = $state<'recent' | 'open'>('recent');
 	let aiCoachExpanded = $state(false);
+	let settingsButtonEl = $state<HTMLButtonElement | null>(null);
+	let settingsPanelEl = $state<HTMLDivElement | null>(null);
 
 	// Row visibility toggle (Fix 1)
 	let rowVisibility = $state<Record<string, boolean>>({
@@ -115,6 +117,38 @@
 			localStorage.setItem('dashboard-rows', JSON.stringify(rowVisibility));
 		}
 	}
+
+	function closeSettingsPopover() {
+		settingsOpen = false;
+		settingsButtonEl?.focus();
+	}
+
+	$effect(() => {
+		if (!settingsOpen) return;
+
+		requestAnimationFrame(() => settingsPanelEl?.focus());
+
+		function handleDocumentPointerDown(e: MouseEvent) {
+			const target = e.target as Node | null;
+			if (!target) return;
+			if (settingsPanelEl?.contains(target) || settingsButtonEl?.contains(target)) return;
+			settingsOpen = false;
+		}
+
+		function handleDocumentKeydown(e: KeyboardEvent) {
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				closeSettingsPopover();
+			}
+		}
+
+		document.addEventListener('mousedown', handleDocumentPointerDown);
+		document.addEventListener('keydown', handleDocumentKeydown);
+		return () => {
+			document.removeEventListener('mousedown', handleDocumentPointerDown);
+			document.removeEventListener('keydown', handleDocumentKeydown);
+		};
+	});
 
 	const rowOptions: [string, string][] = [
 		['kpis', 'KPI Cards'],
@@ -209,21 +243,27 @@
 				<div class="flex items-center gap-2">
 					<!-- Settings toggle -->
 					<div class="relative">
-						<button onclick={() => settingsOpen = !settingsOpen}
+						<button
+							bind:this={settingsButtonEl}
+							onclick={() => settingsOpen = !settingsOpen}
 							class="p-1.5 rounded text-gray-400 hover:text-white hover:bg-dark-hover transition-colors focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:outline-none"
-							aria-label="ตั้งค่าแดชบอร์ด">
+							aria-label="ตั้งค่าแดชบอร์ด"
+							aria-expanded={settingsOpen}
+							aria-controls="dashboard-settings-popover"
+						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
 							</svg>
 						</button>
 						{#if settingsOpen}
-							<div class="fixed inset-0 z-40" role="button" tabindex="-1"
-								onclick={() => settingsOpen = false}
-								onkeydown={(e) => { if (e.key === 'Escape') settingsOpen = false; }}></div>
-							<div class="absolute right-0 top-8 z-50 w-56 bg-dark-surface border border-dark-border rounded-xl p-3 shadow-xl"
-								role="dialog" aria-label="Dashboard settings"
-								onkeydown={(e) => { if (e.key === 'Escape') settingsOpen = false; }}>
+							<div
+								bind:this={settingsPanelEl}
+								id="dashboard-settings-popover"
+								class="absolute right-0 top-8 z-50 w-56 bg-dark-surface border border-dark-border rounded-xl p-3 shadow-xl focus:outline-none"
+								aria-label="Dashboard settings"
+								tabindex="-1"
+							>
 								<p class="text-[10px] uppercase tracking-wider text-gray-500 mb-2">แสดง/ซ่อน Section</p>
 								{#each rowOptions as [key, label] (key)}
 									<label class="flex items-center justify-between py-1.5 text-xs text-gray-300 cursor-pointer hover:text-white">

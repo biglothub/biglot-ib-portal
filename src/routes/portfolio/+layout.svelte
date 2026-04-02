@@ -16,7 +16,7 @@
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
 	import ShortcutsHelp from '$lib/components/shared/ShortcutsHelp.svelte';
-	import { registerShortcuts, unregisterShortcuts, initShortcuts } from '$lib/stores/shortcuts.svelte';
+	import { registerShortcuts, unregisterShortcuts, initShortcuts, pushOverlay, popOverlay } from '$lib/stores/shortcuts.svelte';
 	import CommandPalette from '$lib/components/shared/CommandPalette.svelte';
 	import NetworkStatus from '$lib/components/shared/NetworkStatus.svelte';
 	import UndoToast from '$lib/components/shared/UndoToast.svelte';
@@ -28,22 +28,40 @@
 	let shortcutsOpen = $state(false);
 	let commandPaletteRef = $state<CommandPalette | null>(null);
 
+	function areTopPanelsClosed() {
+		return !chatOpen && !guideOpen && !shortcutsOpen;
+	}
+
+	function openShortcutsHelp() {
+		shortcutsOpen = true;
+	}
+
+	function openSearch() {
+		commandPaletteRef?.openPalette();
+	}
+
+	function closeTopPanels() {
+		chatOpen = false;
+		shortcutsOpen = false;
+		guideOpen = false;
+	}
+
 	// Initialize keyboard shortcut listener
 	// Register shortcuts once — actions read tabHref at invocation time, not registration time
 	$effect(() => {
 		const destroy = initShortcuts();
 
 		const navShortcuts = [
-			{ id: 'nav-overview', keys: ['g+o'], description: 'ภาพรวม', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio'))) },
-			{ id: 'nav-trades', keys: ['g+t'], description: 'เทรด', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/trades'))) },
-			{ id: 'nav-journal', keys: ['g+j'], description: 'บันทึก', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/journal'))) },
-			{ id: 'nav-analytics', keys: ['g+a'], description: 'รายงาน', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/analytics'))) },
-			{ id: 'nav-notebook', keys: ['g+n'], description: 'สมุดโน้ต', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/notebook'))) },
-			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/playbook'))) },
-			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/progress'))) },
-			{ id: 'help-modal', keys: ['?'], description: 'แสดง Keyboard Shortcuts', group: 'อื่นๆ', action: () => (shortcutsOpen = true) },
-			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false;
-			} },
+			{ id: 'nav-overview', keys: ['g+o'], description: 'ภาพรวม', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio'))) },
+			{ id: 'nav-trades', keys: ['g+t'], description: 'เทรด', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/trades'))) },
+			{ id: 'nav-journal', keys: ['g+j'], description: 'บันทึก', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/journal'))) },
+			{ id: 'nav-analytics', keys: ['g+a'], description: 'รายงาน', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/analytics'))) },
+			{ id: 'nav-notebook', keys: ['g+n'], description: 'สมุดโน้ต', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/notebook'))) },
+			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/playbook'))) },
+			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/progress'))) },
+			{ id: 'open-search', keys: ['/', 'Meta+k', 'Control+k'], description: 'ค้นหา', group: 'การค้นหา', enabled: () => !!account && areTopPanelsClosed(), action: openSearch },
+			{ id: 'help-modal', keys: ['?'], description: 'แสดง Keyboard Shortcuts', group: 'อื่นๆ', enabled: areTopPanelsClosed, action: openShortcutsHelp },
+			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', allowWhenOverlayOpen: true, action: closeTopPanels },
 		];
 
 		// Untrack to prevent reading shortcuts $state from becoming a dependency
@@ -54,6 +72,24 @@
 			untrack(() => unregisterShortcuts(navShortcuts.map(s => s.id)));
 			destroy();
 		};
+	});
+
+	$effect(() => {
+		if (chatOpen) pushOverlay('portfolio-chat', { blocksShortcuts: true });
+		else popOverlay('portfolio-chat');
+		return () => popOverlay('portfolio-chat');
+	});
+
+	$effect(() => {
+		if (guideOpen) pushOverlay('portfolio-guide', { blocksShortcuts: true });
+		else popOverlay('portfolio-guide');
+		return () => popOverlay('portfolio-guide');
+	});
+
+	$effect(() => {
+		if (shortcutsOpen) pushOverlay('portfolio-shortcuts', { blocksShortcuts: true });
+		else popOverlay('portfolio-shortcuts');
+		return () => popOverlay('portfolio-shortcuts');
 	});
 
 	// Pull-to-refresh state

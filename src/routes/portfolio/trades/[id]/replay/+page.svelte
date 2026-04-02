@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { formatCurrency, formatNumber, formatDateTime } from '$lib/utils';
 	import type { IChartApi, ISeriesApi, SeriesMarker, Time, AreaData, WhitespaceData } from 'lightweight-charts';
 	import type { TradeChartContext, TradeChartBar } from '$lib/types';
+	import { registerShortcuts, unregisterShortcuts } from '$lib/stores/shortcuts.svelte';
 
 	const BASE_INTERVAL_MS = 400;
 	const SPEEDS = [1, 2, 5, 10] as const;
@@ -201,35 +203,6 @@
 	function closeNoteOverlay() {
 		showNoteOverlay = false;
 		noteText = '';
-	}
-
-	// Keyboard shortcuts
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && showNoteOverlay) {
-			closeNoteOverlay();
-			e.preventDefault();
-			return;
-		}
-		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-		switch (e.key) {
-			case ' ':
-				e.preventDefault();
-				isPlaying ? pause() : play();
-				break;
-			case 'ArrowRight':
-				e.preventDefault();
-				stepForward();
-				break;
-			case 'ArrowLeft':
-				e.preventDefault();
-				stepBackward();
-				break;
-			case 'r':
-			case 'R':
-				e.preventDefault();
-				reset();
-				break;
-		}
 	}
 
 	function renderFrame() {
@@ -534,9 +507,47 @@
 			if (entryLine) { mainSeries?.removePriceLine(entryLine); entryLine = null; }
 		}
 	});
-</script>
 
-<svelte:window onkeydown={handleKeydown} />
+	onMount(() => {
+		const replayShortcuts = [
+			{
+				id: 'replay-toggle-play',
+				keys: [' '],
+				description: 'เล่น/หยุด Replay',
+				group: 'การนำทาง',
+				enabled: () => !loading && !showNoteOverlay && totalBars > 1,
+				action: () => (isPlaying ? pause() : play())
+			},
+			{
+				id: 'replay-step-forward',
+				keys: ['ArrowRight'],
+				description: 'ก้าวไปข้างหน้า',
+				group: 'การนำทาง',
+				enabled: () => !loading && !showNoteOverlay,
+				action: () => stepForward()
+			},
+			{
+				id: 'replay-step-backward',
+				keys: ['ArrowLeft'],
+				description: 'ก้าวถอยหลัง',
+				group: 'การนำทาง',
+				enabled: () => !loading && !showNoteOverlay,
+				action: () => stepBackward()
+			},
+			{
+				id: 'replay-reset',
+				keys: ['r'],
+				description: 'รีเซ็ต Replay',
+				group: 'การนำทาง',
+				enabled: () => !loading && !showNoteOverlay,
+				action: () => reset()
+			}
+		];
+
+		untrack(() => registerShortcuts(replayShortcuts));
+		return () => untrack(() => unregisterShortcuts(replayShortcuts.map((shortcut) => shortcut.id)));
+	});
+</script>
 
 <div class="flex flex-col h-full min-h-[calc(100vh-8rem)]">
 	<!-- Header -->
@@ -899,12 +910,14 @@
 
 <!-- Quick note overlay -->
 {#if showNoteOverlay}
-	<!-- svelte-ignore a11y_click_outside -->
 	<div
+		use:focusTrap={{ id: 'replay-note-overlay', enabled: showNoteOverlay, initialFocus: 'textarea', lockScroll: true }}
 		class="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
 		role="dialog"
 		aria-modal="true"
 		aria-label="บันทึกโน้ต"
+		tabindex="-1"
+		onescape={closeNoteOverlay}
 	>
 		<!-- Backdrop -->
 		<button
@@ -937,7 +950,6 @@
 				placeholder="บันทึกสิ่งที่สังเกตเห็นจาก Replay..."
 				class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2.5 text-sm text-white
 					placeholder-gray-500 focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none resize-none"
-				autofocus
 			></textarea>
 
 			<div class="flex items-center justify-end gap-2 mt-3">

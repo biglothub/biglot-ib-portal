@@ -10,40 +10,164 @@ export interface ShortcutDef {
 	description: string;
 	action: () => void;
 	group: string;
+	enabled?: () => boolean;
+	allowWhenOverlayOpen?: boolean;
+}
+
+export interface OverlayRegistration {
+	id: string;
+	blocksShortcuts?: boolean;
+	lockScroll?: boolean;
 }
 
 // Reactive list of all registered shortcuts (for help modal)
 let shortcuts = $state<ShortcutDef[]>([]);
+let overlays = $state<OverlayRegistration[]>([]);
 
 // Chord state: first key of a chord sequence and when it was pressed
 let chordPrefix = $state<string | null>(null);
 let chordTimer: ReturnType<typeof setTimeout> | null = null;
 const CHORD_TIMEOUT = 500;
+const MODIFIER_PREFIX = /^(Cmd|Meta|Control|Ctrl|Alt|Shift)\+/;
 
-function isTypingContext(): boolean {
-	const el = document.activeElement;
-	if (!el) return false;
-	const tag = el.tagName.toLowerCase();
+function isBrowser(): boolean {
+	return typeof document !== 'undefined';
+}
+
+function isTypingContext(target: EventTarget | null): boolean {
+	if (!(target instanceof HTMLElement)) return false;
+	const tag = target.tagName.toLowerCase();
 	return (
 		tag === 'input' ||
 		tag === 'textarea' ||
 		tag === 'select' ||
-		(el as HTMLElement).isContentEditable
+		target.isContentEditable
 	);
 }
 
-function handleKeydown(e: KeyboardEvent) {
-	if (isTypingContext()) return;
+function isInteractiveContext(target: EventTarget | null): boolean {
+	if (!(target instanceof HTMLElement)) return false;
+	return (
+		target.matches(
+			'button, a[href], summary, input, textarea, select, [role="button"], [role="menuitem"], [role="option"], [role="tab"], [role="checkbox"], [role="radio"], [role="switch"], [tabindex]:not([tabindex="-1"])'
+		) || target.isContentEditable
+	);
+}
 
-	const key = e.key;
+function hasDomBlockingOverlay(): boolean {
+	if (!isBrowser()) return false;
+	return Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"], [aria-modal="true"]')).some(
+		(node) => node.getClientRects().length > 0
+	);
+}
+
+function resetChordState() {
+	if (chordTimer) clearTimeout(chordTimer);
+	chordTimer = null;
+	chordPrefix = null;
+}
+
+function normalizeKey(key: string): string {
+	return key.length === 1 ? key.toLowerCase() : key;
+}
+
+function eventKey(e: KeyboardEvent): string {
+	const key = normalizeKey(e.key);
+	const modifiers: string[] = [];
+	if (e.metaKey) modifiers.push('Meta');
+	if (e.ctrlKey) modifiers.push('Control');
+	if (e.altKey) modifiers.push('Alt');
+	return modifiers.length > 0 ? `${modifiers.join('+')}+${key}` : key;
+}
+
+function isChordKey(key: string): boolean {
+	return key.includes('+') && !MODIFIER_PREFIX.test(key);
+}
+
+function isShortcutEnabled(shortcut: ShortcutDef): boolean {
+	return shortcut.enabled ? shortcut.enabled() : true;
+}
+
+function activeShortcuts(overlayOpen: boolean): ShortcutDef[] {
+	return shortcuts.filter((shortcut) => {
+		if (!isShortcutEnabled(shortcut)) return false;
+		if (overlayOpen && !shortcut.allowWhenOverlayOpen) return false;
+		return true;
+	});
+}
+
+function upsertShortcuts(defs: ShortcutDef[]) {
+	const next = [...shortcuts];
+	let changed = false;
+
+	for (const def of defs) {
+		const index = next.findIndex((shortcut) => shortcut.id === def.id);
+		if (index === -1) {
+			next.push(def);
+			changed = true;
+			continue;
+		}
+
+		next[index] = def;
+		changed = true;
+	}
+
+	if (changed) shortcuts = next;
+}
+
+function hasRegisteredBlockingOverlay(): boolean {
+	return overlays.some((overlay) => overlay.blocksShortcuts !== false);
+}
+
+function removeOverlay(id: string) {
+	overlays = overlays.filter((overlay) => overlay.id !== id);
+}
+
+export interface OverlayOptions {
+	blocksShortcuts?: boolean;
+	lockScroll?: boolean;
+}
+
+export function pushOverlay(id: string, options: OverlayOptions = {}) {
+	const next: OverlayRegistration = {
+		id,
+		blocksShortcuts: options.blocksShortcuts ?? true,
+		lockScroll: options.lockScroll ?? false
+	};
+	overlays = [...overlays.filter((overlay) => overlay.id !== id), next];
+}
+
+export function popOverlay(id: string) {
+	removeOverlay(id);
+}
+
+export function hasBlockingOverlay(): boolean {
+	return hasRegisteredBlockingOverlay() || hasDomBlockingOverlay();
+}
+
+function handleKeydown(e: KeyboardEvent) {
+	if (e.defaultPrevented) return;
+	if (isTypingContext(e.target) || isInteractiveContext(e.target)) {
+		resetChordState();
+		return;
+	}
+
+	const overlayOpen = hasBlockingOverlay();
+	const candidates = activeShortcuts(overlayOpen);
+
+	if (candidates.length === 0) {
+		resetChordState();
+		return;
+	}
+
+	const key = eventKey(e);
 
 	// If we have a chord prefix, try to complete it
 	if (chordPrefix !== null) {
 		const chord = `${chordPrefix}+${key}`;
-		if (chordTimer) clearTimeout(chordTimer);
-		chordPrefix = null;
+		resetChordState();
 
-		const match = shortcuts.find((s) => s.keys.includes(chord));
+		const match = candidates.find((s) => s.keys.includes(chord));
 		if (match) {
 			e.preventDefault();
 			match.action();
@@ -53,7 +177,7 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	// Check for single-key shortcuts
-	const singleMatch = shortcuts.find((s) => s.keys.includes(key) && s.keys.every((k) => !k.includes('+')));
+	const singleMatch = candidates.find((s) => s.keys.includes(key) && s.keys.every((k) => !isChordKey(k)));
 	if (singleMatch) {
 		e.preventDefault();
 		singleMatch.action();
@@ -61,7 +185,7 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	// Check if key is a chord prefix (i.e., any shortcut starts with this key)
-	const isPrefix = shortcuts.some((s) => s.keys.some((k) => k.startsWith(`${key}+`)));
+	const isPrefix = candidates.some((s) => s.keys.some((k) => isChordKey(k) && k.startsWith(`${key}+`)));
 	if (isPrefix) {
 		chordPrefix = key;
 		if (chordTimer) clearTimeout(chordTimer);
@@ -84,26 +208,17 @@ export function initShortcuts() {
 		listenerCount--;
 		if (listenerCount === 0) {
 			document.removeEventListener('keydown', handleKeydown);
-			if (chordTimer) clearTimeout(chordTimer);
-			chordPrefix = null;
+			resetChordState();
 		}
 	};
 }
 
 export function registerShortcut(shortcut: ShortcutDef) {
-	// Avoid duplicates — mutate in place to avoid reactive cascade
-	if (!shortcuts.find((s) => s.id === shortcut.id)) {
-		shortcuts.push(shortcut);
-	}
+	upsertShortcuts([shortcut]);
 }
 
 export function registerShortcuts(defs: ShortcutDef[]) {
-	// Batch register — single reactive update instead of N
-	const existing = new Set(shortcuts.map(s => s.id));
-	const toAdd = defs.filter(d => !existing.has(d.id));
-	if (toAdd.length > 0) {
-		shortcuts = [...shortcuts, ...toAdd];
-	}
+	upsertShortcuts(defs);
 }
 
 export function unregisterShortcuts(ids: string[]) {
@@ -119,4 +234,3 @@ export function unregisterShortcut(id: string) {
 export function getShortcuts(): ShortcutDef[] {
 	return shortcuts;
 }
-

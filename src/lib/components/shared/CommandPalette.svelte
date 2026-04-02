@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { focusTrap } from '$lib/actions/focusTrap';
 
 	let { accountId }: { accountId: string } = $props();
 
@@ -28,15 +29,22 @@
 	let results = $state<SearchResponse | null>(null);
 	let highlightedIndex = $state(-1);
 	let inputEl = $state<HTMLInputElement | null>(null);
-	let dialogEl = $state<HTMLDivElement | null>(null);
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+	const OVERLAY_ID = 'command-palette';
 
 	// Expose open method for parent use
 	export function openPalette() {
 		open = true;
 		recentSearches = loadRecent();
 		highlightedIndex = -1;
-		setTimeout(() => inputEl?.focus(), 10);
+	}
+
+	export function togglePalette() {
+		if (open) {
+			closePalette();
+			return;
+		}
+		openPalette();
 	}
 
 	// Flatten all results for keyboard navigation
@@ -173,74 +181,8 @@
 		} else if (e.key === 'Enter' && highlightedIndex >= 0 && flatResults[highlightedIndex]) {
 			e.preventDefault();
 			navigateTo(flatResults[highlightedIndex]);
-		} else if (e.key === 'Escape') {
-			e.preventDefault();
-			closePalette();
-		} else if (e.key === 'Tab' && dialogEl) {
-			// Focus trap
-			const focusable = dialogEl.querySelectorAll<HTMLElement>(
-				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-			);
-			const first = focusable[0];
-			const last = focusable[focusable.length - 1];
-			if (e.shiftKey) {
-				if (document.activeElement === first) {
-					e.preventDefault();
-					last?.focus();
-				}
-			} else {
-				if (document.activeElement === last) {
-					e.preventDefault();
-					first?.focus();
-				}
-			}
 		}
 	}
-
-	$effect(() => {
-		function handleGlobalKeydown(e: KeyboardEvent) {
-			// Cmd+K or Ctrl+K
-			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-				e.preventDefault();
-				if (open) {
-					closePalette();
-				} else {
-					openPalette();
-				}
-				return;
-			}
-
-			// '/' opens palette when not in an editable element
-			if (e.key === '/' && !open) {
-				const target = e.target as HTMLElement;
-				const tag = target.tagName.toLowerCase();
-				const isEditable =
-					tag === 'input' ||
-					tag === 'textarea' ||
-					target.isContentEditable ||
-					tag === 'select';
-				if (!isEditable) {
-					e.preventDefault();
-					openPalette();
-				}
-			}
-		}
-
-		window.addEventListener('keydown', handleGlobalKeydown);
-		return () => window.removeEventListener('keydown', handleGlobalKeydown);
-	});
-
-	// Prevent body scroll when palette is open
-	$effect(() => {
-		if (open) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = '';
-		}
-		return () => {
-			document.body.style.overflow = '';
-		};
-	});
 
 	const typeIconPaths: Record<string, string> = {
 		trade: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
@@ -268,22 +210,25 @@
 </script>
 
 {#if open}
-	<!-- Backdrop -->
-	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-	<div
-		class="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-[10vh] px-4"
-		onclick={(e) => { if (e.target === e.currentTarget) closePalette(); }}
-		aria-hidden="true"
-	>
+	<div class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] px-4">
+		<button
+			type="button"
+			class="absolute inset-0 bg-black/50"
+			onclick={closePalette}
+			tabindex="-1"
+			aria-hidden="true"
+		></button>
+
 		<!-- Modal -->
 		<div
-			bind:this={dialogEl}
+			use:focusTrap={{ id: OVERLAY_ID, enabled: open, initialFocus: 'input[type="search"]', lockScroll: true }}
 			role="dialog"
 			aria-modal="true"
 			aria-label="ค้นหาทั่วไป"
 			tabindex="-1"
-			class="relative w-full max-w-2xl bg-dark-surface border border-dark-border rounded-xl shadow-2xl overflow-hidden"
+			class="relative w-full max-w-2xl bg-dark-surface border border-dark-border rounded-xl shadow-2xl overflow-hidden focus:outline-none"
 			onkeydown={handleModalKeydown}
+			onescape={closePalette}
 		>
 			<!-- Search input row -->
 			<div class="flex items-center gap-3 px-4 py-3 border-b border-dark-border">
