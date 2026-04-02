@@ -178,9 +178,10 @@ export function evaluateInsightsForSubset(
  * Build day summaries from trades (grouped by close_time date)
  */
 function buildDaySummaries(trades: Trade[]): DaySummary[] {
+	const THAILAND_OFFSET_MS = 7 * 3600000;
 	const dayMap = new Map<string, Trade[]>();
 	for (const t of trades) {
-		const date = t.close_time.split('T')[0];
+		const date = new Date(new Date(t.close_time).getTime() + THAILAND_OFFSET_MS).toISOString().split('T')[0];
 		const arr = dayMap.get(date) || [];
 		arr.push(t);
 		dayMap.set(date, arr);
@@ -326,11 +327,11 @@ export function calculateHealthScore(kpi: {
 
 	const nWinRate = Math.min(Math.max(kpi.tradeWinRate || 0, 0), 100);
 	const nPF = Math.min(((kpi.profitFactor || 0) / 3) * 100, 100);
-	const wlRatio = (kpi.avgLoss || 0) !== 0
-		? Math.abs((kpi.avgWin || 0) / (kpi.avgLoss || 1))
-		: 0;
+	const wlRatio = kpi.avgLoss && kpi.avgLoss > 0
+		? Math.abs((kpi.avgWin || 0) / kpi.avgLoss)
+		: kpi.avgWin && kpi.avgWin > 0 ? 3 : 0;
 	const nRatio = Math.min((wlRatio / 3) * 100, 100);
-	const nRecovery = Math.min(((kpi.recoveryFactor || 0) / 5) * 100, 100);
+	const nRecovery = Math.min(((kpi.recoveryFactor || 0) / 10) * 100, 100);
 	const nDrawdown = Math.max(0, Math.min(100, 100 - (kpi.maxDrawdownPct || 0) * 2));
 	const nConsistency = Math.min(Math.max((kpi.consistency || 0) * 100, 0), 100);
 

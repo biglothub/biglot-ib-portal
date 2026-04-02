@@ -48,17 +48,18 @@
 		const now = Math.floor(Date.now() / 1000);
 		const cutoff = now - days * 86400;
 
-		if (days > 30 || !equitySnapshots || equitySnapshots.length === 0) {
+		if (!equitySnapshots || equitySnapshots.length === 0) {
 			if (equityCurve && equityCurve.length > 0) {
+				const todayMidnightUTC = Math.floor(Date.now() / 1000 / 86400) * 86400;
 				const dailyData = equityCurve.map((eq, i) => ({
-					time: Math.floor(Date.now() / 1000) - (equityCurve.length - i) * 86400,
+					time: todayMidnightUTC - (equityCurve.length - 1 - i) * 86400,
 					equity: eq,
 					balance: eq,
 					floatingPL: 0
 				}));
 				return dailyData.filter(d => d.time >= cutoff);
 			}
-			if (!equitySnapshots || equitySnapshots.length === 0) return [];
+			return [];
 		}
 
 		return equitySnapshots

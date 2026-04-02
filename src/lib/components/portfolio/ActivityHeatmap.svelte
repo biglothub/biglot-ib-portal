@@ -30,9 +30,10 @@
 		const todayDate = new Date();
 		todayDate.setHours(0, 0, 0, 0);
 
-		const startDate = new Date(todayDate);
-		startDate.setDate(startDate.getDate() - 14 * 7 + 1);
-		startDate.setDate(startDate.getDate() - startDate.getDay());
+		const endDate = new Date(todayDate);
+		endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // snap to Saturday of current week
+		const startDate = new Date(endDate);
+		startDate.setDate(startDate.getDate() - (14 * 7 - 1));
 
 		const map = new Map(dailyHistory.map((d) => [d.date, d]));
 

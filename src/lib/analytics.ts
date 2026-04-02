@@ -54,8 +54,8 @@ export function calcSortinoRatio(dailyReturns: number[], riskFreeRate = 0): numb
 export function calcCalmarRatio(dailyReturns: number[], maxDrawdownPct: number): number {
 	if (maxDrawdownPct === 0 || dailyReturns.length < 2) return 0;
 	const totalReturn = dailyReturns.reduce((a, b) => a + b, 0);
-	const annualizedReturn = (totalReturn / dailyReturns.length) * 252 * 100;
-	return annualizedReturn / maxDrawdownPct;
+	const annualizedReturnPct = (totalReturn / dailyReturns.length) * 252 * 100;
+	return annualizedReturnPct / Math.abs(maxDrawdownPct);
 }
 
 export function calcDayOfWeekPerformance(trades: { closeTime: string; profit: number }[]): AnalyticsResult['dayOfWeekPnL'] {

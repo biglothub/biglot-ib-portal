@@ -77,7 +77,7 @@
 			<span class="text-[10px] font-medium text-red-400">{maxDrawdownPct.toFixed(1)}%</span>
 		</div>
 
-		<svg viewBox="0 0 {W} {H}" class="w-full" preserveAspectRatio="none" role="img" aria-label="กราฟ Drawdown">
+		<svg viewBox="0 0 {W} {H}" class="w-full" preserveAspectRatio="xMidYMid meet" role="img" aria-label="กราฟ Drawdown">
 			<!-- Y grid lines -->
 			{#each yGridLines as v}
 				<line

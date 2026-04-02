@@ -69,7 +69,7 @@ export function formatNumber(value: number | null | undefined, decimals = 2): st
 }
 
 export function formatPercent(value: number | null | undefined, decimals = 1): string {
-	if (value == null) return '-';
+	if (value == null || !isFinite(value)) return '-';
 	return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
 }
 
@@ -123,8 +123,8 @@ export function formatPnl(
 		return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
 	}
 	if (unit === 'pips') {
-		const pips = value * 10;
-		return `${pips >= 0 ? '+' : ''}${pips.toFixed(1)} p`;
+		// Rough approximation – actual pips depends on symbol/lot size
+		return `${(value * 10).toFixed(1)}p`;
 	}
 	return formatCurrency(value);
 }

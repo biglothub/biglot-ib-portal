@@ -59,6 +59,23 @@
 
 		areaSeries.setData(chartData);
 		chart.timeScale().fitContent();
+
+		const lastVal = chartData[chartData.length - 1]?.value ?? 0;
+		if (lastVal < 0) {
+			areaSeries.applyOptions({
+				lineColor: '#ef4444',
+				topColor: 'rgba(239, 68, 68, 0.3)',
+				bottomColor: 'rgba(239, 68, 68, 0.02)',
+				crosshairMarkerBackgroundColor: '#ef4444'
+			});
+		} else {
+			areaSeries.applyOptions({
+				lineColor: '#C9A84C',
+				topColor: 'rgba(201, 168, 76, 0.3)',
+				bottomColor: 'rgba(201, 168, 76, 0.02)',
+				crosshairMarkerBackgroundColor: '#C9A84C'
+			});
+		}
 	}
 
 	onMount(() => {

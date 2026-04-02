@@ -158,7 +158,7 @@
 				style="background: linear-gradient(to right, #ef4444 0%, #f59e0b 40%, #22c55e 70%, #16a34a 100%)">
 			</div>
 			<div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white border-2 border-dark-bg shadow-md transition-all duration-700"
-				style="left: {score}%">
+				style="left: {Math.min(Math.max(score, 2), 98)}%">
 			</div>
 		</div>
 		<div class="flex justify-between text-[9px] text-gray-500 mt-0.5">

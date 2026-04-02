@@ -52,6 +52,7 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 			const { data: accounts } = await supabase
 				.from('client_accounts')
 				.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
+				.eq('user_id', effectiveUserId)
 				.eq('status', 'approved')
 				.order('created_at', { ascending: true });
 			allAccounts = (accounts || []) as AccountRow[];

@@ -172,7 +172,8 @@ export function getTradePlaybookId(trade: Trade): string | null {
 
 export function getTradeSession(closeTime: string | null | undefined): 'asian' | 'london' | 'newyork' {
 	if (!closeTime) return 'newyork';
-	const hour = new Date(closeTime).getUTCHours();
+	const bangkokTime = new Date(new Date(closeTime).getTime() + THAILAND_OFFSET_MS);
+	const hour = bangkokTime.getUTCHours();
 	if (hour >= 0 && hour < 8) return 'asian';
 	if (hour >= 8 && hour < 15) return 'london';
 	return 'newyork';
@@ -230,14 +231,14 @@ export function applyPortfolioFilters<T extends Trade>(
 		if (filters.pipsMax != null && (trade.pips == null || Number(trade.pips) > filters.pipsMax)) return false;
 		// Review score filters
 		const review = getTradeReview(trade);
-		if (filters.qualityScoreMin != null && (!review?.setup_quality_score || review.setup_quality_score < filters.qualityScoreMin)) return false;
-		if (filters.qualityScoreMax != null && (!review?.setup_quality_score || review.setup_quality_score > filters.qualityScoreMax)) return false;
-		if (filters.disciplineScoreMin != null && (!review?.discipline_score || review.discipline_score < filters.disciplineScoreMin)) return false;
-		if (filters.disciplineScoreMax != null && (!review?.discipline_score || review.discipline_score > filters.disciplineScoreMax)) return false;
-		if (filters.executionScoreMin != null && (!review?.execution_score || review.execution_score < filters.executionScoreMin)) return false;
-		if (filters.executionScoreMax != null && (!review?.execution_score || review.execution_score > filters.executionScoreMax)) return false;
-		if (filters.confidenceMin != null && (!review?.confidence_at_entry || review.confidence_at_entry < filters.confidenceMin)) return false;
-		if (filters.confidenceMax != null && (!review?.confidence_at_entry || review.confidence_at_entry > filters.confidenceMax)) return false;
+		if (filters.qualityScoreMin != null && (review?.setup_quality_score == null || review.setup_quality_score < filters.qualityScoreMin)) return false;
+		if (filters.qualityScoreMax != null && (review?.setup_quality_score == null || review.setup_quality_score > filters.qualityScoreMax)) return false;
+		if (filters.disciplineScoreMin != null && (review?.discipline_score == null || review.discipline_score < filters.disciplineScoreMin)) return false;
+		if (filters.disciplineScoreMax != null && (review?.discipline_score == null || review.discipline_score > filters.disciplineScoreMax)) return false;
+		if (filters.executionScoreMin != null && (review?.execution_score == null || review.execution_score < filters.executionScoreMin)) return false;
+		if (filters.executionScoreMax != null && (review?.execution_score == null || review.execution_score > filters.executionScoreMax)) return false;
+		if (filters.confidenceMin != null && (review?.confidence_at_entry == null || review.confidence_at_entry < filters.confidenceMin)) return false;
+		if (filters.confidenceMax != null && (review?.confidence_at_entry == null || review.confidence_at_entry > filters.confidenceMax)) return false;
 		// Boolean/enum filters
 		if (filters.followedPlan === 'yes' && review?.followed_plan !== true) return false;
 		if (filters.followedPlan === 'no' && review?.followed_plan !== false) return false;
@@ -245,7 +246,7 @@ export function applyPortfolioFilters<T extends Trade>(
 		if (filters.hasBrokenRules === 'no' && review?.broken_rules && review.broken_rules.length > 0) return false;
 		// Day of week filter
 		if (filters.dayOfWeek.length > 0) {
-			const closeDay = trade.close_time ? new Date(trade.close_time).getDay() : -1;
+			const closeDay = trade.close_time ? new Date(new Date(trade.close_time).getTime() + THAILAND_OFFSET_MS).getDay() : -1;
 			if (!filters.dayOfWeek.includes(closeDay)) return false;
 		}
 		if (filters.from) {

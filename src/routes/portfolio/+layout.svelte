@@ -42,7 +42,8 @@
 			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/playbook'))) },
 			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', action: () => goto(untrack(() => tabHref('/portfolio/progress'))) },
 			{ id: 'help-modal', keys: ['?'], description: 'แสดง Keyboard Shortcuts', group: 'อื่นๆ', action: () => (shortcutsOpen = true) },
-			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false; } },
+			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false;
+			} },
 		];
 
 		// Untrack to prevent reading shortcuts $state from becoming a dependency
@@ -344,6 +345,24 @@
 			</button>
 		</div>
 	</div>
+
+	<!-- Desktop tab navigation -->
+	<nav class="hidden md:block -mx-1" aria-label="Portfolio navigation">
+		<div class="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-dark-border">
+			{#each tabs as tab (tab.base)}
+				<a
+					href={tab.href}
+					class="shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+						{isActive(tab.base)
+							? 'bg-brand-primary/15 text-brand-primary'
+							: 'text-gray-400 hover:text-white hover:bg-dark-border/30'}"
+					aria-current={isActive(tab.base) ? 'page' : undefined}
+				>
+					{tab.label}
+				</a>
+			{/each}
+		</div>
+	</nav>
 
 	{#if $navigating && $navigating.to?.url.pathname.startsWith('/portfolio')}
 		<PortfolioSkeleton />

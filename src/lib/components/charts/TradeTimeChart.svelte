@@ -12,7 +12,9 @@
 		.filter(t => t.close_time && t.profit != null)
 		.map(t => {
 			const d = new Date(t.close_time);
-			const hour = d.getHours() + d.getMinutes() / 60;
+			const bangkokMs = d.getTime() + 7 * 3600000;
+			const bangkokDate = new Date(bangkokMs);
+			const hour = bangkokDate.getUTCHours() + bangkokDate.getUTCMinutes() / 60;
 			return { hour, pnl: t.profit, symbol: t.symbol, time: d.toTimeString().slice(0, 5), win: t.profit > 0 };
 		})
 	);

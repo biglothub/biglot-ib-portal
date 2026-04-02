@@ -9,16 +9,18 @@ import {
 	buildReviewSummary
 } from '$lib/server/portfolio';
 import { calculateHealthScore } from '$lib/server/insights/engine';
+import { createSupabaseServiceClient } from '$lib/server/supabase';
 import type { DailyJournal, DailyStats, Playbook, Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
-const TODAY = () => new Date().toISOString().split('T')[0];
+const THAILAND_OFFSET_MS = 7 * 3600000;
+const TODAY = () => new Date(Date.now() + THAILAND_OFFSET_MS).toISOString().split('T')[0];
 
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
-	const { account, tags = [], playbooks = [] } = parentData;
+	const { account, tags = [], playbooks = [], isAdminView } = parentData;
 	const baseData = locals.portfolioBaseData;
-	const supabase = locals.supabase;
+	const supabase = isAdminView ? createSupabaseServiceClient() : locals.supabase;
 
 	if (!account || !locals.profile || !baseData) {
 		return {

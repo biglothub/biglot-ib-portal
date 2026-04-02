@@ -342,7 +342,8 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 	// Day Win Rate
 	const profitableDays = dailyHistory.filter(d => d.profit > 0).length;
 	const losingDays = dailyHistory.filter(d => d.profit < 0).length;
-	const totalTradingDays = profitableDays + losingDays;
+	const breakEvenDays = dailyHistory.filter(d => d.profit === 0).length;
+	const totalTradingDays = profitableDays + losingDays + breakEvenDays;
 	const dayWinRate = totalTradingDays > 0 ? (profitableDays / totalTradingDays) * 100 : 0;
 
 	// Cumulative P&L series (for line chart)
@@ -362,8 +363,8 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 		const dd = peak - runningPnl;
 		if (dd > maxDrawdown) maxDrawdown = dd;
 	}
-	const recoveryFactor = maxDrawdown > 0 ? netPnl / maxDrawdown : netPnl > 0 ? 5 : 0;
-	const maxDrawdownPct = peak > 0 ? (maxDrawdown / peak) * 100 : 0;
+	const recoveryFactor = maxDrawdown > 0 ? netPnl / maxDrawdown : netPnl > 0 ? MAX_RATIO : 0;
+	const maxDrawdownPct = peak > 0 ? (maxDrawdown / peak) * 100 : (maxDrawdown > 0 ? 100 : 0);
 
 	// Consistency: 1 - (StdDev / Mean) of daily P&L, clamped to 0-1
 	const dailyProfits = dailyHistory.map(d => d.profit);
@@ -372,8 +373,15 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 		const mean = dailyProfits.reduce((a, b) => a + b, 0) / dailyProfits.length;
 		const variance = dailyProfits.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / dailyProfits.length;
 		const stdDev = Math.sqrt(variance);
-		const cv = Math.abs(mean) > 0 ? stdDev / Math.abs(mean) : 0;
-		consistency = Math.max(0, Math.min(1, 1 - cv / 3)); // normalize: cv=0 → 1, cv=3+ → 0
+		const range = Math.max(...dailyProfits) - Math.min(...dailyProfits);
+		if (range === 0) {
+			consistency = 1;
+		} else if (Math.abs(mean) > stdDev * 0.1) {
+			const cv = stdDev / Math.abs(mean);
+			consistency = Math.max(0, Math.min(1, 1 - cv / 3));
+		} else {
+			consistency = Math.max(0, Math.min(1, 1 - (stdDev / range)));
+		}
 	}
 
 	return {
@@ -513,15 +521,15 @@ export function buildProgressSnapshot(
 	const reviewSummary = buildReviewSummary(trades);
 	const dailyHistory = buildDailyHistory(trades);
 	const journalSummary = buildJournalCompletionSummary(journals, dailyHistory);
-	const latestStats = dailyStats[dailyStats.length - 1] || null;
 	const ruleMetrics = buildRuleBreakMetrics(trades);
+	const kpi = buildKpiMetrics(trades, dailyHistory);
 
 	const metrics: Record<string, number> = {
 		review_completion: reviewSummary.reviewRate,
 		journal_streak: journalSummary.currentStreak,
 		max_rule_breaks: ruleMetrics.totalRuleBreaks,
-		profit_factor: Number(latestStats?.profit_factor || 0),
-		win_rate: Number(latestStats?.win_rate || 0)
+		profit_factor: kpi.profitFactor,
+		win_rate: kpi.tradeWinRate
 	};
 
 	return goals.map((goal) => {
@@ -668,7 +676,7 @@ export function buildSymbolBreakdown(trades: Trade[]) {
 
 export function buildTagBreakdown(trades: Trade[]) {
 	const tagMap = new Map<string, { tagId: string; category: string; color: string; trades: Trade[] }>();
-	const categoryMap = new Map<string, { tags: Set<string>; trades: Trade[] }>();
+	const categoryMap = new Map<string, { tags: Set<string>; trades: Trade[]; tradeIds: Set<string> }>();
 
 	for (const trade of trades) {
 		const assignments = trade.trade_tag_assignments || [];
@@ -684,11 +692,14 @@ export function buildTagBreakdown(trades: Trade[]) {
 
 			// Per-category grouping
 			if (!categoryMap.has(tag.category)) {
-				categoryMap.set(tag.category, { tags: new Set(), trades: [] });
+				categoryMap.set(tag.category, { tags: new Set(), trades: [], tradeIds: new Set() });
 			}
 			const cat = categoryMap.get(tag.category)!;
 			cat.tags.add(tag.id);
-			cat.trades.push(trade);
+			if (!cat.tradeIds.has(trade.id)) {
+				cat.tradeIds.add(trade.id);
+				cat.trades.push(trade);
+			}
 		}
 	}
 
