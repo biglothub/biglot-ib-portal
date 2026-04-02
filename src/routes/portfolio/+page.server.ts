@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 
 	const today = TODAY();
 
-	const [equityRes, openPositionsRes, checklistRulesRes, checklistCompletionsRes, todayJournalRes] = await Promise.all([
+	const [equityRes, openPositionsRes, checklistRulesRes, checklistCompletionsRes] = await Promise.all([
 		supabase
 			.from('equity_snapshots')
 			.select('timestamp, balance, equity, floating_pl')
@@ -83,6 +83,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const drawdownHistory = buildDrawdownHistory(dailyHistory);
 	const reviewSummary = buildReviewSummary(trades);
 	const kpiMetrics = buildKpiMetrics(trades, dailyHistory);
+	const todayJournal = baseData.journals.find((journal: DailyJournal) => journal.date === today) || null;
 
 	// Build command center from already-computed data (avoid duplicate computation)
 	const latestDay = dailyHistory[dailyHistory.length - 1] || null;
@@ -126,7 +127,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		latestStats: baseData.dailyStats[baseData.dailyStats.length - 1] || null,
 		openPositions: openPositionsRes.data || [],
 		recentTrades: trades.slice(0, 8),
-		allFilteredTrades: trades,
+		allFilteredTrades: trades.slice(0, 2000),
 		analytics: report.analytics,
 		dailyHistory,
 		drawdownHistory,
@@ -146,7 +147,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		checklistRules,
 		checklistCompletions,
 		checklistDoneToday,
-		todayJournal: todayJournalRes.data || null,
+		todayJournal,
 		today
 	};
 };

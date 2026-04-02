@@ -49,7 +49,7 @@ export function invalidateBaseDataCache(accountId: string): void {
 	void invalidateCachePattern(`portfolio:trades:${accountId}`);
 	void invalidateCachePattern(`portfolio:daily_stats:${accountId}`);
 	void invalidateCachePattern(`portfolio:journals:${accountId}`);
-	void invalidateCachePattern(`portfolio:playbooks:`);
+	void invalidateCachePattern(`portfolio:playbooks:${accountId}`);
 }
 
 /** Invalidate only trades-related cache (for tag/review/manual trade mutations) */
@@ -73,7 +73,7 @@ export function invalidatePlaybooksCache(accountId: string): void {
 	for (const key of [...baseDataCache.keys()]) {
 		if (key.startsWith(accountId)) baseDataCache.delete(key);
 	}
-	void invalidateCachePattern(`portfolio:playbooks:`);
+	void invalidateCachePattern(`portfolio:playbooks:${accountId}`);
 }
 
 export async function fetchPortfolioBaseData(
@@ -116,7 +116,7 @@ async function doFetchPortfolioBaseData(
 	const tradesCacheKey = `portfolio:trades:${accountId}`;
 	const dailyStatsCacheKey = `portfolio:daily_stats:${accountId}`;
 	const journalsCacheKey = `portfolio:journals:${accountId}:${userId}`;
-	const playbooksCacheKey = `portfolio:playbooks:${userId}`;
+	const playbooksCacheKey = `portfolio:playbooks:${accountId}:${userId}`;
 
 	// Check hot-data cache before hitting the DB
 	const [cachedTrades, cachedDailyStats, cachedJournals, cachedPlaybooks] = await Promise.all([
