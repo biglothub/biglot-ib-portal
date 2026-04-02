@@ -147,8 +147,22 @@
 		{/each}
 	</svg>
 
-	<div class="text-center -mt-2">
-		<span class="text-sm text-gray-400">คะแนนของคุณ:</span>
-		<span class="text-2xl font-bold ml-1.5 {scoreColor}">{score}</span>
+	<div class="mt-1 px-2">
+		<div class="flex items-baseline gap-2 mb-1.5">
+			<span class="text-xs text-gray-400">คะแนนของคุณ</span>
+			<span class="text-2xl font-bold {scoreColor}">{score}</span>
+		</div>
+		<!-- Gradient color bar -->
+		<div class="relative">
+			<div class="h-2 rounded-full w-full"
+				style="background: linear-gradient(to right, #ef4444 0%, #f59e0b 40%, #22c55e 70%, #16a34a 100%)">
+			</div>
+			<div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white border-2 border-dark-bg shadow-md transition-all duration-700"
+				style="left: {score}%">
+			</div>
+		</div>
+		<div class="flex justify-between text-[9px] text-gray-500 mt-0.5">
+			<span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span>
+		</div>
 	</div>
 </div>

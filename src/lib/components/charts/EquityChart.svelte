@@ -22,6 +22,7 @@
 	let floatingZoneSeries: ISeriesApi<'Area'> | null;
 
 	let currentTimeframe = $state('1M');
+	let dropdownOpen = $state(false);
 	let tooltipVisible = $state(false);
 	let tooltipX = $state(0);
 	let tooltipY = $state(0);
@@ -287,19 +288,33 @@
 			</div>
 		</div>
 
-		<!-- Timeframe Selector -->
-		<div class="flex gap-1 bg-dark-bg/50 rounded-lg p-1">
-			{#each timeframes as tf}
-				<button
-					class="px-3 py-1 text-xs font-medium rounded-md transition-all duration-200
-						{currentTimeframe === tf.label
-						? 'bg-dark-surface text-brand-primary shadow-sm'
-						: 'text-gray-400 hover:text-gray-300'}"
-					onclick={() => selectTimeframe(tf.label)}
-				>
-					{tf.label}
-				</button>
-			{/each}
+		<!-- Timeframe Selector Dropdown -->
+		<div class="relative">
+			<button
+				class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-dark-surface text-brand-primary border border-dark-border hover:border-brand-primary/50 transition-all duration-200"
+				onclick={() => dropdownOpen = !dropdownOpen}
+				onblur={() => setTimeout(() => dropdownOpen = false, 150)}
+			>
+				{currentTimeframe}
+				<svg class="w-3 h-3 transition-transform duration-200 {dropdownOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+				</svg>
+			</button>
+			{#if dropdownOpen}
+				<div class="absolute right-0 top-full mt-1 z-50 bg-dark-surface border border-dark-border rounded-lg shadow-xl overflow-hidden min-w-[80px]">
+					{#each timeframes as tf}
+						<button
+							class="w-full px-3 py-1.5 text-xs font-medium text-left transition-colors duration-150
+								{currentTimeframe === tf.label
+								? 'text-brand-primary bg-brand-primary/10'
+								: 'text-gray-400 hover:text-white hover:bg-dark-bg/50'}"
+							onmousedown={() => { selectTimeframe(tf.label); dropdownOpen = false; }}
+						>
+							{tf.label}
+						</button>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	</div>
 

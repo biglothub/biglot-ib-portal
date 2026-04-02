@@ -45,10 +45,12 @@
 			{ id: 'close-panels', keys: ['Escape'], description: 'ปิด panel', group: 'อื่นๆ', action: () => { chatOpen = false; shortcutsOpen = false; guideOpen = false; } },
 		];
 
-		registerShortcuts(navShortcuts);
+		// Untrack to prevent reading shortcuts $state from becoming a dependency
+		// (registerShortcuts reads shortcuts internally, which would cause infinite loop)
+		untrack(() => registerShortcuts(navShortcuts));
 
 		return () => {
-			unregisterShortcuts(navShortcuts.map(s => s.id));
+			untrack(() => unregisterShortcuts(navShortcuts.map(s => s.id)));
 			destroy();
 		};
 	});
