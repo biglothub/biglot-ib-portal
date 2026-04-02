@@ -2,6 +2,7 @@ import { getTradeReviewStatus } from '$lib/portfolio';
 import { parsePortfolioFilters } from '$lib/portfolio';
 import {
 	buildDailyHistory,
+	buildDrawdownHistory,
 	buildFilterOptions,
 	buildKpiMetrics,
 	buildReportExplorer,
@@ -77,6 +78,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);
 	const trades = report.filteredTrades;
 	const dailyHistory = buildDailyHistory(trades);
+	const drawdownHistory = buildDrawdownHistory(dailyHistory);
 	const reviewSummary = buildReviewSummary(trades);
 	const kpiMetrics = buildKpiMetrics(trades, dailyHistory);
 
@@ -122,8 +124,10 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		latestStats: baseData.dailyStats[baseData.dailyStats.length - 1] || null,
 		openPositions: openPositionsRes.data || [],
 		recentTrades: trades.slice(0, 8),
+		allFilteredTrades: trades,
 		analytics: report.analytics,
 		dailyHistory,
+		drawdownHistory,
 		equityCurve: baseData.dailyStats.map((day: DailyStats) => day.equity),
 		equitySnapshots,
 		commandCenter,

@@ -933,3 +933,16 @@ function buildMistakeStats(trades: Trade[]) {
 		.map(([name, stats]) => ({ name, ...stats }))
 		.sort((a, b) => b.count - a.count || b.cost - a.cost);
 }
+
+export function buildDrawdownHistory(
+	dailyHistory: ReturnType<typeof buildDailyHistory>
+): { date: string; drawdownPct: number }[] {
+	let cumulative = 0;
+	let peak = 0;
+	return dailyHistory.map(d => {
+		cumulative += d.profit;
+		if (cumulative > peak) peak = cumulative;
+		const drawdownPct = peak > 0 ? ((cumulative - peak) / peak) * 100 : 0;
+		return { date: d.date, drawdownPct };
+	});
+}
