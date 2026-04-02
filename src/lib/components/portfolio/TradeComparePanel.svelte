@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
 	import { getTradePlaybookId } from '$lib/portfolio';
@@ -44,6 +45,10 @@
 		if (score >= 30) return 'bg-orange-500';
 		return 'bg-red-500';
 	}
+
+	function handlePanelKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') onclose();
+	}
 </script>
 
 <!-- Backdrop -->
@@ -51,19 +56,23 @@
 	class="fixed inset-0 z-40 bg-black/40"
 	role="presentation"
 	onclick={onclose}
+	aria-hidden="true"
 ></div>
 
 <!-- Panel -->
 <div
-	class="fixed right-0 top-0 bottom-0 z-50 flex flex-col bg-dark-surface border-l border-dark-border shadow-2xl"
+	use:focusTrap={{ enabled: true }}
+	class="fixed right-0 top-0 bottom-0 z-50 flex flex-col bg-dark-surface border-l border-dark-border shadow-2xl focus:outline-none"
 	style="width: min(100vw, 680px);"
 	role="dialog"
 	aria-modal="true"
-	aria-label="เปรียบเทียบเทรด"
+	aria-labelledby="trade-compare-title"
+	tabindex="-1"
+	onkeydown={handlePanelKeydown}
 >
 	<!-- Header -->
 	<div class="flex items-center justify-between px-4 py-3 border-b border-dark-border shrink-0">
-		<h2 class="text-sm font-semibold text-white">
+		<h2 id="trade-compare-title" class="text-sm font-semibold text-white">
 			เปรียบเทียบเทรด
 			<span class="ml-1 text-gray-400 font-normal">({trades.length}/4)</span>
 		</h2>

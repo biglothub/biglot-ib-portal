@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { fly, fade } from 'svelte/transition';
 	import AiChatMessage from './AiChatMessage.svelte';
 	import {
@@ -129,26 +130,37 @@
 			sendMessage();
 		}
 	}
+
+	function handlePanelKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			onclose();
+		}
+	}
 </script>
 
 {#if open}
 	<!-- Backdrop -->
 	<button
+		type="button"
 		class="fixed inset-0 bg-black/40 z-50 cursor-default"
 		transition:fade={{ duration: 200 }}
 		onmousedown={onclose}
-		onkeydown={(e) => e.key === 'Escape' && onclose()}
+		aria-hidden="true"
 		tabindex="-1"
 		aria-label="ปิด AI ผู้ช่วย"
 	></button>
 
 	<!-- Panel -->
 	<div
+		use:focusTrap={{ enabled: open, initialFocus: 'textarea' }}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="ai-chat-title"
-		class="fixed right-0 top-0 h-full w-full sm:w-96 bg-dark-surface border-l border-dark-border z-50 flex flex-col"
+		tabindex="-1"
+		class="fixed right-0 top-0 h-full w-full sm:w-96 bg-dark-surface border-l border-dark-border z-50 flex flex-col focus:outline-none"
 		transition:fly={{ x: 384, duration: 300 }}
+		onkeydown={handlePanelKeydown}
 	>
 		<!-- Header -->
 		<div class="flex items-center justify-between px-4 py-3 border-b border-dark-border">

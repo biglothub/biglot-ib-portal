@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { fly, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import type { ChecklistRule, ChecklistCompletion, DailyJournal } from '$lib/types';
@@ -104,20 +105,30 @@ type MarketNewsArticle = {
 		if (impact === 'medium') return 'text-amber-400 bg-amber-400/10';
 		return 'text-gray-400 bg-gray-400/10';
 	}
+
+	function handleDialogKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			onclose();
+		}
+	}
 </script>
 
 {#if open}
 	<!-- Backdrop -->
 	<button
+		type="button"
 		class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] cursor-default"
 		onclick={onclose}
 		tabindex="-1"
+		aria-hidden="true"
 		aria-label="ปิด"
 		transition:fade={{ duration: 200 }}
 	></button>
 
 	<!-- Modal -->
 	<div
+		use:focusTrap={{ enabled: open }}
 		class="fixed inset-0 z-[101] flex items-end sm:items-center justify-center p-0 sm:p-4"
 		transition:fade={{ duration: 150 }}
 	>
@@ -125,8 +136,10 @@ type MarketNewsArticle = {
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="start-my-day-title"
-			class="w-full sm:max-w-md max-h-[90vh] bg-dark-surface border border-dark-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+			tabindex="-1"
+			class="w-full sm:max-w-md max-h-[90vh] bg-dark-surface border border-dark-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden focus:outline-none"
 			transition:fly={{ y: 40, duration: 280 }}
+			onkeydown={handleDialogKeydown}
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between px-5 py-4 border-b border-dark-border shrink-0">

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { fade, fly } from 'svelte/transition';
 
 	// Helper: today's datetime-local string in local timezone
@@ -58,6 +59,13 @@
 	function closeModal() {
 		if (saving) return;
 		open = false;
+	}
+
+	function handleSheetKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			closeModal();
+		}
 	}
 
 	async function submit() {
@@ -127,7 +135,6 @@
 	}
 
 	// Touch-based bottom-sheet dismiss (swipe down)
-	let sheetEl = $state<HTMLElement | null>(null);
 	let dragStartY = $state(0);
 	let dragDelta = $state(0);
 	let isDragging = $state(false);
@@ -178,12 +185,14 @@
 
 	<!-- Bottom sheet -->
 	<div
-		bind:this={sheetEl}
+		use:focusTrap={{ enabled: open, initialFocus: '#qt-symbol' }}
 		class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark-surface rounded-t-2xl shadow-2xl animate-slide-up"
 		style="transform: translateY({dragDelta}px); transition: {isDragging ? 'none' : 'transform 0.2s ease'}"
 		role="dialog"
-		aria-label="บันทึกเทรด"
+		aria-labelledby="quick-trade-entry-title"
 		aria-modal="true"
+		tabindex="-1"
+		onkeydown={handleSheetKeydown}
 	>
 		<!-- Drag handle (touch to dismiss) -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -199,7 +208,7 @@
 		<div class="px-4 pb-6 overflow-y-auto max-h-[85vh]">
 			<!-- Header -->
 			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-base font-semibold text-white">บันทึกเทรด</h2>
+				<h2 id="quick-trade-entry-title" class="text-base font-semibold text-white">บันทึกเทรด</h2>
 				<button
 					onclick={closeModal}
 					class="w-8 h-8 rounded-full bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition-colors"

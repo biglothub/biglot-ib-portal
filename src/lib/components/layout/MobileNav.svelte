@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { fade } from 'svelte/transition';
 	import { page } from '$app/stores';
 
@@ -27,28 +28,39 @@
 	function closeMore() {
 		moreOpen = false;
 	}
+
+	function handleDrawerKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') closeMore();
+	}
 </script>
 
 <!-- Bottom drawer backdrop -->
 {#if moreOpen}
 	<button
+		type="button"
 		transition:fade={{ duration: 200 }}
 		class="md:hidden fixed inset-0 z-40 bg-black/50"
 		aria-label="ปิดเมนู"
 		onclick={closeMore}
+		tabindex="-1"
+		aria-hidden="true"
 	></button>
 {/if}
 
 <!-- "More" slide-up drawer -->
 {#if moreOpen}
 	<div
+		use:focusTrap={{ enabled: moreOpen }}
 		class="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl shadow-2xl animate-slide-up"
 		role="dialog"
-		aria-label="เมนูเพิ่มเติม"
+		aria-modal="true"
+		aria-labelledby="more-menu-title"
+		tabindex="-1"
+		onkeydown={handleDrawerKeydown}
 	>
 		<div class="p-4 pb-2">
 			<div class="w-10 h-1 rounded-full bg-dark-border mx-auto mb-4"></div>
-			<p class="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3 px-1">เพิ่มเติม</p>
+			<p id="more-menu-title" class="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3 px-1">เพิ่มเติม</p>
 			<div class="grid grid-cols-4 gap-1">
 				{#each moreTabs as tab}
 					<a

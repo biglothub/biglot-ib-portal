@@ -2,6 +2,7 @@
 	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { buildPortfolioSearchParams, EMPTY_PORTFOLIO_FILTERS } from '$lib/portfolio';
 	import type { PortfolioFilterState, TagCategory, PortfolioFilterOptions, TradeTag, Playbook, PortfolioSavedView } from '$lib/types';
 	import MultiSelectDropdown from '$lib/components/shared/MultiSelectDropdown.svelte';
@@ -279,6 +280,12 @@
 
 	function toggleSection(key: string) {
 		sectionOpen[key] = !sectionOpen[key];
+	}
+
+	function handleMobileSheetKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			showMobileSheet = false;
+		}
 	}
 
 	function openFilters() {
@@ -623,13 +630,21 @@
 	<div class="fixed inset-0 z-[100] md:hidden">
 		<!-- Backdrop -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<div class="absolute inset-0 bg-black/60" onclick={() => (showMobileSheet = false)}></div>
+		<div class="absolute inset-0 bg-black/60" onclick={() => (showMobileSheet = false)} aria-hidden="true"></div>
 
 		<!-- Sheet -->
-		<div class="absolute bottom-0 left-0 right-0 bg-dark-card border-t border-dark-border rounded-t-2xl max-h-[85vh] flex flex-col" role="dialog" aria-label="ตัวกรอง">
+		<div
+			use:focusTrap={{ enabled: showMobileSheet }}
+			class="absolute bottom-0 left-0 right-0 bg-dark-card border-t border-dark-border rounded-t-2xl max-h-[85vh] flex flex-col focus:outline-none"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="portfolio-filter-sheet-title"
+			tabindex="-1"
+			onkeydown={handleMobileSheetKeydown}
+		>
 			<!-- Header -->
 			<div class="flex items-center justify-between px-4 py-3 border-b border-dark-border shrink-0">
-				<h3 class="text-sm font-medium text-white">ตัวกรอง</h3>
+				<h3 id="portfolio-filter-sheet-title" class="text-sm font-medium text-white">ตัวกรอง</h3>
 				<button type="button" onclick={() => (showMobileSheet = false)} class="text-gray-400 hover:text-white" aria-label="ปิด">
 					<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
 				</button>

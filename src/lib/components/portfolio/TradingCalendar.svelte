@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { fade, scale } from 'svelte/transition';
 
 	interface DayData {
@@ -161,6 +162,10 @@
 		const sign = amount >= 0 ? '+' : '';
 		return sign + '$' + Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 	}
+
+	function handleDayModalKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') closeDayModal();
+	}
 </script>
 
 <div class="card overflow-hidden p-0">
@@ -317,13 +322,15 @@
 <!-- Day Detail Modal -->
 {#if showDayModal && selectedDay?.data}
 	<div
+		use:focusTrap={{ enabled: showDayModal }}
 		transition:fade={{ duration: 200 }}
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
 		onclick={closeDayModal}
-		onkeydown={(e) => e.key === 'Escape' && closeDayModal()}
 		role="dialog"
 		aria-modal="true"
 		tabindex="-1"
+		aria-labelledby="day-modal-title"
+		onkeydown={handleDayModalKeydown}
 	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -333,7 +340,7 @@
 			onkeydown={(e) => e.stopPropagation()}
 		>
 			<div class="p-3 border-b border-dark-border flex items-center justify-between">
-				<h3 class="text-sm font-bold text-white">
+				<h3 id="day-modal-title" class="text-sm font-bold text-white">
 					{selectedDay.date.toLocaleDateString('th-TH', { weekday: 'long', month: 'short', day: 'numeric' })}
 				</h3>
 				<button onclick={closeDayModal} class="p-2 hover:bg-dark-border rounded transition-colors" aria-label="ปิด">

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { fade, fly } from 'svelte/transition';
 
 	interface DayTrade {
@@ -107,6 +108,10 @@
 		open = false;
 		selectedId = null;
 	}
+
+	function handleDialogKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') handleClose();
+	}
 </script>
 
 {#if open}
@@ -116,15 +121,20 @@
 		type="button"
 		class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
 		onclick={handleClose}
+		tabindex="-1"
+		aria-hidden="true"
 		aria-label="ปิด"
 	></button>
 
 	<!-- modal -->
 	<div
+		use:focusTrap={{ enabled: open }}
 		class="fixed inset-0 z-50 flex items-center justify-center p-4"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="template-modal-title"
+		tabindex="-1"
+		onkeydown={handleDialogKeydown}
 	>
 		<div transition:fly={{ y: 30, duration: 250 }} class="w-full max-w-2xl rounded-2xl bg-dark-surface border border-dark-border shadow-2xl">
 			<!-- header -->

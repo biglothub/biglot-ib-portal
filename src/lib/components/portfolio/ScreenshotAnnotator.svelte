@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	type Tool = 'arrow' | 'circle' | 'rectangle' | 'pen' | 'text';
 	type AnnotationShape =
 		| { type: 'arrow'; x1: number; y1: number; x2: number; y2: number; color: string; lineWidth: number }
@@ -38,6 +39,7 @@
 	let textInput = $state('');
 	let showTextInput = $state(false);
 	let loadError = $state('');
+	let textInputEl = $state<HTMLInputElement | null>(null);
 
 	const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ffffff', '#000000'];
 
@@ -224,6 +226,27 @@
 		textInput = '';
 	}
 
+	function handleDialogKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && !showTextInput) {
+			e.preventDefault();
+			onclose();
+		}
+	}
+
+	function handleTextInputKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			commitText();
+			return;
+		}
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			e.stopPropagation();
+			showTextInput = false;
+			pendingTextPos = null;
+		}
+	}
+
 	function handleFileSelect(e: Event) {
 		const input = e.target as HTMLInputElement;
 		const file = input.files?.[0];
@@ -307,19 +330,27 @@
 			}
 		}
 	});
+
+	$effect(() => {
+		if (!showTextInput) return;
+		requestAnimationFrame(() => textInputEl?.focus());
+	});
 </script>
 
 <!-- Modal backdrop -->
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+	use:focusTrap={{ enabled: true }}
+	class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 focus:outline-none"
 	role="dialog"
 	aria-modal="true"
-	aria-label="แก้ไขภาพกราฟ"
+	aria-labelledby="screenshot-annotator-title"
+	tabindex="-1"
+	onkeydown={handleDialogKeydown}
 >
 	<div class="flex flex-col w-full max-w-5xl bg-dark-surface border border-dark-border rounded-2xl shadow-2xl max-h-[95vh] overflow-hidden">
 		<!-- Header -->
 		<div class="flex items-center justify-between px-5 py-4 border-b border-dark-border flex-shrink-0">
-			<h2 class="text-base font-semibold text-white">แก้ไขภาพ Screenshot</h2>
+			<h2 id="screenshot-annotator-title" class="text-base font-semibold text-white">แก้ไขภาพ Screenshot</h2>
 			<button
 				type="button"
 				onclick={onclose}
@@ -448,11 +479,12 @@
 			{#if showTextInput && pendingTextPos}
 				<div class="absolute z-10 top-8 left-1/2 -translate-x-1/2 bg-dark-surface border border-dark-border rounded-xl shadow-lg p-3 flex items-center gap-2 min-w-[min(280px,calc(100vw-3rem))]">
 					<input
+						bind:this={textInputEl}
 						type="text"
 						bind:value={textInput}
 						placeholder="พิมพ์ข้อความ..."
 						class="flex-1 bg-dark-bg border border-dark-border rounded px-3 py-1.5 text-sm text-white placeholder-gray-500"
-						onkeydown={(e) => { if (e.key === 'Enter') commitText(); if (e.key === 'Escape') { showTextInput = false; pendingTextPos = null; } }}
+						onkeydown={handleTextInputKeydown}
 					/>
 					<button type="button" onclick={commitText} class="btn-primary text-xs px-3 py-1.5">ตกลง</button>
 					<button type="button" onclick={() => { showTextInput = false; pendingTextPos = null; }} class="text-gray-400 text-xs">ยกเลิก</button>

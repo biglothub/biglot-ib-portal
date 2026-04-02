@@ -1,15 +1,14 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/actions/focusTrap';
 	import { dashboardLayout } from '$lib/stores/dashboardLayout.svelte';
 	import { fly } from 'svelte/transition';
 
 	let { onclose }: { onclose: () => void } = $props();
 
-	function handleKeydown(e: KeyboardEvent) {
+	function handleDialogKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') onclose();
 	}
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 <!-- Backdrop -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -17,19 +16,24 @@
 <div
 	class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
 	onclick={onclose}
+	aria-hidden="true"
 ></div>
 
 <!-- Panel -->
 <div
-	class="fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-dark-surface border-l border-dark-border shadow-2xl flex flex-col"
+	use:focusTrap={{ enabled: true }}
+	class="fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-dark-surface border-l border-dark-border shadow-2xl flex flex-col focus:outline-none"
 	transition:fly={{ x: 384, duration: 250 }}
 	role="dialog"
-	aria-label="ปรับแต่งแดชบอร์ด"
+	aria-modal="true"
+	aria-labelledby="dashboard-customizer-title"
+	tabindex="-1"
+	onkeydown={handleDialogKeydown}
 >
 	<!-- Header -->
 	<div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
 		<div>
-			<h2 class="text-lg font-semibold text-white">ปรับแต่งแดชบอร์ด</h2>
+			<h2 id="dashboard-customizer-title" class="text-lg font-semibold text-white">ปรับแต่งแดชบอร์ด</h2>
 			<p class="text-xs text-gray-400 mt-0.5">เลือกและจัดลำดับ widget ที่ต้องการแสดง</p>
 		</div>
 		<button
