@@ -1,4 +1,4 @@
-import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { getAccessiblePortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
 import { sanitizeSearchQuery } from '$lib/server/validation';
 import { json } from '@sveltejs/kit';
@@ -68,7 +68,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'คำค้นหาไม่ถูกต้อง' }, { status: 400 });
 	}
 
-	const account = await getApprovedPortfolioAccount(locals.supabase);
+	const requestedAccountId = typeof body.accountId === 'string' ? body.accountId.trim() : null;
+	const account = await getAccessiblePortfolioAccount(locals.supabase, {
+		userId: profile.id,
+		requestedAccountId,
+		selectedAccountId: typeof locals.selectedAccountId === 'string' ? locals.selectedAccountId : null
+	});
 	if (!account) {
 		return json({ message: 'ไม่พบบัญชีที่อนุมัติ' }, { status: 404 });
 	}

@@ -1,4 +1,4 @@
-import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { getAccessiblePortfolioAccount } from '$lib/server/portfolioAccount';
 import {
 	buildProgressSnapshot,
 	fetchPortfolioBaseData
@@ -13,7 +13,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 		return json({ message: 'ไม่มีสิทธิ์เข้าถึง' }, { status: 403 });
 	}
 
-	const account = await getApprovedPortfolioAccount(locals.supabase);
+	const account = await getAccessiblePortfolioAccount(locals.supabase, {
+		userId: profile.id,
+		selectedAccountId: typeof locals.selectedAccountId === 'string' ? locals.selectedAccountId : null
+	});
 	if (!account) {
 		return json({ goals: [], snapshot: [] });
 	}
@@ -40,7 +43,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'คำขอมากเกินไป' }, { status: 429 });
 	}
 
-	const account = await getApprovedPortfolioAccount(locals.supabase);
+	const account = await getAccessiblePortfolioAccount(locals.supabase, {
+		userId: profile.id,
+		selectedAccountId: typeof locals.selectedAccountId === 'string' ? locals.selectedAccountId : null
+	});
 	if (!account) {
 		return json({ message: 'ไม่พบบัญชีที่อนุมัติ' }, { status: 404 });
 	}

@@ -1,5 +1,5 @@
 import { parsePortfolioFilters } from '$lib/portfolio';
-import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { getAccessiblePortfolioAccount } from '$lib/server/portfolioAccount';
 import { buildReportExplorer, fetchPortfolioBaseData } from '$lib/server/portfolio';
 import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
@@ -15,7 +15,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
 	}
 
-	const account = await getApprovedPortfolioAccount(locals.supabase);
+	const account = await getAccessiblePortfolioAccount(locals.supabase, {
+		userId: profile.id,
+		selectedAccountId: typeof locals.selectedAccountId === 'string' ? locals.selectedAccountId : null
+	});
 	if (!account) {
 		return json({ analytics: null, filteredTrades: [] });
 	}
