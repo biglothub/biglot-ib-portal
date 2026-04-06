@@ -9,13 +9,12 @@
 		title: string;
 		subtitle: string;
 		href: string;
-		type: 'trade' | 'journal' | 'note' | 'playbook';
+		type: 'trade' | 'journal' | 'playbook';
 	}
 
 	interface SearchResponse {
 		trades: SearchResult[];
 		journals: SearchResult[];
-		notes: SearchResult[];
 		playbooks: SearchResult[];
 	}
 
@@ -53,7 +52,6 @@
 			? [
 					...results.trades,
 					...results.journals,
-					...results.notes,
 					...results.playbooks,
 				]
 			: []
@@ -63,7 +61,6 @@
 		results !== null && (
 			results.trades.length > 0 ||
 			results.journals.length > 0 ||
-			results.notes.length > 0 ||
 			results.playbooks.length > 0
 		)
 	);
@@ -194,12 +191,11 @@
 	const sectionConfig: Array<{ key: keyof SearchResponse; label: string }> = [
 		{ key: 'trades', label: 'เทรด' },
 		{ key: 'journals', label: 'บันทึกประจำวัน' },
-		{ key: 'notes', label: 'โน้ต' },
 		{ key: 'playbooks', label: 'Playbook' },
 	];
 
 	function getGlobalIndex(sectionKey: keyof SearchResponse, localIndex: number): number {
-		const order: Array<keyof SearchResponse> = ['trades', 'journals', 'notes', 'playbooks'];
+		const order: Array<keyof SearchResponse> = ['trades', 'journals', 'playbooks'];
 		let base = 0;
 		for (const sk of order) {
 			if (sk === sectionKey) break;

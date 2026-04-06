@@ -50,7 +50,6 @@
 		{ href: '/portfolio/day-view', label: 'Day View', icon: icons.calendarDays, exact: false },
 		{ href: '/portfolio/trades', label: 'Trades', icon: icons.listBullet, exact: false },
 		{ href: '/portfolio/journal', label: 'Journal', icon: icons.pencilSquare, exact: false },
-		{ href: '/portfolio/notebook', label: 'Notebook', icon: icons.documentText, exact: false },
 		{ href: '/portfolio/analytics', label: 'Analytics', icon: icons.trendingUp, exact: false },
 		{ href: '/portfolio/playbook', label: 'Playbook', icon: icons.bookOpen, exact: false },
 		{ href: '/portfolio/progress', label: 'Progress', icon: icons.trophy, exact: false },

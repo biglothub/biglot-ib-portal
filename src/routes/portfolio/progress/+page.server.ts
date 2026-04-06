@@ -1,9 +1,4 @@
-import {
-	buildDailyHistory,
-	buildJournalCompletionSummary,
-	buildProgressSnapshot,
-	buildReviewSummary
-} from '$lib/server/portfolio';
+import { buildDailyHistory } from '$lib/server/portfolio';
 import { calculateChecklistStreak, buildChecklistHeatmap } from '$lib/server/checklist';
 import { buildRulesAnalytics } from '$lib/server/rules-analytics';
 import type { PageServerLoad } from './$types';
@@ -16,8 +11,8 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 
 	if (!account || !profile || !baseData || !userId) {
 		return {
-			goals: [], snapshot: [], journalSummary: null, reviewSummary: null,
-			checklistRules: [], checklistCompletions: [], checklistStreak: 0, heatmapData: []
+			checklistRules: [], checklistCompletions: [], checklistStreak: 0,
+			heatmapData: [], rulesAnalytics: []
 		};
 	}
 
@@ -48,15 +43,6 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 	const rulesAnalytics = buildRulesAnalytics(checklistRules, checklistCompletions, dailyHistory);
 
 	return {
-		goals: baseData.progressGoals,
-		snapshot: buildProgressSnapshot(
-			baseData.trades,
-			baseData.journals,
-			baseData.dailyStats,
-			baseData.progressGoals
-		),
-		journalSummary: buildJournalCompletionSummary(baseData.journals, dailyHistory),
-		reviewSummary: buildReviewSummary(baseData.trades),
 		checklistRules,
 		checklistCompletions,
 		checklistStreak,

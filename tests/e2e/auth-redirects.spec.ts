@@ -74,10 +74,6 @@ test.describe('Auth Redirects', () => {
 		await page.waitForURL('**/auth/login');
 	});
 
-	test('unauthenticated user on /portfolio/notebook redirects to login', async ({ page }) => {
-		await page.goto('/portfolio/notebook');
-		await page.waitForURL('**/auth/login');
-	});
 
 	// ─── Public routes remain accessible ────────────────────────────────────
 
@@ -98,12 +94,6 @@ test.describe('Auth Redirects', () => {
 		expect(response.url()).toContain('/auth/login');
 	});
 
-	test('POST /api/portfolio/notebook without auth redirects to login', async ({ request }) => {
-		const response = await request.post('/api/portfolio/notebook', {
-			data: { action: 'ensure_folders' }
-		});
-		expect(response.url()).toContain('/auth/login');
-	});
 
 	test('POST /api/admin/approve without auth redirects to login', async ({ request }) => {
 		const response = await request.post('/api/admin/approve', {

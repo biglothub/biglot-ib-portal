@@ -9,13 +9,12 @@ interface SearchResult {
 	title: string;
 	subtitle: string;
 	href: string;
-	type: 'trade' | 'journal' | 'note' | 'playbook';
+	type: 'trade' | 'journal' | 'playbook';
 }
 
 interface SearchResponse {
 	trades: SearchResult[];
 	journals: SearchResult[];
-	notes: SearchResult[];
 	playbooks: SearchResult[];
 }
 
@@ -81,7 +80,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const accountId = account.id;
 	const likePattern = `%${safeQuery}%`;
 
-	const [tradesResult, journalsResult, notesResult, playbooksResult] = await Promise.allSettled([
+	const [tradesResult, journalsResult, playbooksResult] = await Promise.allSettled([
 		locals.supabase
 			.from('trades')
 			.select('id, symbol, ticket, profit')
@@ -99,16 +98,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.limit(5),
 
 		locals.supabase
-			.from('notebook_notes')
-			.select('id, title, content_plain')
-			.eq('client_account_id', accountId)
-			.is('deleted_at', null)
-			.eq('is_deleted', false)
-			.or(`title.ilike.${likePattern},content_plain.ilike.${likePattern}`)
-			.order('updated_at', { ascending: false })
-			.limit(5),
-
-		locals.supabase
 			.from('playbooks')
 			.select('id, name, description')
 			.eq('client_account_id', accountId)
@@ -120,7 +109,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const response: SearchResponse = {
 		trades: [],
 		journals: [],
-		notes: [],
 		playbooks: [],
 	};
 
@@ -141,16 +129,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			subtitle: truncate(j.content ?? '', 60),
 			href: `/portfolio/journal?date=${j.date}`,
 			type: 'journal' as const,
-		}));
-	}
-
-	if (notesResult.status === 'fulfilled' && notesResult.value.data) {
-		response.notes = notesResult.value.data.map((n: { id: string; title: string | null; content_plain: string | null }) => ({
-			id: String(n.id),
-			title: n.title || 'ไม่มีชื่อ',
-			subtitle: truncate(n.content_plain ?? '', 60),
-			href: `/portfolio/notebook?note=${n.id}`,
-			type: 'note' as const,
 		}));
 	}
 

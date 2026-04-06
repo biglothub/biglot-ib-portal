@@ -57,7 +57,6 @@ describe('MOB-001: Bottom Navigation Bar', () => {
 		{ base: '/portfolio/day-view', label: 'รายวัน' },
 		{ base: '/portfolio/trades', label: 'เทรด' },
 		{ base: '/portfolio/journal', label: 'บันทึก' },
-		{ base: '/portfolio/notebook', label: 'สมุดโน้ต' },
 		{ base: '/portfolio/analytics', label: 'รายงาน' },
 		{ base: '/portfolio/playbook', label: 'Playbook' },
 		{ base: '/portfolio/progress', label: 'ความคืบหน้า' },
@@ -74,7 +73,7 @@ describe('MOB-001: Bottom Navigation Bar', () => {
 
 		expect(primaryTabs).toHaveLength(4);
 		expect(moreTabs).toHaveLength(allTabDefs.length - 4);
-		expect(moreTabs.length).toBe(9);
+		expect(moreTabs.length).toBe(allTabDefs.length - 4);
 	});
 
 	it('primary tabs should be: ภาพรวม, เทรด, บันทึก, รายงาน', () => {
@@ -109,9 +108,9 @@ describe('MOB-001: Bottom Navigation Bar', () => {
 			return currentPath.startsWith(base);
 		};
 
-		// /portfolio/notebook is a "more" tab
+		// /portfolio/playbook is a "more" tab
 		const moreActive = moreTabs.some((t) =>
-			isActive(t.base, '/portfolio/notebook')
+			isActive(t.base, '/portfolio/playbook')
 		);
 		expect(moreActive).toBe(true);
 

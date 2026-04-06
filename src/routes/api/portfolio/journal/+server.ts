@@ -1,6 +1,7 @@
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
 import { invalidateJournalsCache } from '$lib/server/portfolio';
+import { generateSessionRecapHtml } from '$lib/server/session-recap';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -46,6 +47,35 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'No approved account' }, { status: 404 });
 	}
 
+	const body = await request.json();
+
+	// ── Generate session recap ──
+	if (body.action === 'generate_session_recap') {
+		const date = body.date as string | undefined;
+		if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+			return json({ message: 'รูปแบบวันที่ไม่ถูกต้อง (YYYY-MM-DD)' }, { status: 400 });
+		}
+
+		const dayStart = `${date}T00:00:00+07:00`;
+		const dayEnd = `${date}T23:59:59+07:00`;
+
+		const { data: trades } = await locals.supabase
+			.from('trades')
+			.select('id, symbol, type, lot_size, open_price, close_price, open_time, close_time, profit, pips, commission, swap')
+			.eq('client_account_id', account.id)
+			.gte('close_time', dayStart)
+			.lte('close_time', dayEnd)
+			.order('close_time', { ascending: true });
+
+		if (!trades || trades.length === 0) {
+			return json({ message: 'ไม่พบเทรดในวันที่เลือก' }, { status: 404 });
+		}
+
+		const { html } = generateSessionRecapHtml(trades, date);
+		return json({ html });
+	}
+
+	// ── Save journal entry ──
 	const {
 		date,
 		pre_market_notes,
@@ -61,7 +91,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		lessons,
 		tomorrow_focus,
 		completion_status
-	} = await request.json();
+	} = body;
 
 	if (!date) {
 		return json({ message: 'กรุณาระบุวันที่' }, { status: 400 });

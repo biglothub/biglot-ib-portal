@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { formatCurrency } from '$lib/utils';
-
 	let {
 		analytics = []
 	}: {
@@ -25,9 +23,7 @@
 				<thead>
 					<tr class="border-b border-dark-border text-gray-400 text-xs">
 						<th class="text-left py-2">กฎ</th>
-						<th class="text-center py-2">เงื่อนไข</th>
 						<th class="text-center py-2">Streak</th>
-						<th class="text-right py-2">P&L เฉลี่ย (ทำตาม)</th>
 						<th class="text-right py-2">อัตราปฏิบัติ</th>
 					</tr>
 				</thead>
@@ -35,15 +31,11 @@
 					{#each analytics as rule}
 						<tr class="border-b border-dark-border/40">
 							<td class="py-2.5 text-white">{rule.name}</td>
-							<td class="py-2.5 text-center text-gray-400 text-xs">{rule.condition}</td>
 							<td class="py-2.5 text-center">
 								<span class="text-white font-medium">{rule.streak}</span>
 								{#if rule.streak >= 7}
 									<span class="ml-0.5">🔥</span>
 								{/if}
-							</td>
-							<td class="py-2.5 text-right font-mono {rule.avgPerfFollowed >= 0 ? 'text-green-400' : 'text-red-400'}">
-								{formatCurrency(rule.avgPerfFollowed)}
 							</td>
 							<td class="py-2.5 text-right">
 								<div class="flex items-center justify-end gap-2">

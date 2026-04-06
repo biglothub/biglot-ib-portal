@@ -10,7 +10,6 @@
 		{ id: 'dayview', label: 'Day View', icon: '📅' },
 		{ id: 'trades', label: 'Trades', icon: '📋' },
 		{ id: 'journal', label: 'Journal', icon: '📓' },
-		{ id: 'notebook', label: 'Notebook', icon: '📝' },
 		{ id: 'reports', label: 'Reports', icon: '📈' },
 		{ id: 'calendar', label: 'Calendar', icon: '🗓️' },
 		{ id: 'playbook', label: 'Playbook', icon: '📘' },
@@ -160,7 +159,7 @@
 								<li><span class="text-white font-medium">Calendar</span> — กดวันที่เลือก วันที่มี trade จะมีสี (เขียว=กำไร, แดง=ขาดทุน)</li>
 								<li><span class="text-white font-medium">Daily Summary</span> — P&L, จำนวน trades, win rate, W/L</li>
 								<li><span class="text-white font-medium">Intraday P&L Chart</span> — กราฟแสดง cumulative P&L ระหว่างวัน</li>
-								<li><span class="text-white font-medium">+ Add note</span> — กดเพื่อสร้าง note ใน Notebook สำหรับวันนี้</li>
+								<li><span class="text-white font-medium">+ Add note</span> — กดเพื่อสร้าง note ใน Journal สำหรับวันนี้</li>
 								<li><span class="text-white font-medium">Trade List</span> — ตาราง trades ของวัน (เวลา, symbol, side, lot, entry/exit, P&L)</li>
 							</ul>
 						</div>
@@ -280,43 +279,6 @@
 								<li><span class="text-white font-medium">Tomorrow's Focus</span> — สิ่งที่จะโฟกัสพรุ่งนี้</li>
 								<li><span class="text-white font-medium">Completion</span> — กด "Complete" เพื่อนับ streak</li>
 							</ul>
-						</div>
-					</div>
-				</div>
-
-			{:else if activeSection === 'notebook'}
-				<div class="space-y-5">
-					<div>
-						<h3 class="text-base font-semibold text-white mb-1">Notebook — สมุดบันทึกอัจฉริยะ</h3>
-						<p class="text-sm text-gray-400">เขียน notes ในรูปแบบ rich text พร้อมระบบ folder, search, และ soft delete</p>
-					</div>
-
-					<div class="space-y-4">
-						<div class="rounded-xl border border-dark-border p-4">
-							<div class="text-xs font-semibold text-brand-primary mb-2">Step 1 — เลือก Folder</div>
-							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
-								<li><span class="text-white font-medium">All notes</span> — ดู notes ทั้งหมด</li>
-								<li><span class="text-white font-medium">Trade Notes</span> — notes ที่ link กับ trade</li>
-								<li><span class="text-white font-medium">Daily Journal</span> — notes ประจำวัน</li>
-								<li><span class="text-white font-medium">Sessions Recap</span> — สรุป session (Asian/London/NY)</li>
-								<li><span class="text-white font-medium">+ New</span> — สร้าง custom folder เพิ่มได้</li>
-								<li><span class="text-white font-medium">Recently deleted</span> — กู้คืน notes ที่ลบแล้วได้</li>
-							</ul>
-						</div>
-
-						<div class="rounded-xl border border-dark-border p-4">
-							<div class="text-xs font-semibold text-brand-primary mb-2">Step 2 — เขียน Note (Rich Text Editor)</div>
-							<ul class="mt-1 space-y-1.5 text-sm text-gray-400">
-								<li>Toolbar: <span class="text-white font-medium">B I S H1 H2</span> — Bold, Italic, Strikethrough, Headings</li>
-								<li>Lists: <span class="text-white font-medium">Bullet, Numbered</span></li>
-								<li>Format: <span class="text-white font-medium">Blockquote, Code Block, Horizontal Rule</span></li>
-								<li><span class="text-white font-medium">Auto-save</span> — บันทึกอัตโนมัติทุก 2 วินาที</li>
-							</ul>
-						</div>
-
-						<div class="rounded-xl border border-dark-border p-4">
-							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — ค้นหา Notes</div>
-							<p class="text-sm text-gray-400">ใช้ Search bar ด้านบน — ค้นหาทั้ง title และ content ของ notes ทุกตัว</p>
 						</div>
 					</div>
 				</div>

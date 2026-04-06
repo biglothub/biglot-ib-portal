@@ -40,6 +40,33 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		return toThaiDateString(trade.close_time) === selectedDate;
 	});
 
+	// Load today's checklist data from Progress system
+	let checklistTotalRules = 0;
+	let checklistCompletedCount = 0;
+	if (selectedDate) {
+		const userId = parentData.userId;
+		const [rulesRes, completionsRes] = await Promise.all([
+			locals.supabase
+				.from('checklist_rules')
+				.select('id')
+				.eq('client_account_id', account.id)
+				.eq('user_id', userId)
+				.eq('is_active', true),
+			locals.supabase
+				.from('checklist_completions')
+				.select('rule_id, completed')
+				.eq('client_account_id', account.id)
+				.eq('user_id', userId)
+				.eq('date', selectedDate)
+		]);
+		const rules = rulesRes.data || [];
+		const completions = completionsRes.data || [];
+		checklistTotalRules = rules.length;
+		checklistCompletedCount = rules.filter((r: { id: string }) =>
+			completions.some((c: { rule_id: string; completed: boolean }) => c.rule_id === r.id && c.completed)
+		).length;
+	}
+
 	return {
 		journals: baseData.journals,
 		dailyHistory,
@@ -52,6 +79,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		journalSummary: buildJournalCompletionSummary(baseData.journals, dailyHistory),
 		dayTrades,
 		tags,
-		playbooks
+		playbooks,
+		checklistTotalRules,
+		checklistCompletedCount
 	};
 };

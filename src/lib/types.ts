@@ -236,7 +236,7 @@ export interface DailyJournal {
 	session_plan: string;
 	market_bias: string;
 	key_levels: string;
-	checklist: string[];
+	checklist?: string[];
 	mood: number | null;
 	energy_score: number | null;
 	discipline_score: number | null;
@@ -429,38 +429,6 @@ export interface ChecklistCompletion {
 	completed: boolean;
 	auto_value: number | null;
 	created_at: string;
-}
-
-// --- Notebook types ---
-
-export interface NotebookFolder {
-	id: string;
-	user_id: string;
-	client_account_id: string;
-	name: string;
-	type: 'system' | 'custom';
-	system_type: string | null;
-	icon: string;
-	sort_order: number;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface NotebookNote {
-	id: string;
-	user_id: string;
-	client_account_id: string;
-	folder_id: string;
-	title: string;
-	content: string;
-	linked_trade_id: string | null;
-	linked_date: string | null;
-	linked_session: string | null;
-	is_pinned: boolean;
-	is_deleted: boolean;
-	deleted_at: string | null;
-	created_at: string;
-	updated_at: string;
 }
 
 // --- Filter options type ---

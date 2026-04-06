@@ -180,9 +180,10 @@
 			if (res.ok) {
 				reviewSaved = true;
 				setTimeout(() => (reviewSaved = false), 2000);
-				invalidate('portfolio:baseData');
+				await invalidate('portfolio:baseData');
 			} else {
-				actionError = 'ไม่สามารถบันทึก Review ได้';
+				const errData = await res.json().catch(() => ({}));
+				actionError = errData.message || `ไม่สามารถบันทึก Review ได้ (${res.status})`;
 			}
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
@@ -436,7 +437,7 @@
 							href={`/portfolio/journal?date=${journalDate}&year=${new Date(trade.close_time).getFullYear()}&month=${new Date(trade.close_time).getMonth() + 1}`}
 							class="mt-3 inline-flex text-xs text-brand-primary"
 						>
-							เปิด notebook ของวันเดียวกัน
+							เปิด journal ของวันเดียวกัน
 						</a>
 					</div>
 
@@ -546,6 +547,7 @@
 					type="number"
 					min="1"
 					max="5"
+					step="1"
 					bind:value={confidenceAtEntry}
 					placeholder="ความมั่นใจ 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
@@ -554,6 +556,7 @@
 					type="number"
 					min="1"
 					max="5"
+					step="1"
 					bind:value={setupQuality}
 					placeholder="คุณภาพ Setup 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
@@ -562,6 +565,7 @@
 					type="number"
 					min="1"
 					max="5"
+					step="1"
 					bind:value={disciplineScore}
 					placeholder="วินัย 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
@@ -570,6 +574,7 @@
 					type="number"
 					min="1"
 					max="5"
+					step="1"
 					bind:value={executionScore}
 					placeholder="การ Execute 1-5"
 					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"

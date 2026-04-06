@@ -125,9 +125,4 @@ test.describe('Portfolio Sub-pages', () => {
 		await expect(page.locator('body')).not.toContainText('Internal Server Error');
 	});
 
-	test('/portfolio/notebook loads without error', async ({ page }) => {
-		await loginAsClient(page);
-		await page.goto('/portfolio/notebook');
-		await expect(page.locator('body')).not.toContainText('Internal Server Error');
-	});
 });

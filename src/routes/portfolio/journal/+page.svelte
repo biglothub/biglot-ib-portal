@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
-	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import JournalTemplates from '$lib/components/portfolio/JournalTemplates.svelte';
@@ -31,7 +30,8 @@
 	let sessionPlan = $state('');
 	let marketBias = $state('');
 	let keyLevels = $state('');
-	let checklist = $state<string[]>([]);
+	let checklistTotalRules = $derived(data.checklistTotalRules || 0);
+	let checklistCompletedCount = $derived(data.checklistCompletedCount || 0);
 	let mood = $state<number | null>(null);
 	let energyScore = $state<number | null>(null);
 	let disciplineScore = $state<number | null>(null);
@@ -42,6 +42,7 @@
 	let saving = $state(false);
 	let saved = $state(false);
 	let actionError = $state('');
+	let generatingRecap = $state(false);
 	let showTemplates = $state(false);
 
 	/** Wrap plain text in <p> tags for Tiptap compatibility */
@@ -75,7 +76,6 @@
 		sessionPlan = toHtml(selectedJournal?.session_plan || '');
 		marketBias = selectedJournal?.market_bias || '';
 		keyLevels = selectedJournal?.key_levels || '';
-		checklist = selectedJournal?.checklist || [];
 		mood = selectedJournal?.mood || null;
 		energyScore = selectedJournal?.energy_score || null;
 		disciplineScore = selectedJournal?.discipline_score || null;
@@ -159,7 +159,6 @@
 					session_plan: sessionPlan,
 					market_bias: marketBias,
 					key_levels: keyLevels,
-					checklist,
 					mood,
 					energy_score: energyScore,
 					discipline_score: disciplineScore,
@@ -174,7 +173,7 @@
 				saved = true;
 				setTimeout(() => (saved = false), 2000);
 			} else {
-				actionError = 'ไม่สามารถบันทึก Notebook ได้';
+				actionError = 'ไม่สามารถบันทึก Journal ได้';
 			}
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
@@ -270,12 +269,12 @@
 		<div class="lg:col-span-2 space-y-4">
 			{#if !selectedDate}
 				<div class="card text-center py-12">
-					<p class="text-gray-400 text-sm">เลือกวันจากปฏิทินเพื่อเขียน Notebook</p>
+					<p class="text-gray-400 text-sm">เลือกวันจากปฏิทินเพื่อเขียน Journal</p>
 				</div>
 			{:else}
 				<div class="flex flex-wrap items-center justify-between gap-2">
 					<h3 class="text-sm font-medium text-white">
-						Notebook: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+						Journal: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
 					</h3>
 					<div class="flex items-center gap-2 flex-wrap">
 						<button
@@ -331,12 +330,24 @@
 				</div>
 
 				<div class="card">
-					<ChecklistEditor
-						items={checklist}
-						label="รายการตรวจสอบ"
-						placeholder="เช่น Wait for London open confirmation"
-						onchange={(items) => (checklist = items)}
-					/>
+					<div class="flex items-center justify-between">
+						<h4 class="text-xs text-gray-400">เช็คลิสต์ (Progress)</h4>
+						<a href="/portfolio/progress" class="text-xs text-brand-primary hover:underline flex items-center gap-1">
+							ดูรายละเอียด
+							<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+						</a>
+					</div>
+					{#if checklistTotalRules > 0}
+						<div class="flex items-center gap-3 mt-2">
+							<span class="text-lg font-semibold text-white">{checklistCompletedCount}/{checklistTotalRules}</span>
+							<div class="flex-1 h-2 rounded-full bg-dark-border overflow-hidden">
+								<div class="h-full rounded-full bg-brand-primary transition-all" style="width: {(checklistCompletedCount / checklistTotalRules) * 100}%"></div>
+							</div>
+							<span class="text-xs text-gray-400">กฎที่ผ่าน</span>
+						</div>
+					{:else}
+						<p class="text-xs text-gray-400 mt-2">ยังไม่มีกฎเช็คลิสต์ — <a href="/portfolio/progress" class="text-brand-primary hover:underline">ตั้งค่าใน Progress</a></p>
+					{/if}
 				</div>
 
 				<div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -373,7 +384,37 @@
 
 				<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
 					<div class="card">
-						<h4 class="text-xs text-gray-400 mb-2">บันทึกหลังเทรด</h4>
+						<div class="flex items-center justify-between mb-2">
+							<h4 class="text-xs text-gray-400">บันทึกหลังเทรด</h4>
+							<button
+								type="button"
+								onclick={async () => {
+									if (!selectedDate || generatingRecap) return;
+									generatingRecap = true;
+									try {
+										const res = await fetch('/api/portfolio/journal', {
+											method: 'POST',
+											headers: { 'Content-Type': 'application/json' },
+											body: JSON.stringify({ action: 'generate_session_recap', date: selectedDate })
+										});
+										const result = await res.json();
+										if (res.ok && result.html) {
+											postMarketNotes = result.html;
+										}
+									} catch { /* ignore */ } finally {
+										generatingRecap = false;
+									}
+								}}
+								disabled={generatingRecap || !selectedDate}
+								class="text-xs text-brand-primary hover:underline disabled:opacity-50 flex items-center gap-1"
+							>
+								{#if generatingRecap}
+									กำลังสร้าง...
+								{:else}
+									สร้างสรุป Session
+								{/if}
+							</button>
+						</div>
 						<TiptapEditor compact content={postMarketNotes} onupdate={(html) => (postMarketNotes = html)} placeholder="สรุปผลการเทรดวันนี้..." />
 					</div>
 					<div class="card">
@@ -418,7 +459,7 @@
 						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
 						กำลังบันทึก...
 					{:else}
-						บันทึก Notebook
+						บันทึก Journal
 					{/if}
 				</button>
 			{/if}
