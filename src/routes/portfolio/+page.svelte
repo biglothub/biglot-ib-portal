@@ -21,6 +21,7 @@
 	import { displayUnit } from '$lib/stores/displayUnit';
 	import { marketNewsStore } from '$lib/stores/newsStore';
 	import { invalidate } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
@@ -68,11 +69,8 @@
 	});
 	let settingsOpen = $state(false);
 
-	// Load saved row visibility from localStorage (mounted flag prevents hydration mismatch)
-	let mounted = $state(false);
-	$effect(() => { mounted = true; });
-	$effect(() => {
-		if (!mounted) return;
+	// Load saved row visibility from localStorage once on mount (avoids effect loop)
+	onMount(() => {
 		try {
 			const saved = localStorage.getItem('dashboard-rows');
 			if (saved) rowVisibility = { ...rowVisibility, ...JSON.parse(saved) };
