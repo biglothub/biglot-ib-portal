@@ -33,6 +33,7 @@
 		equityCurve,
 		equitySnapshots,
 		drawdownHistory,
+		intradayDrawdown,
 		commandCenter,
 		filterState,
 		filterOptions,
@@ -406,7 +407,7 @@
 						avgWin={kpi.avgWin}
 						avgLoss={kpi.avgLoss}
 						recoveryFactor={kpi.recoveryFactor || 0}
-						maxDrawdownPct={kpi.maxDrawdownPct || 0}
+						maxDrawdownPct={intradayDrawdown?.maxDrawdownPct ?? kpi.maxDrawdownPct ?? 0}
 						consistency={kpi.consistency || 0}
 					/>
 				</DeferRender>
@@ -564,7 +565,7 @@
 			<div class="card">
 				<p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Drawdown</p>
 				<DeferRender>
-					<DrawdownChart drawdownData={drawdownHistory || []} />
+					<DrawdownChart drawdownData={drawdownHistory || []} intradayData={intradayDrawdown} />
 				</DeferRender>
 			</div>
 		</div>

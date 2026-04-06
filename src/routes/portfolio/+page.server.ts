@@ -3,6 +3,7 @@ import { parsePortfolioFilters } from '$lib/portfolio';
 import {
 	buildDailyHistory,
 	buildDrawdownHistory,
+	buildIntradayDrawdown,
 	buildFilterOptions,
 	buildKpiMetrics,
 	buildReportExplorer,
@@ -80,9 +81,14 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const report = buildReportExplorer(baseData.trades, baseData.dailyStats, baseData.journals, filterState);
 	const trades = report.filteredTrades;
 	const dailyHistory = buildDailyHistory(trades);
-	const drawdownHistory = buildDrawdownHistory(dailyHistory);
+
+	// Derive starting balance from earliest daily_stats
+	const firstStat = baseData.dailyStats[0];
+	const startingBalance = firstStat ? Number(firstStat.balance || 0) - Number(firstStat.profit || 0) : 0;
+
+	const drawdownHistory = buildDrawdownHistory(dailyHistory, startingBalance);
 	const reviewSummary = buildReviewSummary(trades);
-	const kpiMetrics = buildKpiMetrics(trades, dailyHistory);
+	const kpiMetrics = buildKpiMetrics(trades, dailyHistory, startingBalance);
 	const todayJournal = baseData.journals.find((journal: DailyJournal) => journal.date === today) || null;
 
 	// Build command center from already-computed data (avoid duplicate computation)
@@ -116,6 +122,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		floatingPL: snapshot.floating_pl || 0
 	}));
 
+	const intradayDrawdown = buildIntradayDrawdown(equitySnapshots, startingBalance);
+
 	type ChecklistRuleRow = { id: string };
 	type ChecklistCompletionRow = { rule_id: string; completed: boolean };
 	const checklistRules = (checklistRulesRes.data as ChecklistRuleRow[]) || [];
@@ -133,6 +141,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		drawdownHistory,
 		equityCurve: baseData.dailyStats.map((day: DailyStats) => day.equity),
 		equitySnapshots,
+		intradayDrawdown,
 		commandCenter,
 		filterState,
 		filterOptions: buildFilterOptions(baseData.trades, playbooks),

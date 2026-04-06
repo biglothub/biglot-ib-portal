@@ -92,7 +92,7 @@
 	});
 
 	function cellColor(cell: NonNullable<DayCell>): string {
-		if (cell.trades === 0) return 'bg-white/[0.03] border border-white/[0.06]';
+		if (cell.trades === 0) return 'bg-gray-600/8 border border-gray-600/15';
 		if (cell.profit < 0) return 'bg-red-500/40 border border-red-500/20';
 		const ratio = cell.profit / maxProfit;
 		if (ratio > 0.66) return 'bg-emerald-500/80 border border-emerald-500/30';
@@ -223,7 +223,7 @@
 				<span>ขาดทุน</span>
 				<div class="w-[14px] h-[14px] rounded-[3px] bg-red-500/40 border border-red-500/20"></div>
 				<div class="w-3 bg-dark-border h-px mx-0.5"></div>
-				<div class="w-[14px] h-[14px] rounded-[3px] bg-white/[0.03] border border-white/[0.06]"></div>
+				<div class="w-[14px] h-[14px] rounded-[3px] bg-gray-600/8 border border-gray-600/15"></div>
 				<div class="w-[14px] h-[14px] rounded-[3px] bg-emerald-500/25 border border-emerald-500/10"></div>
 				<div class="w-[14px] h-[14px] rounded-[3px] bg-emerald-500/50 border border-emerald-500/20"></div>
 				<div class="w-[14px] h-[14px] rounded-[3px] bg-emerald-500/80 border border-emerald-500/30"></div>

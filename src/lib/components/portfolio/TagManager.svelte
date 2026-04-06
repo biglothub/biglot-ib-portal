@@ -109,7 +109,7 @@
 						type="button"
 						onclick={() => newColor = c}
 						aria-label={`Select color ${c}`}
-						class="w-6 h-6 rounded-full border-2 transition-all {newColor === c ? 'border-white scale-110' : 'border-transparent'}"
+						class="w-6 h-6 rounded-full border-2 transition-all {newColor === c ? 'border-gray-300 scale-110' : 'border-transparent'}"
 						style="background-color: {c};"
 					></button>
 				{/each}

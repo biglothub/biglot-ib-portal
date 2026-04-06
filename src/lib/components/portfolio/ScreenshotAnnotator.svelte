@@ -416,7 +416,7 @@
 						type="button"
 						onclick={() => activeColor = color}
 						aria-label="สีที่ {color}"
-						class="w-5 h-5 rounded-full border-2 transition-all {activeColor === color ? 'border-white scale-110' : 'border-transparent hover:border-gray-400'}"
+						class="w-5 h-5 rounded-full border-2 transition-all {activeColor === color ? 'border-gray-300 scale-110' : 'border-transparent hover:border-gray-500'}"
 						style="background-color: {color}"
 					></button>
 				{/each}

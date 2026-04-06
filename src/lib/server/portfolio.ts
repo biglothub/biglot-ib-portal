@@ -298,7 +298,7 @@ export function buildDailyHistory(trades: Trade[]): DailyHistoryEntry[] {
  * Build enhanced KPI metrics for dashboard
  * Calculates: Net P&L, Day Win%, Avg Win, Avg Loss, and cumulative P&L series
  */
-export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof buildDailyHistory>) {
+export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof buildDailyHistory>, startingBalance = 0) {
 	if (!trades || trades.length === 0) {
 		return {
 			netPnl: 0,
@@ -364,7 +364,8 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 		if (dd > maxDrawdown) maxDrawdown = dd;
 	}
 	const recoveryFactor = maxDrawdown > 0 ? netPnl / maxDrawdown : netPnl > 0 ? MAX_RATIO : 0;
-	const maxDrawdownPct = peak > 0 ? (maxDrawdown / peak) * 100 : (maxDrawdown > 0 ? 100 : 0);
+	const peakEquity = startingBalance + peak;
+	const maxDrawdownPct = peakEquity > 0 ? (maxDrawdown / peakEquity) * 100 : (maxDrawdown > 0 ? 100 : 0);
 
 	// Consistency: 1 - (StdDev / Mean) of daily P&L, clamped to 0-1
 	const dailyProfits = dailyHistory.map(d => d.profit);
@@ -946,14 +947,48 @@ function buildMistakeStats(trades: Trade[]) {
 }
 
 export function buildDrawdownHistory(
-	dailyHistory: ReturnType<typeof buildDailyHistory>
+	dailyHistory: ReturnType<typeof buildDailyHistory>,
+	startingBalance = 0
 ): { date: string; drawdownPct: number }[] {
 	let cumulative = 0;
 	let peak = 0;
 	return dailyHistory.map(d => {
 		cumulative += d.profit;
 		if (cumulative > peak) peak = cumulative;
-		const drawdownPct = peak > 0 ? ((cumulative - peak) / peak) * 100 : 0;
+		const peakEquity = startingBalance + peak;
+		const drawdownPct = peakEquity > 0 ? ((cumulative - peak) / peakEquity) * 100 : 0;
 		return { date: d.date, drawdownPct };
 	});
+}
+
+export function buildIntradayDrawdown(
+	snapshots: Array<{ time: number; equity: number; balance: number }>,
+	startingBalance = 0
+): {
+	maxDrawdownPct: number;
+	absoluteDrawdown: number;
+	peakEquity: number;
+	lowestEquity: number;
+	history: Array<{ time: number; drawdownPct: number }>;
+} {
+	if (!snapshots || snapshots.length === 0) {
+		return { maxDrawdownPct: 0, absoluteDrawdown: 0, peakEquity: startingBalance, lowestEquity: startingBalance, history: [] };
+	}
+
+	let peakEquity = startingBalance;
+	let lowestEquity = snapshots[0].equity;
+	let maxDrawdownPct = 0;
+	let absoluteDrawdown = 0;
+
+	const history = snapshots.map(s => {
+		if (s.equity > peakEquity) peakEquity = s.equity;
+		if (s.equity < lowestEquity) lowestEquity = s.equity;
+		const ddPct = peakEquity > 0 ? ((peakEquity - s.equity) / peakEquity) * 100 : 0;
+		if (ddPct > maxDrawdownPct) maxDrawdownPct = ddPct;
+		const absDD = startingBalance - s.equity;
+		if (absDD > absoluteDrawdown) absoluteDrawdown = absDD;
+		return { time: s.time, drawdownPct: -ddPct };
+	});
+
+	return { maxDrawdownPct, absoluteDrawdown, peakEquity, lowestEquity, history };
 }

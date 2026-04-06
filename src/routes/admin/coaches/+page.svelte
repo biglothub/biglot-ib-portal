@@ -320,7 +320,7 @@
 								type="button"
 								onclick={() => form.color_preset = i}
 								class="rounded-lg p-2 text-center text-[10px] font-medium border-2 transition-all
-									{form.color_preset === i ? 'border-white scale-105' : 'border-transparent opacity-60 hover:opacity-100'}"
+									{form.color_preset === i ? 'border-gray-300 scale-105' : 'border-transparent opacity-60 hover:opacity-100'}"
 							>
 								<div class="h-4 rounded bg-gradient-to-r {preset.gradient} mb-1"></div>
 								<span class="text-gray-400">{preset.label}</span>

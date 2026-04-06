@@ -94,7 +94,7 @@
 							<div
 								class="w-16 h-12 flex items-center justify-center rounded-md m-0.5 cursor-default transition-all duration-150 relative
 									{corrCellBg(val, isDiag)}
-									{isHovered && !isDiag ? 'ring-1 ring-white/30 scale-105 z-10' : ''}"
+									{isHovered && !isDiag ? 'ring-1 ring-gray-400/40 scale-105 z-10' : ''}"
 								onmouseenter={() => { if (!isDiag) hoveredCell = { i, j }; }}
 								onmouseleave={() => { hoveredCell = null; }}
 								role="cell"
