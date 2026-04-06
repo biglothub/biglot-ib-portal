@@ -40,10 +40,10 @@ export default {
       },
       colors: {
         dark: {
-          bg: 'var(--c-bg)',
-          surface: 'var(--c-surface)',
-          border: 'var(--c-border)',
-          hover: 'var(--c-hover)',
+          bg: 'rgb(var(--c-bg-rgb) / <alpha-value>)',
+          surface: 'rgb(var(--c-surface-rgb) / <alpha-value>)',
+          border: 'rgb(var(--c-border-rgb) / <alpha-value>)',
+          hover: 'rgb(var(--c-hover-rgb) / <alpha-value>)',
         },
         brand: {
           primary: '#C9A84C',

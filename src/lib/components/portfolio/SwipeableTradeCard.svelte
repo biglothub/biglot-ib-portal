@@ -209,7 +209,7 @@
 	<!-- Card content — moves horizontally with swipe -->
 	<div
 		use:swipeAction
-		class="relative bg-dark-surface border border-dark-border rounded-lg p-4 select-none"
+		class="relative bg-dark-surface border border-gray-700/50 rounded-lg p-4 select-none"
 		style:transform="translateX({swipeX}px)"
 		style:transition={swipeX === 0 ? 'transform 0.2s ease' : 'none'}
 		role="button"
@@ -341,7 +341,7 @@
 
 	<!-- Sheet -->
 	<div
-		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl p-5 space-y-4 pb-safe animate-slide-up"
+		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-gray-700/50 rounded-t-2xl p-5 space-y-4 pb-safe animate-slide-up"
 	>
 		<!-- Handle bar -->
 		<div class="flex justify-center mb-1">
@@ -417,7 +417,7 @@
 
 	<!-- Sheet -->
 	<div
-		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl p-5 space-y-4 pb-safe animate-slide-up"
+		class="fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-gray-700/50 rounded-t-2xl p-5 space-y-4 pb-safe animate-slide-up"
 	>
 		<!-- Handle bar -->
 		<div class="flex justify-center mb-1">

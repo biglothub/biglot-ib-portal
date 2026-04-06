@@ -65,7 +65,7 @@
 
 		<a
 			href="/portfolio/notebook?linked_date={entry.date}"
-			class="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-brand-primary/40 hover:text-white"
+			class="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-gray-700/50 px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-brand-primary/40 hover:text-white"
 		>
 			<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -76,7 +76,7 @@
 
 	{#if expanded}
 		<!-- Body: sparkline left + stats grid right -->
-		<div class="mt-3 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-4 border-t border-dark-border/40 pt-3">
+		<div class="mt-3 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-4 border-t border-gray-700/40 pt-3">
 			<!-- Mini sparkline -->
 			<div class="flex items-center justify-center">
 				{#if entry.intradayCumPnl.length >= 2}
@@ -124,7 +124,7 @@
 		</div>
 
 		<!-- Double expand: trade list -->
-		<div class="mt-3 border-t border-dark-border/40 pt-2">
+		<div class="mt-3 border-t border-gray-700/40 pt-2">
 			<button
 				onclick={() => showTrades = !showTrades}
 				class="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
@@ -142,7 +142,7 @@
 				<div class="mt-2 overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead>
-							<tr class="border-b border-dark-border text-gray-400 text-xs">
+							<tr class="border-b border-gray-700/50 text-gray-400 text-xs">
 								<th class="text-left py-2">เวลา</th>
 								<th class="text-left py-2">สัญลักษณ์</th>
 								<th class="text-left py-2">ประเภท</th>
@@ -154,7 +154,7 @@
 						</thead>
 						<tbody>
 							{#each entry.trades as trade}
-								<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
+								<tr class="border-b border-gray-700/30 hover:bg-dark-bg/30">
 									<td class="py-2.5 text-gray-400 text-xs">
 										{new Date(trade.close_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
 									</td>

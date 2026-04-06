@@ -295,24 +295,24 @@
 			</div>
 
 			<!-- Line 2: Today's command center -->
-			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs border-t border-dark-border/50 pt-1.5">
+			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs border-t border-gray-700/40 pt-1.5">
 				<div class="flex items-center gap-1.5">
 					<span class="text-gray-400">P/L วันนี้</span>
 					<span class="font-semibold {safeCommandCenter.today.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 						{formatPnl(safeCommandCenter.today.pnl || 0, $displayUnit, latestStats?.balance)}
 					</span>
 				</div>
-				<span class="text-dark-border">·</span>
+				<span class="text-gray-600">·</span>
 				<div class="flex items-center gap-1.5">
 					<span class="text-gray-400">เทรด</span>
 					<span class="text-white font-medium">{safeCommandCenter.today.trades || 0}</span>
 				</div>
-				<span class="text-dark-border">·</span>
+				<span class="text-gray-600">·</span>
 				<div class="flex items-center gap-1.5">
 					<span class="text-gray-400">รีวิวแล้ว</span>
 					<span class="text-white font-medium">{safeCommandCenter.today.reviewedTrades || 0}</span>
 				</div>
-				<span class="text-dark-border">·</span>
+				<span class="text-gray-600">·</span>
 				<div class="flex items-center gap-1.5">
 					<span class="text-gray-400">Journal</span>
 					<span class="{safeCommandCenter.today.completedJournal ? 'text-green-400' : 'text-amber-300'}">
@@ -320,7 +320,7 @@
 					</span>
 				</div>
 				{#if safeCommandCenter.reviewSummary.unreviewed > 0}
-					<span class="text-dark-border">·</span>
+					<span class="text-gray-600">·</span>
 					<a href="/portfolio/trades" class="flex items-center gap-1 text-amber-400 hover:text-amber-300">
 						<span class="font-medium">{safeCommandCenter.reviewSummary.unreviewed}</span>
 						<span>รอรีวิว</span>
@@ -455,7 +455,7 @@
 			<!-- Recent Trades / Open Positions tabbed -->
 			<div class="card">
 				<!-- Tabs -->
-				<div class="flex items-center gap-4 border-b border-dark-border mb-3 -mt-1">
+				<div class="flex items-center gap-4 border-b border-gray-700/50 mb-3 -mt-1">
 					<button
 						onclick={() => tradesTab = 'recent'}
 						class="pb-2 text-sm font-medium transition-colors border-b-2 -mb-px focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:outline-none
@@ -490,7 +490,7 @@
 						<div class="overflow-x-auto">
 							<table class="w-full text-xs">
 								<thead>
-									<tr class="border-b border-dark-border text-gray-500">
+									<tr class="border-b border-gray-700/50 text-gray-500">
 										<th class="text-left py-1.5">วันที่</th>
 										<th class="text-left py-1.5">สัญลักษณ์</th>
 										<th class="text-right py-1.5">P&L</th>
@@ -499,7 +499,7 @@
 								<tbody>
 									{#each recentTrades as trade (trade.id)}
 										{@const reviewStatus = getTradeReviewStatus(trade)}
-										<tr class="border-b border-dark-border/30 {reviewStatus !== 'reviewed' ? 'bg-amber-500/5' : ''}">
+										<tr class="border-b border-gray-700/30 {reviewStatus !== 'reviewed' ? 'bg-amber-500/5' : ''}">
 											<td class="py-2 text-gray-400">{formatDateTime(trade.close_time)}</td>
 											<td class="py-2">
 												<a href={`/portfolio/trades/${trade.id}`}

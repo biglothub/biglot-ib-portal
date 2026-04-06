@@ -6,6 +6,15 @@ import type { PageServerLoad } from './$types';
 
 const PAGE_SIZE = 25;
 
+// Contract size by instrument type (matches Tradezella's contract_multiplier)
+function getContractSize(symbol: string): number {
+	const s = symbol.replace(/\.(S|raw|std|pro|micro)$/i, '').toUpperCase();
+	if (s === 'XAUUSD' || s === 'GOLD') return 100;
+	if (s === 'XAGUSD' || s === 'SILVER') return 5000;
+	if (s.includes('XAU') || s.includes('XAG')) return 100;
+	return 100000; // Standard forex
+}
+
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
 	const { account, tags = [], playbooks = [], savedViews = [] } = parentData;
@@ -56,7 +65,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		if (metrics) tradeExecutionMetrics[trade.id] = {
 			...metrics,
 			netRoi: (trade.open_price && trade.lot_size)
-				? (Number(trade.profit) / (Number(trade.open_price) * Number(trade.lot_size))) * 100
+				? (Number(trade.profit) / (Number(trade.open_price) * Number(trade.lot_size) * getContractSize(String(trade.symbol)))) * 100
 				: null
 		};
 	}

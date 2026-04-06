@@ -5,18 +5,26 @@
 /* Theme CSS custom properties */
 :root {
   --c-bg: #f8fafc;
+  --c-bg-rgb: 248 250 252;
   --c-surface: #ffffff;
+  --c-surface-rgb: 255 255 255;
   --c-border: #e2e8f0;
+  --c-border-rgb: 226 232 240;
   --c-hover: #f1f5f9;
+  --c-hover-rgb: 241 245 249;
   color-scheme: light;
   background-color: var(--c-bg);
 }
 
 :root.dark {
   --c-bg: #0a0a0a;
+  --c-bg-rgb: 10 10 10;
   --c-surface: #141414;
+  --c-surface-rgb: 20 20 20;
   --c-border: #262626;
+  --c-border-rgb: 38 38 38;
   --c-hover: #1a1a1a;
+  --c-hover-rgb: 26 26 26;
   color-scheme: dark;
   background-color: var(--c-bg);
 }

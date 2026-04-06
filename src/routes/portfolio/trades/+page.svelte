@@ -454,7 +454,7 @@
 				<div class="hidden md:block overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead>
-								<tr class="border-b border-dark-border text-gray-400 text-xs">
+								<tr class="border-b border-gray-700/50 text-gray-400 text-xs">
 									<th class="w-8 py-2"></th>
 									<th class="text-left py-2">เทรด</th>
 									<th class="text-left py-2 whitespace-nowrap">สถานะ</th>
@@ -477,7 +477,7 @@
 										tabindex="0"
 										role="link"
 										aria-label="ดูรายละเอียด trade {trade.symbol} กำไร {formatCurrency(trade.profit)}"
-										class="border-b border-dark-border/40 hover:bg-dark-border/20 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 focus-visible:ring-offset-dark-bg rounded {selectedIds.has(trade.id) ? 'bg-brand-primary/5' : ''}"
+										class="border-b border-gray-700/30 hover:bg-gray-700/20 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 focus-visible:ring-offset-dark-bg rounded {selectedIds.has(trade.id) ? 'bg-brand-primary/5' : ''}"
 										onclick={(e) => {
 											const target = e.target as HTMLElement;
 											if (target.closest('input[type="checkbox"]') || target.closest('td.checkbox-cell')) return;

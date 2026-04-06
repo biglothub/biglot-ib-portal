@@ -49,7 +49,7 @@
 		<div class="overflow-x-auto">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-dark-border text-gray-400 text-[11px] uppercase tracking-wider">
+					<tr class="border-b border-gray-700/50 text-gray-400 text-[11px] uppercase tracking-wider">
 						<th class="text-left py-2.5 font-medium">กลยุทธ์</th>
 						<th class="text-right py-2.5 font-medium">เทรด</th>
 						<th class="text-right py-2.5 font-medium">อัตราชนะ</th>
@@ -60,7 +60,7 @@
 				</thead>
 				<tbody>
 					{#each report.setupPerformance || [] as setup}
-						<tr class="border-b border-dark-border/30 hover:bg-dark-bg/30 transition-colors">
+						<tr class="border-b border-gray-700/30 hover:bg-dark-bg/30 transition-colors">
 							<td class="py-2.5 text-white font-medium">{setup.name}</td>
 							<td class="py-2.5 text-right text-gray-300">{setup.totalTrades}</td>
 							<td class="py-2.5 text-right {setup.winRate >= 50 ? 'text-green-400' : 'text-red-400'}">{formatPercent(setup.winRate).replace('+', '')}</td>
@@ -132,7 +132,7 @@
 						<span class="text-gray-400">{goal.goal_type}</span>
 						<span class="text-white">{goal.currentValue.toFixed(1)} / {goal.target_value}</span>
 					</div>
-					<div class="w-full bg-dark-border rounded-full h-2">
+					<div class="w-full bg-gray-700/50 rounded-full h-2">
 						<div class="bg-brand-primary rounded-full h-2" style={`width: ${goal.progress}%`}></div>
 					</div>
 				</div>
