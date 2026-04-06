@@ -22,6 +22,7 @@
 	let loading = $state(true);
 	let saving = $state(false);
 	let saved = $state(false);
+	let error = $state('');
 
 	// Format date header (e.g. "จันทร์ 6 เม.ย. 2569")
 	function formatDateHeader(dateStr: string) {
@@ -29,19 +30,28 @@
 		return d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 	}
 
-	// Load existing journal on mount
+	// Load existing journal on mount — only track `date` to avoid re-runs on keystroke
 	$effect(() => {
-		fetch(`/api/portfolio/journal?date=${date}`)
+		const d = date;
+		fetch(`/api/portfolio/journal?date=${encodeURIComponent(d)}`)
 			.then(r => r.json())
 			.then(({ journal }) => {
 				if (journal?.post_market_notes) content = journal.post_market_notes;
 				loading = false;
 			})
-			.catch(() => { loading = false; });
+			.catch((err) => {
+				loading = false;
+				error = err instanceof Error ? err.message : 'Failed to load journal';
+			});
 	});
 
-	async function save() {
+	function save() {
+		if (saving) return;
 		saving = true;
+		_doSave();
+	}
+
+	async function _doSave() {
 		try {
 			await fetch('/api/portfolio/journal', {
 				method: 'POST',
@@ -134,6 +144,8 @@
 	<div class="flex-1 overflow-y-auto px-5 py-3 min-h-0">
 		{#if loading}
 			<div class="flex items-center justify-center h-32 text-gray-500 text-sm">กำลังโหลด...</div>
+		{:else if error}
+			<div class="flex items-center justify-center h-32 text-red-400 text-sm">{error}</div>
 		{:else}
 			<TiptapEditor
 				{content}

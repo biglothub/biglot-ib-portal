@@ -259,6 +259,8 @@
 					{/if}
 				</div>
 			</div>
+		{:else}
+			<EmptyState message="ไม่มีข้อมูลสัปดาห์นี้" />
 		{/if}
 	{/if}
 </div>

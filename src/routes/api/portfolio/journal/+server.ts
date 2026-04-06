@@ -8,6 +8,10 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	const profile = locals.profile;
 	if (!profile) return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
 
+	if (!(await rateLimit(`portfolio:journal:${profile.id}`, 30, 60_000))) {
+		return json({ message: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
+	}
+
 	const date = url.searchParams.get('date');
 	if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
 		return json({ message: 'กรุณาระบุวันที่ (YYYY-MM-DD)' }, { status: 400 });

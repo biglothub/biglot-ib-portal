@@ -82,7 +82,7 @@
 		<div class="mt-3 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-4 border-t border-gray-700/40 pt-3">
 			<!-- Mini sparkline -->
 			<div class="flex items-center justify-center">
-				{#if entry.intradayCumPnl.length >= 2}
+				{#if entry.intradayCumPnl.length >= 1}
 					<DaySparkline data={entry.intradayCumPnl} height={72} />
 				{:else}
 					<div class="h-[72px] w-full flex items-center justify-center text-xs text-gray-500">—</div>

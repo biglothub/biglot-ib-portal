@@ -4,6 +4,13 @@ import { toThaiDateString } from '$lib/utils';
 import type { Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
+// Bug #2 fix: always compute date strings in UTC+7 (Bangkok) so they align
+// with how toThaiDateString() filters trades (which already uses UTC+7).
+const BANGKOK_OFFSET_MS = 7 * 60 * 60 * 1000;
+function toBangkokDateStr(date: Date): string {
+	return new Date(date.getTime() + BANGKOK_OFFSET_MS).toISOString().slice(0, 10);
+}
+
 export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const parentData = await parent();
 	const { account } = parentData;
@@ -46,8 +53,9 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		const totalLoss = Math.abs(losses.reduce((s, t) => s + Number(t.profit || 0), 0));
 
 		// Intraday cumulative P&L series for sparkline
+		// Bug #9 fix: was `> 1`, now `>= 1` so single-trade days still get a series
 		let cum = 0;
-		const intradayCumPnl = dayTrades.length > 1
+		const intradayCumPnl = dayTrades.length >= 1
 			? [...dayTrades]
 				.sort((a, b) => new Date(a.close_time).getTime() - new Date(b.close_time).getTime())
 				.map((t) => {
@@ -85,15 +93,18 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		? evaluateDayInsights(selectedDayTrades, trades)
 		: [];
 
-	// Week view data (unchanged logic)
-	const selectedDateObj = new Date(selectedDate + 'T00:00:00');
-	const dayOfWeek = selectedDateObj.getDay();
-	const weekStart = new Date(selectedDateObj);
-	weekStart.setDate(weekStart.getDate() - dayOfWeek);
-	const weekEnd = new Date(weekStart);
-	weekEnd.setDate(weekEnd.getDate() + 6);
-	const weekStartStr = weekStart.toISOString().split('T')[0];
-	const weekEndStr = weekEnd.toISOString().split('T')[0];
+	// Week view data
+	// Bug #2 fix: build week boundaries in UTC+7 to match toThaiDateString() trade dates.
+	// `selectedDate` is already a Bangkok date string (YYYY-MM-DD), so interpret it
+	// as midnight Bangkok time to derive the week boundaries consistently.
+	const selectedDateObj = new Date(selectedDate + 'T00:00:00+07:00');
+	const dayOfWeek = selectedDateObj.getUTCDay(); // day-of-week in UTC+7 via ISO offset
+	// Rewind to Sunday of the current Bangkok week
+	const weekStartMs = selectedDateObj.getTime() - dayOfWeek * 24 * 60 * 60 * 1000;
+	const weekStartBkk = new Date(weekStartMs);
+	const weekEndBkk = new Date(weekStartMs + 6 * 24 * 60 * 60 * 1000);
+	const weekStartStr = toBangkokDateStr(weekStartBkk);
+	const weekEndStr = toBangkokDateStr(weekEndBkk);
 
 	const weekTrades = trades.filter((t: Trade) => {
 		const d = toThaiDateString(t.close_time);
@@ -102,9 +113,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 
 	const dayNames = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์'];
 	const dayCards = dayNames.map((name, i) => {
-		const dayDate = new Date(weekStart);
-		dayDate.setDate(dayDate.getDate() + i);
-		const dayStr = dayDate.toISOString().split('T')[0];
+		const dayDate = new Date(weekStartMs + i * 24 * 60 * 60 * 1000);
+		const dayStr = toBangkokDateStr(dayDate);
 		const dayTr = weekTrades.filter((t: Trade) => toThaiDateString(t.close_time) === dayStr);
 		const pnl = dayTr.reduce((sum: number, t: Trade) => sum + Number(t.profit || 0), 0);
 		return { day: name, date: dayStr, trades: dayTr.length, pnl, hasData: dayTr.length > 0 };
@@ -125,7 +135,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			totalTrades: weekTrades.length,
 			winRate: weekTrades.length > 0 ? (weekWins.length / weekTrades.length) * 100 : 0,
 			grossPnl: weekPnl,
-			profitFactor: totalLosing > 0 ? totalWinning / totalLosing : 0,
+			// Bug #1 fix: cap week profit factor at 999, matching day-view behaviour
+			profitFactor: totalLosing > 0 ? Math.min(totalWinning / totalLosing, 999) : totalWinning > 0 ? 999 : 0,
 			winners: weekWins.length,
 			losers: weekLosses.length,
 			commissions: weekTrades.reduce((sum: number, t: Trade) => sum + Math.abs(Number(t.commission || 0)), 0)

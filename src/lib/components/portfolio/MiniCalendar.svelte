@@ -14,7 +14,8 @@
 
 	const firstDay = $derived(new Date(year, month - 1, 1).getDay());
 	const daysInMonth = $derived(new Date(year, month, 0).getDate());
-	const today = new Date().toISOString().slice(0, 10);
+	const BANGKOK_OFFSET_MS = 7 * 60 * 60 * 1000;
+	const today = new Date(Date.now() + BANGKOK_OFFSET_MS).toISOString().slice(0, 10);
 
 	const dailyMap = $derived(new Map((dailyHistory || []).map(item => [item.date, item])));
 
