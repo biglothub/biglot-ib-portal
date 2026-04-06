@@ -87,4 +87,10 @@ test.describe('Admin Role Isolation', () => {
 		await page.goto('/portfolio');
 		await expect(page).not.toHaveURL(/\/portfolio$/); // should redirect
 	});
+
+	test('admin invalid portfolio view-as account redirects back to admin area', async ({ page }) => {
+		await loginAsAdmin(page);
+		await page.goto('/portfolio?account_id=00000000-0000-0000-0000-000000000000');
+		await expect(page).not.toHaveURL(/\/portfolio/);
+	});
 });

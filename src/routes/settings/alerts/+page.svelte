@@ -3,8 +3,13 @@
 	import type { AlertType } from '../../api/portfolio/alerts/+server';
 
 	let { data } = $props();
+	let alertRows = $derived(data.alerts);
 
-	let alerts = $state<PerformanceAlert[]>(data.alerts);
+	let alerts = $state<PerformanceAlert[]>([]);
+
+	$effect(() => {
+		alerts = alertRows.map((alert) => ({ ...alert }));
+	});
 
 	// New alert form
 	let newType = $state<AlertType>('daily_loss');

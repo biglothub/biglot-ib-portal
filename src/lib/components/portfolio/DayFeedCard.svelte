@@ -24,51 +24,55 @@
 		defaultExpanded?: boolean;
 	} = $props();
 
-	let expanded = $state(defaultExpanded);
+	let expanded = $state(false);
 	let showTrades = $state(false);
 
 	// Sync expanded state when defaultExpanded changes (e.g. calendar navigation)
 	$effect(() => {
-		if (defaultExpanded) expanded = true;
+		expanded = defaultExpanded;
+		if (!defaultExpanded) showTrades = false;
 	});
 
 	function formatDateHeader(dateStr: string) {
 		const d = new Date(dateStr + 'T00:00:00');
 		return d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 	}
+
+	function toggleExpanded() {
+		const nextExpanded = !expanded;
+		expanded = nextExpanded;
+		if (!nextExpanded) showTrades = false;
+	}
 </script>
 
 <article id="day-{entry.date}" class="card overflow-hidden">
 	<!-- Header row -->
-	<button
-		onclick={() => { expanded = !expanded; if (!expanded) showTrades = false; }}
-		class="flex items-center gap-3 w-full text-left py-1"
-	>
-		<svg
-			class="w-4 h-4 shrink-0 text-gray-400 transition-transform duration-200 {expanded ? 'rotate-90' : ''}"
-			fill="none" stroke="currentColor" viewBox="0 0 24 24"
-		>
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-		</svg>
-
-		<span class="text-sm font-semibold text-white">{formatDateHeader(entry.date)}</span>
-
-		<span class="text-sm font-mono ml-1 {entry.netPnl > 0 ? 'text-green-400' : entry.netPnl < 0 ? 'text-red-400' : 'text-gray-400'}">
-			Net P&L {formatCurrency(entry.netPnl)}
-		</span>
-
-		<div class="ml-auto flex items-center gap-2" onclick={(e) => e.stopPropagation()}>
-			<a
-				href="/portfolio/notebook?linked_date={entry.date}"
-				class="flex items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors"
+	<div class="flex items-center gap-2 py-1">
+		<button type="button" onclick={toggleExpanded} class="flex min-w-0 flex-1 items-center gap-3 text-left">
+			<svg
+				class="w-4 h-4 shrink-0 text-gray-400 transition-transform duration-200 {expanded ? 'rotate-90' : ''}"
+				fill="none" stroke="currentColor" viewBox="0 0 24 24"
 			>
-				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-				</svg>
-				บันทึก
-			</a>
-		</div>
-	</button>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+			</svg>
+
+			<span class="text-sm font-semibold text-white">{formatDateHeader(entry.date)}</span>
+
+			<span class="min-w-0 text-sm font-mono ml-1 {entry.netPnl > 0 ? 'text-green-400' : entry.netPnl < 0 ? 'text-red-400' : 'text-gray-400'}">
+				Net P&L {formatCurrency(entry.netPnl)}
+			</span>
+		</button>
+
+		<a
+			href="/portfolio/notebook?linked_date={entry.date}"
+			class="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-dark-border px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-brand-primary/40 hover:text-white"
+		>
+			<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+			</svg>
+			บันทึก
+		</a>
+	</div>
 
 	{#if expanded}
 		<!-- Body: sparkline left + stats grid right -->

@@ -1,16 +1,21 @@
 <script lang="ts">
-	import type { SymbolSetting } from './+page.server';
+	import type { SymbolSetting, TradeSettings } from './+page.server';
 
 	let { data } = $props();
+	let tradeSettings = $derived(data.tradeSettings);
 
-	// Form state — initialized from server data
-	const initial = data.tradeSettings;
-	let timezone = $state(initial?.timezone ?? 'Asia/Bangkok');
-	let defaultTpPips = $state<string>(initial?.default_tp_pips?.toString() ?? '');
-	let defaultSlPips = $state<string>(initial?.default_sl_pips?.toString() ?? '');
-	let symbolSettings = $state<SymbolSetting[]>(
-		initial?.symbol_settings?.length ? [...initial.symbol_settings] : []
-	);
+	const EMPTY_TRADE_SETTINGS: TradeSettings = {
+		timezone: 'Asia/Bangkok',
+		default_tp_pips: null,
+		default_sl_pips: null,
+		symbol_settings: []
+	};
+
+	// Form state — synced from server data on load/invalidation
+	let timezone = $state('Asia/Bangkok');
+	let defaultTpPips = $state<string>('');
+	let defaultSlPips = $state<string>('');
+	let symbolSettings = $state<SymbolSetting[]>([]);
 
 	let saving = $state(false);
 	let message = $state<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -20,6 +25,14 @@
 	let newTp = $state('');
 	let newSl = $state('');
 	let newCommission = $state('');
+
+	$effect(() => {
+		const initial = tradeSettings ?? EMPTY_TRADE_SETTINGS;
+		timezone = initial.timezone;
+		defaultTpPips = initial.default_tp_pips?.toString() ?? '';
+		defaultSlPips = initial.default_sl_pips?.toString() ?? '';
+		symbolSettings = initial.symbol_settings.map((setting) => ({ ...setting }));
+	});
 
 	const timezones = [
 		{ value: 'Asia/Bangkok', label: 'เอเชีย/กรุงเทพ (UTC+7)' },

@@ -172,8 +172,7 @@ export function getTradePlaybookId(trade: Trade): string | null {
 
 export function getTradeSession(closeTime: string | null | undefined): 'asian' | 'london' | 'newyork' {
 	if (!closeTime) return 'newyork';
-	const bangkokTime = new Date(new Date(closeTime).getTime() + THAILAND_OFFSET_MS);
-	const hour = bangkokTime.getUTCHours();
+	const hour = new Date(closeTime).getUTCHours();
 	if (hour >= 0 && hour < 8) return 'asian';
 	if (hour >= 8 && hour < 15) return 'london';
 	return 'newyork';

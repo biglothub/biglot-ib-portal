@@ -2,12 +2,27 @@
 	import type { EmailReportSettings } from './+page.server';
 
 	let { data } = $props();
+	let initialSettings = $derived(data.settings);
 
-	let settings = $state<EmailReportSettings>({ ...data.settings });
+	const EMPTY_SETTINGS: EmailReportSettings = {
+		id: '',
+		daily_enabled: false,
+		daily_send_hour: 20,
+		weekly_enabled: false,
+		weekly_day: 0,
+		last_daily_sent_at: null,
+		last_weekly_sent_at: null
+	};
+
+	let settings = $state<EmailReportSettings>({ ...EMPTY_SETTINGS });
 	let saving = $state(false);
 	let testingDaily = $state(false);
 	let testingWeekly = $state(false);
 	let message = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+
+	$effect(() => {
+		settings = { ...initialSettings };
+	});
 
 	const HOURS = Array.from({ length: 24 }, (_, i) => ({
 		value: i,

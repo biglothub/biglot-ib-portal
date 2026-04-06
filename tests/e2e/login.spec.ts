@@ -39,21 +39,40 @@ test.describe('Login Page', () => {
 	});
 
 	test('submit button shows loading state on click', async ({ page }) => {
-		// Delay auth request so the loading state stays visible long enough to assert
-		await page.route('**/auth/**', async (route) => {
-			await new Promise((resolve) => setTimeout(resolve, 500));
-			await route.abort();
+		const context = page.context();
+		await context.addInitScript(() => {
+			const originalFetch = window.fetch.bind(window);
+
+			window.fetch = async (input, init) => {
+				const url = typeof input === 'string'
+					? input
+					: input instanceof Request
+						? input.url
+						: String(input);
+
+				if (url.includes('/auth/v1/token')) {
+					await new Promise((resolve) => setTimeout(resolve, 1500));
+					throw new Error('Synthetic auth delay');
+				}
+
+				return originalFetch(input, init);
+			};
 		});
 
-		await page.getByLabel('อีเมล').fill('test@example.com');
-		await page.getByLabel('รหัสผ่าน').fill('password123');
+		const loginPage = await context.newPage();
+		try {
+			await loginPage.goto('/auth/login');
+			await loginPage.getByLabel('อีเมล').fill('test@example.com');
+			await loginPage.getByLabel('รหัสผ่าน').fill('password123');
 
-		// Use type="submit" locator — stable even when button text changes to loading state
-		const submitBtn = page.locator('button[type="submit"]');
-		await submitBtn.click();
+			const submitBtn = loginPage.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true });
+			await submitBtn.click();
 
-		// Button should show loading text while request is in-flight
-		await expect(submitBtn).toContainText('กำลังเข้าสู่ระบบ');
+			// Button should show loading text while request is in-flight
+			await expect(loginPage.getByRole('button', { name: /กำลังเข้าสู่ระบบ/i })).toBeVisible();
+		} finally {
+			await loginPage.close();
+		}
 	});
 
 	test('displays error from URL params', async ({ page }) => {
