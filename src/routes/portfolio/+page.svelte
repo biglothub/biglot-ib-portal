@@ -424,8 +424,7 @@
 			</div>
 
 			<!-- Daily Net Cumulative P&L -->
-			<div class="card">
-				<p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">P&L สะสมรายวัน</p>
+			<div class="card flex flex-col">
 				<DeferRender>
 					{#if kpi.cumulativePnl && kpi.cumulativePnl.length > 1}
 						<CumulativePnlChart data={kpi.cumulativePnl} />
@@ -441,11 +440,13 @@
 		{#if rowVisibility.chartsRow}
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 			<!-- Net Daily P&L bar -->
-			<div class="card">
+			<div class="card flex flex-col">
 				<p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">P&L รายวัน</p>
 				<DeferRender>
 					{#if dailyHistory && dailyHistory.length > 0}
-						<DailyPnlChart {dailyHistory} />
+						<div class="flex-1 flex flex-col min-h-0">
+							<DailyPnlChart {dailyHistory} />
+						</div>
 					{:else}
 						<EmptyState message="ยังไม่มีข้อมูล" />
 					{/if}

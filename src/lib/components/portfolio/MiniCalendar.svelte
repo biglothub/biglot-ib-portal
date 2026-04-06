@@ -41,7 +41,9 @@
 	const weekSummaries = $derived(weekRows.map((row, idx) => {
 		const tradeDays = row.filter(d => d.day > 0 && d.trades != null && d.trades > 0);
 		const profit = tradeDays.reduce((s, d) => s + (d.profit ?? 0), 0);
-		return { label: `W${idx + 1}`, profit, days: tradeDays.length };
+		const winDays = tradeDays.filter(d => (d.profit ?? 0) > 0).length;
+		const winPct = tradeDays.length > 0 ? Math.round((winDays / tradeDays.length) * 100) : null;
+		return { label: `W${idx + 1}`, profit, days: tradeDays.length, winPct };
 	}));
 
 	const monthSummary = $derived.by(() => {
@@ -61,7 +63,7 @@
 
 <div class="w-full select-none">
 	<!-- Header -->
-	<div class="flex items-center justify-between mb-2">
+	<div class="flex items-center justify-between mb-3">
 		<div class="flex items-center gap-0.5">
 			<button onclick={prevMonth} aria-label="เดือนก่อนหน้า"
 				class="p-1.5 rounded-md hover:bg-dark-hover text-gray-500 hover:text-white transition-colors">
@@ -69,7 +71,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
 				</svg>
 			</button>
-			<span class="text-sm font-bold text-white min-w-[88px] text-center tracking-tight">
+			<span class="text-sm font-bold text-white text-center tracking-tight">
 				{monthNames[month - 1]} {year}
 			</span>
 			<button onclick={nextMonth} aria-label="เดือนถัดไป"
@@ -80,19 +82,16 @@
 			</button>
 		</div>
 
-		<div class="flex items-center gap-2">
-			<!-- Monthly summary chips -->
+		<div class="flex items-center gap-1.5 min-w-0">
+			<!-- Monthly summary chip -->
 			{#if monthSummary.tradingDays > 0}
-				<div class="flex items-center gap-1.5">
-					<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full
-						{monthSummary.totalProfit >= 0 ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}">
-						{formatCurrency(monthSummary.totalProfit)}
-					</span>
-					<span class="text-[10px] text-gray-500">{monthSummary.tradingDays}d</span>
-				</div>
+				<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0
+					{monthSummary.totalProfit >= 0 ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}">
+					{formatCurrency(monthSummary.totalProfit)}
+				</span>
 			{/if}
 			<button onclick={goToday}
-				class="px-2 py-0.5 text-[10px] font-medium rounded-md border border-dark-border text-gray-500 hover:text-white hover:border-gray-500 transition-colors">
+				class="px-2 py-0.5 text-[10px] font-medium rounded-md border border-dark-border text-gray-500 hover:text-white hover:border-gray-500 transition-colors shrink-0">
 				วันนี้
 			</button>
 		</div>
@@ -114,58 +113,62 @@
 					<div class="grid grid-cols-7 gap-0.5">
 						{#each row as day}
 							{#if day.day === 0}
-								<div class="min-h-[50px]"></div>
+								<div class="min-h-[56px]"></div>
 							{:else}
 								{@const isToday = day.date === today}
 								{@const hasData = day.trades != null && day.trades > 0}
 								{@const isProfit = (day.profit ?? 0) >= 0}
+								{@const winPct = day.winRate != null ? Math.round(day.winRate) : null}
 								<button
 									onclick={() => onDayClick?.(day.date)}
 									disabled={!onDayClick || !hasData}
 									title={hasData ? `${formatCurrency(day.profit ?? 0)} · ${day.trades} trades` : ''}
-									class="w-full rounded-lg text-center min-h-[50px] flex flex-col items-center justify-start pt-1.5 pb-1 px-0.5 transition-all relative overflow-hidden
+									class="w-full rounded-lg text-center min-h-[56px] flex flex-col items-center justify-start pt-1.5 pb-1 px-0.5 transition-all relative overflow-hidden
 										{hasData
 											? isProfit
-												? 'bg-green-500/10 hover:bg-green-500/18'
-												: 'bg-red-500/10 hover:bg-red-500/18'
+												? 'bg-green-500/10 hover:bg-green-500/20'
+												: 'bg-red-500/10 hover:bg-red-500/20'
 											: 'hover:bg-white/[0.03]'}
-										{isToday ? 'ring-1 ring-brand-primary/70' : ''}
+										{isToday ? 'ring-1 ring-brand-primary/60' : ''}
 										{onDayClick && hasData ? 'cursor-pointer' : 'cursor-default'}"
 								>
 									<!-- Date number -->
-									<div class="text-[11px] font-bold leading-none
+									<div class="w-5 h-5 flex items-center justify-center rounded-full text-[11px] font-bold leading-none
 										{isToday
-											? 'text-brand-primary'
+											? 'bg-brand-primary text-dark-bg'
 											: hasData
 												? isProfit ? 'text-green-400' : 'text-red-400'
-												: 'text-gray-500'}">
+												: 'text-gray-600'}">
 										{day.day}
 									</div>
 
 									{#if hasData}
 										<!-- P&L -->
-										<div class="text-[8px] font-semibold leading-tight mt-1
+										<div class="text-[9px] font-semibold leading-tight mt-0.5
 											{isProfit ? 'text-green-300' : 'text-red-300'}">
 											{formatCurrency(day.profit ?? 0)}
 										</div>
-										<!-- Trade count -->
-										<div class="text-[7px] text-gray-600 mt-0.5 leading-none">
-											{day.trades}t
+										<!-- Trade count + win rate -->
+										<div class="flex items-center gap-1 mt-0.5">
+											<span class="text-[8px] text-gray-600 leading-none">{day.trades}t</span>
+											{#if winPct != null}
+												<span class="text-[8px] leading-none {winPct >= 50 ? 'text-green-600' : 'text-red-600'}">
+													{winPct}%
+												</span>
+											{/if}
 										</div>
 										<!-- Win rate bar -->
-										{#if day.winRate != null}
-											<div class="absolute bottom-0 left-0 right-0 h-[2px] bg-white/5">
+										{#if winPct != null}
+											<div class="absolute bottom-0 left-0 right-0 h-[3px] bg-white/5">
 												<div
-													class="h-full transition-all {day.winRate >= 50 ? 'bg-green-500/60' : 'bg-red-500/60'}"
-													style="width: {Math.round(day.winRate)}%">
+													class="h-full transition-all {winPct >= 50 ? 'bg-green-500/50' : 'bg-red-500/50'}"
+													style="width: {winPct}%">
 												</div>
 											</div>
 										{/if}
-									{/if}
-
-									<!-- Today dot (no data) -->
-									{#if isToday && !hasData}
-										<div class="w-1 h-1 rounded-full bg-brand-primary/60 mt-1"></div>
+									{:else if isToday}
+										<!-- Today dot (no data) -->
+										<div class="w-1 h-1 rounded-full bg-brand-primary/50 mt-1"></div>
 									{/if}
 								</button>
 							{/if}
@@ -177,12 +180,12 @@
 
 		<!-- Weekly summary sidebar -->
 		{#if showWeekSummary}
-			<div class="hidden sm:flex flex-col gap-0.5 w-[58px] shrink-0 pt-[22px]">
+			<div class="hidden sm:flex flex-col gap-0.5 w-[62px] shrink-0 pt-[22px]">
 				{#each weekSummaries as wk, i}
 					{#if i < weekRows.length}
 						{@const hasWeekData = wk.days > 0}
 						{@const isWeekProfit = wk.profit >= 0}
-						<div class="min-h-[50px] rounded-lg px-1.5 py-1 flex flex-col justify-center gap-0.5
+						<div class="min-h-[56px] rounded-lg px-1.5 py-1.5 flex flex-col justify-center gap-0.5
 							{hasWeekData
 								? isWeekProfit
 									? 'bg-green-500/8 border border-green-500/15'
@@ -194,7 +197,14 @@
 									{isWeekProfit ? 'text-green-400' : 'text-red-400'}">
 									{formatCurrency(wk.profit)}
 								</div>
-								<div class="text-[8px] text-gray-600 leading-none">{wk.days}d</div>
+								<div class="flex items-center gap-1 mt-0.5">
+									<span class="text-[8px] text-gray-600 leading-none">{wk.days}d</span>
+									{#if wk.winPct != null}
+										<span class="text-[8px] leading-none {wk.winPct >= 50 ? 'text-green-600' : 'text-red-600'}">
+											{wk.winPct}%
+										</span>
+									{/if}
+								</div>
 							{:else}
 								<div class="text-[9px] text-gray-700 leading-none">—</div>
 							{/if}

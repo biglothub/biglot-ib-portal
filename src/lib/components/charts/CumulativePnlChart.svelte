@@ -101,7 +101,7 @@
 						horzLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted }
 					},
 					width: chartContainer.clientWidth,
-					height,
+					height: chartContainer.clientHeight || height,
 					rightPriceScale: {
 						borderColor: 'rgba(55, 65, 81, 0.5)',
 						scaleMargins: { top: 0.1, bottom: 0.1 }
@@ -149,7 +149,7 @@
 				});
 
 				resizeObserver = new ResizeObserver(() => {
-					chart?.applyOptions({ width: chartContainer.clientWidth });
+					chart?.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
 				});
 				resizeObserver.observe(chartContainer);
 
@@ -175,14 +175,14 @@
 	});
 </script>
 
-<div class="w-full" aria-busy={loading} aria-label="กำไร/ขาดทุนสะสม">
+<div class="w-full flex-1 min-h-0 flex flex-col" aria-busy={loading} aria-label="กำไร/ขาดทุนสะสม">
 	{#if loading}
-		<div class="animate-pulse">
+		<div class="animate-pulse flex flex-col h-full">
 			<div class="flex items-center justify-between mb-4">
 				<div class="h-5 w-36 bg-dark-surface rounded"></div>
 				<div class="h-7 w-40 bg-dark-surface rounded-lg"></div>
 			</div>
-			<div class="bg-dark-surface rounded-lg overflow-hidden relative" style:height="{height}px">
+			<div class="flex-1 min-h-0 bg-dark-surface rounded-lg overflow-hidden relative">
 				<svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
 					<polyline
 						points="0,80 15,70 30,60 45,50 55,40 70,30 85,20 100,15"
@@ -199,7 +199,7 @@
 			</div>
 		</div>
 	{:else}
-	<div class="flex items-center justify-between mb-4">
+	<div class="flex items-center justify-between mb-4 shrink-0">
 		<h3 class="text-lg font-semibold text-white">กำไร/ขาดทุนสะสม</h3>
 		<div class="flex gap-1 bg-dark-bg/50 rounded-lg p-1">
 			{#each timeframes as tf}
@@ -216,11 +216,10 @@
 		</div>
 	</div>
 
-	<div class="relative">
+	<div class="relative flex-1 min-h-0">
 		<div
 			bind:this={chartContainer}
-			class="w-full rounded-lg overflow-hidden"
-			style="height: {height}px"
+			class="w-full h-full rounded-lg overflow-hidden"
 		></div>
 
 		{#if tooltipVisible && tooltipData}

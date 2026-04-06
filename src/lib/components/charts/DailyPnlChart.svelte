@@ -85,7 +85,7 @@
 						horzLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted }
 					},
 					width: chartContainer.clientWidth,
-					height,
+					height: chartContainer.clientHeight || height,
 					rightPriceScale: {
 						borderColor: 'rgba(55, 65, 81, 0.5)',
 						scaleMargins: { top: 0.1, bottom: 0.1 }
@@ -128,7 +128,10 @@
 				});
 
 				resizeObserver = new ResizeObserver(() => {
-					chart?.applyOptions({ width: chartContainer.clientWidth });
+					chart?.applyOptions({
+						width: chartContainer.clientWidth,
+						height: chartContainer.clientHeight
+					});
 				});
 				resizeObserver.observe(chartContainer);
 
@@ -154,14 +157,14 @@
 	});
 </script>
 
-<div class="w-full" aria-busy={loading} aria-label="กำไร/ขาดทุนรายวัน">
+<div class="w-full h-full flex flex-col" aria-busy={loading} aria-label="กำไร/ขาดทุนรายวัน">
 	{#if loading}
-		<div class="animate-pulse">
+		<div class="animate-pulse flex-1 flex flex-col min-h-0">
 			<div class="flex items-center justify-between mb-4">
 				<div class="h-5 w-36 bg-dark-surface rounded"></div>
 				<div class="h-7 w-36 bg-dark-surface rounded-lg"></div>
 			</div>
-			<div class="bg-dark-surface rounded-lg overflow-hidden" style:height="{height}px">
+			<div class="bg-dark-surface rounded-lg overflow-hidden flex-1 min-h-[160px]">
 				<div class="h-full flex items-end justify-around px-4 pb-4 gap-1">
 					{#each [0.4, -0.6, 0.8, -0.3, 0.9, 0.5, -0.7, 0.6, 0.35, -0.5, 0.75, 0.45] as pct}
 						<div
@@ -190,11 +193,10 @@
 		</div>
 	</div>
 
-	<div class="relative">
+	<div class="relative flex-1 min-h-0">
 		<div
 			bind:this={chartContainer}
-			class="w-full rounded-lg overflow-hidden"
-			style="height: {height}px"
+			class="w-full h-full rounded-lg overflow-hidden"
 		></div>
 
 		{#if tooltipVisible && tooltipData}

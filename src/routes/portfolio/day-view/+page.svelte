@@ -227,7 +227,7 @@
 						<div class="overflow-x-auto">
 							<table class="w-full text-sm">
 								<thead>
-									<tr class="border-b border-dark-border text-gray-400 text-xs">
+									<tr class="border-b border-gray-700/50 text-gray-400 text-xs">
 										<th class="text-left py-2">วัน</th>
 										<th class="text-left py-2">เวลา</th>
 										<th class="text-left py-2">สัญลักษณ์</th>
@@ -237,7 +237,7 @@
 								</thead>
 								<tbody>
 									{#each weekData.trades as trade}
-										<tr class="border-b border-dark-border/40 hover:bg-dark-bg/30">
+										<tr class="border-b border-gray-700/30 hover:bg-dark-bg/30">
 											<td class="py-3 text-gray-400 text-xs">{new Date(trade.close_time).toLocaleDateString('th-TH', { month: '2-digit', day: '2-digit' })}</td>
 											<td class="py-3 text-gray-400">{new Date(trade.close_time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</td>
 											<td class="py-3">
