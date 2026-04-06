@@ -44,6 +44,7 @@
 	let brokenRules = $state<string[]>([]);
 	let savingReview = $state(false);
 	let reviewSaved = $state(false);
+	let reviewError = $state('');
 
 	let attachments = $state<any[]>([]);
 	let showAnnotator = $state(false);
@@ -148,45 +149,62 @@
 		}
 	}
 
+	function toIntOrNull(v: unknown): number | null {
+		if (v == null || v === '') return null;
+		const n = Number(v);
+		return Number.isFinite(n) ? Math.round(n) : null;
+	}
+
 	async function saveReview() {
 		if (!trade) return;
 		savingReview = true;
 		reviewSaved = false;
-		actionError = '';
+		reviewError = '';
+
+		// Auto-upgrade status when user has filled in any review content
+		const hasContent = entryReason || exitReason || executionNotes || riskNotes ||
+			mistakeSummary || lessonSummary || nextAction || selectedPlaybookId ||
+			setupQuality || disciplineScore || executionScore || confidenceAtEntry ||
+			brokenRules.length > 0;
+		if (reviewStatus === 'unreviewed' && hasContent) {
+			reviewStatus = 'in_progress';
+		}
 
 		try {
+			const body = {
+				playbook_id: selectedPlaybookId || null,
+				review_status: reviewStatus,
+				entry_reason: entryReason,
+				exit_reason: exitReason,
+				execution_notes: executionNotes,
+				risk_notes: riskNotes,
+				mistake_summary: mistakeSummary,
+				lesson_summary: lessonSummary,
+				next_action: nextAction,
+				setup_quality_score: toIntOrNull(setupQuality),
+				discipline_score: toIntOrNull(disciplineScore),
+				execution_score: toIntOrNull(executionScore),
+				confidence_at_entry: toIntOrNull(confidenceAtEntry),
+				followed_plan: followedPlan === '' ? null : followedPlan === 'yes',
+				broken_rules: brokenRules
+			};
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/review`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					playbook_id: selectedPlaybookId || null,
-					review_status: reviewStatus,
-					entry_reason: entryReason,
-					exit_reason: exitReason,
-					execution_notes: executionNotes,
-					risk_notes: riskNotes,
-					mistake_summary: mistakeSummary,
-					lesson_summary: lessonSummary,
-					next_action: nextAction,
-					setup_quality_score: setupQuality,
-					discipline_score: disciplineScore,
-					execution_score: executionScore,
-					confidence_at_entry: confidenceAtEntry,
-					followed_plan: followedPlan === '' ? null : followedPlan === 'yes',
-					broken_rules: brokenRules
-				})
+				body: JSON.stringify(body)
 			});
 
 			if (res.ok) {
 				reviewSaved = true;
+				reviewError = '';
 				setTimeout(() => (reviewSaved = false), 2000);
 				await invalidate('portfolio:baseData');
 			} else {
 				const errData = await res.json().catch(() => ({}));
-				actionError = errData.message || `ไม่สามารถบันทึก Review ได้ (${res.status})`;
+				reviewError = errData.message || `ไม่สามารถบันทึก Review ได้ (${res.status})`;
 			}
 		} catch {
-			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			reviewError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 		} finally {
 			savingReview = false;
 		}
@@ -516,14 +534,9 @@
 		</div>
 
 		<div class="card space-y-5">
-			<div class="flex items-center justify-between">
-				<div>
-					<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
-					<p class="text-xs text-gray-400 mt-1">บันทึกกระบวนการ, กฎที่ผิด, บทเรียน และสิ่งที่จะทำต่อ</p>
-				</div>
-				{#if reviewSaved}
-					<span class="text-xs text-green-400">บันทึก review แล้ว</span>
-				{/if}
+			<div>
+				<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
+				<p class="text-xs text-gray-400 mt-1">บันทึกกระบวนการ, กฎที่ผิด, บทเรียน และสิ่งที่จะทำต่อ</p>
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
@@ -623,19 +636,31 @@
 				</div>
 			</div>
 
-			<button
-				type="button"
-				onclick={saveReview}
-				disabled={savingReview}
-				class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2"
-			>
-				{#if savingReview}
-					<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-					กำลังบันทึก...
-				{:else}
-					บันทึก Review
+			{#if reviewError}
+				<div class="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+					<span>{reviewError}</span>
+					<button type="button" onclick={() => reviewError = ''} class="text-red-300 hover:text-red-200 text-xs ml-3">ปิด</button>
+				</div>
+			{/if}
+
+			<div class="flex items-center gap-3">
+				<button
+					type="button"
+					onclick={saveReview}
+					disabled={savingReview}
+					class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2"
+				>
+					{#if savingReview}
+						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+						กำลังบันทึก...
+					{:else}
+						บันทึก Review
+					{/if}
+				</button>
+				{#if reviewSaved}
+					<span class="text-sm text-green-400">บันทึกสำเร็จ</span>
 				{/if}
-			</button>
+			</div>
 		</div>
 
 		<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
