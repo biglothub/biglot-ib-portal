@@ -75,21 +75,21 @@
 	});
 
 	$effect(() => {
-		if (chatOpen) pushOverlay('portfolio-chat', { blocksShortcuts: true });
-		else popOverlay('portfolio-chat');
-		return () => popOverlay('portfolio-chat');
+		if (chatOpen) untrack(() => pushOverlay('portfolio-chat', { blocksShortcuts: true }));
+		else untrack(() => popOverlay('portfolio-chat'));
+		return () => untrack(() => popOverlay('portfolio-chat'));
 	});
 
 	$effect(() => {
-		if (guideOpen) pushOverlay('portfolio-guide', { blocksShortcuts: true });
-		else popOverlay('portfolio-guide');
-		return () => popOverlay('portfolio-guide');
+		if (guideOpen) untrack(() => pushOverlay('portfolio-guide', { blocksShortcuts: true }));
+		else untrack(() => popOverlay('portfolio-guide'));
+		return () => untrack(() => popOverlay('portfolio-guide'));
 	});
 
 	$effect(() => {
-		if (shortcutsOpen) pushOverlay('portfolio-shortcuts', { blocksShortcuts: true });
-		else popOverlay('portfolio-shortcuts');
-		return () => popOverlay('portfolio-shortcuts');
+		if (shortcutsOpen) untrack(() => pushOverlay('portfolio-shortcuts', { blocksShortcuts: true }));
+		else untrack(() => popOverlay('portfolio-shortcuts'));
+		return () => untrack(() => popOverlay('portfolio-shortcuts'));
 	});
 
 	// Pull-to-refresh state

@@ -120,6 +120,7 @@ function hasRegisteredBlockingOverlay(): boolean {
 }
 
 function removeOverlay(id: string) {
+	if (!overlays.some((overlay) => overlay.id === id)) return;
 	overlays = overlays.filter((overlay) => overlay.id !== id);
 }
 
