@@ -39,8 +39,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	}
 
 	const filterState = parsePortfolioFilters(url.searchParams);
-	const thirtyDaysAgo = new Date();
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+	const oneYearAgo = new Date();
+	oneYearAgo.setDate(oneYearAgo.getDate() - 365);
 
 	const today = TODAY();
 
@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			.from('equity_snapshots')
 			.select('timestamp, balance, equity, floating_pl')
 			.eq('client_account_id', account.id)
-			.gte('timestamp', thirtyDaysAgo.toISOString())
+			.gte('timestamp', oneYearAgo.toISOString())
 			.order('timestamp', { ascending: true }),
 		supabase
 			.from('open_positions')
