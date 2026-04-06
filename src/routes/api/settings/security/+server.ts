@@ -25,15 +25,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ message: 'ไม่พบอีเมลของผู้ใช้' }, { status: 400 });
 		}
 
-		if (currentPassword) {
-			const { error: signInError } = await locals.supabase.auth.signInWithPassword({
-				email,
-				password: currentPassword
-			});
+		if (!currentPassword) {
+			return json({ message: 'กรุณากรอกรหัสผ่านปัจจุบัน' }, { status: 400 });
+		}
 
-			if (signInError) {
-				return json({ message: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' }, { status: 400 });
-			}
+		const { error: signInError } = await locals.supabase.auth.signInWithPassword({
+			email,
+			password: currentPassword
+		});
+
+		if (signInError) {
+			return json({ message: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' }, { status: 400 });
 		}
 
 		const { error: updateError } = await locals.supabase.auth.updateUser({
