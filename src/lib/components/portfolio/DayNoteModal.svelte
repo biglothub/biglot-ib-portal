@@ -1,0 +1,168 @@
+<script lang="ts">
+	import { fly, fade } from 'svelte/transition';
+	import { focusTrap } from '$lib/actions/focusTrap';
+	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
+	import { formatCurrency } from '$lib/utils';
+
+	let {
+		date,
+		netPnl,
+		totalTrades,
+		winRate,
+		onclose
+	}: {
+		date: string;
+		netPnl: number;
+		totalTrades: number;
+		winRate: number;
+		onclose: () => void;
+	} = $props();
+
+	let content = $state('');
+	let loading = $state(true);
+	let saving = $state(false);
+	let saved = $state(false);
+
+	// Format date header (e.g. "จันทร์ 6 เม.ย. 2569")
+	function formatDateHeader(dateStr: string) {
+		const d = new Date(dateStr + 'T00:00:00');
+		return d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+	}
+
+	// Load existing journal on mount
+	$effect(() => {
+		fetch(`/api/portfolio/journal?date=${date}`)
+			.then(r => r.json())
+			.then(({ journal }) => {
+				if (journal?.post_market_notes) content = journal.post_market_notes;
+				loading = false;
+			})
+			.catch(() => { loading = false; });
+	});
+
+	async function save() {
+		saving = true;
+		try {
+			await fetch('/api/portfolio/journal', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					date,
+					post_market_notes: content,
+					completion_status: content.trim() ? 'in_progress' : 'not_started'
+				})
+			});
+			saved = true;
+			setTimeout(() => { saved = false; }, 2000);
+		} finally {
+			saving = false;
+		}
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') onclose();
+		if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+			e.preventDefault();
+			save();
+		}
+	}
+</script>
+
+<svelte:window onkeydown={handleKeydown} />
+
+<!-- Backdrop -->
+<div
+	class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+	transition:fade={{ duration: 150 }}
+	onclick={onclose}
+	aria-hidden="true"
+></div>
+
+<!-- Drawer -->
+<div
+	class="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-dark-surface rounded-t-2xl shadow-2xl max-h-[90vh]"
+	style="max-height: min(90vh, 640px)"
+	transition:fly={{ y: 400, duration: 250 }}
+	use:focusTrap
+	role="dialog"
+	aria-modal="true"
+	aria-label="บันทึกประจำวัน"
+>
+	<!-- Handle -->
+	<div class="flex justify-center pt-3 pb-1">
+		<div class="w-10 h-1 bg-gray-700 rounded-full"></div>
+	</div>
+
+	<!-- Header -->
+	<div class="flex items-start justify-between px-5 py-3 border-b border-gray-700/40">
+		<div>
+			<div class="flex items-center gap-2">
+				<h2 class="text-sm font-semibold text-white">Day view</h2>
+				<span class="text-[11px] text-gray-500">·</span>
+				<span class="text-sm font-medium {netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+					Net P&L {formatCurrency(netPnl)}
+				</span>
+			</div>
+			<div class="text-xs text-gray-400 mt-0.5">
+				{formatDateHeader(date)} · {totalTrades} trades · {winRate.toFixed(0)}% win rate
+			</div>
+		</div>
+		<div class="flex items-center gap-2">
+			<a
+				href="/portfolio/journal?date={date}"
+				class="flex items-center gap-1.5 text-xs text-brand-primary hover:underline"
+				target="_blank"
+			>
+				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+				</svg>
+				View in Journal
+			</a>
+			<button
+				onclick={onclose}
+				class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-dark-hover transition-colors"
+				aria-label="ปิด"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+				</svg>
+			</button>
+		</div>
+	</div>
+
+	<!-- Editor -->
+	<div class="flex-1 overflow-y-auto px-5 py-3 min-h-0">
+		{#if loading}
+			<div class="flex items-center justify-center h-32 text-gray-500 text-sm">กำลังโหลด...</div>
+		{:else}
+			<TiptapEditor
+				{content}
+				placeholder="Write something, or press &quot;/&quot; for commands"
+				onupdate={(html) => { content = html; }}
+			/>
+		{/if}
+	</div>
+
+	<!-- Footer -->
+	<div class="flex items-center justify-between px-5 py-3 border-t border-gray-700/40">
+		<span class="text-[11px] text-gray-500">⌘S บันทึก</span>
+		<button
+			onclick={save}
+			disabled={saving}
+			class="flex items-center gap-2 px-5 py-2 rounded-lg bg-brand-primary text-dark-bg text-sm font-semibold
+				hover:bg-brand-primary/90 disabled:opacity-50 transition-all"
+		>
+			{#if saving}
+				<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+				</svg>
+				กำลังบันทึก...
+			{:else if saved}
+				✓ บันทึกแล้ว
+			{:else}
+				Save
+			{/if}
+		</button>
+	</div>
+</div>

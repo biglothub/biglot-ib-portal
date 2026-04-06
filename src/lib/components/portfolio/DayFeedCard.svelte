@@ -1,5 +1,6 @@
 <script lang="ts">
 	import DaySparkline from '$lib/components/charts/DaySparkline.svelte';
+	import DayNoteModal from '$lib/components/portfolio/DayNoteModal.svelte';
 	import { formatCurrency, formatNumber, formatPercent } from '$lib/utils';
 	import type { Trade } from '$lib/types';
 
@@ -26,6 +27,7 @@
 
 	let expanded = $state(false);
 	let showTrades = $state(false);
+	let showNoteModal = $state(false);
 
 	// Sync expanded state when defaultExpanded changes (e.g. calendar navigation)
 	$effect(() => {
@@ -63,15 +65,16 @@
 			</span>
 		</button>
 
-		<a
-			href="/portfolio/notebook?linked_date={entry.date}"
+		<button
+			type="button"
+			onclick={(e) => { e.stopPropagation(); showNoteModal = true; }}
 			class="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-gray-700/50 px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-brand-primary/40 hover:text-white"
 		>
 			<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 			</svg>
 			บันทึก
-		</a>
+		</button>
 	</div>
 
 	{#if expanded}
@@ -181,3 +184,13 @@
 		</div>
 	{/if}
 </article>
+
+{#if showNoteModal}
+	<DayNoteModal
+		date={entry.date}
+		netPnl={entry.netPnl}
+		totalTrades={entry.totalTrades}
+		winRate={entry.winRate}
+		onclose={() => showNoteModal = false}
+	/>
+{/if}

@@ -4,6 +4,29 @@ import { invalidateJournalsCache } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
+export const GET: RequestHandler = async ({ url, locals }) => {
+	const profile = locals.profile;
+	if (!profile) return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
+
+	const date = url.searchParams.get('date');
+	if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+		return json({ message: 'กรุณาระบุวันที่ (YYYY-MM-DD)' }, { status: 400 });
+	}
+
+	const account = await getApprovedPortfolioAccount(locals.supabase);
+	if (!account) return json({ journal: null });
+
+	const { data } = await locals.supabase
+		.from('daily_journal')
+		.select('date, pre_market_notes, post_market_notes, mood, completion_status')
+		.eq('user_id', profile.id)
+		.eq('client_account_id', account.id)
+		.eq('date', date)
+		.maybeSingle();
+
+	return json({ journal: data });
+};
+
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
