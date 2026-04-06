@@ -251,7 +251,7 @@
 				<div class="space-y-5">
 					<div>
 						<h3 class="text-base font-semibold text-white mb-1">Journal — สมุดบันทึกประจำวัน</h3>
-						<p class="text-sm text-gray-400">บันทึก pre-market plan, post-market review, mood, และ discipline score ทุกวัน</p>
+						<p class="text-sm text-gray-400">บันทึก pre-market plan, post-market review, mood, discipline score, และสรุป session ทุกวัน</p>
 					</div>
 
 					<div class="space-y-4">
@@ -266,7 +266,7 @@
 								<li><span class="text-white font-medium">Market Bias</span> — มุมมอง Bullish / Bearish / Neutral</li>
 								<li><span class="text-white font-medium">Key Levels</span> — ระดับราคาสำคัญ</li>
 								<li><span class="text-white font-medium">Session Plan</span> — แผนเทรดวันนี้</li>
-								<li><span class="text-white font-medium">Checklist</span> — รายการตรวจสอบก่อนเทรด</li>
+								<li><span class="text-white font-medium">เช็คลิสต์ (Progress)</span> — แสดง progress bar จากระบบ Progress (read-only) + ลิงก์ไปจัดการกฎที่หน้า Progress</li>
 							</ul>
 						</div>
 
@@ -274,7 +274,8 @@
 							<div class="text-xs font-semibold text-brand-primary mb-2">Step 3 — เขียน Post-Market Review</div>
 							<ul class="mt-1 space-y-1 text-sm text-gray-400">
 								<li><span class="text-white font-medium">Post-Market Notes</span> — สรุปสิ่งที่เกิดขึ้น</li>
-								<li><span class="text-white font-medium">Mood / Energy / Discipline / Confidence</span> — ให้คะแนน 1-10</li>
+								<li><span class="text-white font-medium">สร้างสรุป Session</span> — กดปุ่ม "สร้างสรุป Session" เพื่อ auto-fill สรุปเทรดแยกตาม Asian/London/NY พร้อม P&L และ win rate</li>
+								<li><span class="text-white font-medium">Mood / Energy / Discipline / Confidence</span> — ให้คะแนน 1-5</li>
 								<li><span class="text-white font-medium">Lessons</span> — บทเรียนที่ได้</li>
 								<li><span class="text-white font-medium">Tomorrow's Focus</span> — สิ่งที่จะโฟกัสพรุ่งนี้</li>
 								<li><span class="text-white font-medium">Completion</span> — กด "Complete" เพื่อนับ streak</li>

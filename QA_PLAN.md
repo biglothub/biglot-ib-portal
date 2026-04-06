@@ -332,26 +332,11 @@
 
 ---
 
-### 4.8 Notebook (`/portfolio/notebook`)
+### 4.8 ~~Notebook~~ (Removed — merged into Journal)
 
-**Folders**
-- [x] System folder "Sessions" ลบไม่ได้
-- [x] สร้าง folder ใหม่ได้
-- [x] Note count per folder ถูกต้อง
-
-**Notes**
-- [x] Rich text editor (Tiptap) ทำงาน
-- [x] Auto-save 2 วิ
-- [x] Delete → undo toast ปรากฏ
-- [x] Restore deleted note
-- [x] Toggle Active / Deleted view
-
-**Search**
-- [x] Full-text search
-- [x] Filter folder + search พร้อมกัน
-
-**Session Recap**
-- [x] เลือกวัน → Generate → บันทึกลง "Sessions" folder
+> Notebook feature ถูกลบแล้ว เพื่อลดความซ้ำซ้อนกับ Journal + Trade Notes
+> - Session Recap ย้ายไปอยู่ใน Journal (ปุ่ม "สร้างสรุป Session" ใน post-market section)
+> - เช็คลิสต์ใน Journal ใช้ข้อมูลจาก Progress แทน (read-only mini-view)
 
 ---
 
@@ -538,7 +523,6 @@
 | `g` + `t` | Trades |
 | `g` + `j` | Journal |
 | `g` + `a` | Analytics |
-| `g` + `n` | Notebook |
 | `g` + `p` | Playbook |
 | `g` + `r` | Progress |
 | `/` หรือ `Cmd+K` | Search palette |

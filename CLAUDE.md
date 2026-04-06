@@ -30,7 +30,7 @@ src/routes/
     day-view/                   # Day/Week view with calendar
     trades/                     # Trade explorer with filtering + grouping
       [id]/                     # Trade detail + review + notes + attachments
-    journal/                    # Daily journal with calendar
+    journal/                    # Daily journal with calendar + session recap
     analytics/                  # Analytics + risk metrics
     playbook/                   # Playbook/strategy management
     progress/                   # Goals tracking
@@ -78,7 +78,7 @@ See `tradezella-explore/DEVELOPMENT_PHASES.md` for the phased enhancement plan.
 - Phase 3: Reports Engine ✅ (Performance, Calendar, Symbols, Compare sub-tabs)
 - Phase 4: Trade Insights ✅ (10 rules engine, quality score, UI badges)
 - Phase 5: Discipline & Checklist ✅ (daily checklist, progress heatmap, streak)
-- Phase 6: Notebook System ✅ (folders, notes CRUD, search, soft delete)
+- Phase 6: Notebook System ✅ → Removed (merged into Journal + Trade Notes)
 
 ## Important Notes
 - Build has 2 pre-existing type errors in `web-push` — these are not bugs, ignore them
