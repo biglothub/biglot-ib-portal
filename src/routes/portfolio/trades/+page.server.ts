@@ -1,5 +1,5 @@
 import { applyPortfolioFilters, parsePortfolioFilters } from '$lib/portfolio';
-import { buildFilterOptions } from '$lib/server/portfolio';
+import { buildFilterOptions, buildDailyHistory, buildKpiMetrics } from '$lib/server/portfolio';
 import { evaluateInsightsForSubset, calculateQualityScoresForSubset, calculateAllExecutionMetrics } from '$lib/server/insights/engine';
 import type { PortfolioSavedView } from '$lib/types';
 import type { PageServerLoad } from './$types';
@@ -33,6 +33,10 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const total = filteredTrades.length;
 	const pagedTrades = filteredTrades.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+	// KPI metrics for filtered trades (header cards)
+	const dailyHistory = buildDailyHistory(filteredTrades);
+	const kpiMetrics = buildKpiMetrics(filteredTrades, dailyHistory);
+
 	// Build context from all filtered trades, but only evaluate rules for the paged subset
 	// Execution metrics are per-trade (no context needed) — compute only for paged trades
 	const allInsightsMap = evaluateInsightsForSubset(filteredTrades, pagedTrades);
@@ -49,7 +53,12 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		const score = allScoresMap.get(trade.id);
 		if (score !== undefined) tradeScores[trade.id] = score;
 		const metrics = allMetricsMap.get(trade.id);
-		if (metrics) tradeExecutionMetrics[trade.id] = metrics;
+		if (metrics) tradeExecutionMetrics[trade.id] = {
+			...metrics,
+			netRoi: (trade.open_price && trade.lot_size)
+				? (Number(trade.profit) / (Number(trade.open_price) * Number(trade.lot_size))) * 100
+				: null
+		};
 	}
 
 	return {
@@ -64,6 +73,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		savedViews: savedViews.filter((view: PortfolioSavedView) => view.page === 'trades'),
 		tradeInsights,
 		tradeScores,
-		tradeExecutionMetrics
+		tradeExecutionMetrics,
+		kpiMetrics
 	};
 };

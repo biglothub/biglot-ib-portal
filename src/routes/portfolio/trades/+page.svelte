@@ -14,10 +14,12 @@
 	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
 	import VirtualList from '$lib/components/shared/VirtualList.svelte';
 	import TradeComparePanel from '$lib/components/portfolio/TradeComparePanel.svelte';
+	import TradeKpiHeader from '$lib/components/portfolio/TradeKpiHeader.svelte';
 
 	let { data } = $props();
 	let trades = $derived(data.trades || []);
 	let total = $derived(data.total || 0);
+	let kpiMetrics = $derived(data.kpiMetrics);
 	let currentPage = $derived(data.page || 1);
 	let pageSize = $derived(data.pageSize || 25);
 	let filters = $derived(data.filters);
@@ -268,29 +270,23 @@
 		</button>
 	</div>
 
-	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-		<div class="card">
-			<div class="text-xs text-gray-400">เทรดที่กรอง</div>
-			<div class="mt-1 text-2xl font-semibold text-white">{total}</div>
-		</div>
-		<div class="card">
-			<div class="text-xs text-gray-400">ยังไม่ Review</div>
-			<div class="mt-1 text-2xl font-semibold text-amber-300">
-				{quickStats.unreviewed}
-			</div>
-		</div>
-		<div class="card">
-			<div class="text-xs text-gray-400">ไม่มี Notes</div>
-			<div class="mt-1 text-2xl font-semibold text-brand-300">
-				{quickStats.noNotes}
-			</div>
-		</div>
-		<div class="card">
-			<div class="text-xs text-gray-400">ไม่มีไฟล์แนบ</div>
-			<div class="mt-1 text-2xl font-semibold text-rose-300">
-				{quickStats.noAttachments}
-			</div>
-		</div>
+	<!-- KPI Header (Tradezella style) -->
+	{#if kpiMetrics}
+		<TradeKpiHeader {kpiMetrics} />
+	{/if}
+
+	<!-- Quick stats (compact) -->
+	<div class="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+		<span>{total} เทรดที่กรอง</span>
+		{#if quickStats.unreviewed > 0}
+			<span class="text-amber-400">{quickStats.unreviewed} ยังไม่ review</span>
+		{/if}
+		{#if quickStats.noNotes > 0}
+			<span>{quickStats.noNotes} ไม่มี notes</span>
+		{/if}
+		{#if quickStats.noAttachments > 0}
+			<span>{quickStats.noAttachments} ไม่มีไฟล์แนบ</span>
+		{/if}
 	</div>
 
 	<!-- Bulk action bar -->
@@ -470,6 +466,7 @@
 									<th class="text-center py-2">Insights</th>
 									<th class="text-center py-2">คุณภาพ</th>
 									<th class="text-center py-2">R</th>
+									<th class="text-right py-2">ROI</th>
 									<th class="text-right py-2">กำไร/ขาดทุน</th>
 									<th class="text-right py-2">เวลา</th>
 								</tr>
@@ -556,6 +553,16 @@
 												{@const r = tradeExecutionMetrics[trade.id].rMultiple}
 												<span class="text-xs font-mono {r >= 1 ? 'text-green-400' : r >= 0 ? 'text-amber-400' : 'text-red-400'}">
 													{r >= 0 ? '+' : ''}{r.toFixed(1)}R
+												</span>
+											{:else}
+												<span class="text-xs text-gray-400">—</span>
+											{/if}
+										</td>
+										<td class="py-2.5 text-right">
+											{#if tradeExecutionMetrics[trade.id]?.netRoi != null}
+												{@const roi = tradeExecutionMetrics[trade.id].netRoi}
+												<span class="text-xs font-mono {roi >= 0 ? 'text-green-400' : 'text-red-400'}">
+													{roi >= 0 ? '+' : ''}{roi.toFixed(2)}%
 												</span>
 											{:else}
 												<span class="text-xs text-gray-400">—</span>
