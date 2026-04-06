@@ -64,19 +64,32 @@ def normalize_symbol(symbol):
     return SYMBOL_MAP.get(s, s)
 
 
-# --- Point size ---
-def get_point_size(symbol):
-    """Get point size from MT5, fallback to heuristic."""
-    try:
-        info = mt5.symbol_info(symbol)
-        if info and info.point > 0:
-            return info.point
-    except Exception:
-        pass
-    # Fallback heuristic
+# --- Pip size ---
+# MT5 "point" is the smallest price tick (e.g. 0.00001 for EURUSD, 0.001 for XAUUSD).
+# A "pip" is the standard unit traders use:
+#   - Forex (5-digit): pip = point × 10      (0.0001)
+#   - JPY pairs:       pip = point × 10      (0.01)
+#   - XAUUSD (3-digit): pip = point × 10     (0.01)
+#   - XAGUSD:          pip = point × 10      (0.001)
+# Tradezella and industry standard use pip, not point.
+
+# Symbols where 1 pip = 0.01 (metals, JPY pairs)
+_PIP_001 = {'XAUUSD', 'GOLD'}
+# Symbols where 1 pip = 0.001
+_PIP_0001 = {'XAGUSD', 'SILVER'}
+
+
+def get_pip_size(symbol):
+    """Get standard pip size for a symbol, converting MT5 point → pip."""
     normalized = normalize_symbol(symbol)
-    if 'JPY' in normalized or normalized == 'XAUUSD':
+
+    # Use known pip sizes for non-standard instruments
+    if normalized in _PIP_001 or 'JPY' in normalized:
         return 0.01
+    if normalized in _PIP_0001:
+        return 0.001
+
+    # Standard forex: pip = 0.0001
     return 0.0001
 
 
@@ -425,8 +438,7 @@ def sync_client_account(account):
                 symbol = normalize_symbol(entry.symbol)
                 trade_type = 'BUY' if entry.type == 0 else 'SELL'
 
-                # Dynamic point size
-                point_size = get_point_size(symbol)
+                pip_size = get_pip_size(symbol)
 
                 # Weighted average close price for partial closes
                 total_exit_volume = sum(d.volume for d in exits)
@@ -440,9 +452,9 @@ def sync_client_account(account):
                 total_swap = sum(getattr(d, 'swap', 0) or 0 for d in pos_deals)
 
                 if trade_type == 'BUY':
-                    pips = (close_price - entry.price) / point_size
+                    pips = (close_price - entry.price) / pip_size
                 else:
-                    pips = (entry.price - close_price) / point_size
+                    pips = (entry.price - close_price) / pip_size
 
                 trades_to_upsert.append({
                     'client_account_id': account_id,
