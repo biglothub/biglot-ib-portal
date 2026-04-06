@@ -63,9 +63,7 @@ describe('MOB-001: Bottom Navigation Bar', () => {
 		{ base: '/portfolio/progress', label: 'ความคืบหน้า' },
 		{ base: '/portfolio/calendar', label: 'ปฏิทิน' },
 		{ base: '/portfolio/live-trade', label: 'เทรดสด' },
-		{ base: '/portfolio/analysis', label: 'วิเคราะห์ทอง' },
-		{ base: '/portfolio/multi-account', label: 'มัลติบัญชี' },
-		{ base: '/portfolio/social', label: 'สังคม' }
+		{ base: '/portfolio/analysis', label: 'วิเคราะห์ทอง' }
 	];
 
 	it('should split tabs into 4 primary + remaining in "more"', () => {

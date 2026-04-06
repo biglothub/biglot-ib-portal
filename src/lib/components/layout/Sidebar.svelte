@@ -57,8 +57,6 @@
 		{ href: '/portfolio/calendar', label: 'ปฏิทิน', icon: icons.calendarDays, exact: false },
 		{ href: '/portfolio/live-trade', label: 'เทรดสด', icon: icons.liveSignal, exact: false },
 		{ href: '/portfolio/analysis', label: 'วิเคราะห์ทอง', icon: icons.sparkles, exact: false },
-		{ href: '/portfolio/multi-account', label: 'มัลติบัญชี', icon: icons.users, exact: false },
-		{ href: '/portfolio/social', label: 'สังคม', icon: icons.userGroup, exact: false },
 	];
 
 	const links = $derived(
