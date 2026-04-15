@@ -5,6 +5,7 @@ export interface Coach {
 	name: string;
 	channel_name: string;
 	youtube_handle: string;
+	youtube_channel_id: string | null;
 	avatar_url: string | null;
 	start_hour: number;
 	end_hour: number;
@@ -23,7 +24,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const { data: coaches } = await supabase
 		.from('coaches')
-		.select('id, name, channel_name, youtube_handle, avatar_url, start_hour, end_hour, time_display, color_gradient, color_border, color_text, color_bg, glow_rgb, is_active, sort_order')
+		.select('id, name, channel_name, youtube_handle, youtube_channel_id, avatar_url, start_hour, end_hour, time_display, color_gradient, color_border, color_text, color_bg, glow_rgb, is_active, sort_order')
 		.eq('is_active', true)
 		.order('sort_order', { ascending: true });
 
