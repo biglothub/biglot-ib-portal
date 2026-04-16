@@ -1,4 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
+import { getAuthMfaState, getRoleRedirect } from '$lib/server/mfa';
 import { normalizeEmail } from '$lib/server/clientAccounts';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
 import type { RequestHandler } from './$types';
@@ -24,6 +25,14 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 	const serviceClient = createSupabaseServiceClient();
 	const userEmail = normalizeEmail(user.email);
+	const finishLoginRedirect = async (role?: 'admin' | 'master_ib' | 'client' | null): Promise<never> => {
+		const mfaState = await getAuthMfaState(locals.supabase);
+		if (mfaState.needsMfa) {
+			throw redirect(303, '/auth/mfa');
+		}
+
+		throw redirect(303, getRoleRedirect(role));
+	};
 
 	const rejectUnauthorizedUser = async (): Promise<never> => {
 		const { error: deleteError } = await serviceClient.auth.admin.deleteUser(user.id);
@@ -52,7 +61,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 	// Admin or Master IB — just redirect normally
 	if (profile?.role === 'admin' || profile?.role === 'master_ib') {
-		throw redirect(303, '/');
+		return finishLoginRedirect(profile.role);
 	}
 
 	// Check if already a returning user (has linked accounts)
@@ -70,7 +79,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	}
 
 	if (linkedAccount) {
-		throw redirect(303, '/');
+		return finishLoginRedirect(profile?.role ?? 'client');
 	}
 
 	if (!userEmail) {
@@ -106,7 +115,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 			throw error(500, linkError.message);
 		}
 
-		throw redirect(303, '/');
+		return finishLoginRedirect('client');
 	}
 
 	return rejectUnauthorizedUser();

@@ -1,15 +1,14 @@
 import { redirect } from '@sveltejs/kit';
+import { getRoleRedirect } from '$lib/server/mfa';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.user) {
-		const role = locals.profile?.role;
-		const redirectMap: Record<string, string> = {
-			admin: '/admin',
-			master_ib: '/ib',
-			client: '/portfolio'
-		};
-		throw redirect(303, redirectMap[role || ''] || '/');
+		if (locals.needsMfa) {
+			throw redirect(303, '/auth/mfa');
+		}
+
+		throw redirect(303, getRoleRedirect(locals.profile?.role));
 	}
 
 	return {

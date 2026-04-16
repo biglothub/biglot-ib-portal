@@ -1,4 +1,5 @@
 import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
+import type { AuthLevel } from '$lib/server/mfa';
 
 declare global {
 	namespace App {
@@ -10,6 +11,8 @@ declare global {
 			}>;
 			session: Session | null;
 			user: User | null;
+			authLevel: AuthLevel;
+			needsMfa: boolean;
 			profile: {
 				id: string;
 				email: string;

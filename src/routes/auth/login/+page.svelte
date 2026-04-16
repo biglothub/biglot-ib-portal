@@ -54,7 +54,18 @@
 			return;
 		}
 
-		goto('/', { replaceState: true, invalidateAll: true });
+		const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+		if (aalError) {
+			error = 'ไม่สามารถตรวจสอบสถานะการยืนยันตัวตนสองขั้นตอนได้';
+			loading = false;
+			return;
+		}
+
+		const nextPath = aalData?.currentLevel !== 'aal2' && aalData?.nextLevel === 'aal2'
+			? '/auth/mfa'
+			: '/';
+
+		goto(nextPath, { replaceState: true, invalidateAll: true });
 	}
 </script>
 

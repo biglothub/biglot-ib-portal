@@ -151,3 +151,11 @@ pytest -q
 - ตรวจว่า admin notifications และ Realtime เปิดใช้งานแล้ว
 - ตรวจว่า MT5 terminal พร้อมใช้งานบน host ที่รัน bridge
 - ถ้าเปิด AI chat ให้ตั้ง `OPENAI_API_KEY` ฝั่ง app server
+
+## 10. 2FA Lost Device Runbook
+
+- current web app ใช้ 2FA แบบ TOTP ผ่าน authenticator app เท่านั้น
+- ถ้า user เปลี่ยนเครื่องหรือสูญเสียอุปกรณ์และไม่สามารถสร้างรหัสได้ ให้ทีมงานยืนยันตัวตนกับผู้ใช้ตาม process ภายในก่อนทุกครั้ง
+- หลังยืนยันตัวตนแล้ว ให้ admin/support ใช้ Supabase dashboard หรือ admin tooling เพื่อลบ MFA factor ของ user คนนั้น
+- เมื่อ factor ถูกลบแล้ว user จะ login ได้ด้วย first factor ตามปกติ และต้องกลับไปเปิด 2FA ใหม่จาก `Settings > Security`
+- ห้ามขอ secret key หรือรหัส TOTP ปัจจุบันจากผู้ใช้ผ่านช่องทาง support

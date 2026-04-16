@@ -1,5 +1,6 @@
 import { init, sentryHandle, handleErrorWithSentry } from '@sentry/sveltekit';
 import { env } from '$env/dynamic/private';
+import { buildReturnTo, getAuthMfaState, getRoleRedirect } from '$lib/server/mfa';
 import { createSupabaseServerClient, createSupabaseServiceClient } from '$lib/server/supabase';
 import { validateEnv } from '$lib/server/env';
 import { redirect, type Handle } from '@sveltejs/kit';
@@ -16,7 +17,8 @@ if (env.SENTRY_DSN) {
 	});
 }
 
-const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/offline', '/api/health'];
+const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/auth/logout', '/offline', '/api/health'];
+const MFA_ALLOWED_ROUTES = ['/auth/mfa', '/api/auth/mfa'];
 
 type CachedProfile = NonNullable<App.Locals['profile']>;
 // In-memory profile cache — avoids DB query on every request
@@ -27,17 +29,28 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient(event);
 
 	event.locals.safeGetSession = async () => {
-		const { data: { user }, error } = await event.locals.supabase.auth.getUser();
+		const [{ data: sessionData }, { data: userData, error }] = await Promise.all([
+			event.locals.supabase.auth.getSession(),
+			event.locals.supabase.auth.getUser()
+		]);
+		const session = sessionData.session;
+		const user = userData.user;
 		if (error || !user) return { session: null, user: null };
 
-		return { session: null, user };
+		return { session, user };
 	};
 
-	const { user } = await event.locals.safeGetSession();
-	event.locals.session = null;
+	const { session, user } = await event.locals.safeGetSession();
+	event.locals.session = session;
 	event.locals.user = user;
+	event.locals.authLevel = null;
+	event.locals.needsMfa = false;
 
 	if (user) {
+		const mfaState = await getAuthMfaState(event.locals.supabase);
+		event.locals.authLevel = mfaState.currentLevel;
+		event.locals.needsMfa = mfaState.needsMfa;
+
 		const now = Date.now();
 		const cached = profileCache.get(user.id);
 
@@ -76,6 +89,17 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	}
 
 	const role = event.locals.profile?.role;
+	const defaultRedirect = getRoleRedirect(role);
+	const isMfaRoute = MFA_ALLOWED_ROUTES.some((route) => path.startsWith(route));
+
+	if (event.locals.needsMfa) {
+		if (!isMfaRoute) {
+			const returnTo = encodeURIComponent(buildReturnTo(path, event.url.search));
+			throw redirect(303, `/auth/mfa?returnTo=${returnTo}`);
+		}
+	} else if (path.startsWith('/auth/mfa')) {
+		throw redirect(303, defaultRedirect);
+	}
 
 	// Route guards
 	if (path.startsWith('/admin') && role !== 'admin') {
@@ -128,12 +152,7 @@ const authHandle: Handle = async ({ event, resolve }) => {
 
 	// Redirect root based on role
 	if (path === '/') {
-		const redirectMap: Record<string, string> = {
-			admin: '/admin',
-			master_ib: '/ib',
-			client: '/portfolio'
-		};
-		throw redirect(303, redirectMap[role || ''] || '/auth/login');
+		throw redirect(303, defaultRedirect);
 	}
 
 	return resolve(event, {
