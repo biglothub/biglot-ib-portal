@@ -19,6 +19,7 @@
 			commissions: number;
 			volume: number;
 			profitFactor: number;
+			hasJournalEntry?: boolean;
 			intradayCumPnl: Array<{ time: number; value: number }>;
 			trades: Trade[];
 		};
@@ -28,11 +29,16 @@
 	let expanded = $state(false);
 	let showTrades = $state(false);
 	let showNoteModal = $state(false);
+	let hasSavedNote = $state(false);
 
 	// Sync expanded state when defaultExpanded changes (e.g. calendar navigation)
 	$effect(() => {
 		expanded = defaultExpanded;
 		if (!defaultExpanded) showTrades = false;
+	});
+
+	$effect(() => {
+		hasSavedNote = !!entry.hasJournalEntry;
 	});
 
 	function formatDateHeader(dateStr: string) {
@@ -68,12 +74,23 @@
 		<button
 			type="button"
 			onclick={(e) => { e.stopPropagation(); showNoteModal = true; }}
-			class="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-gray-700/50 px-2.5 py-1 text-xs text-gray-400 transition-colors hover:border-brand-primary/40 hover:text-white"
+			class="ml-auto flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1 text-xs transition-colors
+				{hasSavedNote
+					? 'border-green-500/30 bg-green-500/10 text-green-300 hover:border-green-400/50 hover:text-green-200'
+					: 'border-gray-700/50 text-gray-400 hover:border-brand-primary/40 hover:text-white'}"
+			aria-label={hasSavedNote ? 'บันทึกแล้ว' : 'บันทึก'}
 		>
-			<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-			</svg>
-			บันทึก
+			{#if hasSavedNote}
+				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+				</svg>
+				บันทึกแล้ว
+			{:else}
+				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+				</svg>
+				บันทึก
+			{/if}
 		</button>
 	</div>
 
@@ -191,6 +208,7 @@
 		netPnl={entry.netPnl}
 		totalTrades={entry.totalTrades}
 		winRate={entry.winRate}
+		onsaved={() => { hasSavedNote = true; }}
 		onclose={() => showNoteModal = false}
 	/>
 {/if}

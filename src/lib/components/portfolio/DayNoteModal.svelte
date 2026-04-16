@@ -10,12 +10,14 @@
 		netPnl,
 		totalTrades,
 		winRate,
+		onsaved = () => {},
 		onclose
 	}: {
 		date: string;
 		netPnl: number;
 		totalTrades: number;
 		winRate: number;
+		onsaved?: () => void;
 		onclose: () => void;
 	} = $props();
 
@@ -67,6 +69,7 @@
 			if (res.ok) {
 				saved = true;
 				savedAt = new Date();
+				onsaved();
 				toast.success('บันทึก Day Note แล้ว', { detail: date });
 				setTimeout(() => { saved = false; }, 2500);
 			} else {

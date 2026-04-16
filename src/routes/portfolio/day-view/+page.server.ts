@@ -1,7 +1,7 @@
 import { buildDailyHistory } from '$lib/server/portfolio';
 import { evaluateDayInsights } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
-import type { Trade } from '$lib/types';
+import type { DailyJournal, Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 // Bug #2 fix: always compute date strings in UTC+7 (Bangkok) so they align
@@ -28,10 +28,15 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	}
 
 	const trades = baseData.trades || [];
+	const journals = baseData.journals || [];
 	const viewMode = url.searchParams.get('view') || 'day';
 	const dateParam = url.searchParams.get('date');
 	const today = new Date().toISOString().split('T')[0];
 	const selectedDate = dateParam || today;
+
+	const journalsByDate = new Map<string, DailyJournal>(
+		journals.map((journal: DailyJournal) => [journal.date, journal])
+	);
 
 	// Build daily history (memoized by trades reference)
 	const dailyHistory = buildDailyHistory(trades);
@@ -51,6 +56,17 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		const losses = dayTrades.filter((t) => Number(t.profit || 0) < 0);
 		const totalWin = wins.reduce((s, t) => s + Number(t.profit || 0), 0);
 		const totalLoss = Math.abs(losses.reduce((s, t) => s + Number(t.profit || 0), 0));
+		const journal = journalsByDate.get(day.date);
+		const hasJournalEntry = !!journal && (
+			(journal.post_market_notes || '').trim().length > 0 ||
+			(journal.pre_market_notes || '').trim().length > 0 ||
+			(journal.session_plan || '').trim().length > 0 ||
+			(journal.market_bias || '').trim().length > 0 ||
+			(journal.key_levels || '').trim().length > 0 ||
+			(journal.lessons || '').trim().length > 0 ||
+			(journal.tomorrow_focus || '').trim().length > 0 ||
+			journal.completion_status !== 'not_started'
+		);
 
 		// Intraday cumulative P&L series for sparkline
 		// Bug #9 fix: was `> 1`, now `>= 1` so single-trade days still get a series
@@ -75,6 +91,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			commissions: dayTrades.reduce((s, t) => s + Math.abs(Number(t.commission || 0)), 0),
 			volume: dayTrades.reduce((s, t) => s + Number(t.lot_size || 0), 0),
 			profitFactor: totalLoss > 0 ? Math.min(totalWin / totalLoss, 999) : totalWin > 0 ? 999 : 0,
+			hasJournalEntry,
 			intradayCumPnl,
 			trades: dayTrades
 		};
