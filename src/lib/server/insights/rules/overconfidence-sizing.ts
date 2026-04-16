@@ -21,7 +21,7 @@ export const overconfidenceSizingRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'warning',
-			message: `Overconfidence — increased size ${sizeIncrease}% after a win, then lost $${Math.abs(profit).toFixed(2)}`,
+			message: `Overconfidence — เพิ่ม lot ${sizeIncrease}% หลังชนะ แล้วขาดทุน $${Math.abs(profit).toFixed(2)}`,
 			data: { currentLot, prevLot, prevProfit, loss: Math.abs(profit) }
 		};
 	}

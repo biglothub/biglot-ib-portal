@@ -16,7 +16,7 @@ export const drawdownExceedsProfitRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `Loss ($${loss.toFixed(2)}) exceeds avg win ($${context.avgSymbolWin.toFixed(2)}) by ${ratio.toFixed(1)}x`,
+			message: `ขาดทุน ($${loss.toFixed(2)}) มากกว่า avg win ($${context.avgSymbolWin.toFixed(2)}) ถึง ${ratio.toFixed(1)}x`,
 			data: { loss, avgWin: context.avgSymbolWin, ratio }
 		};
 	}

@@ -31,7 +31,7 @@ export const leftMoneyOnTableRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'warning',
-			message: `Left ${missedPct.toFixed(0)}% of TP target on the table — captured only ${(100 - missedPct).toFixed(0)}% of planned move`,
+			message: `ออกก่อน TP ${missedPct.toFixed(0)}% — จับได้เพียง ${(100 - missedPct).toFixed(0)}% ของเป้าหมาย`,
 			data: { missedPct, capturedDistance, totalDistance, profit }
 		};
 	}

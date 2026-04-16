@@ -31,7 +31,7 @@ export const lossStreakRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `${consecutiveLosses + 1} consecutive losses within 60 minutes — possible revenge trading`,
+			message: `แพ้ ${consecutiveLosses + 1} ครั้งติดกันใน 60 นาที — อาจเป็นการ Revenge trade`,
 			data: { lossCount: consecutiveLosses + 1, windowMinutes: 60 }
 		};
 	}

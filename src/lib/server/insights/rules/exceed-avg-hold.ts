@@ -23,7 +23,7 @@ export const exceedAvgHoldRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'warning',
-			message: `Held ${formatDuration(hold)} vs average ${formatDuration(context.avgSymbolHoldMinutes)} for ${trade.symbol}`,
+			message: `ถือนานเกินไป ${formatDuration(hold)} เทียบกับเฉลี่ย ${formatDuration(context.avgSymbolHoldMinutes)} สำหรับ ${trade.symbol}`,
 			data: { holdMinutes: hold, avgHoldMinutes: context.avgSymbolHoldMinutes }
 		};
 	}

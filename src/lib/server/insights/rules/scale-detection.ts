@@ -23,7 +23,7 @@ export const scaleDetectionRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'info',
-			message: `Possible ${action} — ${nearbyTrades.length + 1} ${trade.symbol} trades within 5 minutes`,
+			message: `อาจเป็น ${action === 'scale-in' ? 'การเพิ่มไซส์' : 'การลดไซส์'} — มี ${nearbyTrades.length + 1} trade ${trade.symbol} ภายใน 5 นาที`,
 			data: { nearbyCount: nearbyTrades.length, action, sameDirection, oppositeDirection }
 		};
 	}

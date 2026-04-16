@@ -12,7 +12,7 @@ export const exceedAvgProfitRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'positive',
-			message: `Above average — $${profit.toFixed(2)} profit vs $${context.avgSymbolWin.toFixed(2)} avg for ${trade.symbol}`,
+			message: `กำไรเหนือค่าเฉลี่ย — $${profit.toFixed(2)} เทียบกับ avg $${context.avgSymbolWin.toFixed(2)} ของ ${trade.symbol}`,
 			data: { profit, avgWin: context.avgSymbolWin, ratio: profit / context.avgSymbolWin }
 		};
 	}

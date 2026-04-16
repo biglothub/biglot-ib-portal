@@ -31,7 +31,7 @@ export const loserLongHoldRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `Held losing trade ${formatDuration(thisHold)} — avg losing hold is ${formatDuration(avgLoserHold)}`,
+			message: `ถือ trade ขาดทุนนาน ${formatDuration(thisHold)} — เฉลี่ยถือขาดทุนอยู่ที่ ${formatDuration(avgLoserHold)}`,
 			data: { holdMinutes: thisHold, avgLoserHold, profit }
 		};
 	}

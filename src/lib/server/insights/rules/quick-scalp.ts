@@ -15,7 +15,7 @@ export const quickScalpRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'info',
-			message: `Quick scalp — closed in ${holdMinutes < 1 ? '<1' : Math.round(holdMinutes)} minute${holdMinutes >= 2 ? 's' : ''} with $${profit.toFixed(2)} profit`,
+			message: `Quick scalp — ปิดใน ${holdMinutes < 1 ? '<1' : Math.round(holdMinutes)} นาที กำไร $${profit.toFixed(2)}`,
 			data: { holdMinutes, profit }
 		};
 	}

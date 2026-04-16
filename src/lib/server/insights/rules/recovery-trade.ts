@@ -25,7 +25,7 @@ export const recoveryTradeRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'positive',
-			message: `Recovery trade — won $${profit.toFixed(2)} despite tight SL (risk distance ${(slDistance / gain).toFixed(1)}x gain)`,
+			message: `Recovery trade — กำไร $${profit.toFixed(2)} ทั้งที่ SL แคบ (ระยะ SL ห่าง ${(slDistance / gain).toFixed(1)}x ของกำไร)`,
 			data: { profit, slDistance, gain, riskToGainRatio: slDistance / gain }
 		};
 	}

@@ -16,7 +16,7 @@ export const breakevenCloseRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'info',
-			message: `Breakeven close — $${profit.toFixed(2)} (< 5% of avg win $${context.avgSymbolWin.toFixed(2)})`,
+			message: `ปิดที่ Breakeven — $${profit.toFixed(2)} (น้อยกว่า 5% ของ avg win $${context.avgSymbolWin.toFixed(2)})`,
 			data: { profit, avgWin: context.avgSymbolWin, threshold }
 		};
 	}

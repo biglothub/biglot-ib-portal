@@ -24,7 +24,7 @@ export const revengeTradingRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `Revenge trade — opened ${Math.round((openTime - new Date(revengeWindow[0].close_time).getTime()) / 1000)}s after a losing trade closed`,
+			message: `Revenge trade — เปิด trade ${Math.round((openTime - new Date(revengeWindow[0].close_time).getTime()) / 1000)} วินาทีหลัง trade ขาดทุนปิด`,
 			data: { gapSeconds: (openTime - new Date(revengeWindow[0].close_time).getTime()) / 1000, priorLoss: Number(revengeWindow[0].profit) }
 		};
 	}

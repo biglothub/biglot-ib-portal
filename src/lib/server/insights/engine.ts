@@ -65,7 +65,7 @@ const ALL_DAY_RULES: DayInsightRule[] = [
  * Build context for a trade (pre-computed averages for its symbol)
  */
 function buildTradeContext(trade: Trade, allTrades: Trade[], previousTrade?: Trade): TradeContext {
-	const symbolTrades = allTrades.filter(t => t.symbol === trade.symbol);
+	const symbolTrades = allTrades.filter(t => t.symbol === trade.symbol && t.id !== trade.id);
 	const symbolWins = symbolTrades.filter(t => Number(t.profit || 0) > 0);
 	const symbolLosses = symbolTrades.filter(t => Number(t.profit || 0) < 0);
 

@@ -10,7 +10,7 @@ export const noStopLossRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `No stop loss set — trading without SL increases risk significantly`,
+			message: `ไม่ได้ตั้ง Stop Loss — การเทรดโดยไม่มี SL เพิ่มความเสี่ยงอย่างมาก`,
 			data: { symbol: trade.symbol }
 		};
 	}

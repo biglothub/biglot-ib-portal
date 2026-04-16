@@ -13,7 +13,7 @@ export const largeLossRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `Large loss — $${loss.toFixed(2)} vs $${context.avgSymbolLoss.toFixed(2)} avg loss for ${trade.symbol}`,
+			message: `ขาดทุนหนัก — $${loss.toFixed(2)} เทียบกับ avg loss $${context.avgSymbolLoss.toFixed(2)} ของ ${trade.symbol}`,
 			data: { loss, avgLoss: context.avgSymbolLoss, ratio: loss / context.avgSymbolLoss }
 		};
 	}

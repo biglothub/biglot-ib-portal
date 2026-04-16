@@ -23,7 +23,7 @@ export const bigWinnerRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'positive',
-			message: `Best trade of the day — $${profit.toFixed(2)} profit out of ${sameDayTrades.length} winning trades`,
+			message: `Trade ดีที่สุดของวัน — กำไร $${profit.toFixed(2)} จาก ${sameDayTrades.length} trade ที่ชนะ`,
 			data: { profit, dayWinners: sameDayTrades.length }
 		};
 	}

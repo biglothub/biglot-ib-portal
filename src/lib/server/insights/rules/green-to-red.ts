@@ -22,7 +22,7 @@ export const greenToRedRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'negative',
-			message: `Green to Red — had TP target but closed at $${profit.toFixed(2)} loss`,
+			message: `Green to Red — ตั้ง TP ไว้แต่ปิดขาดทุน $${profit.toFixed(2)}`,
 			data: { profit, tp, openPrice }
 		};
 	}

@@ -25,7 +25,7 @@ export const greenToBreakevenRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'warning',
-			message: `Green to Breakeven — had TP target but closed at $${profit.toFixed(2)}`,
+			message: `Green to Breakeven — ตั้ง TP ไว้แต่ปิดที่ $${profit.toFixed(2)}`,
 			data: { profit, tp, avgWin: context.avgSymbolWin }
 		};
 	}

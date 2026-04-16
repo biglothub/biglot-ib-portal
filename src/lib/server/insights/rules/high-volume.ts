@@ -15,7 +15,7 @@ export const highVolumeRule: InsightRule = {
 		return {
 			ruleId: this.id,
 			category: 'warning',
-			message: `Unusual volume — ${tradeLot} lots vs ${avgLot.toFixed(2)} avg for ${trade.symbol}`,
+			message: `Volume ผิดปกติ — ${tradeLot} lots เทียบกับเฉลี่ย ${avgLot.toFixed(2)} lots ของ ${trade.symbol}`,
 			data: { lotSize: tradeLot, avgLot, ratio: tradeLot / avgLot }
 		};
 	}
