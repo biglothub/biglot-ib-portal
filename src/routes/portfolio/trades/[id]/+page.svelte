@@ -66,7 +66,19 @@
 	let attachmentPath = $state('');
 	let attachmentCaption = $state('');
 	let savingAttachment = $state(false);
+	let attachmentError = $state('');
 	let actionError = $state('');
+
+	function validateAttachmentUrl(url: string): string {
+		if (!url.trim()) return '';
+		try {
+			const u = new URL(url.trim());
+			if (u.protocol !== 'http:' && u.protocol !== 'https:') return 'URL ต้องเป็น http หรือ https เท่านั้น';
+		} catch {
+			return 'URL ไม่ถูกต้อง';
+		}
+		return '';
+	}
 
 	// Optimistic tag state
 	let optimisticAddedTags = $state<any[]>([]);
@@ -326,8 +338,10 @@
 
 	async function saveAttachment() {
 		if (!trade || !attachmentPath.trim()) return;
+		const urlErr = validateAttachmentUrl(attachmentPath);
+		if (urlErr) { attachmentError = urlErr; return; }
+		attachmentError = '';
 		savingAttachment = true;
-		actionError = '';
 
 		try {
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/attachments`, {
@@ -344,16 +358,17 @@
 			if (res.ok) {
 				attachmentPath = '';
 				attachmentCaption = '';
+				attachmentKind = 'link';
 				toast.success('เพิ่มไฟล์แนบแล้ว');
 				await invalidate('portfolio:tradeDetail');
-				invalidate('portfolio:baseData');
+				await invalidate('portfolio:baseData');
 			} else {
 				const errData = await res.json().catch(() => ({}));
-				actionError = errData.message || 'ไม่สามารถเพิ่ม Attachment ได้';
-				toast.error('เพิ่มไฟล์แนบไม่สำเร็จ', { detail: actionError });
+				attachmentError = errData.message || 'ไม่สามารถเพิ่ม Attachment ได้';
+				toast.error('เพิ่มไฟล์แนบไม่สำเร็จ', { detail: attachmentError });
 			}
 		} catch {
-			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			attachmentError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
 			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			savingAttachment = false;
@@ -876,9 +891,15 @@
 						<option value="link">ลิงก์</option>
 						<option value="image_url">URL รูปภาพ</option>
 					</select>
-					<input bind:value={attachmentPath} placeholder="https://..." class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-					<input bind:value={attachmentCaption} placeholder="คำอธิบาย" class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
-					<button type="button" onclick={saveAttachment} disabled={savingAttachment} class="btn-primary text-sm py-2 inline-flex items-center gap-2 disabled:opacity-50">
+					<input
+						bind:value={attachmentPath}
+						oninput={() => attachmentError = ''}
+						placeholder="https://..."
+						class="md:col-span-2 bg-dark-bg border rounded px-3 py-2 text-sm text-white
+							{attachmentError ? 'border-red-500/60' : 'border-dark-border'}"
+					/>
+					<input bind:value={attachmentCaption} placeholder="คำอธิบาย (ไม่บังคับ)" class="md:col-span-2 bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white" />
+					<button type="button" onclick={saveAttachment} disabled={savingAttachment || !attachmentPath.trim()} class="btn-primary text-sm py-2 inline-flex items-center gap-2 disabled:opacity-50">
 						{#if savingAttachment}
 							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
 							กำลังบันทึก...
@@ -887,6 +908,12 @@
 						{/if}
 					</button>
 				</div>
+				{#if attachmentError}
+					<p class="text-xs text-red-400 flex items-center gap-1">
+						<svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+						{attachmentError}
+					</p>
+				{/if}
 
 				<div class="space-y-2">
 					{#if attachments.length > 0}
