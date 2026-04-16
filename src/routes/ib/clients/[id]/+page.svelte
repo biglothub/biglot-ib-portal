@@ -210,6 +210,9 @@
 					</svg>
 					ดูพอร์ตละเอียด
 				</a>
+				<a href="/portfolio/ai?account_id={typedAccount.id}&mode=portfolio" class="btn-secondary text-sm">
+					TradePilot
+				</a>
 			{/if}
 			{#if canEdit}
 				<button class="btn-secondary text-sm" onclick={openEdit}>

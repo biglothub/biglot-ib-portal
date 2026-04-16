@@ -166,6 +166,11 @@
 				</svg>
 				ดูพอร์ตละเอียด
 			</a>
+			{#if typedAccount.status === 'approved'}
+				<a href="/portfolio/ai?account_id={typedAccount.id}&mode=portfolio" class="btn-secondary text-sm">
+					TradePilot
+				</a>
+			{/if}
 			<button class="btn-secondary text-sm" onclick={openEdit}>
 				แก้ไขข้อมูล
 			</button>

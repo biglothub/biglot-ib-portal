@@ -218,7 +218,6 @@
 						<div class="flex-shrink-0 w-28">
 							<div class="rounded-xl bg-gradient-to-r {coach.color_gradient} px-3 py-2 text-center">
 								<div class="text-[10px] font-bold text-white tracking-wider">{coach.name}</div>
-								<div class="text-[10px] text-white/80">{coach.time_display}</div>
 							</div>
 						</div>
 
@@ -274,17 +273,6 @@
 							{/if}
 						</div>
 
-						<!-- Time display -->
-						<div class="flex-shrink-0 text-right hidden sm:block">
-							<div class="text-sm font-mono transition-colors duration-500 {live ? coach.color_text : 'text-gray-400'}">
-								{coach.time_display}
-							</div>
-							{#if live}
-								<div class="text-[10px] {coach.color_text} mt-0.5 font-medium">
-									{ytLive ? 'กำลัง Live' : 'ช่วงเวลา Live'}
-								</div>
-							{/if}
-						</div>
 					</div>
 				</div>
 			{/each}

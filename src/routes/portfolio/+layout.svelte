@@ -4,7 +4,6 @@
 	import { goto, invalidate } from '$app/navigation';
 	import { timeAgo } from '$lib/utils';
 	import AiChatButton from '$lib/components/portfolio/AiChatButton.svelte';
-	import AiChatPanel from '$lib/components/portfolio/AiChatPanel.svelte';
 	import PortfolioSkeleton from '$lib/components/portfolio/PortfolioSkeleton.svelte';
 	import PortfolioGuide from '$lib/components/portfolio/PortfolioGuide.svelte';
 	import { marketNewsStore } from '$lib/stores/newsStore';
@@ -24,13 +23,12 @@
 
 	let { data, children } = $props();
 	let { account, allAccounts, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
-	let chatOpen = $state(false);
 	let guideOpen = $state(false);
 	let shortcutsOpen = $state(false);
 	let commandPaletteRef = $state<CommandPalette | null>(null);
 
 	function areTopPanelsClosed() {
-		return !chatOpen && !guideOpen && !shortcutsOpen;
+		return !guideOpen && !shortcutsOpen;
 	}
 
 	function openShortcutsHelp() {
@@ -42,7 +40,6 @@
 	}
 
 	function closeTopPanels() {
-		chatOpen = false;
 		shortcutsOpen = false;
 		guideOpen = false;
 	}
@@ -57,6 +54,7 @@
 			{ id: 'nav-trades', keys: ['g+t'], description: 'เทรด', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/trades'))) },
 			{ id: 'nav-journal', keys: ['g+j'], description: 'บันทึก', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/journal'))) },
 			{ id: 'nav-analytics', keys: ['g+a'], description: 'รายงาน', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/analytics'))) },
+			{ id: 'nav-ai', keys: ['g+i'], description: 'TradePilot', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/ai'))) },
 			{ id: 'nav-playbook', keys: ['g+p'], description: 'Playbook', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/playbook'))) },
 			{ id: 'nav-progress', keys: ['g+r'], description: 'ความคืบหน้า', group: 'การนำทาง', enabled: areTopPanelsClosed, action: () => goto(untrack(() => tabHref('/portfolio/progress'))) },
 			{ id: 'open-search', keys: ['/', 'Meta+k', 'Control+k'], description: 'ค้นหา', group: 'การค้นหา', enabled: () => !!account && areTopPanelsClosed(), action: openSearch },
@@ -72,12 +70,6 @@
 			untrack(() => unregisterShortcuts(navShortcuts.map(s => s.id)));
 			destroy();
 		};
-	});
-
-	$effect(() => {
-		if (chatOpen) untrack(() => pushOverlay('portfolio-chat', { blocksShortcuts: true }));
-		else untrack(() => popOverlay('portfolio-chat'));
-		return () => untrack(() => popOverlay('portfolio-chat'));
 	});
 
 	$effect(() => {
@@ -215,11 +207,11 @@
 		{ base: '/portfolio/trades', label: 'เทรด' },
 		{ base: '/portfolio/journal', label: 'บันทึก' },
 		{ base: '/portfolio/analytics', label: 'รายงาน' },
+		{ base: '/portfolio/ai', label: 'TradePilot' },
 		{ base: '/portfolio/playbook', label: 'Playbook' },
 		{ base: '/portfolio/progress', label: 'ความคืบหน้า' },
 		{ base: '/portfolio/calendar', label: 'ปฏิทิน' },
 		{ base: '/portfolio/live-trade', label: 'เทรดสด' },
-		{ base: '/portfolio/analysis', label: 'วิเคราะห์ทอง' },
 	];
 
 	const tabs = $derived(tabDefs.map(t => ({ href: tabHref(t.base), base: t.base, label: t.label })));
@@ -404,14 +396,8 @@
 	{/if}
 </div>
 
-{#if account && !isAdminView}
-	<AiChatButton onclick={() => chatOpen = true} />
-	<AiChatPanel
-		open={chatOpen}
-		onclose={() => chatOpen = false}
-		accountId={account.id}
-		clientName={account.client_name}
-	/>
+{#if account}
+	<AiChatButton onclick={() => goto(tabHref('/portfolio/ai'))} />
 {/if}
 
 <PortfolioGuide open={guideOpen} onclose={() => guideOpen = false} />

@@ -51,11 +51,11 @@
 		{ href: '/portfolio/trades', label: 'Trades', icon: icons.listBullet, exact: false },
 		{ href: '/portfolio/journal', label: 'Journal', icon: icons.pencilSquare, exact: false },
 		{ href: '/portfolio/analytics', label: 'Analytics', icon: icons.trendingUp, exact: false },
+		{ href: '/portfolio/ai', label: 'TradePilot', icon: icons.sparkles, exact: false },
 		{ href: '/portfolio/playbook', label: 'Playbook', icon: icons.bookOpen, exact: false },
 		{ href: '/portfolio/progress', label: 'Progress', icon: icons.trophy, exact: false },
 		{ href: '/portfolio/calendar', label: 'ปฏิทิน', icon: icons.calendarDays, exact: false },
 		{ href: '/portfolio/live-trade', label: 'เทรดสด', icon: icons.liveSignal, exact: false },
-		{ href: '/portfolio/analysis', label: 'วิเคราะห์ทอง', icon: icons.sparkles, exact: false },
 	];
 
 	const links = $derived(

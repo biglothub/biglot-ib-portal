@@ -58,11 +58,11 @@ describe('MOB-001: Bottom Navigation Bar', () => {
 		{ base: '/portfolio/trades', label: 'เทรด' },
 		{ base: '/portfolio/journal', label: 'บันทึก' },
 		{ base: '/portfolio/analytics', label: 'รายงาน' },
+		{ base: '/portfolio/ai', label: 'TradePilot' },
 		{ base: '/portfolio/playbook', label: 'Playbook' },
 		{ base: '/portfolio/progress', label: 'ความคืบหน้า' },
 		{ base: '/portfolio/calendar', label: 'ปฏิทิน' },
-		{ base: '/portfolio/live-trade', label: 'เทรดสด' },
-		{ base: '/portfolio/analysis', label: 'วิเคราะห์ทอง' }
+		{ base: '/portfolio/live-trade', label: 'เทรดสด' }
 	];
 
 	it('should split tabs into 4 primary + remaining in "more"', () => {
@@ -145,14 +145,11 @@ describe('MOB-001: Bottom Navigation Bar', () => {
 		const moreLabels = moreTabs.map((t) => t.label);
 
 		expect(moreLabels).toContain('รายวัน');
-		expect(moreLabels).toContain('สมุดโน้ต');
 		expect(moreLabels).toContain('Playbook');
 		expect(moreLabels).toContain('ความคืบหน้า');
 		expect(moreLabels).toContain('ปฏิทิน');
 		expect(moreLabels).toContain('เทรดสด');
-		expect(moreLabels).toContain('วิเคราะห์ทอง');
-		expect(moreLabels).toContain('มัลติบัญชี');
-		expect(moreLabels).toContain('สังคม');
+		expect(moreLabels).toContain('TradePilot');
 	});
 
 	it('should toggle moreOpen state', () => {

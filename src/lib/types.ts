@@ -529,3 +529,101 @@ export interface DayTimeHeatmap {
 	maxTrades: number;
 	maxAbsPnl: number;
 }
+
+export type BigLotAiMode = 'portfolio' | 'coach' | 'gold' | 'general';
+
+export type BigLotAiSurfaceRole = UserRole;
+
+export interface BigLotAiChat {
+	id: string;
+	owner_user_id: string;
+	client_account_id: string;
+	surface_role: BigLotAiSurfaceRole;
+	surface_context: string | null;
+	title: string | null;
+	last_message_at: string | null;
+	archived_at: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BigLotAiMessage {
+	id: string;
+	chat_id: string;
+	run_id: string | null;
+	role: 'user' | 'assistant';
+	mode: BigLotAiMode;
+	content: string;
+	citations: Array<{ label: string; source: string }> | null;
+	token_usage: Record<string, number> | null;
+	status: 'completed' | 'failed' | 'streaming';
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BigLotAiRun {
+	id: string;
+	chat_id: string;
+	actor_user_id: string;
+	actor_role: UserRole;
+	target_user_id: string;
+	client_account_id: string;
+	mode: BigLotAiMode;
+	route_type: 'direct_answer' | 'tool_augmented_answer' | 'gold_analysis' | 'coach_summary';
+	provider: string | null;
+	model: string | null;
+	status: 'running' | 'completed' | 'failed';
+	latency_ms: number | null;
+	tool_call_count: number;
+	error_message: string | null;
+	started_at: string;
+	completed_at: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BigLotAiToolCall {
+	id: string;
+	run_id: string;
+	tool_name: string;
+	tool_args: Record<string, unknown> | null;
+	result_summary: string | null;
+	data_sources: string[] | null;
+	row_count: number | null;
+	cached: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BigLotAiMemory {
+	id: string;
+	owner_user_id: string;
+	client_account_id: string;
+	memory_type: 'portfolio' | 'preference' | 'note' | 'coach';
+	key: string;
+	value: Record<string, unknown>;
+	confidence: number;
+	source_run_id: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BigLotAiFeedback {
+	id: string;
+	message_id: string;
+	run_id: string | null;
+	owner_user_id: string;
+	feedback: 'positive' | 'negative';
+	reason: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BigLotAiScope {
+	actorUserId: string;
+	actorRole: UserRole;
+	targetUserId: string;
+	clientAccountId: string;
+	sourceSurface: 'portfolio';
+	account: Pick<ClientAccount, 'id' | 'user_id' | 'master_ib_id' | 'client_name' | 'mt5_account_id' | 'mt5_server' | 'status' | 'last_synced_at'>;
+}
