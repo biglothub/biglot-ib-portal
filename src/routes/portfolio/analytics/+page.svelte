@@ -43,9 +43,20 @@
 		activeTab = tab;
 	}
 
-	// Export PDF
+	let exportMenuOpen = $state(false);
 	let exporting = $state(false);
+	let exportingCsv = $state(false);
+
+	function toggleExportMenu() {
+		exportMenuOpen = !exportMenuOpen;
+	}
+
+	function closeExportMenu() {
+		exportMenuOpen = false;
+	}
+
 	async function exportPdf() {
+		closeExportMenu();
 		exporting = true;
 		try {
 			const res = await fetch('/api/portfolio/reports/export-pdf', {
@@ -65,7 +76,34 @@
 			exporting = false;
 		}
 	}
+
+	async function exportCsv() {
+		closeExportMenu();
+		exportingCsv = true;
+		try {
+			const params = new URLSearchParams(window.location.search);
+			const query = params.toString();
+			const res = await fetch(`/api/portfolio/trades/export${query ? `?${query}` : ''}`);
+			if (!res.ok) return;
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `trades_export_${new Date().toISOString().split('T')[0]}.csv`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			exportingCsv = false;
+		}
+	}
 </script>
+
+<svelte:document
+	onclick={(event) => {
+		const target = event.target as HTMLElement | null;
+		if (!target?.closest('[data-export-menu]')) closeExportMenu();
+	}}
+/>
 
 <div class="space-y-7 relative">
 	{#if $navigating}
@@ -94,14 +132,43 @@
 				>{tab.label}</button>
 			{/each}
 		</div>
-		<button
-			onclick={exportPdf}
-			disabled={exporting}
-			class="flex items-center gap-1.5 rounded-lg border border-gray-700/50 px-3 py-2 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors disabled:opacity-50 whitespace-nowrap"
-		>
-			<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-			{exporting ? 'กำลังส่งออก...' : 'ส่งออก PDF'}
-		</button>
+		<div class="relative whitespace-nowrap" data-export-menu>
+			<button
+				type="button"
+				onclick={toggleExportMenu}
+				aria-haspopup="menu"
+				aria-expanded={exportMenuOpen}
+				class="flex items-center gap-2 rounded-lg border border-gray-700/50 px-3 py-2 text-xs text-gray-400 hover:text-white hover:border-brand-primary/40 transition-colors disabled:opacity-50"
+				disabled={exporting || exportingCsv}
+			>
+				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+				{exporting ? 'กำลังส่งออก PDF...' : exportingCsv ? 'กำลังส่งออก CSV...' : 'ส่งออกข้อมูล'}
+				<svg class="w-3.5 h-3.5 transition-transform duration-200 {exportMenuOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+			</button>
+
+			{#if exportMenuOpen}
+				<div class="absolute right-0 top-full z-20 mt-2 min-w-[11rem] overflow-hidden rounded-xl border border-gray-700/60 bg-dark-surface/95 p-1.5 shadow-xl backdrop-blur-md">
+					<button
+						type="button"
+						role="menuitem"
+						onclick={exportCsv}
+						class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-gray-300 transition-colors hover:bg-dark-bg/70 hover:text-white"
+					>
+						<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"></path></svg>
+						ส่งออก CSV
+					</button>
+					<button
+						type="button"
+						role="menuitem"
+						onclick={exportPdf}
+						class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-gray-300 transition-colors hover:bg-dark-bg/70 hover:text-white"
+					>
+						<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+						ส่งออก PDF
+					</button>
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	{#if !report}

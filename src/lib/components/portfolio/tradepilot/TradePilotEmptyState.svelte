@@ -1,0 +1,168 @@
+<script lang="ts">
+	import type { BigLotAiMode } from '$lib/types';
+	import type { TradePilotModeOption } from '$lib/tradepilot';
+
+	interface Props {
+		mode: BigLotAiMode;
+		modeMeta: TradePilotModeOption;
+		prompts: string[];
+		onSendStarter?: (prompt: string) => void;
+		onSetPrompt?: (prompt: string) => void;
+	}
+
+	let { mode, modeMeta, prompts, onSendStarter, onSetPrompt }: Props = $props();
+</script>
+
+<div class="tp-empty">
+	<div class="tp-empty__hero">
+		<p class="tp-empty__eyebrow">{modeMeta.eyebrow}</p>
+		<h1 class="tp-empty__title">TradePilot</h1>
+		<p class="tp-empty__copy">
+			คุยกับข้อมูลใน account นี้โดยตรง เลือก mode ให้ตรง intent แล้วถามเป็นประโยคเดียวที่ชัดก่อน
+			TradePilot จะดึง context จาก portfolio, journal, reviews และ playbooks ตาม mode ที่เลือกไว้
+		</p>
+	</div>
+
+	<div class="tp-empty__grid">
+		{#each prompts as prompt, index}
+			<button class="tp-empty__card" type="button" onclick={() => onSendStarter?.(prompt)}>
+				<span class="tp-empty__card-index">0{index + 1}</span>
+				<span class="tp-empty__card-copy">{prompt}</span>
+			</button>
+		{/each}
+	</div>
+
+	<div class="tp-empty__footer">
+		<div class="tp-empty__pill-group">
+			{#each prompts as prompt}
+				<button class="tp-empty__pill" type="button" onclick={() => onSetPrompt?.(prompt)} title={prompt}>
+					{prompt}
+				</button>
+			{/each}
+		</div>
+		<p class="tp-empty__note">
+			Current mode: <strong>{modeMeta.label}</strong> · {modeMeta.subtitle}
+		</p>
+	</div>
+</div>
+
+<style>
+	.tp-empty {
+		display: grid;
+		gap: 1.4rem;
+		width: min(100%, 58rem);
+	}
+
+	.tp-empty__hero {
+		display: grid;
+		gap: 0.65rem;
+	}
+
+	.tp-empty__eyebrow {
+		margin: 0;
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: rgba(216, 184, 108, 0.88);
+	}
+
+	.tp-empty__title {
+		margin: 0;
+		font-size: clamp(2.4rem, 5vw, 3.4rem);
+		font-weight: 650;
+		letter-spacing: -0.06em;
+		color: rgba(250, 250, 249, 0.98);
+	}
+
+	.tp-empty__copy,
+	.tp-empty__note {
+		margin: 0;
+		max-width: 46rem;
+		font-size: 0.98rem;
+		line-height: 1.75;
+		color: rgba(214, 211, 209, 0.9);
+	}
+
+	.tp-empty__grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.9rem;
+	}
+
+	.tp-empty__card,
+	.tp-empty__pill {
+		transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+	}
+
+	.tp-empty__card {
+		display: grid;
+		gap: 0.7rem;
+		padding: 1rem 1.05rem;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 1.1rem;
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+			radial-gradient(circle at top left, rgba(201, 168, 76, 0.12), transparent 52%);
+		text-align: left;
+		color: rgba(245, 245, 244, 0.95);
+	}
+
+	.tp-empty__card:hover {
+		transform: translateY(-1px);
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+			radial-gradient(circle at top left, rgba(201, 168, 76, 0.16), transparent 56%);
+		border-color: rgba(216, 184, 108, 0.22);
+	}
+
+	.tp-empty__card-index {
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: rgba(216, 184, 108, 0.84);
+	}
+
+	.tp-empty__card-copy {
+		font-size: 0.96rem;
+		line-height: 1.65;
+	}
+
+	.tp-empty__footer {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.tp-empty__pill-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+	}
+
+	.tp-empty__pill {
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.03);
+		padding: 0.45rem 0.82rem;
+		font-size: 0.75rem;
+		line-height: 1.4;
+		color: rgba(212, 212, 216, 0.9);
+	}
+
+	.tp-empty__pill:hover {
+		background: rgba(255, 255, 255, 0.06);
+		border-color: rgba(216, 184, 108, 0.22);
+	}
+
+	.tp-empty__note strong {
+		color: rgba(250, 250, 249, 0.96);
+		font-weight: 600;
+	}
+
+	@media (max-width: 900px) {
+		.tp-empty__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

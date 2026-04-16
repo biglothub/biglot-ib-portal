@@ -18,7 +18,9 @@ import type { PageServerLoad } from './$types';
 const THAILAND_OFFSET_MS = 7 * 3600000;
 const TODAY = () => new Date(Date.now() + THAILAND_OFFSET_MS).toISOString().split('T')[0];
 
-export const load: PageServerLoad = async ({ parent, locals, url }) => {
+export const load: PageServerLoad = async ({ parent, locals, url, depends }) => {
+	depends('portfolio:baseData');
+
 	const parentData = await parent();
 	const { account, tags = [], playbooks = [], isAdminView } = parentData;
 	const baseData = locals.portfolioBaseData;

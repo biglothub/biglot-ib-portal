@@ -80,6 +80,13 @@
 			const saved = localStorage.getItem('dashboard-rows');
 			if (saved) rowVisibility = { ...rowVisibility, ...JSON.parse(saved) };
 		} catch { /* ignore */ }
+		autoRefreshTimer = setInterval(() => {
+			if (document.visibilityState !== 'visible') return;
+			void invalidate('portfolio:baseData');
+		}, 30_000);
+		return () => {
+			if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+		};
 	});
 
 	let safeCommandCenter = $derived(commandCenter || {
@@ -114,6 +121,7 @@
 	let syncSuccess = $state(false);
 	let cooldownTimer: ReturnType<typeof setTimeout> | undefined;
 	let successTimer: ReturnType<typeof setTimeout> | undefined;
+	let autoRefreshTimer: ReturnType<typeof setInterval> | undefined;
 
 	// Persist row visibility
 	function saveRowVisibility() {

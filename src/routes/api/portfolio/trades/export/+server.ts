@@ -1,3 +1,4 @@
+import { applyPortfolioFilters, getTradeReviewStatus, parsePortfolioFilters } from '$lib/portfolio';
 import { rateLimit } from '$lib/server/rate-limit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import type { RequestEvent } from '@sveltejs/kit';
@@ -46,15 +47,29 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 		});
 	}
 
-	// Fetch all trades with tags and reviews
+	// Fetch the joined fields needed to honor the same filters used in portfolio pages.
 	const { data: trades, error } = await locals.supabase
 		.from('trades')
 		.select(`
 			id, symbol, type, lot_size, open_price, close_price,
-			open_time, close_time, profit, pips, commission, swap,
-			sl, tp, position_id,
-			trade_tag_assignments(trade_tags(name)),
-			trade_reviews(review_status)
+			open_time, close_time, profit, pips, commission, swap, created_at,
+			sl, tp, position_id, client_account_id,
+			trade_tag_assignments(tag_id, trade_tags(name)),
+			trade_notes(id, content),
+			trade_attachments(id),
+			trade_reviews(
+				review_status,
+				playbook_id,
+				setup_quality_score,
+				discipline_score,
+				execution_score,
+				confidence_at_entry,
+				followed_plan,
+				broken_rules,
+				entry_reason,
+				mistake_summary,
+				lesson_summary
+			)
 		`)
 		.eq('client_account_id', account.id)
 		.order('close_time', { ascending: false });
@@ -66,16 +81,8 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 		});
 	}
 
-	// Apply date filters if provided
-	let filtered = (trades ?? []) as unknown as Trade[];
-	const from = url.searchParams.get('from');
-	const to = url.searchParams.get('to');
-	if (from) {
-		filtered = filtered.filter((t: Trade) => t.close_time >= from);
-	}
-	if (to) {
-		filtered = filtered.filter((t: Trade) => t.close_time <= to + 'T23:59:59');
-	}
+	const filters = parsePortfolioFilters(url.searchParams);
+	const filtered = applyPortfolioFilters(((trades ?? []) as unknown as Trade[]), filters);
 
 	const rows = filtered.map((t: Trade) => [
 		t.symbol,
@@ -92,7 +99,7 @@ export const GET = async ({ locals, url }: RequestEvent) => {
 		t.sl ?? '',
 		t.tp ?? '',
 		t.position_id,
-		(t.trade_reviews || [])[0]?.review_status || 'unreviewed',
+		getTradeReviewStatus(t),
 		(t.trade_tag_assignments || [])
 			.map((a: TradeTagAssignment) => a.trade_tags?.name)
 			.filter(Boolean)
