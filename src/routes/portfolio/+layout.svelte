@@ -20,6 +20,7 @@
 	import CommandPalette from '$lib/components/shared/CommandPalette.svelte';
 	import NetworkStatus from '$lib/components/shared/NetworkStatus.svelte';
 	import UndoToast from '$lib/components/shared/UndoToast.svelte';
+	import SaveToast from '$lib/components/shared/SaveToast.svelte';
 
 	let { data, children } = $props();
 	let { account, allAccounts, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
@@ -429,3 +430,4 @@
 {/if}
 
 <UndoToast />
+<SaveToast />

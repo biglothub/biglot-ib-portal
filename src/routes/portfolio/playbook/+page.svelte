@@ -2,6 +2,7 @@
 	import { invalidate } from '$app/navigation';
 	import { fade, fly } from 'svelte/transition';
 	import { addPendingDelete, getPendingDeletes } from '$lib/stores/undoQueue.svelte';
+	import { toast, formatSavedTime } from '$lib/stores/toast.svelte';
 	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import { formatCurrency } from '$lib/utils';
@@ -16,6 +17,7 @@
 	let trades = $derived(data.trades || []);
 	let templates = $derived(data.templates || []);
 	let clonedTemplateIds = $derived(new Set(data.clonedTemplateIds || []));
+	let userId = $derived(data.userId || '');
 
 	// Tab state
 	type TabId = 'my' | 'community';
@@ -33,6 +35,10 @@
 	let exampleTradeIds = $state<string[]>([]);
 	let isActive = $state(true);
 	let saving = $state(false);
+	let saveSuccess = $state(false);
+	let lastSavedAt = $state<Date | null>(null);
+	let lastSavedName = $state('');
+	let highlightedId = $state('');
 	let actionError = $state('');
 	let hiddenPlaybookIds = $state<Set<string>>(new Set());
 	let pendingPlaybookDeleteIds = $state<Map<string, string>>(new Map());
@@ -78,7 +84,7 @@
 		{ value: 'news', label: 'News Trading' }
 	];
 
-	// Filtered templates
+	// Filtered + sorted templates
 	let filteredTemplates = $derived.by(() => {
 		let result = templates;
 		if (searchQuery.trim()) {
@@ -90,6 +96,11 @@
 		if (filterCategory !== 'all') {
 			result = result.filter((t: PlaybookTemplate) => t.category === filterCategory);
 		}
+		result = [...result].sort((a: PlaybookTemplate, b: PlaybookTemplate) => {
+			if (sortBy === 'win_rate') return b.win_rate - a.win_rate;
+			if (sortBy === 'newest') return 0; // server already returns newest-first when clone_count ties; no created_at on client
+			return b.clone_count - a.clone_count; // popular
+		});
 		return result;
 	});
 
@@ -123,7 +134,10 @@
 	async function savePlaybook() {
 		if (!name.trim()) return;
 		saving = true;
+		saveSuccess = false;
 		actionError = '';
+		const isNew = !editingId;
+		const savedName = name.trim();
 
 		try {
 			const res = await fetch('/api/portfolio/playbooks', {
@@ -144,13 +158,35 @@
 			});
 
 			if (res.ok) {
-				resetForm();
-				invalidate('portfolio:baseData');
+				const { playbook } = await res.json();
+				lastSavedAt = new Date();
+				lastSavedName = savedName;
+				saveSuccess = true;
+
+				// Highlight the saved item in the list
+				highlightedId = playbook?.id || editingId;
+				setTimeout(() => { highlightedId = ''; }, 3000);
+
+				// Show global toast with confirmation
+				toast.success(isNew ? 'สร้าง Playbook แล้ว' : 'อัปเดต Playbook แล้ว', {
+					detail: savedName
+				});
+
+				await invalidate('portfolio:baseData');
+
+				// Small delay so user can see the success state before form resets
+				setTimeout(() => {
+					saveSuccess = false;
+					if (isNew) resetForm();
+				}, 1200);
 			} else {
-				actionError = 'ไม่สามารถบันทึก Playbook ได้';
+				const errData = await res.json().catch(() => ({}));
+				actionError = errData.message || 'ไม่สามารถบันทึก Playbook ได้';
+				toast.error('บันทึกไม่สำเร็จ', { detail: actionError });
 			}
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			saving = false;
 		}
@@ -269,10 +305,6 @@
 		return categories.find(c => c.value === value)?.label || value;
 	}
 
-	function getRatingStars(template: PlaybookTemplate) {
-		if (!template.rating_count) return 0;
-		return Math.round(((template.rating_sum ?? 0) / template.rating_count) * 10) / 10;
-	}
 </script>
 
 <div class="space-y-6">
@@ -356,18 +388,35 @@
 					เปิดใช้งาน
 				</label>
 
-				<div class="flex items-center gap-3">
-					<button type="button" onclick={savePlaybook} disabled={saving} class="btn-primary text-sm py-2 px-5 disabled:opacity-50 inline-flex items-center gap-2">
-						{#if saving}
-							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-							กำลังบันทึก...
-						{:else}
-							{editingId ? 'อัปเดต Playbook' : 'สร้าง Playbook'}
-						{/if}
-					</button>
-					<button type="button" onclick={resetForm} class="text-sm text-gray-400 hover:text-white">
-						รีเซ็ต
-					</button>
+				<div class="space-y-2">
+					<div class="flex items-center gap-3">
+						<button
+							type="button"
+							onclick={savePlaybook}
+							disabled={saving}
+							class="btn-primary text-sm py-2 px-5 disabled:opacity-50 inline-flex items-center gap-2 transition-all
+								{saveSuccess ? '!bg-green-500 !text-white' : ''}"
+						>
+							{#if saving}
+								<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+								กำลังบันทึก...
+							{:else if saveSuccess}
+								<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+								บันทึกแล้ว!
+							{:else}
+								{editingId ? 'อัปเดต Playbook' : 'สร้าง Playbook'}
+							{/if}
+						</button>
+						<button type="button" onclick={resetForm} class="text-sm text-gray-400 hover:text-white">
+							รีเซ็ต
+						</button>
+					</div>
+					{#if lastSavedAt}
+						<p class="text-xs text-green-500/70 flex items-center gap-1">
+							<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+							บันทึกสำเร็จเมื่อ {formatSavedTime(lastSavedAt)} · {lastSavedName}
+						</p>
+					{/if}
 				</div>
 			</div>
 
@@ -384,7 +433,13 @@
 				{:else}
 					<div class="space-y-3">
 						{#each playbooks.filter((p: Playbook) => !hiddenPlaybookIds.has(p.id)) as playbook}
-							<div class="rounded-xl border border-dark-border bg-dark-bg/20 p-4">
+							<div
+								id="playbook-{playbook.id}"
+								class="rounded-xl border p-4 transition-all duration-500
+									{highlightedId === playbook.id
+										? 'border-green-500/60 bg-green-500/5 shadow-[0_0_0_1px_rgba(34,197,94,0.2)]'
+										: 'border-dark-border bg-dark-bg/20'}"
+							>
 								<div class="flex items-start justify-between gap-3">
 									<div class="min-w-0 flex-1">
 										<div class="flex items-center gap-2 flex-wrap">
@@ -481,7 +536,7 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 				{#each filteredTemplates as template}
 					{@const isCloned = clonedTemplateIds.has(template.id)}
-					{@const isOwn = template.author_id === data.playbooks?.[0]?.user_id}
+					{@const isOwn = template.author_id === userId}
 					<div class="card group hover:border-brand-primary/30 transition-colors">
 						<!-- Header -->
 						<div class="flex items-start justify-between gap-2 mb-3">
