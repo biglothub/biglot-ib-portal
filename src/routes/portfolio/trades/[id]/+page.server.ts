@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 	const profile = locals.profile;
 
 	if (!account || !profile || !userId) {
-		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks: [] };
+		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks: [], suggestedPlaybookId: null };
 	}
 
 	const { data: trade } = await supabase
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		.single();
 
 	if (!trade) {
-		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks };
+		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks, suggestedPlaybookId: null };
 	}
 
 	const currentPlaybookId = trade.trade_reviews?.[0]?.playbook_id || null;
@@ -80,6 +80,18 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 				)
 	).slice(0, 5);
 
+	// Find most-used playbook in prior reviewed trades for this symbol (A2: smart default)
+	const playbookCounts = new Map<string, number>();
+	for (const t of (similarReviewRes.data as SimilarTradeRow[] || [])) {
+		const pid = t.trade_reviews?.[0]?.playbook_id;
+		if (t.trade_reviews?.[0]?.review_status === 'reviewed' && pid) {
+			playbookCounts.set(pid, (playbookCounts.get(pid) ?? 0) + 1);
+		}
+	}
+	const suggestedPlaybookId = playbookCounts.size > 0
+		? [...playbookCounts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+		: null;
+
 	// Compute insights for this trade using all related trades as context
 	const allTradesForContext = [...((relatedTradesRes.data as unknown as Trade[]) || []), trade];
 	const insights = evaluateTradeInsights(trade, allTradesForContext);
@@ -107,6 +119,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		similarReviewedTrades,
 		insights,
 		qualityScore,
-		executionMetrics
+		executionMetrics,
+		suggestedPlaybookId
 	};
 };

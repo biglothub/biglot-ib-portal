@@ -1,5 +1,6 @@
-import { getTradeReviewStatus } from '$lib/portfolio';
+import { getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
 import { parsePortfolioFilters } from '$lib/portfolio';
+import { toThaiDateString } from '$lib/utils';
 import {
 	buildDailyHistory,
 	buildDrawdownHistory,
@@ -9,7 +10,7 @@ import {
 	buildReportExplorer,
 	buildReviewSummary
 } from '$lib/server/portfolio';
-import { calculateHealthScore } from '$lib/server/insights/engine';
+import { calculateHealthScore, evaluateDayInsights } from '$lib/server/insights/engine';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
 import type { DailyJournal, DailyStats, Playbook, Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
@@ -34,7 +35,11 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			equitySnapshots: [],
 			commandCenter: null,
 			filterState: parsePortfolioFilters(url.searchParams),
-			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null }
+			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null },
+			todayInsights: [],
+			todaySummary: null,
+			sessionBreakdown: [],
+			showWeeklyNudge: false
 		};
 	}
 
@@ -114,6 +119,51 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		activePlaybooks: playbooks.filter((p: Playbook) => p.is_active).length
 	};
 
+	// D1+D2: Today's insights + session breakdown
+	const todayTrades = trades.filter((t: Trade) => toThaiDateString(t.close_time) === today);
+	const todayInsights = todayTrades.length > 0
+		? evaluateDayInsights(todayTrades, baseData.trades)
+		: [];
+	const todaySummary = todayTrades.length > 0 ? {
+		totalTrades: todayTrades.length,
+		totalPnl: todayTrades.reduce((s: number, t: Trade) => s + (Number(t.profit) || 0), 0),
+		wins: todayTrades.filter((t: Trade) => (Number(t.profit) || 0) > 0).length,
+		winRate: (todayTrades.filter((t: Trade) => (Number(t.profit) || 0) > 0).length / todayTrades.length) * 100
+	} : null;
+
+	const sessionBreakdown = (['asian', 'london', 'newyork'] as const).map((sessionKey) => {
+		const sessionTrades = todayTrades.filter((t: Trade) => getTradeSession(t.close_time) === sessionKey);
+		const pnl = sessionTrades.reduce((s: number, t: Trade) => s + (Number(t.profit) || 0), 0);
+		const wins = sessionTrades.filter((t: Trade) => (Number(t.profit) || 0) > 0).length;
+		return {
+			session: sessionKey,
+			trades: sessionTrades.length,
+			pnl,
+			winRate: sessionTrades.length > 0 ? (wins / sessionTrades.length) * 100 : 0
+		};
+	});
+
+	// D3: Weekly recap nudge (Fri/Sat/Sun, when last week's recap isn't generated yet)
+	const thaiNow = new Date(Date.now() + THAILAND_OFFSET_MS);
+	const dayOfWeek = thaiNow.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
+	const isWeekReflectionTime = dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
+	let showWeeklyNudge = false;
+	if (isWeekReflectionTime && account && baseData.trades.length > 0) {
+		// Last week = previous Sunday through Saturday
+		const lastWeekStart = new Date(thaiNow);
+		lastWeekStart.setUTCDate(thaiNow.getUTCDate() - dayOfWeek - 7);
+		const lastWeekStartStr = lastWeekStart.toISOString().split('T')[0];
+		const { data: existingRecap } = await supabase
+			.from('trading_recaps')
+			.select('id')
+			.eq('client_account_id', account.id)
+			.eq('user_id', locals.profile.id)
+			.eq('period_type', 'week')
+			.eq('period_start', lastWeekStartStr)
+			.maybeSingle();
+		showWeeklyNudge = !existingRecap;
+	}
+
 	type EquitySnapshotRow = { timestamp: string; balance: number; equity: number; floating_pl: number | null };
 	const equitySnapshots = (equityRes.data as EquitySnapshotRow[] || []).map((snapshot) => ({
 		time: Math.floor(new Date(snapshot.timestamp).getTime() / 1000),
@@ -157,6 +207,10 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		checklistCompletions,
 		checklistDoneToday,
 		todayJournal,
-		today
+		today,
+		todayInsights,
+		todaySummary,
+		sessionBreakdown,
+		showWeeklyNudge
 	};
 };

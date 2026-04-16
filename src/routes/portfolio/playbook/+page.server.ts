@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		trades: baseData.trades.slice(0, 50).map(t => ({
 			id: t.id, symbol: t.symbol, type: t.type, profit: t.profit,
 			open_time: t.open_time, close_time: t.close_time, lot_size: t.lot_size,
-			trade_reviews: (t.trade_reviews || []).map((r: any) => ({ playbook_id: r.playbook_id }))
+			trade_reviews: (Array.isArray(t.trade_reviews) ? t.trade_reviews : []).map((r: any) => ({ playbook_id: r.playbook_id }))
 		})),
 		templates,
 		clonedTemplateIds

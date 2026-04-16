@@ -15,7 +15,7 @@ IB-Portal is a **B2B trading portfolio management platform** for Introducing Bro
 ```bash
 npm run dev          # Start dev server (port 5173)
 npm run build        # Production build (vite build)
-npx svelte-check     # Type check (2 known errors in web-push, ignore)
+npx svelte-check     # Type check (must pass 0 errors)
 ```
 
 ## Architecture
@@ -78,10 +78,9 @@ See `tradezella-explore/DEVELOPMENT_PHASES.md` for the phased enhancement plan.
 - Phase 3: Reports Engine ✅ (Performance, Calendar, Symbols, Compare sub-tabs)
 - Phase 4: Trade Insights ✅ (10 rules engine, quality score, UI badges)
 - Phase 5: Discipline & Checklist ✅ (daily checklist, progress heatmap, streak)
-- Phase 6: Notebook System ✅ → Removed (merged into Journal + Trade Notes)
+- Phase 6: Notebook System — Removed in commit 32582ea (merged into Journal + Trade Notes). DB tables dropped in migration 030.
 
 ## Important Notes
-- Build has 2 pre-existing type errors in `web-push` — these are not bugs, ignore them
 - Git commit requires SSH passphrase — user commits manually
 - Never modify `+layout.server.ts` base data loading without understanding the cascade effect
 - All new features should work with existing filter system (`PortfolioFilterState`)

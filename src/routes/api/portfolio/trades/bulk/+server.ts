@@ -27,8 +27,8 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		return json({ message: `Cannot bulk-act on more than ${MAX_BULK} trades at once` }, { status: 400 });
 	}
 
-	if (!['tag', 'review_status'].includes(action)) {
-		return json({ message: 'action must be tag or review_status' }, { status: 400 });
+	if (!['tag', 'review_status', 'playbook'].includes(action)) {
+		return json({ message: 'action must be tag, review_status, or playbook' }, { status: 400 });
 	}
 
 	// Verify all trades belong to the authenticated user via client_account → user_id chain
@@ -104,6 +104,40 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 		if (error) return json({ message: error.message }, { status: 500 });
 
 		// Invalidate caches for all affected accounts
+		const accountIds = new Set(allTrades.map(t => t.client_account_id));
+		accountIds.forEach(id => invalidateTradesCache(id));
+
+		return json({ success: true, affected: trade_ids.length });
+	}
+
+	if (action === 'playbook') {
+		const { playbook_id } = payload ?? {};
+
+		// playbook_id can be null (clear assignment) or a valid UUID
+		if (playbook_id) {
+			const { data: pb } = await locals.supabase
+				.from('playbooks')
+				.select('id')
+				.eq('id', playbook_id)
+				.eq('user_id', profile.id)
+				.single();
+			if (!pb) return json({ message: 'Playbook not found' }, { status: 404 });
+		}
+
+		// Only set playbook_id — preserve existing review_status (omit field from upsert row)
+		const rows = trade_ids.map((id: string) => ({
+			trade_id: id,
+			user_id: profile.id,
+			playbook_id: playbook_id || null,
+			updated_at: new Date().toISOString()
+		}));
+
+		const { error } = await locals.supabase
+			.from('trade_reviews')
+			.upsert(rows, { onConflict: 'trade_id' });
+
+		if (error) return json({ message: error.message }, { status: 500 });
+
 		const accountIds = new Set(allTrades.map(t => t.client_account_id));
 		accountIds.forEach(id => invalidateTradesCache(id));
 

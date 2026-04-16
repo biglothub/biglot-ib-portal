@@ -93,7 +93,7 @@
 	class="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-dark-surface rounded-t-2xl shadow-2xl max-h-[90vh]"
 	style="max-height: min(90vh, 640px)"
 	transition:fly={{ y: 400, duration: 250 }}
-	use:focusTrap
+	use:focusTrap={{ enabled: true }}
 	role="dialog"
 	aria-modal="true"
 	aria-label="บันทึกประจำวัน"

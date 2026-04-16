@@ -23,7 +23,8 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 			month: new Date().getMonth() + 1,
 			filterState: parsePortfolioFilters(url.searchParams),
 			filterOptions: { symbols: [], sessions: [], directions: [], durationBuckets: [], playbooks: [], profitRange: null, lotSizeRange: null, pipsRange: null },
-			dayTrades: []
+			dayTrades: [],
+			previousJournal: null
 		};
 	}
 
@@ -39,6 +40,21 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 	const dayTrades = filteredTrades.filter((trade: Trade) => {
 		return toThaiDateString(trade.close_time) === selectedDate;
 	});
+
+	// A3: Find most recent previous journal with market_bias or key_levels (for "copy from yesterday")
+	let previousJournal: { date: string; market_bias: string; key_levels: string } | null = null;
+	if (selectedDate) {
+		const prev = [...baseData.journals]
+			.filter((j: DailyJournal) => j.date < selectedDate && (j.market_bias || j.key_levels))
+			.sort((a: DailyJournal, b: DailyJournal) => b.date.localeCompare(a.date))[0];
+		if (prev) {
+			previousJournal = {
+				date: prev.date,
+				market_bias: prev.market_bias || '',
+				key_levels: prev.key_levels || ''
+			};
+		}
+	}
 
 	// Load today's checklist data from Progress system
 	let checklistTotalRules = 0;
@@ -81,6 +97,7 @@ export const load: PageServerLoad = async ({ parent, locals, url }) => {
 		tags,
 		playbooks,
 		checklistTotalRules,
-		checklistCompletedCount
+		checklistCompletedCount,
+		previousJournal
 	};
 };

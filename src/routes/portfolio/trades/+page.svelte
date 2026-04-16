@@ -50,9 +50,10 @@
 
 	// --- Bulk selection state ---
 	let selectedIds = $state<Set<string>>(new Set());
-	let bulkAction = $state<'tag' | 'review_status' | 'export' | ''>('');
+	let bulkAction = $state<'tag' | 'review_status' | 'playbook' | 'export' | ''>('');
 	let bulkTagId = $state('');
 	let bulkReviewStatus = $state('');
+	let bulkPlaybookId = $state('');
 	let bulkLoading = $state(false);
 	let bulkError = $state('');
 
@@ -84,6 +85,7 @@
 		bulkAction = '';
 		bulkTagId = '';
 		bulkReviewStatus = '';
+		bulkPlaybookId = '';
 		bulkError = '';
 	}
 
@@ -108,7 +110,11 @@
 				body: JSON.stringify({
 					trade_ids: Array.from(selectedIds),
 					action: bulkAction,
-					payload: bulkAction === 'tag' ? { tag_id: bulkTagId } : { review_status: bulkReviewStatus }
+					payload: bulkAction === 'tag'
+						? { tag_id: bulkTagId }
+						: bulkAction === 'playbook'
+							? { playbook_id: bulkPlaybookId || null }
+							: { review_status: bulkReviewStatus }
 				})
 			});
 
@@ -303,6 +309,7 @@
 					<option value="">-- เลือก action --</option>
 					<option value="tag">เพิ่ม Tag</option>
 					<option value="review_status">เปลี่ยนสถานะ Review</option>
+					<option value="playbook">กำหนด Playbook</option>
 					<option value="export">ส่งออก CSV</option>
 				</select>
 
@@ -327,6 +334,18 @@
 						<option value="unreviewed">ยังไม่ Review</option>
 						<option value="in_progress">กำลังดำเนินการ</option>
 						<option value="reviewed">Review แล้ว</option>
+					</select>
+				{/if}
+
+				{#if bulkAction === 'playbook'}
+					<select
+						bind:value={bulkPlaybookId}
+						class="bg-dark-bg border border-dark-border rounded px-3 py-1.5 text-sm text-white"
+					>
+						<option value="">-- ไม่กำหนด Playbook --</option>
+						{#each playbooks as pb}
+							<option value={pb.id}>{pb.name}</option>
+						{/each}
 					</select>
 				{/if}
 

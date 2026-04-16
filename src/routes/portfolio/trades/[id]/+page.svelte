@@ -18,6 +18,7 @@
 	let insights = $derived(data.insights || []);
 	let qualityScore = $derived(data.qualityScore || 0);
 	let executionMetrics = $derived(data.executionMetrics || { plannedRisk: null, plannedReward: null, rMultiple: null, executionEfficiency: null });
+	let suggestedPlaybookId = $derived(data.suggestedPlaybookId || null);
 
 	let noteContent = $state('');
 	let noteRating = $state<number | null>(null);
@@ -89,7 +90,7 @@
 		noteContent = trade?.trade_notes?.[0]?.content || '';
 		noteRating = trade?.trade_notes?.[0]?.rating || null;
 		reviewStatus = review?.review_status || 'unreviewed';
-		selectedPlaybookId = review?.playbook_id || '';
+		selectedPlaybookId = review?.playbook_id || suggestedPlaybookId || '';
 		entryReason = review?.entry_reason || '';
 		exitReason = review?.exit_reason || '';
 		executionNotes = review?.execution_notes || '';
@@ -168,6 +169,17 @@
 			brokenRules.length > 0;
 		if (reviewStatus === 'unreviewed' && hasContent) {
 			reviewStatus = 'in_progress';
+		}
+
+		// Auto-upgrade in_progress → reviewed when review has enough content
+		if (reviewStatus === 'in_progress') {
+			const hasPlaybook = Boolean(selectedPlaybookId);
+			const hasMeaningfulText = Boolean(mistakeSummary?.trim() || lessonSummary?.trim());
+			const hasAnyScore = setupQuality != null || disciplineScore != null ||
+				executionScore != null || confidenceAtEntry != null;
+			if (hasPlaybook && hasMeaningfulText && hasAnyScore) {
+				reviewStatus = 'reviewed';
+			}
 		}
 
 		try {
@@ -545,12 +557,17 @@
 					<option value="in_progress">กำลังดำเนินการ</option>
 					<option value="reviewed">Review แล้ว</option>
 				</select>
-				<select bind:value={selectedPlaybookId} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="">ยังไม่เลือก Playbook</option>
-					{#each playbooks as playbook}
-						<option value={playbook.id}>{playbook.name}</option>
-					{/each}
-				</select>
+				<div class="relative">
+					<select bind:value={selectedPlaybookId} class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
+						<option value="">ยังไม่เลือก Playbook</option>
+						{#each playbooks as playbook}
+							<option value={playbook.id}>{playbook.name}</option>
+						{/each}
+					</select>
+					{#if !review?.playbook_id && suggestedPlaybookId && selectedPlaybookId === suggestedPlaybookId}
+						<span class="absolute -bottom-4 left-0 text-[10px] text-brand-primary/70">แนะนำจากเทรดที่ผ่านมา</span>
+					{/if}
+				</div>
 				<select bind:value={followedPlan} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 					<option value="">ทำตามแผนไหม?</option>
 					<option value="yes">ใช่</option>

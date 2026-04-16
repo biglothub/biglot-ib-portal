@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import JournalTemplates from '$lib/components/portfolio/JournalTemplates.svelte';
 	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
+	import EndOfDayWizard from '$lib/components/portfolio/EndOfDayWizard.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 	import type { DailyJournal } from '$lib/types';
@@ -32,6 +33,7 @@
 	let keyLevels = $state('');
 	let checklistTotalRules = $derived(data.checklistTotalRules || 0);
 	let checklistCompletedCount = $derived(data.checklistCompletedCount || 0);
+	let previousJournal = $derived(data.previousJournal ?? null);
 	let mood = $state<number | null>(null);
 	let energyScore = $state<number | null>(null);
 	let disciplineScore = $state<number | null>(null);
@@ -44,6 +46,7 @@
 	let actionError = $state('');
 	let generatingRecap = $state(false);
 	let showTemplates = $state(false);
+	let showEndOfDayWizard = $state(false);
 
 	/** Wrap plain text in <p> tags for Tiptap compatibility */
 	function toHtml(text: string): string {
@@ -320,11 +323,23 @@
 						<TiptapEditor compact content={sessionPlan} onupdate={(html) => (sessionPlan = html)} placeholder="แผนการเทรดวันนี้..." />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-400 mb-2">มุมมองตลาด</h4>
+						<div class="flex items-center justify-between mb-2">
+							<h4 class="text-xs text-gray-400">มุมมองตลาด</h4>
+							{#if previousJournal?.market_bias && !marketBias}
+								<button type="button" onclick={() => marketBias = previousJournal.market_bias}
+									class="text-[10px] text-brand-primary hover:underline">คัดลอกจากเมื่อวาน</button>
+							{/if}
+						</div>
 						<input bind:value={marketBias} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 					<div class="card">
-						<h4 class="text-xs text-gray-400 mb-2">ระดับราคาสำคัญ</h4>
+						<div class="flex items-center justify-between mb-2">
+							<h4 class="text-xs text-gray-400">ระดับราคาสำคัญ</h4>
+							{#if previousJournal?.key_levels && !keyLevels}
+								<button type="button" onclick={() => keyLevels = previousJournal.key_levels}
+									class="text-[10px] text-brand-primary hover:underline">คัดลอกจากเมื่อวาน</button>
+							{/if}
+						</div>
 						<input bind:value={keyLevels} class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white" />
 					</div>
 				</div>
@@ -454,18 +469,37 @@
 					{/if}
 				</div>
 
-				<button type="button" onclick={saveJournal} disabled={saving} class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2">
-					{#if saving}
-						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-						กำลังบันทึก...
-					{:else}
-						บันทึก Journal
-					{/if}
-				</button>
+				<div class="flex items-center gap-3 flex-wrap">
+					<button type="button" onclick={saveJournal} disabled={saving} class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2">
+						{#if saving}
+							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+							กำลังบันทึก...
+						{:else}
+							บันทึก Journal
+						{/if}
+					</button>
+					<button
+						type="button"
+						onclick={() => (showEndOfDayWizard = true)}
+						class="text-sm py-2 px-5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20 transition-colors"
+					>
+						🌙 ปิดวัน
+					</button>
+				</div>
 			{/if}
 		</div>
 	</div>
 </div>
+
+<EndOfDayWizard
+	bind:open={showEndOfDayWizard}
+	onclose={async () => { showEndOfDayWizard = false; await invalidate('portfolio:baseData'); }}
+	date={selectedDate}
+	{dayTrades}
+	{playbooks}
+	existingJournal={selectedJournal}
+	accountId={data.account?.id || ''}
+/>
 
 <JournalTemplates
 	bind:open={showTemplates}

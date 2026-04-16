@@ -16,6 +16,7 @@
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import StartMyDayModal from '$lib/components/portfolio/StartMyDayModal.svelte';
 	import AiCoachCard from '$lib/components/portfolio/AiCoachCard.svelte';
+	import DayInsightsSection from '$lib/components/portfolio/DayInsightsSection.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent, formatPnl, timeAgo } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 	import { displayUnit } from '$lib/stores/displayUnit';
@@ -49,7 +50,11 @@
 		checklistCompletions,
 		checklistDoneToday,
 		todayJournal,
-		today
+		today,
+		todayInsights,
+		todaySummary,
+		sessionBreakdown,
+		showWeeklyNudge
 	} = $derived(data);
 
 	let startMyDayOpen = $state(false);
@@ -391,6 +396,57 @@
 				<span class="text-white font-medium">{formatNumber(kpi.recoveryFactor || 0, 2)}</span>
 			</div>
 		</div>
+		{/if}
+
+		<!-- ── Today's Insight + Session Breakdown + Weekly Nudge ─────────── -->
+		{#if todaySummary}
+			<div class="card space-y-3">
+				<div class="flex items-center justify-between flex-wrap gap-2">
+					<h3 class="text-sm font-medium text-white">📊 วันนี้ของคุณ</h3>
+					<span class="text-xs">
+						<span class="text-gray-400">{todaySummary.totalTrades} เทรด · </span>
+						<span class="{todaySummary.totalPnl >= 0 ? 'text-green-400' : 'text-red-400'} font-medium">
+							{formatPnl(todaySummary.totalPnl, $displayUnit, latestStats?.balance)}
+						</span>
+						<span class="text-gray-400"> · Win Rate {todaySummary.winRate.toFixed(0)}%</span>
+					</span>
+				</div>
+
+				{#if sessionBreakdown && sessionBreakdown.length > 0}
+					<div class="grid grid-cols-3 gap-2">
+						{#each sessionBreakdown as s}
+							<div class="rounded-lg bg-dark-bg/40 border border-dark-border p-2.5">
+								<div class="text-[10px] text-gray-400 uppercase tracking-wider">
+									{s.session === 'asian' ? 'Asian' : s.session === 'london' ? 'London' : 'New York'}
+								</div>
+								<div class="text-sm font-semibold mt-1 {s.trades === 0 ? 'text-gray-500' : s.pnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+									{s.trades === 0 ? '—' : formatCurrency(s.pnl)}
+								</div>
+								<div class="text-[10px] text-gray-400 mt-0.5">
+									{s.trades === 0 ? 'ไม่มีเทรด' : `${s.trades} เทรด · WR ${s.winRate.toFixed(0)}%`}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+				{#if todayInsights && todayInsights.length > 0}
+					<DayInsightsSection insights={todayInsights} />
+				{/if}
+			</div>
+		{/if}
+
+		{#if showWeeklyNudge}
+			<a href="/portfolio/analytics" class="card flex items-center justify-between gap-3 hover:border-brand-primary/40 transition-colors">
+				<div class="flex items-center gap-3">
+					<span class="text-2xl">📊</span>
+					<div>
+						<p class="text-sm font-medium text-white">สรุปสัปดาห์ที่แล้วพร้อมแล้ว</p>
+						<p class="text-xs text-gray-400">AI วิเคราะห์ performance, patterns, และแผนสัปดาห์หน้า</p>
+					</div>
+				</div>
+				<span class="text-brand-primary text-sm shrink-0">สร้าง →</span>
+			</a>
 		{/if}
 
 		<!-- ── Row B: Radar | Activity Heatmap | Cumulative P&L ─────────── -->
