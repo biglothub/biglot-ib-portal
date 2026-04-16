@@ -10,7 +10,6 @@
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
 	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession, getTradeNote } from '$lib/portfolio';
 	import type { Trade, TradeTagAssignment, Playbook } from '$lib/types';
-	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
 	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
 	import VirtualList from '$lib/components/shared/VirtualList.svelte';
 	import TradeComparePanel from '$lib/components/portfolio/TradeComparePanel.svelte';
@@ -32,7 +31,6 @@
 	let tradeExecutionMetrics: Record<string, any> = $derived(data.tradeExecutionMetrics || {});
 
 	let groupBy = $state<'none' | 'day' | 'session' | 'setup'>('day');
-	let showImportModal = $state(false);
 	let exportLoading = $state(false);
 	let comparePanelOpen = $state(false);
 
@@ -255,16 +253,8 @@
 		pageKey="trades"
 	/>
 
-	<!-- Import / Export buttons -->
+	<!-- Export button -->
 	<div class="flex items-center justify-end gap-2">
-		<button
-			type="button"
-			onclick={() => showImportModal = true}
-			class="px-3 py-1.5 text-sm rounded border border-dark-border text-gray-300 hover:text-white hover:border-brand-primary/50 flex items-center gap-1.5"
-		>
-			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-			นำเข้า CSV
-		</button>
 		<button
 			type="button"
 			onclick={exportAllCsv}
@@ -643,8 +633,6 @@
 		{/if}
 	{/if}
 </div>
-
-<TradeImportModal bind:open={showImportModal} />
 
 {#if comparePanelOpen}
 	{@const selectedTrades = trades.filter((t: Trade) => selectedIds.has(t.id))}

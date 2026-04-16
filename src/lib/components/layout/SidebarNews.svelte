@@ -69,7 +69,7 @@
 </script>
 
 {#if !collapsed && articles.length > 0}
-	<div class="border-t border-dark-border h-full flex flex-col">
+	<div class="border-b border-dark-border flex flex-col">
 		<!-- Header -->
 		<div class="flex items-center justify-between px-4 py-2.5 text-xs text-gray-400">
 			<button
@@ -150,7 +150,7 @@
 
 		{#if expanded}
 			<div
-				class="px-2 pb-3 space-y-1 overflow-y-auto flex-1 min-h-0"
+				class="max-h-56 overflow-y-auto px-2 pb-3 space-y-1"
 				transition:slide={{ duration: 200 }}
 			>
 				{#each displayedArticles as article}
