@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidate } from '$app/navigation';
+	import { toast, formatSavedTime } from '$lib/stores/toast.svelte';
 	import ScreenshotAnnotator from '$lib/components/portfolio/ScreenshotAnnotator.svelte';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
@@ -24,6 +25,7 @@
 	let noteRating = $state<number | null>(null);
 	let savingNote = $state(false);
 	let noteSaved = $state(false);
+	let noteSavedAt = $state<Date | null>(null);
 
 	let showTagDropdown = $state(false);
 	let assigningTag = $state(false);
@@ -45,6 +47,7 @@
 	let brokenRules = $state<string[]>([]);
 	let savingReview = $state(false);
 	let reviewSaved = $state(false);
+	let reviewSavedAt = $state<Date | null>(null);
 	let reviewError = $state('');
 
 	let attachments = $state<any[]>([]);
@@ -127,7 +130,6 @@
 	async function saveNote() {
 		if (!trade) return;
 		savingNote = true;
-		noteSaved = true;
 		actionError = '';
 
 		try {
@@ -137,16 +139,20 @@
 				body: JSON.stringify({ content: noteContent, rating: noteRating })
 			});
 
-			if (!res.ok) {
-				noteSaved = false;
+			if (res.ok) {
+				noteSaved = true;
+				noteSavedAt = new Date();
+				toast.success('บันทึก Note แล้ว', { detail: `${trade.symbol} · ${trade.type}` });
+				setTimeout(() => (noteSaved = false), 2500);
+			} else {
 				actionError = 'ไม่สามารถบันทึก Note ได้';
+				toast.error('บันทึก Note ไม่สำเร็จ');
 			}
 		} catch {
-			noteSaved = false;
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			savingNote = false;
-			if (noteSaved) setTimeout(() => (noteSaved = false), 2000);
 		}
 	}
 
@@ -208,15 +214,26 @@
 
 			if (res.ok) {
 				reviewSaved = true;
+				reviewSavedAt = new Date();
 				reviewError = '';
-				setTimeout(() => (reviewSaved = false), 2000);
+				const statusLabels: Record<string, string> = {
+					reviewed: 'รีวิวครบแล้ว',
+					in_progress: 'บันทึกระหว่างรีวิว',
+					unreviewed: 'บันทึกแล้ว'
+				};
+				toast.success('บันทึก Review แล้ว', {
+					detail: `${trade?.symbol ?? ''} · ${statusLabels[reviewStatus] ?? reviewStatus}`
+				});
+				setTimeout(() => (reviewSaved = false), 2500);
 				await invalidate('portfolio:baseData');
 			} else {
 				const errData = await res.json().catch(() => ({}));
 				reviewError = errData.message || `ไม่สามารถบันทึก Review ได้ (${res.status})`;
+				toast.error('บันทึก Review ไม่สำเร็จ', { detail: reviewError });
 			}
 		} catch {
 			reviewError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			savingReview = false;
 		}
@@ -660,22 +677,31 @@
 				</div>
 			{/if}
 
-			<div class="flex items-center gap-3">
-				<button
-					type="button"
-					onclick={saveReview}
-					disabled={savingReview}
-					class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2"
-				>
-					{#if savingReview}
-						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-						กำลังบันทึก...
-					{:else}
-						บันทึก Review
-					{/if}
-				</button>
-				{#if reviewSaved}
-					<span class="text-sm text-green-400">บันทึกสำเร็จ</span>
+			<div class="space-y-2">
+				<div class="flex items-center gap-3">
+					<button
+						type="button"
+						onclick={saveReview}
+						disabled={savingReview}
+						class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2 transition-all
+							{reviewSaved ? '!bg-green-500 !text-white' : ''}"
+					>
+						{#if savingReview}
+							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+							กำลังบันทึก...
+						{:else if reviewSaved}
+							<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+							บันทึกแล้ว!
+						{:else}
+							บันทึก Review
+						{/if}
+					</button>
+				</div>
+				{#if reviewSavedAt}
+					<p class="text-xs text-green-500/70 flex items-center gap-1">
+						<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+						บันทึกลง DB แล้วเมื่อ {formatSavedTime(reviewSavedAt)}
+					</p>
 				{/if}
 			</div>
 		</div>
@@ -684,8 +710,11 @@
 			<div class="card">
 				<div class="flex items-center justify-between mb-3">
 					<h3 class="text-sm font-medium text-gray-400">บันทึก Trade</h3>
-					{#if noteSaved}
-						<span class="text-xs text-green-400">บันทึกแล้ว!</span>
+					{#if noteSavedAt}
+						<span class="text-xs text-green-500/80 flex items-center gap-1">
+							<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+							{formatSavedTime(noteSavedAt)}
+						</span>
 					{/if}
 				</div>
 
@@ -716,11 +745,15 @@
 					type="button"
 					onclick={saveNote}
 					disabled={savingNote}
-					class="mt-3 btn-primary text-sm py-1.5 px-4 disabled:opacity-50 inline-flex items-center gap-2"
+					class="mt-3 btn-primary text-sm py-1.5 px-4 disabled:opacity-50 inline-flex items-center gap-2 transition-all
+						{noteSaved ? '!bg-green-500 !text-white' : ''}"
 				>
 					{#if savingNote}
 						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
 						กำลังบันทึก...
+					{:else if noteSaved}
+						<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+						บันทึกแล้ว!
 					{:else}
 						บันทึก Note
 					{/if}

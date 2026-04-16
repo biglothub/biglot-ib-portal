@@ -1,5 +1,6 @@
 <script lang="ts">
 	import TagPill from '$lib/components/shared/TagPill.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { TradeTag, TagCategory } from '$lib/types';
 
 	let { tags = [], ontagschange = () => {} } = $props();
@@ -37,11 +38,14 @@
 			if (!res.ok) {
 				const data = await res.json();
 				error = data.message || 'Failed to create tag';
+				toast.error('สร้าง Tag ไม่สำเร็จ', { detail: error });
 				return;
 			}
 
+			const tagName = newName.trim();
 			newName = '';
 			showForm = false;
+			toast.success('สร้าง Tag แล้ว', { detail: tagName });
 			ontagschange();
 		} finally {
 			saving = false;
@@ -49,6 +53,7 @@
 	}
 
 	async function deleteTag(tagId: string) {
+		const tag = tags.find((t: TradeTag) => t.id === tagId);
 		const res = await fetch('/api/portfolio/tags', {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
@@ -56,7 +61,10 @@
 		});
 
 		if (res.ok) {
+			toast.success('ลบ Tag แล้ว', { detail: tag?.name });
 			ontagschange();
+		} else {
+			toast.error('ลบ Tag ไม่สำเร็จ');
 		}
 	}
 

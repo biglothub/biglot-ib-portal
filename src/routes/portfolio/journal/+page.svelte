@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto, invalidate } from '$app/navigation';
+	import { toast, formatSavedTime } from '$lib/stores/toast.svelte';
 	import PortfolioFilterBar from '$lib/components/portfolio/PortfolioFilterBar.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
@@ -43,6 +44,7 @@
 	let completionStatus = $state<'not_started' | 'in_progress' | 'complete'>('not_started');
 	let saving = $state(false);
 	let saved = $state(false);
+	let savedAt = $state<Date | null>(null);
 	let actionError = $state('');
 	let generatingRecap = $state(false);
 	let showTemplates = $state(false);
@@ -174,12 +176,16 @@
 
 			if (res.ok) {
 				saved = true;
-				setTimeout(() => (saved = false), 2000);
+				savedAt = new Date();
+				toast.success('บันทึก Journal แล้ว', { detail: selectedDate });
+				setTimeout(() => (saved = false), 2500);
 			} else {
 				actionError = 'ไม่สามารถบันทึก Journal ได้';
+				toast.error('บันทึก Journal ไม่สำเร็จ');
 			}
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			saving = false;
 		}
@@ -295,8 +301,11 @@
 							<option value="in_progress">กำลังเขียน</option>
 							<option value="complete">เสร็จสิ้น</option>
 						</select>
-						{#if saved}
-							<span class="text-xs text-green-400">บันทึกแล้ว</span>
+						{#if savedAt}
+							<span class="text-xs text-green-500/80 flex items-center gap-1">
+								<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+								{formatSavedTime(savedAt)}
+							</span>
 						{/if}
 					</div>
 				</div>
@@ -469,22 +478,39 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center gap-3 flex-wrap">
-					<button type="button" onclick={saveJournal} disabled={saving} class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2">
-						{#if saving}
-							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-							กำลังบันทึก...
-						{:else}
-							บันทึก Journal
-						{/if}
-					</button>
-					<button
-						type="button"
-						onclick={() => (showEndOfDayWizard = true)}
-						class="text-sm py-2 px-5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20 transition-colors"
-					>
-						🌙 ปิดวัน
-					</button>
+				<div class="space-y-2">
+					<div class="flex items-center gap-3 flex-wrap">
+						<button
+							type="button"
+							onclick={saveJournal}
+							disabled={saving}
+							class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2 transition-all
+								{saved ? '!bg-green-500 !text-white' : ''}"
+						>
+							{#if saving}
+								<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+								กำลังบันทึก...
+							{:else if saved}
+								<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+								บันทึกแล้ว!
+							{:else}
+								บันทึก Journal
+							{/if}
+						</button>
+						<button
+							type="button"
+							onclick={() => (showEndOfDayWizard = true)}
+							class="text-sm py-2 px-5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20 transition-colors"
+						>
+							🌙 ปิดวัน
+						</button>
+					</div>
+					{#if savedAt}
+						<p class="text-xs text-green-500/70 flex items-center gap-1">
+							<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+							บันทึกลง DB สำเร็จเมื่อ {formatSavedTime(savedAt)}
+						</p>
+					{/if}
 				</div>
 			{/if}
 		</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { fly, fade } from 'svelte/transition';
+	import { toast, formatSavedTime } from '$lib/stores/toast.svelte';
 	import { focusTrap } from '$lib/actions/focusTrap';
 	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import { formatCurrency } from '$lib/utils';
@@ -22,6 +23,7 @@
 	let loading = $state(true);
 	let saving = $state(false);
 	let saved = $state(false);
+	let savedAt = $state<Date | null>(null);
 	let error = $state('');
 
 	// Format date header (e.g. "จันทร์ 6 เม.ย. 2569")
@@ -53,7 +55,7 @@
 
 	async function _doSave() {
 		try {
-			await fetch('/api/portfolio/journal', {
+			const res = await fetch('/api/portfolio/journal', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -62,8 +64,18 @@
 					completion_status: content.trim() ? 'in_progress' : 'not_started'
 				})
 			});
-			saved = true;
-			setTimeout(() => { saved = false; }, 2000);
+			if (res.ok) {
+				saved = true;
+				savedAt = new Date();
+				toast.success('บันทึก Day Note แล้ว', { detail: date });
+				setTimeout(() => { saved = false; }, 2500);
+			} else {
+				error = 'ไม่สามารถบันทึกได้ กรุณาลองใหม่';
+				toast.error('บันทึก Day Note ไม่สำเร็จ');
+			}
+		} catch {
+			error = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			saving = false;
 		}
@@ -157,12 +169,21 @@
 
 	<!-- Footer -->
 	<div class="flex items-center justify-between px-5 py-3 border-t border-gray-700/40">
-		<span class="text-[11px] text-gray-500">⌘S บันทึก</span>
+		<div class="flex flex-col gap-0.5">
+			<span class="text-[11px] text-gray-500">⌘S บันทึก</span>
+			{#if savedAt}
+				<span class="text-[11px] text-green-500/70 flex items-center gap-1">
+					<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+					{formatSavedTime(savedAt)}
+				</span>
+			{/if}
+		</div>
 		<button
 			onclick={save}
 			disabled={saving}
-			class="flex items-center gap-2 px-5 py-2 rounded-lg bg-brand-primary text-dark-bg text-sm font-semibold
-				hover:bg-brand-primary/90 disabled:opacity-50 transition-all"
+			class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold
+				disabled:opacity-50 transition-all
+				{saved ? 'bg-green-500 text-white' : 'bg-brand-primary text-dark-bg hover:bg-brand-primary/90'}"
 		>
 			{#if saving}
 				<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -171,7 +192,8 @@
 				</svg>
 				กำลังบันทึก...
 			{:else if saved}
-				✓ บันทึกแล้ว
+				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+				บันทึกแล้ว!
 			{:else}
 				Save
 			{/if}

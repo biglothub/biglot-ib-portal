@@ -9,6 +9,7 @@
 	import RangeInput from '$lib/components/shared/RangeInput.svelte';
 	import DateRangePresets from '$lib/components/shared/DateRangePresets.svelte';
 	import ActiveFilterChips from '$lib/components/portfolio/ActiveFilterChips.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let {
 		filters = EMPTY_PORTFOLIO_FILTERS,
@@ -261,20 +262,31 @@
 		if (!(pageKey === 'trades' || pageKey === 'analytics')) return;
 		const name = window.prompt('ตั้งชื่อ saved view');
 		if (!name) return;
-		await fetch('/api/portfolio/saved-views', {
+		const res = await fetch('/api/portfolio/saved-views', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ page: pageKey, name, filters: getCurrentFilterState() })
 		});
+		if (res.ok) {
+			toast.success('บันทึก View แล้ว', { detail: name });
+		} else {
+			toast.error('บันทึก View ไม่สำเร็จ');
+		}
 		await invalidate('portfolio:baseData');
 	}
 
 	async function deleteView(id: string) {
-		await fetch('/api/portfolio/saved-views', {
+		const view = savedViews?.find((v: PortfolioSavedView) => v.id === id);
+		const res = await fetch('/api/portfolio/saved-views', {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id })
 		});
+		if (res.ok) {
+			toast.success('ลบ View แล้ว', { detail: view?.name });
+		} else {
+			toast.error('ลบ View ไม่สำเร็จ');
+		}
 		await invalidate('portfolio:baseData');
 	}
 
