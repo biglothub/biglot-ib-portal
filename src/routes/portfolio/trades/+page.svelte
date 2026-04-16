@@ -8,7 +8,7 @@
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import TradeProfitBadge from '$lib/components/portfolio/TradeProfitBadge.svelte';
 	import { formatCurrency, formatDateTime, formatNumber } from '$lib/utils';
-	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession } from '$lib/portfolio';
+	import { getTradePlaybookId, getTradeReviewStatus, getTradeSession, getTradeNote } from '$lib/portfolio';
 	import type { Trade, TradeTagAssignment, Playbook } from '$lib/types';
 	import TradeImportModal from '$lib/components/portfolio/TradeImportModal.svelte';
 	import SwipeableTradeCard from '$lib/components/portfolio/SwipeableTradeCard.svelte';
@@ -206,7 +206,7 @@
 		let unreviewed = 0, noNotes = 0, noAttachments = 0;
 		for (const t of trades) {
 			if (getTradeReviewStatus(t) === 'unreviewed') unreviewed++;
-			if (!t.trade_notes || t.trade_notes.length === 0) noNotes++;
+			if (!getTradeNote(t)) noNotes++;
 			if (!t.trade_attachments || t.trade_attachments.length === 0) noAttachments++;
 		}
 		return { unreviewed, noNotes, noAttachments };

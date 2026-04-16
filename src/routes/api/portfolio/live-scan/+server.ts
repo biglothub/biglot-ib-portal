@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { YOUTUBE_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 
 // In-memory cache shared across requests (per server process)
@@ -49,7 +49,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 		return json({ ...cachedResult, cached: true });
 	}
 
-	if (!YOUTUBE_API_KEY) {
+	if (!env.YOUTUBE_API_KEY) {
 		return json({ liveCoaches: [], scannedAt: new Date().toISOString(), cached: false, error: 'No YouTube API key configured' });
 	}
 
@@ -75,7 +75,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 					eventType: 'live',
 					type: 'video',
 					maxResults: '1',
-					key: YOUTUBE_API_KEY
+					key: env.YOUTUBE_API_KEY
 				});
 
 				const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);

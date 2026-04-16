@@ -249,7 +249,7 @@
 							<td class="py-2.5 px-3">
 								{#if breaks > 0}
 									<span class="text-xs font-medium text-red-400">{breaks} breaks</span>
-								{:else if trade.trade_reviews?.length}
+								{:else if getTradeReview(trade)}
 									<span class="text-xs text-green-400">0 breaks</span>
 								{:else}
 									<span class="text-xs text-gray-500">—</span>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { formatNumber } from '$lib/utils';
 	import type { IChartApi, ISeriesApi, SeriesMarker, Time, MouseEventParams } from 'lightweight-charts';
 	import type { Trade } from '$lib/types';
@@ -56,6 +58,56 @@
 	);
 
 	let focusedTf = $state<string | null>(null);
+	let tvContainer = $state<HTMLDivElement | undefined>(undefined);
+
+	// Map MT5 symbol to TradingView format
+	// Strip broker suffixes like .S, .m, .pro, .raw before mapping
+	function tvSymbol(symbol: string): string {
+		const s = symbol.toUpperCase().replace(/\.[A-Z0-9]+$/, '');
+		// Metals
+		if (s === 'XAUUSD') return 'OANDA:XAUUSD';
+		if (s === 'XAGUSD') return 'OANDA:XAGUSD';
+		// Major forex pairs
+		if (/^[A-Z]{6}$/.test(s)) return `FX:${s}`;
+		return s;
+	}
+
+	function initTradingView(container: HTMLDivElement) {
+		if (!browser) return;
+		const script = document.createElement('script');
+		script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+		script.async = true;
+		script.innerHTML = JSON.stringify({
+			autosize: true,
+			symbol: tvSymbol(trade.symbol),
+			interval: 'H1',
+			timezone: 'Asia/Bangkok',
+			theme: 'dark',
+			style: '1',
+			locale: 'th_TH',
+			backgroundColor: 'rgba(15, 17, 22, 1)',
+			gridColor: 'rgba(55, 65, 81, 0.4)',
+			hide_top_toolbar: false,
+			hide_legend: false,
+			allow_symbol_change: false,
+			save_image: false,
+			calendar: false,
+			support_host: 'https://www.tradingview.com'
+		});
+		container.innerHTML = '';
+		const widget = document.createElement('div');
+		widget.className = 'tradingview-widget-container__widget';
+		widget.style.height = '100%';
+		widget.style.width = '100%';
+		container.appendChild(widget);
+		container.appendChild(script);
+	}
+
+	$effect(() => {
+		if (sortedContexts.length === 0 && tvContainer) {
+			initTradingView(tvContainer);
+		}
+	});
 
 	// Shared crosshair sync state — plain array, one per component instance
 	const instances: ChartInstance[] = [];
@@ -261,25 +313,17 @@
 		{/if}
 	</div>
 
-	<!-- Empty state -->
+	<!-- Empty state: show TradingView live chart -->
 	{#if sortedContexts.length === 0}
-		<div class="rounded-xl border border-dashed border-dark-border px-4 py-8 text-center">
-			<svg
-				class="w-10 h-10 mx-auto mb-2 text-gray-400"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="1.5"
-					d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-				/>
-			</svg>
-			<p class="text-sm text-gray-400">ยังไม่มีข้อมูล Chart Context สำหรับ Trade นี้</p>
-			<p class="text-xs text-gray-400 mt-1">ข้อมูลจะแสดงเมื่อ Bridge ส่ง bar data มา</p>
+		<div class="rounded-xl border border-dark-border bg-dark-bg/20 overflow-hidden" style="height: 400px;">
+			<div
+				bind:this={tvContainer}
+				class="tradingview-widget-container w-full h-full"
+			></div>
 		</div>
+		<p class="text-xs text-gray-500 text-right">
+			TradingView · {trade.symbol} · Bridge bar data ยังไม่มา
+		</p>
 
 	<!-- Timeframe tabs when focused -->
 	{:else if focusedTf !== null}

@@ -4,7 +4,6 @@
 	import ScreenshotAnnotator from '$lib/components/portfolio/ScreenshotAnnotator.svelte';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import ReviewStatusBadge from '$lib/components/portfolio/ReviewStatusBadge.svelte';
-	import ChecklistEditor from '$lib/components/portfolio/ChecklistEditor.svelte';
 	import MultiTimeframeChart from '$lib/components/charts/MultiTimeframeChart.svelte';
 	import InsightsSection from '$lib/components/portfolio/InsightsSection.svelte';
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
@@ -49,6 +48,8 @@
 	let reviewSaved = $state(false);
 	let reviewSavedAt = $state<Date | null>(null);
 	let reviewError = $state('');
+	let activeReviewTab = $state<'entry' | 'notes' | 'review'>('entry');
+	let newBrokenRule = $state('');
 
 	let attachments = $state<any[]>([]);
 	let showAnnotator = $state(false);
@@ -597,19 +598,17 @@
 		</div>
 
 		<div class="card space-y-5">
-			<div>
-				<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
-				<p class="text-xs text-gray-400 mt-1">บันทึกกระบวนการ, กฎที่ผิด, บทเรียน และสิ่งที่จะทำต่อ</p>
-			</div>
+			<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+			<!-- Row 1: Status + Playbook + Followed Plan -->
+			<div class="flex flex-wrap items-center gap-3">
 				<select bind:value={reviewStatus} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 					<option value="unreviewed">ยังไม่ Review</option>
 					<option value="in_progress">กำลังดำเนินการ</option>
 					<option value="reviewed">Review แล้ว</option>
 				</select>
 				<div class="relative">
-					<select bind:value={selectedPlaybookId} class="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
+					<select bind:value={selectedPlaybookId} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 						<option value="">ยังไม่เลือก Playbook</option>
 						{#each playbooks as playbook}
 							<option value={playbook.id}>{playbook.name}</option>
@@ -619,89 +618,150 @@
 						<span class="absolute -bottom-4 left-0 text-[10px] text-brand-primary/70">แนะนำจากเทรดที่ผ่านมา</span>
 					{/if}
 				</div>
-				<select bind:value={followedPlan} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="">ทำตามแผนไหม?</option>
-					<option value="yes">ใช่</option>
-					<option value="no">ไม่</option>
-				</select>
-				<input
-					type="number"
-					min="1"
-					max="5"
-					step="1"
-					bind:value={confidenceAtEntry}
-					placeholder="ความมั่นใจ 1-5"
-					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
-				/>
-				<input
-					type="number"
-					min="1"
-					max="5"
-					step="1"
-					bind:value={setupQuality}
-					placeholder="คุณภาพ Setup 1-5"
-					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
-				/>
-				<input
-					type="number"
-					min="1"
-					max="5"
-					step="1"
-					bind:value={disciplineScore}
-					placeholder="วินัย 1-5"
-					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
-				/>
-				<input
-					type="number"
-					min="1"
-					max="5"
-					step="1"
-					bind:value={executionScore}
-					placeholder="การ Execute 1-5"
-					class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white"
-				/>
-			</div>
-
-			<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">เหตุผลเข้าเทรด</h4>
-					<textarea bind:value={entryReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
-				</div>
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">เหตุผลออกเทรด</h4>
-					<textarea bind:value={exitReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
-				</div>
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">บันทึกการ Execute</h4>
-					<textarea bind:value={executionNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
-				</div>
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">บันทึกความเสี่ยง</h4>
-					<textarea bind:value={riskNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
-				</div>
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">สรุปข้อผิดพลาด</h4>
-					<textarea bind:value={mistakeSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
-				</div>
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">สรุปบทเรียน</h4>
-					<textarea bind:value={lessonSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+				<div class="flex items-center gap-1">
+					<span class="text-xs text-gray-500 mr-1">ตามแผน?</span>
+					<button
+						type="button"
+						onclick={() => followedPlan = followedPlan === 'yes' ? '' : 'yes'}
+						class="px-3 py-1.5 rounded text-xs font-medium transition-colors
+							{followedPlan === 'yes' ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'border border-dark-border text-gray-400 hover:text-gray-200'}"
+					>ใช่</button>
+					<button
+						type="button"
+						onclick={() => followedPlan = followedPlan === 'no' ? '' : 'no'}
+						class="px-3 py-1.5 rounded text-xs font-medium transition-colors
+							{followedPlan === 'no' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'border border-dark-border text-gray-400 hover:text-gray-200'}"
+					>ไม่</button>
 				</div>
 			</div>
 
-			<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-				<div class="card p-4 bg-dark-bg/20">
-					<ChecklistEditor
-						items={brokenRules}
-						label="กฎที่ทำผิด"
-						placeholder="เช่น Overtraded after first loss"
-						onchange={(items) => (brokenRules = items)}
-					/>
+			<!-- Row 2: Dot ratings -->
+			<div class="space-y-2.5">
+				{#each [
+					{ label: 'ความมั่นใจ', get: () => confidenceAtEntry, set: (v: number | null) => { confidenceAtEntry = v; } },
+					{ label: 'คุณภาพ Setup', get: () => setupQuality, set: (v: number | null) => { setupQuality = v; } },
+					{ label: 'วินัย', get: () => disciplineScore, set: (v: number | null) => { disciplineScore = v; } },
+					{ label: 'Execution', get: () => executionScore, set: (v: number | null) => { executionScore = v; } },
+				] as row}
+					<div class="flex items-center gap-3">
+						<span class="text-xs text-gray-500 w-24 shrink-0">{row.label}</span>
+						<div class="flex items-center gap-1.5">
+							{#each [1, 2, 3, 4, 5] as n}
+								<button
+									type="button"
+									aria-label="{row.label} {n}"
+									onclick={() => row.set(row.get() === n ? null : n)}
+									class="w-3.5 h-3.5 rounded-full border transition-colors
+										{(row.get() ?? 0) >= n
+											? 'bg-brand-primary border-brand-primary'
+											: 'border-dark-border hover:border-brand-primary/50'}"
+								></button>
+							{/each}
+						</div>
+						{#if row.get() != null}
+							<span class="text-xs text-gray-500">{row.get()}/5</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
+
+			<!-- Row 3: Tabbed textareas -->
+			<div>
+				<div class="flex border-b border-dark-border mb-4">
+					{#each [
+						{ id: 'entry', label: 'Entry / Exit' },
+						{ id: 'notes', label: 'Notes' },
+						{ id: 'review', label: 'Review' },
+					] as tab}
+						<button
+							type="button"
+							onclick={() => activeReviewTab = tab.id as 'entry' | 'notes' | 'review'}
+							class="pb-2 px-4 text-sm transition-colors
+								{activeReviewTab === tab.id
+									? 'text-white border-b-2 border-brand-primary -mb-px'
+									: 'text-gray-400 hover:text-gray-200'}"
+						>{tab.label}</button>
+					{/each}
 				</div>
-				<div class="card p-4 bg-dark-bg/20">
-					<h4 class="text-xs text-gray-400 mb-2">สิ่งที่จะทำต่อ</h4>
-					<textarea bind:value={nextAction} rows="5" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white"></textarea>
+
+				{#if activeReviewTab === 'entry'}
+					<div class="space-y-3">
+						<div>
+							<h4 class="text-xs text-gray-500 mb-1.5">เหตุผลเข้าเทรด</h4>
+							<textarea bind:value={entryReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
+						</div>
+						<div>
+							<h4 class="text-xs text-gray-500 mb-1.5">เหตุผลออกเทรด</h4>
+							<textarea bind:value={exitReason} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
+						</div>
+					</div>
+				{:else if activeReviewTab === 'notes'}
+					<div class="space-y-3">
+						<div>
+							<h4 class="text-xs text-gray-500 mb-1.5">บันทึกการ Execute</h4>
+							<textarea bind:value={executionNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
+						</div>
+						<div>
+							<h4 class="text-xs text-gray-500 mb-1.5">บันทึกความเสี่ยง</h4>
+							<textarea bind:value={riskNotes} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
+						</div>
+					</div>
+				{:else}
+					<div class="space-y-3">
+						<div>
+							<h4 class="text-xs text-gray-500 mb-1.5">สรุปข้อผิดพลาด</h4>
+							<textarea bind:value={mistakeSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
+						</div>
+						<div>
+							<h4 class="text-xs text-gray-500 mb-1.5">สรุปบทเรียน</h4>
+							<textarea bind:value={lessonSummary} rows="4" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
+						</div>
+					</div>
+				{/if}
+			</div>
+
+			<!-- Row 4: Broken rules (inline tags) -->
+			<div>
+				<h4 class="text-xs text-gray-500 mb-2">กฎที่ทำผิด</h4>
+				<div class="flex flex-wrap gap-1.5 mb-2">
+					{#each brokenRules as rule, i}
+						<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-red-500/10 border border-red-500/20 text-xs text-red-300">
+							{rule}
+							<button
+								type="button"
+								onclick={() => brokenRules = brokenRules.filter((_, j) => j !== i)}
+								class="text-red-400/60 hover:text-red-300 leading-none"
+							>×</button>
+						</span>
+					{/each}
+					<div class="flex items-center gap-1">
+						<input
+							type="text"
+							bind:value={newBrokenRule}
+							placeholder="เพิ่มกฎ..."
+							onkeydown={(e) => {
+								if (e.key === 'Enter' && newBrokenRule.trim()) {
+									brokenRules = [...brokenRules, newBrokenRule.trim()];
+									newBrokenRule = '';
+								}
+							}}
+							class="bg-dark-bg border border-dark-border rounded px-2.5 py-1 text-xs text-white placeholder-gray-600 focus:border-brand-primary/50 outline-none transition-colors w-36"
+						/>
+						{#if newBrokenRule.trim()}
+							<button
+								type="button"
+								onclick={() => { brokenRules = [...brokenRules, newBrokenRule.trim()]; newBrokenRule = ''; }}
+								class="text-xs text-brand-primary hover:text-brand-primary/80"
+							>+ เพิ่ม</button>
+						{/if}
+					</div>
 				</div>
+			</div>
+
+			<!-- Row 5: Next steps -->
+			<div>
+				<h4 class="text-xs text-gray-500 mb-1.5">สิ่งที่จะทำต่อ</h4>
+				<textarea bind:value={nextAction} rows="3" class="w-full bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm text-white resize-none focus:border-brand-primary/50 outline-none transition-colors"></textarea>
 			</div>
 
 			{#if reviewError}
@@ -711,32 +771,32 @@
 				</div>
 			{/if}
 
-			<div class="space-y-2">
-				<div class="flex items-center gap-3">
-					<button
-						type="button"
-						onclick={saveReview}
-						disabled={savingReview}
-						class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2 transition-all
-							{reviewSaved ? '!bg-green-500 !text-white' : ''}"
-					>
-						{#if savingReview}
-							<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-							กำลังบันทึก...
-						{:else if reviewSaved}
-							<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-							บันทึกแล้ว!
-						{:else}
-							บันทึก Review
-						{/if}
-					</button>
-				</div>
+			<div class="flex items-center justify-between">
 				{#if reviewSavedAt}
 					<p class="text-xs text-green-500/70 flex items-center gap-1">
 						<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-						บันทึกลง DB แล้วเมื่อ {formatSavedTime(reviewSavedAt)}
+						บันทึกแล้วเมื่อ {formatSavedTime(reviewSavedAt)}
 					</p>
+				{:else}
+					<span></span>
 				{/if}
+				<button
+					type="button"
+					onclick={saveReview}
+					disabled={savingReview}
+					class="btn-primary text-sm py-2 px-6 disabled:opacity-50 inline-flex items-center gap-2 transition-all
+						{reviewSaved ? '!bg-green-500 !text-white' : ''}"
+				>
+					{#if savingReview}
+						<svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+						กำลังบันทึก...
+					{:else if reviewSaved}
+						<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+						บันทึกแล้ว!
+					{:else}
+						บันทึก Review
+					{/if}
+				</button>
 			</div>
 		</div>
 
