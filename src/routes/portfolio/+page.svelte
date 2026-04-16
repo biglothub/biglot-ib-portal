@@ -375,25 +375,25 @@
 			/>
 		</div>
 
-		<!-- Secondary KPIs inline -->
-		<div class="flex flex-wrap items-center gap-x-6 gap-y-1 px-1 text-xs">
-			<div class="flex items-center gap-1.5">
-				<span class="text-gray-400">Balance</span>
-				<span class="text-white font-medium">{formatCurrency(latestStats?.balance || 0)}</span>
+		<!-- Secondary KPIs -->
+		<div class="grid grid-cols-2 gap-2 px-1 sm:grid-cols-4">
+			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Balance</div>
+				<div class="mt-1 text-base font-semibold text-white sm:text-lg">{formatCurrency(latestStats?.balance || 0)}</div>
 			</div>
-			<div class="flex items-center gap-1.5">
-				<span class="text-gray-400">Equity</span>
-				<span class="text-white font-medium">{formatCurrency(latestStats?.equity || 0)}</span>
+			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Equity</div>
+				<div class="mt-1 text-base font-semibold text-white sm:text-lg">{formatCurrency(latestStats?.equity || 0)}</div>
 			</div>
-			<div class="flex items-center gap-1.5">
-				<span class="text-gray-400">Expected Value</span>
-				<span class="font-medium {kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
+			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Expected Value</div>
+				<div class="mt-1 text-base font-semibold sm:text-lg {kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{formatCurrency(totalTrades > 0 ? kpi.netPnl / totalTrades : 0)}
-				</span>
+				</div>
 			</div>
-			<div class="flex items-center gap-1.5">
-				<span class="text-gray-400">Recovery Factor</span>
-				<span class="text-white font-medium">{formatNumber(kpi.recoveryFactor || 0, 2)}</span>
+			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Recovery Factor</div>
+				<div class="mt-1 text-base font-semibold text-white sm:text-lg">{formatNumber(kpi.recoveryFactor || 0, 2)}</div>
 			</div>
 		</div>
 		{/if}
