@@ -360,7 +360,9 @@ export function calculateQualityScore(trade: Trade, context: TradeContext): numb
 	let score = 0;
 	const profit = Number(trade.profit || 0);
 	const holdMins = (new Date(trade.close_time).getTime() - new Date(trade.open_time).getTime()) / 60000;
-	const review = (trade as any).trade_reviews?.[0];
+	// PostgREST returns trade_reviews as object (one-to-one) or array depending on query shape
+	const trRaw = (trade as any).trade_reviews;
+	const review = !trRaw ? undefined : Array.isArray(trRaw) ? trRaw[0] : trRaw;
 	const notes = (trade as any).trade_notes || [];
 	const tags = (trade as any).trade_tag_assignments || [];
 	const attachments = (trade as any).trade_attachments || [];

@@ -10,6 +10,7 @@
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import ExecutionMetricsCard from '$lib/components/portfolio/ExecutionMetricsCard.svelte';
 	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
+	import { getTradeReview, getTradeNote } from '$lib/portfolio';
 	import type { TradeTagAssignment, TradeTag, Playbook } from '$lib/types';
 
 	let { data } = $props();
@@ -28,7 +29,6 @@
 	let noteSavedAt = $state<Date | null>(null);
 
 	let showTagDropdown = $state(false);
-	let assigningTag = $state(false);
 
 	let reviewStatus = $state<'unreviewed' | 'in_progress' | 'reviewed'>('unreviewed');
 	let selectedPlaybookId = $state('');
@@ -81,7 +81,7 @@
 		new Set(effectiveAssignments.map((a: TradeTagAssignment) => a.tag_id))
 	);
 	const availableTags = $derived(tags.filter((tag: TradeTag) => !assignedTagIds.has(tag.id)));
-	const review = $derived(trade?.trade_reviews?.[0] || null);
+	const review = $derived(trade ? getTradeReview(trade) : null);
 	const journalDate = $derived(
 		trade ? toThaiDateString(trade.close_time) : ''
 	);
@@ -90,30 +90,47 @@
 		const tradeId = trade?.id || '';
 		const isNewTrade = tradeId !== lastSyncedTradeId;
 
-		noteContent = trade?.trade_notes?.[0]?.content || '';
-		noteRating = trade?.trade_notes?.[0]?.rating || null;
-		reviewStatus = review?.review_status || 'unreviewed';
-		selectedPlaybookId = review?.playbook_id || suggestedPlaybookId || '';
-		entryReason = review?.entry_reason || '';
-		exitReason = review?.exit_reason || '';
-		executionNotes = review?.execution_notes || '';
-		riskNotes = review?.risk_notes || '';
-		mistakeSummary = review?.mistake_summary || '';
-		lessonSummary = review?.lesson_summary || '';
-		nextAction = review?.next_action || '';
-		setupQuality = review?.setup_quality_score || null;
-		disciplineScore = review?.discipline_score || null;
-		executionScore = review?.execution_score || null;
-		confidenceAtEntry = review?.confidence_at_entry || null;
-		followedPlan = review?.followed_plan == null ? '' : review.followed_plan ? 'yes' : 'no';
-		brokenRules = review?.broken_rules || [];
-		attachments = trade?.trade_attachments || [];
-
-		// Only reset optimistic state when navigating to a different trade
 		if (isNewTrade) {
+			// Navigate to a different trade: sync all form state from DB.
 			lastSyncedTradeId = tradeId;
+			const note = trade ? getTradeNote(trade) : null;
+			noteContent = note?.content || '';
+			noteRating = note?.rating || null;
+			reviewStatus = review?.review_status || 'unreviewed';
+			selectedPlaybookId = review?.playbook_id || suggestedPlaybookId || '';
+			entryReason = review?.entry_reason || '';
+			exitReason = review?.exit_reason || '';
+			executionNotes = review?.execution_notes || '';
+			riskNotes = review?.risk_notes || '';
+			mistakeSummary = review?.mistake_summary || '';
+			lessonSummary = review?.lesson_summary || '';
+			nextAction = review?.next_action || '';
+			setupQuality = review?.setup_quality_score || null;
+			disciplineScore = review?.discipline_score || null;
+			executionScore = review?.execution_score || null;
+			confidenceAtEntry = review?.confidence_at_entry || null;
+			followedPlan = review?.followed_plan == null ? '' : review.followed_plan ? 'yes' : 'no';
+			brokenRules = review?.broken_rules || [];
+			attachments = trade?.trade_attachments || [];
 			optimisticAddedTags = [];
 			optimisticRemovedTagIds = new Set();
+		} else {
+			// Same trade, data refreshed (after invalidation): sync only attachments and
+			// clean up optimistic tags. Do NOT reset form fields or reviewStatus — the save
+			// flow updates state directly from the API response, and resetting here would
+			// undo the user's in-progress edits or overwrite a just-saved status.
+			attachments = trade?.trade_attachments || [];
+			const realTagIds = new Set(
+				(trade?.trade_tag_assignments || []).map((a: TradeTagAssignment) => a.tag_id)
+			);
+			if (optimisticAddedTags.some((a) => realTagIds.has(a.tag_id))) {
+				optimisticAddedTags = optimisticAddedTags.filter((a) => !realTagIds.has(a.tag_id));
+			}
+			if ([...optimisticRemovedTagIds].some((id) => !realTagIds.has(id))) {
+				optimisticRemovedTagIds = new Set(
+					[...optimisticRemovedTagIds].filter((id) => realTagIds.has(id))
+				);
+			}
 		}
 	});
 
@@ -172,7 +189,7 @@
 		const hasContent = entryReason || exitReason || executionNotes || riskNotes ||
 			mistakeSummary || lessonSummary || nextAction || selectedPlaybookId ||
 			setupQuality || disciplineScore || executionScore || confidenceAtEntry ||
-			brokenRules.length > 0;
+			followedPlan !== '' || brokenRules.length > 0;
 		if (reviewStatus === 'unreviewed' && hasContent) {
 			reviewStatus = 'in_progress';
 		}
@@ -213,6 +230,13 @@
 			});
 
 			if (res.ok) {
+				const result = await res.json().catch(() => ({}));
+				// Update status directly from the saved review so the badge reflects
+				// the DB value immediately, before (and regardless of) the invalidation cycle.
+				const savedStatus = result?.review?.review_status;
+				if (savedStatus === 'unreviewed' || savedStatus === 'in_progress' || savedStatus === 'reviewed') {
+					reviewStatus = savedStatus;
+				}
 				reviewSaved = true;
 				reviewSavedAt = new Date();
 				reviewError = '';
@@ -225,7 +249,8 @@
 					detail: `${trade?.symbol ?? ''} · ${statusLabels[reviewStatus] ?? reviewStatus}`
 				});
 				setTimeout(() => (reviewSaved = false), 2500);
-				await invalidate('portfolio:baseData');
+				await invalidate('portfolio:tradeDetail');
+				invalidate('portfolio:baseData');
 			} else {
 				const errData = await res.json().catch(() => ({}));
 				reviewError = errData.message || `ไม่สามารถบันทึก Review ได้ (${res.status})`;
@@ -318,12 +343,17 @@
 			if (res.ok) {
 				attachmentPath = '';
 				attachmentCaption = '';
+				toast.success('เพิ่มไฟล์แนบแล้ว');
+				await invalidate('portfolio:tradeDetail');
 				invalidate('portfolio:baseData');
 			} else {
-				actionError = 'ไม่สามารถเพิ่ม Attachment ได้';
+				const errData = await res.json().catch(() => ({}));
+				actionError = errData.message || 'ไม่สามารถเพิ่ม Attachment ได้';
+				toast.error('เพิ่มไฟล์แนบไม่สำเร็จ', { detail: actionError });
 			}
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		} finally {
 			savingAttachment = false;
 		}
@@ -341,12 +371,17 @@
 				body: JSON.stringify({ id })
 			});
 			if (!res.ok) {
-				actionError = 'ไม่สามารถลบ Attachment ได้';
+				const errData = await res.json().catch(() => ({}));
+				actionError = errData.message || 'ไม่สามารถลบ Attachment ได้';
+				toast.error('ลบไฟล์แนบไม่สำเร็จ', { detail: actionError });
 				return;
 			}
+			toast.success('ลบไฟล์แนบแล้ว');
+			await invalidate('portfolio:tradeDetail');
 			invalidate('portfolio:baseData');
 		} catch {
 			actionError = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+			toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
 		}
 	}
 </script>
@@ -535,7 +570,6 @@
 								<button
 									type="button"
 									onclick={() => assignTag(tag.id)}
-									disabled={assigningTag}
 									class="w-full text-left px-3 py-1.5 text-sm text-gray-300 hover:bg-dark-border/50 rounded flex items-center gap-2"
 								>
 									<span class="w-3 h-3 rounded-full" style="background-color: {tag.color}"></span>
@@ -909,7 +943,7 @@
 								</div>
 								<div class="text-right">
 									<div class="text-sm font-medium {similarTrade.profit >= 0 ? 'text-green-400' : 'text-red-400'}">{formatCurrency(similarTrade.profit)}</div>
-									<ReviewStatusBadge status={(similarTrade.trade_reviews?.[0]?.review_status || 'unreviewed') as import('$lib/types').ReviewStatus} />
+									<ReviewStatusBadge status={(((Array.isArray(similarTrade.trade_reviews) ? similarTrade.trade_reviews[0] : similarTrade.trade_reviews)?.review_status) || 'unreviewed') as import('$lib/types').ReviewStatus} />
 								</div>
 							</a>
 						{/each}
@@ -931,6 +965,9 @@
 		onsaved={(attachment) => {
 			attachments = [...attachments, attachment];
 			showAnnotator = false;
+			toast.success('บันทึก Screenshot แล้ว');
+			invalidate('portfolio:tradeDetail');
+			invalidate('portfolio:baseData');
 		}}
 	/>
 {/if}

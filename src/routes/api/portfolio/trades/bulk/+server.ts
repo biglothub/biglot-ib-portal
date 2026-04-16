@@ -97,17 +97,23 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 			updated_at: new Date().toISOString()
 		}));
 
-		const { error } = await locals.supabase
+		const { data: reviewRows, error } = await locals.supabase
 			.from('trade_reviews')
-			.upsert(rows, { onConflict: 'trade_id' });
+			.upsert(rows, { onConflict: 'trade_id' })
+			.select('trade_id');
 
 		if (error) return json({ message: error.message }, { status: 500 });
+
+		const affected = reviewRows?.length ?? 0;
+		if (affected < trade_ids.length) {
+			console.warn(`[bulk:review_status] partial upsert: ${affected}/${trade_ids.length} rows affected`);
+		}
 
 		// Invalidate caches for all affected accounts
 		const accountIds = new Set(allTrades.map(t => t.client_account_id));
 		accountIds.forEach(id => invalidateTradesCache(id));
 
-		return json({ success: true, affected: trade_ids.length });
+		return json({ success: true, affected });
 	}
 
 	if (action === 'playbook') {
@@ -132,16 +138,22 @@ export const POST = async ({ request, locals }: RequestEvent) => {
 			updated_at: new Date().toISOString()
 		}));
 
-		const { error } = await locals.supabase
+		const { data: playbookRows, error } = await locals.supabase
 			.from('trade_reviews')
-			.upsert(rows, { onConflict: 'trade_id' });
+			.upsert(rows, { onConflict: 'trade_id' })
+			.select('trade_id');
 
 		if (error) return json({ message: error.message }, { status: 500 });
+
+		const affected = playbookRows?.length ?? 0;
+		if (affected < trade_ids.length) {
+			console.warn(`[bulk:playbook] partial upsert: ${affected}/${trade_ids.length} rows affected`);
+		}
 
 		const accountIds = new Set(allTrades.map(t => t.client_account_id));
 		accountIds.forEach(id => invalidateTradesCache(id));
 
-		return json({ success: true, affected: trade_ids.length });
+		return json({ success: true, affected });
 	}
 
 	return json({ message: 'Unknown action' }, { status: 400 });

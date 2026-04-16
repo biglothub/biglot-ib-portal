@@ -86,9 +86,11 @@ function evaluateSingleRule(
 
 		case 'trades_linked_playbook': {
 			if (dayTrades.length === 0) return { completed: true, value: 100 };
-			const linked = dayTrades.filter(t =>
-				(t as any).trade_reviews?.[0]?.playbook_id != null
-			).length;
+			const linked = dayTrades.filter(t => {
+				const tr = (t as any).trade_reviews;
+				const r = !tr ? null : Array.isArray(tr) ? tr[0] : tr;
+				return r?.playbook_id != null;
+			}).length;
 			const pct = (linked / dayTrades.length) * 100;
 			const threshold = (rule.condition as any)?.threshold ?? 100;
 			return { completed: pct >= threshold, value: Math.round(pct) };

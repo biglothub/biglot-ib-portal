@@ -1,5 +1,6 @@
 import { rateLimit } from '$lib/server/rate-limit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
+import { invalidateTradesCache, signScreenshotAttachments } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import { verifyTradeOwnership } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
@@ -19,6 +20,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 
 	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
 	if (!ownership.ok) return ownership.response;
+	const { accountId } = ownership;
 
 	let formData: FormData;
 	try {
@@ -73,6 +75,9 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 	if (dbError) {
 		return json({ message: dbError.message }, { status: 500 });
 	}
+
+	await signScreenshotAttachments([attachment]);
+	invalidateTradesCache(accountId);
 
 	return json({ success: true, attachment });
 };

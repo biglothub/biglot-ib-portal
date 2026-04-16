@@ -15,7 +15,9 @@ function getContractSize(symbol: string): number {
 	return 100000; // Standard forex
 }
 
-export const load: PageServerLoad = async ({ parent, locals, url }) => {
+export const load: PageServerLoad = async ({ parent, locals, url, depends }) => {
+	// Re-run when review/note/tag saves invalidate base data
+	depends('portfolio:baseData');
 	const parentData = await parent();
 	const { account, tags = [], playbooks = [], savedViews = [] } = parentData;
 	const baseData = locals.portfolioBaseData;

@@ -1,5 +1,6 @@
 import { rateLimit } from '$lib/server/rate-limit';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
+import { invalidateTradesCache, signScreenshotAttachments } from '$lib/server/portfolio';
 import { json } from '@sveltejs/kit';
 import { verifyTradeOwnership, isSafeUrl } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
@@ -25,18 +26,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
-	// Generate fresh signed URLs for screenshot attachments
-	if (data && data.length > 0) {
-		const serviceClient = createSupabaseServiceClient();
-		for (const att of data) {
-			if (att.kind === 'screenshot') {
-				const { data: signedData } = await serviceClient.storage
-					.from('trade-screenshots')
-					.createSignedUrl(att.storage_path, 3600);
-				if (signedData?.signedUrl) att.storage_path = signedData.signedUrl;
-			}
-		}
-	}
+	await signScreenshotAttachments(data);
 
 	return json({ attachments: data || [] });
 };
@@ -53,6 +43,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 
 	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
 	if (!ownership.ok) return ownership.response;
+	const { accountId } = ownership;
 
 	const { id, kind, storage_path, caption, sort_order } = await request.json();
 	if (!storage_path?.trim()) {
@@ -93,6 +84,9 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		return json({ message: error.message }, { status: 500 });
 	}
 
+	await signScreenshotAttachments([data]);
+	invalidateTradesCache(accountId);
+
 	return json({ success: true, attachment: data });
 };
 
@@ -108,6 +102,7 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 
 	const ownership = await verifyTradeOwnership(locals.supabase, params.id, profile.id);
 	if (!ownership.ok) return ownership.response;
+	const { accountId } = ownership;
 
 	const { id } = await request.json();
 	if (!id) {
@@ -145,6 +140,8 @@ export const DELETE: RequestHandler = async ({ request, params, locals }) => {
 	if (error) {
 		return json({ message: error.message }, { status: 500 });
 	}
+
+	invalidateTradesCache(accountId);
 
 	return json({ success: true });
 };

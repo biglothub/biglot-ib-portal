@@ -2,7 +2,7 @@
 	import { focusTrap } from '$lib/actions/focusTrap';
 	import TagPill from '$lib/components/shared/TagPill.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
-	import { getTradePlaybookId } from '$lib/portfolio';
+	import { getTradePlaybookId, getTradeReview } from '$lib/portfolio';
 	import type { Trade, Playbook, TradeTagAssignment } from '$lib/types';
 
 	let { trades, playbooks = [], tradeScores = {}, tradeInsights = {}, onclose, onremove }: {
@@ -32,7 +32,7 @@
 	}
 
 	function getRuleBreakCount(trade: Trade): number {
-		return trade.trade_reviews?.[0]?.broken_rules?.length ?? 0;
+		return getTradeReview(trade)?.broken_rules?.length ?? 0;
 	}
 
 	function getQualityScore(tradeId: string): number | null {

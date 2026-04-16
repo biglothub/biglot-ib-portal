@@ -6,8 +6,14 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, params, locals }) => {
 	const profile = locals.profile;
-	if (!profile || profile.role !== 'client') {
-		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
+	if (!profile) {
+		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+	}
+	if (profile.role !== 'client') {
+		return json(
+			{ message: 'การบันทึก Review รองรับเฉพาะบัญชี client เท่านั้น (Admin/IB ดูได้อย่างเดียว)' },
+			{ status: 403 }
+		);
 	}
 
 	if (!(await rateLimit(`portfolio:trade-review:${profile.id}`, 20, 60_000))) {
@@ -53,7 +59,7 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		}
 	}
 
-	const payload = {
+	const payload: Record<string, unknown> = {
 		trade_id: params.id,
 		user_id: profile.id,
 		playbook_id: playbook_id || null,
@@ -65,28 +71,52 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		mistake_summary: mistake_summary || '',
 		lesson_summary: lesson_summary || '',
 		next_action: next_action || '',
-		setup_quality_score: setup_quality_score || null,
-		discipline_score: discipline_score || null,
-		execution_score: execution_score || null,
-		confidence_at_entry: confidence_at_entry || null,
+		setup_quality_score: setup_quality_score ?? null,
+		discipline_score: discipline_score ?? null,
+		execution_score: execution_score ?? null,
+		confidence_at_entry: confidence_at_entry ?? null,
 		followed_plan:
 			followed_plan === true || followed_plan === false ? followed_plan : null,
 		broken_rules: Array.isArray(broken_rules) ? broken_rules.filter(Boolean) : [],
-		reviewed_at: review_status === 'reviewed' ? new Date().toISOString() : null,
 		updated_at: new Date().toISOString()
 	};
 
-	const { data, error } = await locals.supabase
+	// Only set reviewed_at when transitioning to 'reviewed'. Preserve existing
+	// timestamp on re-save; never null it out on non-reviewed saves so that
+	// downgrading status doesn't erase the original review timestamp.
+	if (review_status === 'reviewed') {
+		const { data: existing } = await locals.supabase
+			.from('trade_reviews')
+			.select('reviewed_at')
+			.eq('trade_id', params.id)
+			.maybeSingle();
+		payload.reviewed_at = existing?.reviewed_at ?? new Date().toISOString();
+	}
+
+	// Upsert with .select().single() so a silent RLS reject (0 rows affected) surfaces as an error
+	const { error: upsertError } = await locals.supabase
 		.from('trade_reviews')
 		.upsert(payload, { onConflict: 'trade_id' })
-		.select('*, playbooks(id, name, description)')
+		.select()
 		.single();
 
-	if (error) {
-		return json({ message: error.message }, { status: 500 });
+	if (upsertError) {
+		console.error('[review] upsert failed:', upsertError.message, upsertError.code);
+		return json({ message: upsertError.message }, { status: 500 });
+	}
+
+	// Fetch the saved review with playbook join (separate from upsert to avoid PostgREST join issues)
+	const { data, error: fetchError } = await locals.supabase
+		.from('trade_reviews')
+		.select('*, playbooks(id, name, description)')
+		.eq('trade_id', params.id)
+		.single();
+
+	if (fetchError) {
+		console.error('[review] fetch after upsert failed:', fetchError.message);
 	}
 
 	invalidateTradesCache(accountId);
 
-	return json({ success: true, review: data });
+	return json({ success: true, review: data ?? null });
 };

@@ -1,10 +1,14 @@
-import { fetchTradeChartContext } from '$lib/server/portfolio';
+import { fetchTradeChartContext, signScreenshotAttachments } from '$lib/server/portfolio';
 import { evaluateTradeInsights, calculateQualityScore, calculateExecutionMetrics } from '$lib/server/insights/engine';
 import { toThaiDateString } from '$lib/utils';
+import { getTradeReview } from '$lib/portfolio';
 import type { Trade } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ parent, params, locals }) => {
+export const load: PageServerLoad = async ({ parent, params, locals, depends }) => {
+	depends('portfolio:tradeDetail');
+	depends('portfolio:baseData');
+
 	const parentData = await parent();
 	const { account, playbooks = [], userId } = parentData;
 	const supabase = locals.supabase;
@@ -27,7 +31,9 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		return { trade: null, relatedTrades: [], chartContexts: [], dayJournal: null, playbooks, suggestedPlaybookId: null };
 	}
 
-	const currentPlaybookId = trade.trade_reviews?.[0]?.playbook_id || null;
+	await signScreenshotAttachments(trade.trade_attachments);
+
+	const currentPlaybookId = getTradeReview(trade as Trade)?.playbook_id || null;
 
 	// Build similar trades query with DB-level filtering when possible
 	let similarQuery = supabase
@@ -46,7 +52,7 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		supabase
 			.from('trades')
 			.select(
-				'id, symbol, type, profit, lot_size, close_time, trade_reviews(review_status, playbook_id), trade_tag_assignments(tag_id, trade_tags(id, name, color, category))'
+				'id, symbol, type, profit, lot_size, open_time, close_time, trade_reviews(review_status, playbook_id), trade_tag_assignments(tag_id, trade_tags(id, name, color, category))'
 			)
 			.eq('client_account_id', account.id)
 			.eq('symbol', trade.symbol)
@@ -64,17 +70,24 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 		similarQuery
 	]);
 
+	type ReviewLite = { playbook_id?: string | null; review_status?: string | null };
 	type SimilarTradeRow = {
 		id: string;
 		symbol: string;
 		close_time: string;
 		profit: number;
-		trade_reviews?: Array<{ playbook_id?: string | null; review_status?: string | null }>;
+		// PostgREST returns object (one-to-one via UNIQUE on trade_id) or array depending on query
+		trade_reviews?: ReviewLite | ReviewLite[] | null;
 		trade_tag_assignments?: Array<{ tag_id: string }>;
+	};
+	const reviewOf = (row: SimilarTradeRow): ReviewLite | null => {
+		const tr = row.trade_reviews;
+		if (!tr) return null;
+		return Array.isArray(tr) ? tr[0] || null : tr;
 	};
 	const similarReviewedTrades = (similarReviewRes.data as SimilarTradeRow[] || []).filter((item) =>
 		currentPlaybookId
-			? item.trade_reviews?.[0]?.playbook_id === currentPlaybookId
+			? reviewOf(item)?.playbook_id === currentPlaybookId
 			: (item.trade_tag_assignments || []).some((assignment) =>
 					(trade.trade_tag_assignments || []).some((current: { tag_id: string }) => current.tag_id === assignment.tag_id)
 				)
@@ -83,8 +96,9 @@ export const load: PageServerLoad = async ({ parent, params, locals }) => {
 	// Find most-used playbook in prior reviewed trades for this symbol (A2: smart default)
 	const playbookCounts = new Map<string, number>();
 	for (const t of (similarReviewRes.data as SimilarTradeRow[] || [])) {
-		const pid = t.trade_reviews?.[0]?.playbook_id;
-		if (t.trade_reviews?.[0]?.review_status === 'reviewed' && pid) {
+		const r = reviewOf(t);
+		const pid = r?.playbook_id;
+		if (r?.review_status === 'reviewed' && pid) {
 			playbookCounts.set(pid, (playbookCounts.get(pid) ?? 0) + 1);
 		}
 	}

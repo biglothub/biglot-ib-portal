@@ -10,6 +10,7 @@ import {
 	getTradeSession
 } from '$lib/portfolio';
 import { getCache, setCache, invalidateCache, invalidateCachePattern } from '$lib/server/cache';
+import { createSupabaseServiceClient } from '$lib/server/supabase';
 import type {
 	DailyJournal,
 	DailyStats,
@@ -58,6 +59,31 @@ export function invalidateTradesCache(accountId: string): void {
 		if (key.startsWith(accountId)) baseDataCache.delete(key);
 	}
 	void invalidateCache(`portfolio:trades:${accountId}`);
+}
+
+type AttachmentRow = { kind?: string | null; storage_path?: string | null } & Record<string, unknown>;
+
+/**
+ * Replace bucket paths with 1-hour signed URLs for `kind === 'screenshot'` attachments.
+ * Mutates each row's `storage_path` in place. Safe to call on an empty/undefined array.
+ */
+export async function signScreenshotAttachments<T extends AttachmentRow>(
+	attachments: T[] | null | undefined
+): Promise<T[]> {
+	if (!attachments || attachments.length === 0) return attachments ?? [];
+	const screenshots = attachments.filter((a) => a.kind === 'screenshot' && a.storage_path);
+	if (screenshots.length === 0) return attachments;
+
+	const service = createSupabaseServiceClient();
+	await Promise.all(
+		screenshots.map(async (att) => {
+			const { data } = await service.storage
+				.from('trade-screenshots')
+				.createSignedUrl(att.storage_path as string, 3600);
+			if (data?.signedUrl) att.storage_path = data.signedUrl;
+		})
+	);
+	return attachments;
 }
 
 /** Invalidate only journals cache */

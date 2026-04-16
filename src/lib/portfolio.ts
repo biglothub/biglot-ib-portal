@@ -151,7 +151,12 @@ export function buildPortfolioSearchParams(filters: PortfolioFilterState): URLSe
 }
 
 export function getTradeReview(trade: Trade) {
-	return trade.trade_reviews?.[0] || null;
+	// PostgREST returns trade_reviews as a single object (not array) when
+	// trade_reviews.trade_id has a UNIQUE constraint (one-to-one relationship).
+	// Older code paths/queries may still return an array — handle both.
+	const tr = trade.trade_reviews;
+	if (!tr) return null;
+	return Array.isArray(tr) ? tr[0] || null : tr;
 }
 
 export function getTradeReviewStatus(trade: Trade): ReviewStatus {
@@ -160,6 +165,13 @@ export function getTradeReviewStatus(trade: Trade): ReviewStatus {
 
 export function getTradeNotes(trade: Trade) {
 	return trade.trade_notes || [];
+}
+
+export function getTradeNote(trade: Trade) {
+	// Same one-to-one shape issue as trade_reviews — trade_notes also has UNIQUE(trade_id).
+	const tn = trade.trade_notes;
+	if (!tn) return null;
+	return Array.isArray(tn) ? tn[0] || null : tn;
 }
 
 export function getTradeAttachments(trade: Trade) {

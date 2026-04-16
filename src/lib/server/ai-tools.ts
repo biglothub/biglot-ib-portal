@@ -181,38 +181,47 @@ async function getTradeHistory(supabase: SupabaseClient, accountId: string, para
 	const { data, error } = await query;
 	if (error) return JSON.stringify({ error: error.message });
 
+	type ReviewLite = { review_status?: string; playbook_id?: string | null; broken_rules?: string[]; followed_plan?: boolean | null };
+	type NoteLite = { content?: string; rating?: number | null };
 	type TradeRow = Record<string, unknown> & {
 		trade_tag_assignments?: Array<{ trade_tags?: { name?: string; category?: string } }>;
-		trade_notes?: Array<{ content?: string; rating?: number | null }>;
-		trade_reviews?: Array<{ review_status?: string; playbook_id?: string | null; broken_rules?: string[]; followed_plan?: boolean | null }>;
+		// Both have UNIQUE(trade_id) → PostgREST returns single object, but older paths may yield array
+		trade_notes?: NoteLite | NoteLite[] | null;
+		trade_reviews?: ReviewLite | ReviewLite[] | null;
 		trade_attachments?: unknown[];
 	};
-	const trades = (data as TradeRow[] || []).map((t) => ({
-		symbol: t.symbol,
-		type: t.type,
-		lot: t.lot_size,
-		openPrice: t.open_price,
-		closePrice: t.close_price,
-		openTime: t.open_time,
-		closeTime: t.close_time,
-		profit: t.profit,
-		pips: t.pips,
-		sl: t.sl,
-		tp: t.tp,
-		commission: t.commission,
-		swap: t.swap,
-		tags: (t.trade_tag_assignments || []).map((a) => ({
-			name: a.trade_tags?.name,
-			category: a.trade_tags?.category
-		})),
-		note: t.trade_notes?.[0]?.content || null,
-		rating: t.trade_notes?.[0]?.rating || null,
-		reviewStatus: t.trade_reviews?.[0]?.review_status || 'unreviewed',
-		playbookId: t.trade_reviews?.[0]?.playbook_id || null,
-		brokenRules: t.trade_reviews?.[0]?.broken_rules || [],
-		followedPlan: t.trade_reviews?.[0]?.followed_plan ?? null,
-		attachments: (t.trade_attachments || []).length
-	}));
+	const pickOne = <T,>(v: T | T[] | null | undefined): T | null =>
+		!v ? null : Array.isArray(v) ? v[0] || null : v;
+	const trades = (data as TradeRow[] || []).map((t) => {
+		const review = pickOne(t.trade_reviews);
+		const note = pickOne(t.trade_notes);
+		return {
+			symbol: t.symbol,
+			type: t.type,
+			lot: t.lot_size,
+			openPrice: t.open_price,
+			closePrice: t.close_price,
+			openTime: t.open_time,
+			closeTime: t.close_time,
+			profit: t.profit,
+			pips: t.pips,
+			sl: t.sl,
+			tp: t.tp,
+			commission: t.commission,
+			swap: t.swap,
+			tags: (t.trade_tag_assignments || []).map((a) => ({
+				name: a.trade_tags?.name,
+				category: a.trade_tags?.category
+			})),
+			note: note?.content || null,
+			rating: note?.rating || null,
+			reviewStatus: review?.review_status || 'unreviewed',
+			playbookId: review?.playbook_id || null,
+			brokenRules: review?.broken_rules || [],
+			followedPlan: review?.followed_plan ?? null,
+			attachments: (t.trade_attachments || []).length
+		};
+	});
 
 	return JSON.stringify({ totalTrades: trades.length, days, trades });
 }
@@ -371,31 +380,37 @@ async function getReviewContext(supabase: SupabaseClient, accountId: string, par
 
 	if (error) return JSON.stringify({ error: error.message });
 
+	type ReviewFull = { review_status?: string; playbook_id?: string | null; mistake_summary?: string | null; lesson_summary?: string | null; next_action?: string | null; broken_rules?: string[]; followed_plan?: boolean | null };
 	type ReviewTradeRow = Record<string, unknown> & {
-		trade_reviews?: Array<{ review_status?: string; playbook_id?: string | null; mistake_summary?: string | null; lesson_summary?: string | null; next_action?: string | null; broken_rules?: string[]; followed_plan?: boolean | null }>;
+		trade_reviews?: ReviewFull | ReviewFull[] | null;
 		trade_attachments?: unknown[];
 		trade_notes?: unknown[];
 		trade_tag_assignments?: Array<{ trade_tags?: { name?: string; category?: string } }>;
 	};
-	const reviews = (data as ReviewTradeRow[] || []).map((trade) => ({
+	const pickFullReview = (tr: ReviewTradeRow['trade_reviews']): ReviewFull | null =>
+		!tr ? null : Array.isArray(tr) ? tr[0] || null : tr;
+	const reviews = (data as ReviewTradeRow[] || []).map((trade) => {
+		const review = pickFullReview(trade.trade_reviews);
+		return {
 		symbol: trade.symbol,
 		type: trade.type,
 		profit: trade.profit,
 		closeTime: trade.close_time,
-		reviewStatus: trade.trade_reviews?.[0]?.review_status || 'unreviewed',
-		playbookId: trade.trade_reviews?.[0]?.playbook_id || null,
-		mistakeSummary: trade.trade_reviews?.[0]?.mistake_summary || null,
-		lessonSummary: trade.trade_reviews?.[0]?.lesson_summary || null,
-		nextAction: trade.trade_reviews?.[0]?.next_action || null,
-		brokenRules: trade.trade_reviews?.[0]?.broken_rules || [],
-		followedPlan: trade.trade_reviews?.[0]?.followed_plan ?? null,
+		reviewStatus: review?.review_status || 'unreviewed',
+		playbookId: review?.playbook_id || null,
+		mistakeSummary: review?.mistake_summary || null,
+		lessonSummary: review?.lesson_summary || null,
+		nextAction: review?.next_action || null,
+		brokenRules: review?.broken_rules || [],
+		followedPlan: review?.followed_plan ?? null,
 		attachments: (trade.trade_attachments || []).length,
 		notes: (trade.trade_notes || []).length,
 		tags: (trade.trade_tag_assignments || []).map((assignment) => ({
 			name: assignment.trade_tags?.name,
 			category: assignment.trade_tags?.category
 		}))
-	}));
+		};
+	});
 
 	return JSON.stringify({ totalReviews: reviews.length, days, reviews });
 }
