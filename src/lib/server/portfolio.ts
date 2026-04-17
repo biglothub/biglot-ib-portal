@@ -432,6 +432,178 @@ export function buildKpiMetrics(trades: Trade[], dailyHistory: ReturnType<typeof
 	};
 }
 
+/**
+ * Risk of Ruin (Ralph Vince formula) — probability the account goes to zero
+ * given the current edge and risk-per-trade sizing.
+ * Uses avgLoss as the proxy for risk-per-trade (each losing trade risks that $ amount).
+ */
+export function buildRiskOfRuin(
+	kpi: ReturnType<typeof buildKpiMetrics>,
+	balance: number
+) {
+	const { tradeWinRate, avgWin, avgLoss, totalTrades } = kpi;
+	if (totalTrades < 10 || balance <= 0 || avgLoss <= 0) {
+		return {
+			probability: 0,
+			riskPerTradePct: 0,
+			zone: 'unknown' as 'safe' | 'warning' | 'danger' | 'unknown',
+			units: 0,
+			hasEnoughData: false
+		};
+	}
+
+	const p = tradeWinRate / 100; // win prob
+	const q = 1 - p; // loss prob
+	const payoff = avgLoss > 0 ? avgWin / avgLoss : 0; // reward:risk
+	const edge = p * payoff - q; // expected value per unit risked
+
+	const riskPerTradePct = (avgLoss / balance) * 100;
+	const units = Math.max(1, balance / avgLoss);
+
+	let probability: number;
+	if (edge <= 0) {
+		probability = 1; // negative expectancy → eventual ruin
+	} else {
+		// Approximation: a = (1 - edge) / (1 + edge); RoR = a ^ units
+		const a = (1 - edge) / (1 + edge);
+		probability = Math.pow(Math.max(0, Math.min(1, a)), units);
+	}
+
+	const pct = probability * 100;
+	const zone: 'safe' | 'warning' | 'danger' =
+		pct < 5 ? 'safe' : pct < 20 ? 'warning' : 'danger';
+
+	return {
+		probability: pct,
+		riskPerTradePct,
+		zone,
+		units: Math.round(units),
+		hasEnoughData: true
+	};
+}
+
+/**
+ * Current + longest win/loss streaks, by trade and by day.
+ * `current` is signed: positive = win streak, negative = loss streak, 0 = flat/none.
+ */
+export function buildStreakMetrics(
+	trades: Trade[],
+	dailyHistory: ReturnType<typeof buildDailyHistory>
+) {
+	function streakFromOutcomes(outcomes: number[]) {
+		let longestWin = 0;
+		let longestLoss = 0;
+		let runWin = 0;
+		let runLoss = 0;
+		for (const o of outcomes) {
+			if (o > 0) {
+				runWin += 1;
+				runLoss = 0;
+				if (runWin > longestWin) longestWin = runWin;
+			} else if (o < 0) {
+				runLoss += 1;
+				runWin = 0;
+				if (runLoss > longestLoss) longestLoss = runLoss;
+			} else {
+				runWin = 0;
+				runLoss = 0;
+			}
+		}
+		// Compute current streak from the tail
+		let current = 0;
+		for (let i = outcomes.length - 1; i >= 0; i--) {
+			const o = outcomes[i];
+			if (o === 0) break;
+			if (current === 0) {
+				current = o > 0 ? 1 : -1;
+			} else if ((current > 0 && o > 0) || (current < 0 && o < 0)) {
+				current += current > 0 ? 1 : -1;
+			} else {
+				break;
+			}
+		}
+		return { current, longestWin, longestLoss };
+	}
+
+	// Trades sorted ascending by close_time
+	const sortedTrades = [...trades].sort((a, b) =>
+		new Date(a.close_time).getTime() - new Date(b.close_time).getTime()
+	);
+	const tradeOutcomes = sortedTrades.map((t) => Number(t.profit || 0));
+	const tradeStreak = streakFromOutcomes(tradeOutcomes);
+
+	// dailyHistory is already sorted ascending by date
+	const dayOutcomes = dailyHistory.map((d) => d.profit);
+	const dayStreak = streakFromOutcomes(dayOutcomes);
+
+	return { trade: tradeStreak, day: dayStreak };
+}
+
+/**
+ * Best (largest win) and worst (largest loss) trade in filtered set.
+ * Single pass; returns refs for linking to /portfolio/trades/[id].
+ */
+export function buildBestWorstTrades(trades: Trade[]) {
+	if (!trades || trades.length === 0) {
+		return { best: null as Trade | null, worst: null as Trade | null };
+	}
+	let best: Trade | null = null;
+	let worst: Trade | null = null;
+	for (const t of trades) {
+		const p = Number(t.profit || 0);
+		if (best === null || p > Number(best.profit || 0)) best = t;
+		if (worst === null || p < Number(worst.profit || 0)) worst = t;
+	}
+	return { best, worst };
+}
+
+/**
+ * Monthly P&L goal progress — sums P&L for current calendar month (Thailand TZ)
+ * and compares against the user's `monthly_pnl` progress goal target.
+ */
+export function buildMonthlyPnlGoalProgress(
+	trades: Trade[],
+	goals: ProgressGoal[]
+) {
+	const goal = goals.find((g) => g.goal_type === 'monthly_pnl' && g.is_active);
+	const target = Number(goal?.target_value || 0);
+
+	const nowThai = new Date(Date.now() + THAILAND_OFFSET_MS);
+	const year = nowThai.getUTCFullYear();
+	const month = nowThai.getUTCMonth(); // 0-11
+	const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+	let actual = 0;
+	let tradeCount = 0;
+	for (const t of trades) {
+		const dateStr = toThaiDateString(t.close_time);
+		if (dateStr.startsWith(monthPrefix)) {
+			actual += Number(t.profit || 0);
+			tradeCount += 1;
+		}
+	}
+
+	// Days remaining in the month
+	const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+	const today = nowThai.getUTCDate();
+	const daysRemaining = Math.max(0, lastDay - today);
+	const daysElapsed = today;
+
+	const progressPct = target > 0 ? (actual / target) * 100 : 0;
+
+	return {
+		target,
+		actual,
+		progressPct,
+		daysRemaining,
+		daysElapsed,
+		daysInMonth: lastDay,
+		tradeCount,
+		hasTarget: target > 0,
+		goalId: goal?.id ?? null
+	};
+}
+
 export function buildSetupPerformance(trades: Trade[]) {
 	const buckets: Map<string, { name: string; trades: Trade[]; playbookId: string | null }> = new Map();
 
@@ -899,7 +1071,8 @@ function mergeDefaultProgressGoals(goals: ProgressGoal[], accountId: string, use
 		{ user_id: userId, client_account_id: accountId, goal_type: 'journal_streak', target_value: 5, period_days: 30, is_active: true },
 		{ user_id: userId, client_account_id: accountId, goal_type: 'max_rule_breaks', target_value: 3, period_days: 30, is_active: true },
 		{ user_id: userId, client_account_id: accountId, goal_type: 'profit_factor', target_value: 1.5, period_days: 30, is_active: true },
-		{ user_id: userId, client_account_id: accountId, goal_type: 'win_rate', target_value: 55, period_days: 30, is_active: true }
+		{ user_id: userId, client_account_id: accountId, goal_type: 'win_rate', target_value: 55, period_days: 30, is_active: true },
+		{ user_id: userId, client_account_id: accountId, goal_type: 'monthly_pnl', target_value: 0, period_days: 30, is_active: true }
 	];
 
 	return defaults.map((goal) => {

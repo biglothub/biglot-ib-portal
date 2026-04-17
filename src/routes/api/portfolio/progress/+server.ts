@@ -1,7 +1,8 @@
 import { getAccessiblePortfolioAccount } from '$lib/server/portfolioAccount';
 import {
 	buildProgressSnapshot,
-	fetchPortfolioBaseData
+	fetchPortfolioBaseData,
+	invalidateBaseDataCache
 } from '$lib/server/portfolio';
 import { rateLimit } from '$lib/server/rate-limit';
 import { json } from '@sveltejs/kit';
@@ -52,7 +53,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const { goal_type, target_value, period_days, is_active } = await request.json();
-	const validGoalTypes = ['review_completion', 'journal_streak', 'max_rule_breaks', 'profit_factor', 'win_rate'];
+	const validGoalTypes = ['review_completion', 'journal_streak', 'max_rule_breaks', 'profit_factor', 'win_rate', 'monthly_pnl'];
 
 	if (!validGoalTypes.includes(goal_type)) {
 		return json({ message: 'ประเภทเป้าหมายไม่ถูกต้อง' }, { status: 400 });
@@ -77,6 +78,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (error) {
 		return json({ message: error.message }, { status: 500 });
 	}
+
+	invalidateBaseDataCache(account.id);
 
 	return json({ success: true, goal: data });
 };

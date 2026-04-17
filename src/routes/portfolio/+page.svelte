@@ -17,6 +17,9 @@
 	import StartMyDayModal from '$lib/components/portfolio/StartMyDayModal.svelte';
 	import AiCoachCard from '$lib/components/portfolio/AiCoachCard.svelte';
 	import DayInsightsSection from '$lib/components/portfolio/DayInsightsSection.svelte';
+	import RiskOfRuinGauge from '$lib/components/portfolio/RiskOfRuinGauge.svelte';
+	import BestWorstCard from '$lib/components/portfolio/BestWorstCard.svelte';
+	import MonthlyGoalCard from '$lib/components/portfolio/MonthlyGoalCard.svelte';
 	import { formatCurrency, formatDateTime, formatNumber, formatPercent, formatPnl, timeAgo } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 	import { displayUnit } from '$lib/stores/displayUnit';
@@ -55,7 +58,11 @@
 		todayInsights,
 		todaySummary,
 		sessionBreakdown,
-		showWeeklyNudge
+		showWeeklyNudge,
+		riskOfRuin,
+		streaks,
+		bestWorst,
+		monthlyGoal
 	} = $derived(data);
 
 	let startMyDayOpen = $state(false);
@@ -87,6 +94,9 @@
 		calendarRow: true,
 		scatterRow: true,
 		extrasRow: true,
+		riskRow: true,
+		highlightsRow: true,
+		goalsRow: true,
 	});
 	let settingsOpen = $state(false);
 
@@ -126,6 +136,21 @@
 
 	let checklistDone = $derived((checklistCompletions || []).filter((c: any) => c.completed).length);
 	let checklistTotal = $derived((checklistRules || []).length);
+
+	function streakLabel(n: number) {
+		if (n === 0) return null;
+		return n > 0 ? `${n}W` : `${Math.abs(n)}L`;
+	}
+	let tradeStreakText = $derived(streaks?.trade ? streakLabel(streaks.trade.current) : null);
+	let dayStreakText = $derived(streaks?.day ? streakLabel(streaks.day.current) : null);
+	let tradeStreakClass = $derived(
+		streaks?.trade && streaks.trade.current > 0 ? 'text-green-400' :
+		streaks?.trade && streaks.trade.current < 0 ? 'text-red-400' : 'text-gray-400'
+	);
+	let dayStreakClass = $derived(
+		streaks?.day && streaks.day.current > 0 ? 'text-green-400' :
+		streaks?.day && streaks.day.current < 0 ? 'text-red-400' : 'text-gray-400'
+	);
 
 	// Sync
 	let account = $derived(data.account);
@@ -180,8 +205,10 @@
 
 	const rowOptions: [string, string][] = [
 		['kpis', 'KPI Cards'],
+		['riskRow', 'Risk of Ruin & Goals'],
 		['scoreRow', 'Score & Progress'],
 		['chartsRow', 'Charts & Trades'],
+		['highlightsRow', 'Best / Worst Trade'],
 		['calendarRow', 'Calendar & Drawdown'],
 		['scatterRow', 'Time & Duration'],
 		['extrasRow', 'Rule Breaks & Setup'],
@@ -355,6 +382,31 @@
 						<span>รอรีวิว</span>
 					</a>
 				{/if}
+				{#if tradeStreakText && streaks}
+					<span class="text-gray-600">·</span>
+					<div class="flex items-center gap-1.5" title="สตรีคสูงสุด: {streaks.trade.longestWin}W / {streaks.trade.longestLoss}L">
+						<span class="text-gray-400">🔥 Streak</span>
+						<span class="font-medium {tradeStreakClass}">{tradeStreakText}</span>
+					</div>
+				{/if}
+				{#if dayStreakText && streaks}
+					<span class="text-gray-600">·</span>
+					<div class="flex items-center gap-1.5" title="สตรีคสูงสุด (วัน): {streaks.day.longestWin}W / {streaks.day.longestLoss}L">
+						<span class="text-gray-400">📅 วัน</span>
+						<span class="font-medium {dayStreakClass}">{dayStreakText}</span>
+					</div>
+				{/if}
+				{#if showWeeklyNudge}
+					<span class="text-gray-600">·</span>
+					<a
+						href="/portfolio/analytics"
+						class="flex items-center gap-1 text-brand-primary hover:text-brand-primary/80 font-medium"
+						title="AI วิเคราะห์ performance, patterns, และแผนสัปดาห์หน้า"
+					>
+						<span>📊 สรุปสัปดาห์ที่แล้ว</span>
+						<span>→</span>
+					</a>
+				{/if}
 			</div>
 		</div>
 
@@ -422,6 +474,20 @@
 		</div>
 		{/if}
 
+		<!-- ── Risk of Ruin + Monthly Goal ────────────────────────────────── -->
+		{#if rowVisibility.riskRow}
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+			<div class="card">
+				<DeferRender>
+					<RiskOfRuinGauge data={riskOfRuin} />
+				</DeferRender>
+			</div>
+			<DeferRender>
+				<MonthlyGoalCard data={monthlyGoal} />
+			</DeferRender>
+		</div>
+		{/if}
+
 		<!-- ── Today's Insight + Session Breakdown + Weekly Nudge ─────────── -->
 		{#if todaySummary}
 			<div class="card space-y-3">
@@ -458,19 +524,6 @@
 					<DayInsightsSection insights={todayInsights} />
 				{/if}
 			</div>
-		{/if}
-
-		{#if showWeeklyNudge}
-			<a href="/portfolio/analytics" class="card flex items-center justify-between gap-3 hover:border-brand-primary/40 transition-colors">
-				<div class="flex items-center gap-3">
-					<span class="text-2xl">📊</span>
-					<div>
-						<p class="text-sm font-medium text-white">สรุปสัปดาห์ที่แล้วพร้อมแล้ว</p>
-						<p class="text-xs text-gray-400">AI วิเคราะห์ performance, patterns, และแผนสัปดาห์หน้า</p>
-					</div>
-				</div>
-				<span class="text-brand-primary text-sm shrink-0">สร้าง →</span>
-			</a>
 		{/if}
 
 		<!-- ── Row B: Radar | Activity Heatmap | Cumulative P&L ─────────── -->
@@ -631,6 +684,13 @@
 				</DeferRender>
 			</div>
 		</div>
+		{/if}
+
+		<!-- ── Best / Worst Trade Highlights ──────────────────────────────── -->
+		{#if rowVisibility.highlightsRow && (bestWorst?.best || bestWorst?.worst)}
+			<DeferRender>
+				<BestWorstCard best={bestWorst.best} worst={bestWorst.worst} />
+			</DeferRender>
 		{/if}
 
 		<!-- ── Row D: Calendar (2/3) + Drawdown (1/3) ────────────────────── -->

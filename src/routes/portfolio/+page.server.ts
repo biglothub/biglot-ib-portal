@@ -8,7 +8,11 @@ import {
 	buildFilterOptions,
 	buildKpiMetrics,
 	buildReportExplorer,
-	buildReviewSummary
+	buildReviewSummary,
+	buildRiskOfRuin,
+	buildStreakMetrics,
+	buildBestWorstTrades,
+	buildMonthlyPnlGoalProgress
 } from '$lib/server/portfolio';
 import { calculateHealthScore, evaluateDayInsights } from '$lib/server/insights/engine';
 import { createSupabaseServiceClient } from '$lib/server/supabase';
@@ -41,7 +45,11 @@ export const load: PageServerLoad = async ({ parent, locals, url, depends }) => 
 			todayInsights: [],
 			todaySummary: null,
 			sessionBreakdown: [],
-			showWeeklyNudge: false
+			showWeeklyNudge: false,
+			riskOfRuin: null,
+			streaks: null,
+			bestWorst: { best: null, worst: null },
+			monthlyGoal: null
 		};
 	}
 
@@ -96,6 +104,11 @@ export const load: PageServerLoad = async ({ parent, locals, url, depends }) => 
 	const drawdownHistory = buildDrawdownHistory(dailyHistory, startingBalance);
 	const reviewSummary = buildReviewSummary(trades);
 	const kpiMetrics = buildKpiMetrics(trades, dailyHistory, startingBalance);
+	const latestBalance = Number(baseData.dailyStats[baseData.dailyStats.length - 1]?.balance || startingBalance || 0);
+	const riskOfRuin = buildRiskOfRuin(kpiMetrics, latestBalance);
+	const streaks = buildStreakMetrics(trades, dailyHistory);
+	const bestWorst = buildBestWorstTrades(trades);
+	const monthlyGoal = buildMonthlyPnlGoalProgress(trades, baseData.progressGoals);
 	const todayJournal = baseData.journals.find((journal: DailyJournal) => journal.date === today) || null;
 
 	// Build command center from already-computed data (avoid duplicate computation)
@@ -213,6 +226,10 @@ export const load: PageServerLoad = async ({ parent, locals, url, depends }) => 
 		todayInsights,
 		todaySummary,
 		sessionBreakdown,
-		showWeeklyNudge
+		showWeeklyNudge,
+		riskOfRuin,
+		streaks,
+		bestWorst,
+		monthlyGoal
 	};
 };

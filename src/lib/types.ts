@@ -218,7 +218,8 @@ export interface ProgressGoal {
 		| 'journal_streak'
 		| 'max_rule_breaks'
 		| 'profit_factor'
-		| 'win_rate';
+		| 'win_rate'
+		| 'monthly_pnl';
 	target_value: number;
 	period_days: number;
 	is_active: boolean;
