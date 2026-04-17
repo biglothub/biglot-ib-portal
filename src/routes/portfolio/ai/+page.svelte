@@ -429,17 +429,14 @@
 			chats={chats}
 			filteredChats={filteredChats}
 			currentChatId={currentChatId}
-			currentMode={currentMode}
 			searchQuery={searchQuery}
 			sidebarOpen={sidebarOpen}
 			desktopCollapsed={desktopSidebarCollapsed}
-			modeOptions={TRADEPILOT_MODE_OPTIONS}
 			{formatChatTime}
 			onToggleSidebar={toggleSidebar}
 			onCreateChat={createChat}
 			onSelectChat={handleSelectChat}
 			onArchiveCurrent={archiveCurrentChat}
-			onModeChange={setMode}
 			onSearchChange={(query) => { searchQuery = query; }}
 		/>
 
@@ -474,11 +471,9 @@
 				{#if !hasMessages}
 					<div class="tradepilot-empty-wrap">
 						<TradePilotEmptyState
-							mode={currentMode}
 							modeMeta={activeModeMeta}
 							prompts={TRADEPILOT_STARTER_PROMPTS[currentMode]}
 							onSendStarter={sendMessage}
-							onSetPrompt={setPrompt}
 						/>
 					</div>
 				{:else}

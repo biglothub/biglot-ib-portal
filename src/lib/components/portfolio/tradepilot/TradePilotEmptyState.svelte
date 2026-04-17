@@ -1,17 +1,13 @@
 <script lang="ts">
-	import type { BigLotAiMode } from '$lib/types';
 	import type { TradePilotModeOption } from '$lib/tradepilot';
 
 	interface Props {
-		mode: BigLotAiMode;
 		modeMeta: TradePilotModeOption;
 		prompts: string[];
 		onSendStarter?: (prompt: string) => void;
-		onSetPrompt?: (prompt: string) => void;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	let { mode: _mode, modeMeta, prompts, onSendStarter, onSetPrompt: _onSetPrompt }: Props = $props();
+	let { modeMeta, prompts, onSendStarter }: Props = $props();
 </script>
 
 <div class="tp-empty">

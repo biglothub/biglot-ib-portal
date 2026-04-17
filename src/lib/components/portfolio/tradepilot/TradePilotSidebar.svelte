@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { BigLotAiChat, BigLotAiMode } from '$lib/types';
-	import type { TradePilotModeOption } from '$lib/tradepilot';
+	import type { BigLotAiChat } from '$lib/types';
 
 	interface Props {
 		sidebarOpen: boolean;
@@ -9,15 +8,12 @@
 		chats: BigLotAiChat[];
 		filteredChats: BigLotAiChat[];
 		currentChatId: string | null;
-		currentMode: BigLotAiMode;
 		searchQuery: string;
-		modeOptions: TradePilotModeOption[];
 		formatChatTime: (value: string | null) => string;
 		onToggleSidebar?: () => void;
 		onCreateChat?: () => void;
 		onSelectChat?: (chatId: string) => void;
 		onArchiveCurrent?: () => void;
-		onModeChange?: (mode: BigLotAiMode) => void;
 		onSearchChange?: (query: string) => void;
 	}
 
@@ -79,28 +75,30 @@
 		{:else}
 			<div class="tp-rail__history-list">
 				{#each filteredChats as chat}
-					<button
-						type="button"
+					<div
 						class="tp-rail__history-item {currentChatId === chat.id ? 'is-active' : ''}"
-						onclick={() => onSelectChat?.(chat.id)}
 						title={formatChatTime(chat.last_message_at)}
 					>
-						<span class="tp-rail__history-icon" aria-hidden="true">●</span>
-						<span class="tp-rail__history-title">{chat.title || 'TradePilot'}</span>
+						<button
+							type="button"
+							class="tp-rail__history-select"
+							onclick={() => onSelectChat?.(chat.id)}
+						>
+							<span class="tp-rail__history-icon" aria-hidden="true">●</span>
+							<span class="tp-rail__history-title">{chat.title || 'TradePilot'}</span>
+						</button>
 						{#if currentChatId === chat.id}
-							<span
-								role="button"
-								tabindex="0"
+							<button
+								type="button"
 								class="tp-rail__history-delete"
-								onclick={(e) => { e.stopPropagation(); onArchiveCurrent?.(); }}
-								onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onArchiveCurrent?.(); } }}
+								onclick={() => onArchiveCurrent?.()}
 								title="Archive chat"
 								aria-label="Archive chat"
 							>
 								✕
-							</span>
+							</button>
 						{/if}
-					</button>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -266,6 +264,20 @@
 		background: rgba(216, 184, 108, 0.09);
 	}
 
+	.tp-rail__history-select {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		flex: 1 1 0;
+		min-width: 0;
+		border: 0;
+		background: transparent;
+		padding: 0;
+		text-align: left;
+		color: inherit;
+		cursor: pointer;
+	}
+
 	.tp-rail__history-icon {
 		flex-shrink: 0;
 		font-size: 0.45rem;
@@ -297,6 +309,7 @@
 		color: rgba(248, 113, 113, 0.7);
 		transition: opacity 140ms ease, background-color 140ms ease;
 		padding: 0;
+		cursor: pointer;
 	}
 
 	.tp-rail__history-item:hover .tp-rail__history-delete,
@@ -307,6 +320,13 @@
 	.tp-rail__history-delete:hover {
 		background: rgba(248, 113, 113, 0.12);
 		color: rgba(248, 113, 113, 0.95);
+	}
+
+	/* On touch devices (no hover), keep the archive button visible for the active chat. */
+	@media (hover: none) {
+		.tp-rail__history-item.is-active .tp-rail__history-delete {
+			opacity: 1;
+		}
 	}
 
 	.tp-rail__empty {
