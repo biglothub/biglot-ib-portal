@@ -146,7 +146,8 @@
 		syncingNow = true;
 		syncError = null;
 		try {
-			const res = await fetch('/api/portfolio/sync-trigger', { method: 'POST' });
+			const qs = account?.id ? `?account_id=${encodeURIComponent(account.id)}` : '';
+			const res = await fetch(`/api/portfolio/sync-trigger${qs}`, { method: 'POST' });
 			if (res.status === 429) {
 				syncError = 'กรุณารอ 60 วินาทีก่อน Sync ใหม่';
 			} else if (!res.ok) {

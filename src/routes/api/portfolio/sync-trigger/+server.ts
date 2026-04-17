@@ -1,8 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
+import { getAccessiblePortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
 import { invalidateBaseDataCache } from '$lib/server/portfolio';
 import { invalidateLayoutCache } from '$lib/server/layout-cache';
+import { createSupabaseServiceClient } from '$lib/server/supabase';
 import { sendTradeSync } from '$lib/server/webhooks';
 import type { Trade } from '$lib/types';
 import type { RequestHandler } from './$types';
@@ -15,7 +16,7 @@ import type { RequestHandler } from './$types';
  * so the next bridge cycle is treated as user-initiated. The client should
  * invalidate its data after receiving a success response.
  */
-export const POST: RequestHandler = async ({ locals }) => {
+export const POST: RequestHandler = async ({ locals, url }) => {
 	const profile = locals.profile;
 	if (!profile || profile.role !== 'client') {
 		return json({ message: 'ไม่ได้รับอนุญาต' }, { status: 403 });
@@ -26,18 +27,34 @@ export const POST: RequestHandler = async ({ locals }) => {
 		return json({ message: 'Too many requests — wait 60 seconds before syncing again' }, { status: 429 });
 	}
 
-	const account = await getApprovedPortfolioAccount(locals.supabase);
+	// Resolve the currently-viewed account (supports multi-account users).
+	// SELECT runs through locals.supabase so RLS enforces ownership.
+	const requestedAccountId = url.searchParams.get('account_id');
+	const account = await getAccessiblePortfolioAccount(locals.supabase, {
+		userId: profile.id,
+		requestedAccountId,
+		selectedAccountId: typeof locals.selectedAccountId === 'string' ? locals.selectedAccountId : null
+	});
 	if (!account) {
 		return json({ message: 'No approved account' }, { status: 404 });
 	}
 
 	// Write a sync_requested_at timestamp — the bridge picks this up on its
 	// next cycle and treats it as an immediate-priority sync.
+	//
+	// client_accounts has no RLS UPDATE policy for role=client (migration 001
+	// only granted SELECT), so a user-scoped update silently affects 0 rows.
+	// Use the service client and guard by user_id to enforce ownership.
 	const now = new Date().toISOString();
-	await locals.supabase
+	const service = createSupabaseServiceClient();
+	const { error: updateError, count } = await service
 		.from('client_accounts')
-		.update({ sync_requested_at: now })
-		.eq('id', account.id);
+		.update({ sync_requested_at: now }, { count: 'exact' })
+		.eq('id', account.id)
+		.eq('user_id', profile.id);
+	if (updateError || !count) {
+		return json({ message: 'ไม่สามารถสั่ง Sync ได้' }, { status: 500 });
+	}
 
 	// Invalidate all caches so the next page load fetches fresh data after sync.
 	// Layout cache holds last_synced_at + bridge status — without this the
