@@ -28,6 +28,14 @@ EQUITY_INTERVAL_MINUTES = int(os.getenv('EQUITY_INTERVAL_MINUTES', '5'))
 SERVER_OFFSET = int(os.getenv('SERVER_OFFSET', '10800'))  # 3 hours default
 TRADE_START = datetime(2024, 1, 1, tzinfo=timezone.utc)
 
+# --- Smart scheduler (seconds between syncs per tier) ---
+TIER_INTERVAL_LIVE = int(os.getenv('TIER_INTERVAL_LIVE', '30'))       # has open positions
+TIER_INTERVAL_ACTIVE = int(os.getenv('TIER_INTERVAL_ACTIVE', '120'))  # closed trade < 4h ago
+TIER_INTERVAL_NORMAL = int(os.getenv('TIER_INTERVAL_NORMAL', '900'))  # 15 min default
+TIER_INTERVAL_IDLE = int(os.getenv('TIER_INTERVAL_IDLE', '1800'))     # 30 min — no recent activity
+TIER_INTERVAL_CLOSED = int(os.getenv('TIER_INTERVAL_CLOSED', '3600')) # market closed (weekend)
+ACTIVE_TRADE_WINDOW_HOURS = int(os.getenv('ACTIVE_TRADE_WINDOW_HOURS', '4'))
+
 # --- Performance settings ---
 MAX_WORKERS = int(os.getenv('MAX_WORKERS', '5'))
 RETRY_ATTEMPTS = int(os.getenv('RETRY_ATTEMPTS', '3'))

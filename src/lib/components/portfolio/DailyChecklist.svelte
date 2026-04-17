@@ -103,6 +103,21 @@
 		}
 	}
 
+	// Delete a manual rule
+	async function deleteRule(ruleId: string) {
+		saving = true;
+		try {
+			await fetch('/api/portfolio/checklist', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'delete_rule', rule_id: ruleId })
+			});
+			onupdate?.();
+		} finally {
+			saving = false;
+		}
+	}
+
 	// Auto rule status label
 	function autoStatusLabel(rule: ChecklistRule) {
 		const val = getAutoValue(rule.id);
@@ -139,27 +154,39 @@
 	{#if manualRules.length > 0}
 		<div class="text-[10px] uppercase tracking-wider text-gray-400 mt-2">ทำเอง</div>
 		{#each manualRules as rule}
-			<button
-				role="checkbox"
-				aria-checked={isCompleted(rule.id)}
-				aria-label={rule.name}
-				onclick={() => toggleRule(rule.id)}
-				disabled={saving}
-				class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors
-					{isCompleted(rule.id) ? 'bg-green-500/10' : 'bg-dark-bg/30 hover:bg-dark-bg/50'}"
-			>
-				<div class="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0
-					{isCompleted(rule.id) ? 'border-green-500 bg-green-500' : 'border-gray-600'}">
-					{#if isCompleted(rule.id)}
-						<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-						</svg>
-					{/if}
-				</div>
-				<span class="text-sm {isCompleted(rule.id) ? 'text-gray-400 line-through' : 'text-gray-200'}">
-					{rule.name}
-				</span>
-			</button>
+			<div class="group flex items-center gap-2 rounded-xl px-3 py-2.5 transition-colors
+				{isCompleted(rule.id) ? 'bg-green-500/10' : 'bg-dark-bg/30 hover:bg-dark-bg/50'}">
+				<button
+					role="checkbox"
+					aria-checked={isCompleted(rule.id)}
+					aria-label={rule.name}
+					onclick={() => toggleRule(rule.id)}
+					disabled={saving}
+					class="flex items-center gap-3 flex-1 text-left"
+				>
+					<div class="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0
+						{isCompleted(rule.id) ? 'border-green-500 bg-green-500' : 'border-gray-600'}">
+						{#if isCompleted(rule.id)}
+							<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+							</svg>
+						{/if}
+					</div>
+					<span class="text-sm {isCompleted(rule.id) ? 'text-gray-400 line-through' : 'text-gray-200'}">
+						{rule.name}
+					</span>
+				</button>
+				<button
+					onclick={() => deleteRule(rule.id)}
+					disabled={saving}
+					aria-label="ลบกฎ"
+					class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-600 hover:text-red-400"
+				>
+					<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
 		{/each}
 	{/if}
 

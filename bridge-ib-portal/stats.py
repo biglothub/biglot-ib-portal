@@ -168,6 +168,11 @@ def build_daily_stats_row(
             cur_wins = 0
             cur_losses = 0
 
+    commission_total = sum(float(trade.get('commission') or 0) for trade in day_trades)
+    swap_total = sum(float(trade.get('swap') or 0) for trade in day_trades)
+    gross_profit_total = sum(float(trade['profit']) for trade in day_trades)
+    net_profit = gross_profit_total + commission_total + swap_total
+
     total_lots = sum(float(trade['lot_size']) for trade in day_trades)
     symbol_counts: defaultdict[str, int] = defaultdict(int)
     for trade in day_trades:
@@ -241,7 +246,10 @@ def build_daily_stats_row(
         'date': day.isoformat(),
         'balance': round(balance, 2),
         'equity': round(equity, 2),
-        'profit': round(sum(float(trade['profit']) for trade in day_trades), 2),
+        'profit': round(gross_profit_total, 2),
+        'commission_total': round(commission_total, 2),
+        'swap_total': round(swap_total, 2),
+        'net_profit': round(net_profit, 2),
         'floating_pl': round(floating_pl, 2),
         'margin_level': round(margin_level, 2) if margin_level is not None else None,
         'total_lots': round(total_lots, 2),
@@ -280,7 +288,7 @@ def recompute_daily_stats_for_account(
     replace_existing: bool = False
 ) -> int:
     trades_resp = supabase.table('trades') \
-        .select('profit, type, symbol, lot_size, open_time, close_time') \
+        .select('profit, type, symbol, lot_size, open_time, close_time, commission, swap') \
         .eq('client_account_id', account_id) \
         .execute()
     snapshots_resp = supabase.table('equity_snapshots') \

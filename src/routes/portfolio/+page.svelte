@@ -23,12 +23,13 @@
 	import { marketNewsStore } from '$lib/stores/newsStore';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { subscribeOpenPositions, type OpenPositionRow } from '$lib/realtime/openPositions';
 
 	let { data } = $props();
 
 	let {
 		latestStats,
-		openPositions,
+		openPositions: ssrOpenPositions,
 		recentTrades,
 		allFilteredTrades,
 		dailyHistory,
@@ -59,6 +60,26 @@
 
 	let startMyDayOpen = $state(false);
 	let tradesTab = $state<'recent' | 'open'>('recent');
+
+	// Live open positions — initialized from SSR, kept in sync via Supabase Realtime.
+	let livePositions = $state<OpenPositionRow[]>([]);
+	$effect(() => {
+		livePositions = (ssrOpenPositions ?? []) as OpenPositionRow[];
+	});
+	const openPositions = $derived(livePositions);
+
+	$effect(() => {
+		const accountId = data.account?.id;
+		if (!accountId) return;
+		const unsubscribe = subscribeOpenPositions(
+			accountId,
+			(ssrOpenPositions ?? []) as OpenPositionRow[],
+			(next) => {
+				livePositions = next;
+			}
+		);
+		return unsubscribe;
+	});
 	let aiCoachExpanded = $state(false);
 	let settingsButtonEl = $state<HTMLButtonElement | null>(null);
 	let settingsPanelEl = $state<HTMLDivElement | null>(null);

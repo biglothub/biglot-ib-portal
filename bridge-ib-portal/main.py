@@ -37,6 +37,8 @@ from core import (
 )
 from stats import close_trade_dates_from_rows, recompute_daily_stats_for_account
 from health import update_health
+from scheduler import classify_tier, next_sync_at
+from failures import record_sync_failure, resolve_sync_failures
 
 log = logging.getLogger('bridge.main')
 
@@ -126,13 +128,19 @@ def _format_chart_bars(rates):
     return bars
 
 
-def build_trade_chart_context_rows(mt5_module, trade_rows):
+def fetch_trade_chart_bars(mt5_module, trade_rows):
+    """Fetch M5 bars for newly-synced trades. MUST be called while holding _mt5_lock.
+
+    Returns dict keyed by position_id -> {symbol, window_start, window_end, bars}.
+    Trade IDs are not known yet (trades upsert happens after lock release), so the
+    caller stitches them in after Supabase returns.
+    """
     timeframe = getattr(mt5_module, 'TIMEFRAME_M5', None)
     copy_rates_range = getattr(mt5_module, 'copy_rates_range', None)
     if timeframe is None or copy_rates_range is None:
-        return []
+        return {}
 
-    rows = []
+    out: dict[int, dict] = {}
     for trade in trade_rows:
         open_time = _parse_iso_datetime(trade['open_time'])
         close_time = _parse_iso_datetime(trade['close_time'])
@@ -151,17 +159,70 @@ def build_trade_chart_context_rows(mt5_module, trade_rows):
         if not bars:
             continue
 
-        rows.append({
-            'trade_id': trade['id'],
+        out[trade['position_id']] = {
             'symbol': normalize_symbol(trade['symbol']),
-            'timeframe': CHART_CONTEXT_TIMEFRAME,
             'window_start': window_start.isoformat(),
             'window_end': window_end.isoformat(),
             'bars': bars,
-            'updated_at': datetime.now(timezone.utc).isoformat()
-        })
+        }
+    return out
 
-    return rows
+
+def _build_trades_from_deals(account_id, deals):
+    """Group raw MT5 deals by position_id and produce trade rows ready for upsert.
+    Pure CPU — safe to call inside or outside the MT5 lock.
+    """
+    trades = []
+    if not deals:
+        return trades
+
+    position_deals = defaultdict(list)
+    for deal in deals:
+        if deal.entry in [0, 1]:
+            position_deals[deal.position_id].append(deal)
+
+    for pos_id, pos_deals in position_deals.items():
+        entry = next((d for d in pos_deals if d.entry == 0), None)
+        exits = [d for d in pos_deals if d.entry == 1]
+        if not entry or not exits:
+            continue
+
+        symbol = normalize_symbol(entry.symbol)
+        trade_type = 'BUY' if entry.type == 0 else 'SELL'
+        pip_size = get_pip_size(symbol)
+
+        total_exit_volume = sum(d.volume for d in exits)
+        if total_exit_volume > 0:
+            close_price = sum(d.price * d.volume for d in exits) / total_exit_volume
+        else:
+            close_price = exits[0].price
+
+        total_profit = sum(d.profit for d in exits)
+        total_commission = sum(getattr(d, 'commission', 0) or 0 for d in pos_deals)
+        total_swap = sum(getattr(d, 'swap', 0) or 0 for d in pos_deals)
+
+        if trade_type == 'BUY':
+            pips = (close_price - entry.price) / pip_size
+        else:
+            pips = (entry.price - close_price) / pip_size
+
+        trades.append({
+            'client_account_id': account_id,
+            'symbol': symbol,
+            'type': trade_type,
+            'lot_size': entry.volume,
+            'open_price': entry.price,
+            'close_price': round(close_price, 5),
+            'open_time': datetime.fromtimestamp(entry.time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
+            'close_time': datetime.fromtimestamp(exits[-1].time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
+            'profit': total_profit,
+            'commission': round(total_commission, 2),
+            'swap': round(total_swap, 2),
+            'sl': None, 'tp': None,
+            'position_id': pos_id,
+            'pips': round(pips, 1),
+        })
+    return trades
 
 
 # --- MT5 global lock (MT5 Python is NOT thread-safe) ---
@@ -182,28 +243,66 @@ def _should_skip_account(account_id):
     return False
 
 
-def _record_failure(account_id):
+def _record_failure(account, error_msg, error_code='unknown'):
+    """Count failure, back off next_sync_at, and open a DLQ row on threshold breach."""
+    account_id = account['id']
     info = _account_failures.setdefault(account_id, {'consecutive': 0, 'skip_until_cycle': 0})
     info['consecutive'] += 1
+
+    # DB: persist sync_error and push back next_sync_at (exponential backoff capped at idle tier).
+    now = datetime.now(timezone.utc)
+    from config import TIER_INTERVAL_IDLE, TIER_INTERVAL_NORMAL
+    backoff_seconds = min(TIER_INTERVAL_NORMAL * (2 ** info['consecutive']), TIER_INTERVAL_IDLE)
+    try:
+        supabase.table('client_accounts').update({
+            'sync_error': error_msg,
+            'last_synced_at': now.isoformat(),
+            'next_sync_at': (now + timedelta(seconds=backoff_seconds)).isoformat(),
+            'sync_requested_at': None,
+        }).eq('id', account_id).execute()
+    except Exception as e:
+        log.warning(f"Failed to persist sync_error for {mask_account_id(account_id)}: {e}")
+
     if info['consecutive'] >= CONSECUTIVE_FAIL_THRESHOLD:
         info['skip_until_cycle'] = _cycle_count + CONSECUTIVE_FAIL_SKIP_CYCLES
         log.warning(
             f"Account {mask_account_id(account_id)} failed {info['consecutive']} times consecutively, "
             f"skipping next {CONSECUTIVE_FAIL_SKIP_CYCLES} cycles"
         )
+        # Open a dead-letter row + notify IB + admin (idempotent for the open row).
+        try:
+            record_sync_failure(account, error_msg, info['consecutive'], error_code)
+        except Exception as e:
+            log.error(f"record_sync_failure error: {e}")
 
 
 def _record_success(account_id):
-    if account_id in _account_failures:
+    was_failing = account_id in _account_failures
+    if was_failing:
         del _account_failures[account_id]
+        # Close any open DLQ entries now that sync recovered.
+        try:
+            resolve_sync_failures(account_id)
+        except Exception as e:
+            log.warning(f"resolve_sync_failures error: {e}")
 
 
 # --- Account fetching ---
-def get_approved_accounts():
-    """Fetch only approved client accounts."""
+_ACCOUNT_FIELDS = (
+    'id, client_name, mt5_account_id, mt5_investor_password, mt5_server, '
+    'master_ib_id, sync_count, last_synced_at, sync_requested_at, '
+    'next_sync_at, sync_tier, avg_sync_duration_ms'
+)
+
+
+def get_due_accounts():
+    """Fetch approved accounts whose next_sync_at has passed, plus any with a manual sync request."""
+    now_iso = datetime.now(timezone.utc).isoformat()
+    # Two queries OR'd via Supabase .or_() — accounts due OR with manual request pending.
     response = supabase.table('client_accounts') \
-        .select('id, client_name, mt5_account_id, mt5_investor_password, mt5_server, master_ib_id, sync_count, last_synced_at, sync_requested_at') \
+        .select(_ACCOUNT_FIELDS) \
         .eq('status', 'approved') \
+        .or_(f'next_sync_at.lte.{now_iso},sync_requested_at.not.is.null') \
         .execute()
     return response.data or []
 
@@ -309,6 +408,7 @@ def sync_client_account(account):
     account_id = account['id']
     mt5_id = int(account['mt5_account_id'])
     masked_id = mask_account_id(account['mt5_account_id'])
+    sync_start = time.time()
 
     try:
         # MT5 is NOT thread-safe — acquire lock for all MT5 calls
@@ -321,25 +421,24 @@ def sync_client_account(account):
             )
             if not authorized:
                 error_msg = f"Login failed: {mt5.last_error()}"
-                supabase.table('client_accounts').update({
-                    'sync_error': error_msg,
-                    'last_synced_at': datetime.now(timezone.utc).isoformat()
-                }).eq('id', account_id).execute()
                 log.warning(f"[{masked_id}] {error_msg}")
-                _record_failure(account_id)
+                _record_failure(account, error_msg, error_code='mt5_login')
                 return False
 
             info = mt5.account_info()
             if not info:
-                supabase.table('client_accounts').update({
-                    'sync_error': 'account_info() returned None',
-                    'last_synced_at': datetime.now(timezone.utc).isoformat()
-                }).eq('id', account_id).execute()
                 log.warning(f"[{masked_id}] account_info() returned None")
-                _record_failure(account_id)
+                _record_failure(account, 'account_info() returned None', error_code='mt5_fetch')
                 return False
 
             now = datetime.now(timezone.utc)
+
+            # Snapshot primitive state so the rest runs without MT5 access.
+            info_snapshot = {
+                'balance': info.balance,
+                'equity': info.equity,
+                'margin_level': info.margin_level if info.margin_level else None,
+            }
 
             # 2. Open positions
             positions = mt5.positions_get()
@@ -356,7 +455,14 @@ def sync_client_account(account):
             _to = fetch_to + timedelta(days=1)
             deals = mt5.history_deals_get(_from, _to)
             log.info(f"[{masked_id}] history_deals_get({fetch_from.date()} -> {fetch_to.date()}): {len(deals) if deals is not None else 'None'} deals, last_error={mt5.last_error()}")
-        # --- MT5 lock released — Supabase operations below ---
+
+            # 4. Build trades_to_upsert INSIDE the lock so we can fetch chart bars
+            #    while MT5 session is still authenticated to this account.
+            trades_to_upsert = _build_trades_from_deals(account_id, deals)
+
+            # 5. Chart context bars (M5) — only fetched for newly synced trades.
+            chart_bars_by_position = fetch_trade_chart_bars(mt5, trades_to_upsert)
+        # --- MT5 lock released — remaining work is pure Supabase I/O ---
 
         # 1. Equity snapshot (every N minutes)
         minute = now.minute
@@ -369,10 +475,10 @@ def sync_client_account(account):
                 lambda: supabase.table('equity_snapshots').upsert({
                     'client_account_id': account_id,
                     'timestamp': timestamp.isoformat(),
-                    'balance': info.balance,
-                    'equity': info.equity,
-                    'floating_pl': info.equity - info.balance,
-                    'margin_level': info.margin_level if info.margin_level else None
+                    'balance': info_snapshot['balance'],
+                    'equity': info_snapshot['equity'],
+                    'floating_pl': info_snapshot['equity'] - info_snapshot['balance'],
+                    'margin_level': info_snapshot['margin_level'],
                 }, on_conflict='client_account_id,timestamp').execute(),
                 description=f"equity_snapshot [{masked_id}]"
             )
@@ -422,79 +528,43 @@ def sync_client_account(account):
                     .execute()
             log.debug(f"[{masked_id}] Cleaned {len(stale_ids)} stale positions")
 
-        trades_to_upsert = []
-        if deals:
-            position_deals = defaultdict(list)
-            for deal in deals:
-                if deal.entry in [0, 1]:
-                    position_deals[deal.position_id].append(deal)
-
-            for pos_id, pos_deals in position_deals.items():
-                entry = next((d for d in pos_deals if d.entry == 0), None)
-                exits = [d for d in pos_deals if d.entry == 1]
-                if not entry or not exits:
-                    continue
-
-                symbol = normalize_symbol(entry.symbol)
-                trade_type = 'BUY' if entry.type == 0 else 'SELL'
-
-                pip_size = get_pip_size(symbol)
-
-                # Weighted average close price for partial closes
-                total_exit_volume = sum(d.volume for d in exits)
-                if total_exit_volume > 0:
-                    close_price = sum(d.price * d.volume for d in exits) / total_exit_volume
-                else:
-                    close_price = exits[0].price
-
-                total_profit = sum(d.profit for d in exits)
-                total_commission = sum(getattr(d, 'commission', 0) or 0 for d in pos_deals)
-                total_swap = sum(getattr(d, 'swap', 0) or 0 for d in pos_deals)
-
-                if trade_type == 'BUY':
-                    pips = (close_price - entry.price) / pip_size
-                else:
-                    pips = (entry.price - close_price) / pip_size
-
-                trades_to_upsert.append({
-                    'client_account_id': account_id,
-                    'symbol': symbol,
-                    'type': trade_type,
-                    'lot_size': entry.volume,
-                    'open_price': entry.price,
-                    'close_price': round(close_price, 5),
-                    'open_time': datetime.fromtimestamp(entry.time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
-                    'close_time': datetime.fromtimestamp(exits[-1].time - SERVER_OFFSET, tz=timezone.utc).isoformat(),
-                    'profit': total_profit,
-                    'commission': round(total_commission, 2),
-                    'swap': round(total_swap, 2),
-                    'sl': None, 'tp': None,
-                    'position_id': pos_id,
-                    'pips': round(pips, 1)
-                })
-
+        if trades_to_upsert:
             log.info(f"[{masked_id}] trades_to_upsert: {len(trades_to_upsert)}")
-            if trades_to_upsert:
-                retry_supabase(
-                    lambda: supabase.table('trades').upsert(
-                        trades_to_upsert,
-                        on_conflict='client_account_id,position_id'
-                    ).execute(),
-                    description=f"trades upsert [{masked_id}]"
-                )
+            retry_supabase(
+                lambda: supabase.table('trades').upsert(
+                    trades_to_upsert,
+                    on_conflict='client_account_id,position_id'
+                ).execute(),
+                description=f"trades upsert [{masked_id}]"
+            )
 
-                synced_positions = {trade['position_id'] for trade in trades_to_upsert}
+            # Stitch chart bars (fetched inside the lock) onto trade IDs from Supabase.
+            if chart_bars_by_position:
+                synced_positions = set(chart_bars_by_position.keys())
                 existing_trades = supabase.table('trades') \
-                    .select('id, position_id, symbol, open_time, close_time') \
+                    .select('id, position_id') \
                     .eq('client_account_id', account_id) \
+                    .in_('position_id', list(synced_positions)) \
                     .execute()
-                chart_context_rows = build_trade_chart_context_rows(
-                    mt5,
-                    [
-                        trade for trade in (existing_trades.data or [])
-                        if trade.get('position_id') in synced_positions
-                    ]
-                )
+                trade_id_by_position = {
+                    row['position_id']: row['id']
+                    for row in (existing_trades.data or [])
+                }
+                now_iso = datetime.now(timezone.utc).isoformat()
+                chart_context_rows = []
+                for pos_id, ctx in chart_bars_by_position.items():
+                    trade_id = trade_id_by_position.get(pos_id)
+                    if not trade_id:
+                        continue
+                    chart_context_rows.append({
+                        'trade_id': trade_id,
+                        'symbol': ctx['symbol'],
+                        'timeframe': CHART_CONTEXT_TIMEFRAME,
+                        'window_start': ctx['window_start'],
+                        'window_end': ctx['window_end'],
+                        'bars': ctx['bars'],
+                        'updated_at': now_iso,
+                    })
                 if chart_context_rows:
                     retry_supabase(
                         lambda: supabase.table('trade_chart_context').upsert(
@@ -513,35 +583,58 @@ def sync_client_account(account):
             touched_dates=touched_dates,
             current_state={
                 'timestamp': now.isoformat(),
-                'balance': info.balance,
-                'equity': info.equity,
-                'floating_pl': info.equity - info.balance,
-                'margin_level': info.margin_level if info.margin_level else None
+                'balance': info_snapshot['balance'],
+                'equity': info_snapshot['equity'],
+                'floating_pl': info_snapshot['equity'] - info_snapshot['balance'],
+                'margin_level': info_snapshot['margin_level'],
             }
         )
 
-        # 5. Update sync status
+        # 5. Update sync status (incl. smart-scheduler tier & next run)
+        has_open = bool(current_tickets)
+        latest_close = None
+        if trades_to_upsert:
+            try:
+                latest_close = max(
+                    _parse_iso_datetime(t['close_time']) for t in trades_to_upsert
+                )
+            except Exception:
+                latest_close = None
+        if latest_close is None and account.get('last_synced_at'):
+            # Fall back to previous last_synced_at as a rough recency proxy.
+            latest_close = _parse_iso_datetime(account['last_synced_at'])
+
+        tier = classify_tier(has_open, latest_close, now)
+        duration_ms = int((time.time() - sync_start) * 1000)
+
+        # EMA over avg_sync_duration_ms (alpha=0.2); seed from prior value if present.
+        prior_avg = account.get('avg_sync_duration_ms')
+        if prior_avg and prior_avg > 0:
+            avg_duration = int(prior_avg * 0.8 + duration_ms * 0.2)
+        else:
+            avg_duration = duration_ms
+
         supabase.table('client_accounts').update({
             'last_synced_at': now.isoformat(),
             'sync_error': None,
             'sync_count': (account.get('sync_count') or 0) + 1,
-            'sync_requested_at': None
+            'sync_requested_at': None,
+            'sync_tier': tier,
+            'next_sync_at': next_sync_at(tier, now).isoformat(),
+            'last_sync_duration_ms': duration_ms,
+            'avg_sync_duration_ms': avg_duration,
         }).eq('id', account_id).execute()
 
         _record_success(account_id)
-        log.debug(f"[{masked_id}] Sync complete — {len(trades_to_upsert)} trades, {len(current_tickets)} positions")
+        log.debug(
+            f"[{masked_id}] Sync complete — {len(trades_to_upsert)} trades, "
+            f"{len(current_tickets)} positions, tier={tier}"
+        )
         return True
 
     except Exception as e:
         log.error(f"[{masked_id}] Sync error: {e}")
-        try:
-            supabase.table('client_accounts').update({
-                'sync_error': str(e),
-                'last_synced_at': datetime.now(timezone.utc).isoformat()
-            }).eq('id', account_id).execute()
-        except Exception:
-            pass
-        _record_failure(account_id)
+        _record_failure(account, str(e), error_code='unknown')
         return False
 
 
@@ -585,9 +678,9 @@ def main():
                 if validated or failed:
                     log.info(f"Validation: {validated} ok, {failed} failed")
 
-            # 2. Sync approved accounts (parallel)
+            # 2. Sync due accounts (parallel) — smart scheduler picks only those whose next_sync_at has passed
             if not _shutdown_event.is_set():
-                accounts = get_approved_accounts()
+                accounts = get_due_accounts()
                 accounts_to_sync = []
                 for acc in accounts:
                     if _should_skip_account(acc['id']):
