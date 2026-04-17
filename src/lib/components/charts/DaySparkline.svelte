@@ -7,7 +7,7 @@
 	const WIDTH = 160;
 
 	let path = $derived.by(() => {
-		if (data.length < 2) return { line: '', area: '' };
+		if (data.length < 1) return { line: '', area: '' };
 		const values = data.map((d) => d.value);
 		const minV = Math.min(0, ...values);
 		const maxV = Math.max(0, ...values);
@@ -15,11 +15,16 @@
 		const pad = height * 0.08;
 		const usableH = height - pad * 2;
 
-		const points = data.map((d, i) => {
-			const x = (i / (data.length - 1)) * WIDTH;
-			const y = pad + usableH - ((d.value - minV) / rangeV) * usableH;
-			return { x, y };
-		});
+		const points = data.length === 1
+			? [
+				{ x: 0, y: pad + usableH - ((0 - minV) / rangeV) * usableH },
+				{ x: WIDTH, y: pad + usableH - ((data[0].value - minV) / rangeV) * usableH }
+			]
+			: data.map((d, i) => {
+				const x = (i / (data.length - 1)) * WIDTH;
+				const y = pad + usableH - ((d.value - minV) / rangeV) * usableH;
+				return { x, y };
+			});
 
 		const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 		const area = `${line} L${WIDTH},${height} L0,${height} Z`;

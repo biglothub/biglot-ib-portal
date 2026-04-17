@@ -61,24 +61,19 @@
 	let startMyDayOpen = $state(false);
 	let tradesTab = $state<'recent' | 'open'>('recent');
 
-	// Live open positions — initialized from SSR, kept in sync via Supabase Realtime.
+	// Live open positions — seeded from SSR, then kept in sync via Supabase Realtime.
+	// Re-seed + re-subscribe whenever the account switches.
 	let livePositions = $state<OpenPositionRow[]>([]);
-	$effect(() => {
-		livePositions = (ssrOpenPositions ?? []) as OpenPositionRow[];
-	});
 	const openPositions = $derived(livePositions);
 
 	$effect(() => {
 		const accountId = data.account?.id;
+		const seed = (ssrOpenPositions ?? []) as OpenPositionRow[];
+		livePositions = seed;
 		if (!accountId) return;
-		const unsubscribe = subscribeOpenPositions(
-			accountId,
-			(ssrOpenPositions ?? []) as OpenPositionRow[],
-			(next) => {
-				livePositions = next;
-			}
-		);
-		return unsubscribe;
+		return subscribeOpenPositions(accountId, seed, (next) => {
+			livePositions = next;
+		});
 	});
 	let aiCoachExpanded = $state(false);
 	let settingsButtonEl = $state<HTMLButtonElement | null>(null);

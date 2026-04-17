@@ -107,11 +107,16 @@
 	async function deleteRule(ruleId: string) {
 		saving = true;
 		try {
-			await fetch('/api/portfolio/checklist', {
+			const res = await fetch('/api/portfolio/checklist', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ action: 'delete_rule', rule_id: ruleId })
 			});
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				alert(err.message || `ลบกฎไม่สำเร็จ (${res.status})`);
+				return;
+			}
 			onupdate?.();
 		} finally {
 			saving = false;
