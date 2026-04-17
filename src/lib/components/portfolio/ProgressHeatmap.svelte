@@ -70,50 +70,52 @@
 	});
 </script>
 
-<div class="space-y-3">
+<div class="heatmap-wrap space-y-4" style="--weeks: {weeks.length}">
 	<div class="flex items-center justify-between">
-		<h3 class="text-sm font-medium text-gray-400">ติดตามวินัย</h3>
+		<h3 class="text-base font-semibold text-gray-300">ติดตามวินัย</h3>
 		{#if streak > 0}
 			<div class="flex items-center gap-1.5 text-sm">
-				<span class="text-brand-primary font-bold">{streak}</span>
+				<span class="text-brand-primary font-bold text-base">{streak}</span>
 				<span class="text-gray-400">วันติดต่อกัน</span>
 			</div>
 		{/if}
 	</div>
 
-	<!-- Month labels -->
-	{#if monthLabels.length > 0}
-		<div class="flex gap-[3px] ml-8 text-[9px] text-gray-400">
-			{#each weeks as _, wi}
-				{@const label = monthLabels.find(m => m.weekIndex === wi)}
-				<div class="w-[12px] text-center">{label ? label.text : ''}</div>
-			{/each}
-		</div>
-	{/if}
-
 	<!-- Heatmap grid -->
-	<div class="flex gap-1">
-		<!-- Day labels -->
-		<div class="flex flex-col gap-[3px]">
+	<div class="heatmap-grid">
+		<!-- Month labels row (spans the week columns) -->
+		{#if monthLabels.length > 0}
+			<div class="heatmap-months">
+				{#each weeks as _, wi}
+					{@const label = monthLabels.find(m => m.weekIndex === wi)}
+					<div class="text-[11px] text-gray-400 text-center truncate">{label ? label.text : ''}</div>
+				{/each}
+			</div>
+		{:else}
+			<div></div>
+		{/if}
+
+		<!-- Day labels column -->
+		<div class="heatmap-days">
 			{#each dayLabels as label, i}
-				<div class="h-[12px] text-[9px] text-gray-400 leading-[12px] w-6 text-right pr-1">
+				<div class="text-[11px] text-gray-400 text-right pr-2 flex items-center justify-end">
 					{i % 2 === 1 ? label : ''}
 				</div>
 			{/each}
 		</div>
 
 		<!-- Cells -->
-		<div class="flex gap-[3px] overflow-x-auto">
+		<div class="heatmap-cells">
 			{#each weeks as week}
-				<div class="flex flex-col gap-[3px]">
+				<div class="heatmap-col">
 					{#each week as cell}
 						{#if cell}
 							<div
-								class="w-[12px] h-[12px] rounded-sm {cellColor(cell.rate)}"
+								class="heatmap-cell rounded {cellColor(cell.rate)}"
 								title="{cell.date}: สำเร็จ {cell.rate.toFixed(0)}%"
 							></div>
 						{:else}
-							<div class="w-[12px] h-[12px]"></div>
+							<div class="heatmap-cell"></div>
 						{/if}
 					{/each}
 				</div>
@@ -122,13 +124,63 @@
 	</div>
 
 	<!-- Legend -->
-	<div class="flex items-center gap-2 text-[10px] text-gray-400">
+	<div class="flex items-center gap-2 text-[12px] text-gray-400">
 		<span>น้อย</span>
-		<div class="w-[10px] h-[10px] rounded-sm bg-dark-border/30"></div>
-		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/15"></div>
-		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/30"></div>
-		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/50"></div>
-		<div class="w-[10px] h-[10px] rounded-sm bg-brand-primary/80"></div>
+		<div class="w-[14px] h-[14px] rounded bg-dark-border/30"></div>
+		<div class="w-[14px] h-[14px] rounded bg-brand-primary/15"></div>
+		<div class="w-[14px] h-[14px] rounded bg-brand-primary/30"></div>
+		<div class="w-[14px] h-[14px] rounded bg-brand-primary/50"></div>
+		<div class="w-[14px] h-[14px] rounded bg-brand-primary/80"></div>
 		<span>มาก</span>
 	</div>
 </div>
+
+<style>
+	.heatmap-wrap {
+		width: 100%;
+	}
+
+	.heatmap-grid {
+		display: grid;
+		grid-template-columns: 2rem 1fr;
+		grid-template-rows: auto auto;
+		gap: 0.25rem 0.5rem;
+		align-items: stretch;
+	}
+
+	.heatmap-months {
+		grid-column: 2;
+		grid-row: 1;
+		display: grid;
+		grid-template-columns: repeat(var(--weeks), 1fr);
+		gap: 3px;
+	}
+
+	.heatmap-days {
+		grid-column: 1;
+		grid-row: 2;
+		display: grid;
+		grid-template-rows: repeat(7, 1fr);
+		gap: 3px;
+	}
+
+	.heatmap-cells {
+		grid-column: 2;
+		grid-row: 2;
+		display: grid;
+		grid-template-columns: repeat(var(--weeks), 1fr);
+		gap: 3px;
+		min-width: 0;
+	}
+
+	.heatmap-col {
+		display: grid;
+		grid-template-rows: repeat(7, 1fr);
+		gap: 3px;
+	}
+
+	.heatmap-cell {
+		width: 100%;
+		aspect-ratio: 1 / 1;
+	}
+</style>
