@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { sanitizeHtml } from '$lib/utils';
 
-	let { role, content }: { role: 'user' | 'assistant'; content: string } = $props();
+	let { role, content, isStreaming = false }: { role: 'user' | 'assistant'; content: string; isStreaming?: boolean } = $props();
 
 	function renderMarkdown(text: string): string {
 		let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -51,9 +51,9 @@
 			}
 		);
 
-		html = html.replace(/^### (.+)$/gm, (_, content) => `<h4 class="ai-h3">${escapeHtml(content)}</h4>`);
-		html = html.replace(/^## (.+)$/gm, (_, content) => `<h3 class="ai-h2">${escapeHtml(content)}</h3>`);
-		html = html.replace(/^# (.+)$/gm, (_, content) => `<h2 class="ai-h1">${escapeHtml(content)}</h2>`);
+		html = html.replace(/^### (.+)$/gm, (_, c) => `<h4 class="ai-h3">${escapeHtml(c)}</h4>`);
+		html = html.replace(/^## (.+)$/gm, (_, c) => `<h3 class="ai-h2">${escapeHtml(c)}</h3>`);
+		html = html.replace(/^# (.+)$/gm, (_, c) => `<h2 class="ai-h1">${escapeHtml(c)}</h2>`);
 
 		html = html.replace(/((?:^- .+\n?)+)/gm, (block) => {
 			const items = block.trim().split('\n').map((line) => `<li>${applyInline(line.replace(/^- /, ''))}</li>`);
@@ -78,21 +78,34 @@
 	}
 
 	function applyInline(text: string): string {
-		text = text.replace(/\*\*(.+?)\*\*/g, (_, content) => `<strong>${escapeHtml(content)}</strong>`);
-		text = text.replace(/\*(.+?)\*/g, (_, content) => `<em>${escapeHtml(content)}</em>`);
-		text = text.replace(/`(.+?)`/g, (_, content) => `<code class="ai-code">${escapeHtml(content)}</code>`);
+		text = text.replace(/\*\*(.+?)\*\*/g, (_, c) => `<strong>${escapeHtml(c)}</strong>`);
+		text = text.replace(/\*(.+?)\*/g, (_, c) => `<em>${escapeHtml(c)}</em>`);
+		text = text.replace(/`(.+?)`/g, (_, c) => `<code class="ai-code">${escapeHtml(c)}</code>`);
 		return text;
 	}
 </script>
 
 <div class="ai-row {role === 'user' ? 'is-user' : 'is-assistant'}">
-	<div class="ai-dot" aria-hidden="true"></div>
-	<div class="ai-bubble ai-msg {role === 'user' ? 'is-user' : 'is-assistant'}">
+	<div class="ai-avatar" aria-hidden="true">
 		{#if role === 'assistant'}
-			<div class="ai-eyebrow">TradePilot</div>
+			<span>TP</span>
+		{:else}
+			<span>U</span>
 		{/if}
-		<div class="ai-content">
-			{@html sanitizeHtml(renderMarkdown(content))}
+	</div>
+
+	<div class="ai-content-wrap">
+		<div class="ai-label">
+			{role === 'assistant' ? 'TradePilot' : 'You'}
+		</div>
+
+		<div class="ai-bubble {role === 'user' ? 'is-user' : 'is-assistant'}">
+			<div class="ai-content ai-msg">
+				{@html sanitizeHtml(renderMarkdown(content))}
+				{#if isStreaming}
+					<span class="ai-cursor" aria-hidden="true"></span>
+				{/if}
+			</div>
 		</div>
 	</div>
 </div>
@@ -101,61 +114,98 @@
 	.ai-row {
 		display: flex;
 		align-items: flex-start;
-		gap: 0.7rem;
+		gap: 0.75rem;
+		max-width: 85%;
 	}
 
 	.ai-row.is-user {
 		flex-direction: row-reverse;
+		margin-left: auto;
 	}
 
-	.ai-dot {
-		width: 0.55rem;
-		height: 0.55rem;
-		flex: 0 0 auto;
-		margin-top: 0.9rem;
+	.ai-row.is-assistant {
+		margin-right: auto;
+	}
+
+	.ai-avatar {
+		flex-shrink: 0;
+		width: 2rem;
+		height: 2rem;
 		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.18);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.62rem;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		overflow: hidden;
 	}
 
-	.ai-row.is-user .ai-dot {
-		background: rgba(255, 255, 255, 0.28);
+	.ai-row.is-assistant .ai-avatar {
+		background: linear-gradient(135deg, rgba(216, 184, 108, 0.9), rgba(176, 140, 60, 0.75));
+		color: #1a1200;
+	}
+
+	.ai-row.is-user .ai-avatar {
+		background: rgba(255, 255, 255, 0.08);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: rgba(245, 245, 244, 0.7);
+	}
+
+	.ai-content-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		min-width: 0;
+	}
+
+	.ai-label {
+		font-size: 0.72rem;
+		font-weight: 600;
+		color: rgba(161, 161, 170, 0.65);
+		padding: 0 0.1rem;
 	}
 
 	.ai-bubble {
-		max-width: min(100%, 46rem);
-		border-radius: 0.95rem;
-		padding: 0.95rem 1.05rem;
 		font-size: 0.94rem;
 		line-height: 1.65;
 	}
 
-	.ai-bubble.is-assistant {
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		background:
-			linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.022));
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-		color: rgba(229, 231, 235, 0.95);
-	}
-
 	.ai-bubble.is-user {
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		background: rgba(255, 255, 255, 0.055);
+		background: rgba(216, 184, 108, 0.08);
+		border: 1px solid rgba(216, 184, 108, 0.15);
+		border-radius: 1.15rem;
+		border-bottom-right-radius: 0.35rem;
+		padding: 0.78rem 1rem;
 		color: rgba(250, 250, 250, 0.96);
 	}
 
-	.ai-eyebrow {
-		margin-bottom: 0.55rem;
-		font-size: 0.68rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: rgba(223, 194, 130, 0.9);
+	.ai-bubble.is-assistant {
+		background: transparent;
+		border: 0;
+		padding: 0;
+		color: rgba(229, 231, 235, 0.95);
 	}
 
-	.ai-content {
-		text-wrap: pretty;
+	/* Streaming cursor */
+	@keyframes tp-blink {
+		0%, 100% { opacity: 0.7; }
+		50% { opacity: 0; }
 	}
 
+	.ai-cursor {
+		display: inline-block;
+		width: 7px;
+		height: 1.05em;
+		margin-left: 2px;
+		background: currentColor;
+		opacity: 0.7;
+		border-radius: 1px;
+		vertical-align: text-bottom;
+		animation: tp-blink 0.6s steps(2) infinite;
+	}
+
+	/* Markdown content styles */
 	:global(.ai-msg p) {
 		margin: 0.38rem 0;
 	}
@@ -284,8 +334,8 @@
 	}
 
 	@media (max-width: 720px) {
-		.ai-bubble {
-			padding: 0.88rem 0.9rem;
+		.ai-bubble.is-user,
+		.ai-bubble.is-assistant {
 			font-size: 0.9rem;
 		}
 	}

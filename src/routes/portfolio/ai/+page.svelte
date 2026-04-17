@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import TradePilotComposer from '$lib/components/portfolio/tradepilot/TradePilotComposer.svelte';
 	import TradePilotEmptyState from '$lib/components/portfolio/tradepilot/TradePilotEmptyState.svelte';
 	import TradePilotMessageRow from '$lib/components/portfolio/tradepilot/TradePilotMessageRow.svelte';
@@ -26,6 +27,7 @@
 	let searchQuery = $state('');
 	let stickToBottom = $state(true);
 	let streamSummary = $state<string | null>(null);
+	let isDesktop = $state(false);
 
 	let currentAccountId = $derived($page.url.searchParams.get('account_id'));
 	let activeModeMeta = $derived(TRADEPILOT_MODE_OPTIONS.find((mode) => mode.value === currentMode) ?? TRADEPILOT_MODE_OPTIONS[0]);
@@ -35,6 +37,25 @@
 	let headerStatus = $derived(
 		loading ? streamSummary || 'Thinking through your account context' : ready ? 'Ready' : 'Loading'
 	);
+	let desktopSidebarCollapsed = $derived(isDesktop && !sidebarOpen);
+
+	onMount(() => {
+		const mediaQuery = window.matchMedia('(min-width: 1025px)');
+
+		const syncSidebar = (matches: boolean) => {
+			isDesktop = matches;
+			sidebarOpen = matches;
+		};
+
+		syncSidebar(mediaQuery.matches);
+
+		const handleChange = (event: MediaQueryListEvent) => {
+			syncSidebar(event.matches);
+		};
+
+		mediaQuery.addEventListener('change', handleChange);
+		return () => mediaQuery.removeEventListener('change', handleChange);
+	});
 
 	function apiQueryString(): string {
 		const params = new URLSearchParams();
@@ -67,6 +88,10 @@
 
 	function setPrompt(prompt: string): void {
 		input = prompt;
+	}
+
+	function toggleSidebar(): void {
+		sidebarOpen = !sidebarOpen;
 	}
 
 	async function copyMessage(messageId: string, content: string): Promise<void> {
@@ -394,23 +419,23 @@
 </svelte:head>
 
 <div class="tradepilot-shell">
-	{#if sidebarOpen}
+	{#if sidebarOpen && !isDesktop}
 		<button class="tradepilot-backdrop" type="button" onclick={() => { sidebarOpen = false; }} aria-label="Close history"></button>
 	{/if}
 
-	<div class="tradepilot-frame">
+	<div class="tradepilot-frame" class:is-sidebar-collapsed={desktopSidebarCollapsed}>
 		<TradePilotSidebar
 			{ready}
 			chats={chats}
 			filteredChats={filteredChats}
 			currentChatId={currentChatId}
 			currentMode={currentMode}
-			currentAccountId={currentAccountId}
 			searchQuery={searchQuery}
 			sidebarOpen={sidebarOpen}
+			desktopCollapsed={desktopSidebarCollapsed}
 			modeOptions={TRADEPILOT_MODE_OPTIONS}
 			{formatChatTime}
-			onToggleSidebar={() => { sidebarOpen = false; }}
+			onToggleSidebar={toggleSidebar}
 			onCreateChat={createChat}
 			onSelectChat={handleSelectChat}
 			onArchiveCurrent={archiveCurrentChat}
@@ -420,21 +445,22 @@
 
 		<section class="tradepilot-main">
 			<header class="tradepilot-header">
-				<div class="tradepilot-header__primary">
-					<button class="tradepilot-header__toggle" type="button" onclick={() => { sidebarOpen = true; }} aria-label="Open history">
-						☰
-					</button>
+				<button
+					class="tradepilot-header__toggle"
+					type="button"
+					onclick={toggleSidebar}
+					aria-label={sidebarOpen ? 'Hide history' : 'Show history'}
+					aria-expanded={sidebarOpen}
+				>
+					{sidebarOpen ? '✕' : '☰'}
+				</button>
 
-					<div class="tradepilot-header__copy">
-						<p class="tradepilot-header__eyebrow">{activeModeMeta.eyebrow}</p>
-						<h1 class="tradepilot-header__title">{currentChat?.title || activeModeMeta.label}</h1>
-						<p class="tradepilot-header__subtitle">
-							{activeModeMeta.subtitle}{#if currentAccountId} · Account {currentAccountId}{/if}
-						</p>
-					</div>
+				<div class="tradepilot-header__mode">
+					<span class="tradepilot-header__mode-eyebrow">{activeModeMeta.eyebrow}</span>
+					<span>{currentChat?.title || activeModeMeta.label}</span>
 				</div>
 
-				<div class="tradepilot-header__meta">
+				<div class="tradepilot-header__right">
 					<span class="tradepilot-header__status">{headerStatus}</span>
 					{#if currentChatId}
 						<button class="tradepilot-header__action" type="button" onclick={archiveCurrentChat}>
@@ -443,19 +469,6 @@
 					{/if}
 				</div>
 			</header>
-
-			<div class="tradepilot-mode-strip">
-				{#each TRADEPILOT_MODE_OPTIONS as option}
-					<button
-						type="button"
-						class="tradepilot-mode-strip__item {currentMode === option.value ? 'is-active' : ''}"
-						onclick={() => setMode(option.value)}
-					>
-						<span>{option.label}</span>
-						<small>{option.eyebrow}</small>
-					</button>
-				{/each}
-			</div>
 
 			<div class="tradepilot-canvas" bind:this={messagesContainer} onscroll={updateStickToBottom}>
 				{#if !hasMessages}
@@ -493,9 +506,12 @@
 				disabled={loading || !input.trim()}
 				prompts={TRADEPILOT_STARTER_PROMPTS[currentMode]}
 				streamSummary={streamSummary}
+				currentMode={currentMode}
+				modeOptions={TRADEPILOT_MODE_OPTIONS}
 				onInput={(value) => { input = value; }}
 				onSend={() => void sendMessage()}
 				onSetPrompt={setPrompt}
+				onModeChange={setMode}
 			/>
 		</section>
 	</div>
@@ -508,80 +524,82 @@
 		--tp-panel-strong: rgba(255, 255, 255, 0.05);
 		--tp-border: rgba(255, 255, 255, 0.08);
 		--tp-gold: rgba(216, 184, 108, 0.92);
+		--tp-gold-dim: rgba(216, 184, 108, 0.14);
+		--tp-muted: rgba(161, 161, 170, 0.78);
+		--tp-radius-pill: 2rem;
+		--tp-sidebar-w: 16rem;
+		--tp-avatar-size: 2rem;
 		position: relative;
 		min-height: calc(100vh - 12rem);
-		border: 1px solid rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.05);
 		border-radius: 1.35rem;
-		background:
-			linear-gradient(180deg, rgba(11, 11, 11, 0.98), rgba(6, 6, 6, 0.98)),
-			radial-gradient(circle at top, rgba(216, 184, 108, 0.08), transparent 38%);
+		background: var(--tp-bg);
 		color: rgba(255, 255, 255, 0.94);
 		overflow: clip;
 	}
 
 	.tradepilot-frame {
+		position: relative;
 		display: grid;
-		grid-template-columns: 20rem minmax(0, 1fr);
+		grid-template-columns: var(--tp-sidebar-w) minmax(0, 1fr);
 		min-height: calc(100vh - 12rem);
+	}
+
+	.tradepilot-frame.is-sidebar-collapsed {
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.tradepilot-main {
 		display: grid;
-		grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+		grid-template-rows: auto minmax(0, 1fr) auto auto;
 		min-width: 0;
 		padding: 1rem 1rem 0.9rem;
 	}
 
-	.tradepilot-header,
-	.tradepilot-header__primary,
-	.tradepilot-header__meta {
+	.tradepilot-header {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 0.9rem;
+		gap: 0.75rem;
+		padding-bottom: 0.65rem;
+		border-bottom: 1px solid var(--tp-border);
 	}
 
-	.tradepilot-header {
-		padding-bottom: 1rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+	.tradepilot-header__mode {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.82rem;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		color: rgba(245, 245, 244, 0.92);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	.tradepilot-header__copy {
-		display: grid;
-		gap: 0.25rem;
-	}
-
-	.tradepilot-header__eyebrow {
-		margin: 0;
-		font-size: 0.73rem;
+	.tradepilot-header__mode-eyebrow {
+		font-size: 0.7rem;
 		font-weight: 700;
-		letter-spacing: 0.12em;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: rgba(216, 184, 108, 0.86);
+		color: var(--tp-gold);
+		flex-shrink: 0;
 	}
 
-	.tradepilot-header__title {
-		margin: 0;
-		font-size: 1.15rem;
-		font-weight: 650;
-		letter-spacing: -0.04em;
-		color: rgba(250, 250, 249, 0.98);
+	.tradepilot-header__right {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		margin-left: auto;
+		flex-shrink: 0;
 	}
 
-	.tradepilot-header__subtitle,
 	.tradepilot-header__status {
-		margin: 0;
-		font-size: 0.8rem;
-		color: rgba(161, 161, 170, 0.9);
-	}
-
-	.tradepilot-header__meta {
-		justify-content: flex-end;
-		flex-wrap: wrap;
+		font-size: 0.76rem;
+		color: var(--tp-muted);
 	}
 
 	.tradepilot-header__action,
-	.tradepilot-mode-strip__item,
 	.tradepilot-header__toggle {
 		transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 	}
@@ -590,62 +608,27 @@
 		border: 1px solid var(--tp-border);
 		border-radius: 999px;
 		background: transparent;
-		padding: 0.45rem 0.78rem;
-		font-size: 0.76rem;
-		color: rgba(212, 212, 216, 0.88);
+		padding: 0.4rem 0.72rem;
+		font-size: 0.74rem;
+		color: rgba(212, 212, 216, 0.7);
 	}
 
 	.tradepilot-header__action:hover {
 		background: var(--tp-panel-strong);
+		color: rgba(212, 212, 216, 0.92);
 	}
 
 	.tradepilot-header__toggle {
-		display: none;
+		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.3rem;
-		height: 2.3rem;
+		width: 2.1rem;
+		height: 2.1rem;
 		border: 1px solid var(--tp-border);
-		border-radius: 0.85rem;
+		border-radius: 0.75rem;
 		background: var(--tp-panel);
 		color: rgba(245, 245, 244, 0.92);
-	}
-
-	.tradepilot-mode-strip {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 0.6rem;
-		padding: 0.95rem 0 0.8rem;
-	}
-
-	.tradepilot-mode-strip__item {
-		display: grid;
-		gap: 0.16rem;
-		padding: 0.75rem 0.82rem;
-		border: 1px solid var(--tp-border);
-		border-radius: 1rem;
-		background: rgba(255, 255, 255, 0.02);
-		text-align: left;
-		color: rgba(245, 245, 244, 0.92);
-	}
-
-	.tradepilot-mode-strip__item:hover {
-		background: rgba(255, 255, 255, 0.05);
-	}
-
-	.tradepilot-mode-strip__item.is-active {
-		border-color: rgba(216, 184, 108, 0.28);
-		background: rgba(216, 184, 108, 0.08);
-	}
-
-	.tradepilot-mode-strip__item span {
-		font-size: 0.84rem;
-		font-weight: 600;
-	}
-
-	.tradepilot-mode-strip__item small {
-		font-size: 0.72rem;
-		color: rgba(161, 161, 170, 0.9);
+		flex-shrink: 0;
 	}
 
 	.tradepilot-canvas {
@@ -657,7 +640,7 @@
 	.tradepilot-thread {
 		display: grid;
 		gap: 1.1rem;
-		width: min(100%, 53rem);
+		width: min(100%, 48rem);
 		margin: 0 auto;
 	}
 
@@ -687,16 +670,6 @@
 		.tradepilot-frame {
 			grid-template-columns: minmax(0, 1fr);
 		}
-
-		.tradepilot-header__toggle {
-			display: inline-flex;
-		}
-	}
-
-	@media (max-width: 840px) {
-		.tradepilot-mode-strip {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
 	}
 
 	@media (max-width: 720px) {
@@ -707,20 +680,6 @@
 
 		.tradepilot-main {
 			padding-inline: 0.8rem;
-		}
-
-		.tradepilot-header {
-			align-items: flex-start;
-			flex-direction: column;
-		}
-
-		.tradepilot-header__primary,
-		.tradepilot-header__meta {
-			width: 100%;
-		}
-
-		.tradepilot-mode-strip {
-			grid-template-columns: 1fr;
 		}
 	}
 </style>
