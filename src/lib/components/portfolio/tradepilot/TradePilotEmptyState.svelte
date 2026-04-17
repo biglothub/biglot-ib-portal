@@ -12,99 +12,164 @@
 
 <div class="tp-empty">
 	<div class="tp-empty__hero">
-		<p class="tp-empty__eyebrow">{modeMeta.eyebrow}</p>
-		<h1 class="tp-empty__title">TradePilot</h1>
+		<div class="tp-empty__mark" aria-hidden="true">
+			<span>◐</span>
+		</div>
+		<h1 class="tp-empty__title">
+			How can I help with <em>{modeMeta.label.toLowerCase()}</em> today?
+		</h1>
 		<p class="tp-empty__copy">
-			คุยกับข้อมูลใน account นี้โดยตรง เลือก mode ให้ตรง intent แล้วถามเป็นประโยคเดียวที่ชัดก่อน
-			TradePilot จะดึง context จาก portfolio, journal, reviews และ playbooks ตาม mode ที่เลือกไว้
+			I have access to your portfolio, journal, reviews, and playbooks for this account.
+			Ask in plain language — one clear question is enough.
 		</p>
 	</div>
 
-	<div class="tp-empty__grid">
-		{#each prompts as prompt, index}
-			<button class="tp-empty__card" type="button" onclick={() => onSendStarter?.(prompt)}>
-				<span class="tp-empty__card-index">0{index + 1}</span>
-				<span class="tp-empty__card-copy">{prompt}</span>
-			</button>
-		{/each}
+	<div class="tp-empty__prompts">
+		<div class="tp-empty__prompts-label">Try asking</div>
+		<ul class="tp-empty__prompts-list">
+			{#each prompts as prompt}
+				<li>
+					<button class="tp-empty__prompt" type="button" onclick={() => onSendStarter?.(prompt)}>
+						<span class="tp-empty__prompt-text">{prompt}</span>
+						<svg class="tp-empty__prompt-arrow" width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M3 5.5h5M6 3.5l2 2-2 2"/>
+						</svg>
+					</button>
+				</li>
+			{/each}
+		</ul>
 	</div>
 </div>
 
 <style>
 	.tp-empty {
 		display: grid;
-		gap: 1.2rem;
-		width: min(100%, 48rem);
+		gap: 2.5rem;
+		width: min(100%, 40rem);
 	}
 
 	.tp-empty__hero {
 		display: grid;
-		gap: 0.5rem;
+		gap: 1rem;
+		text-align: left;
 	}
 
-	.tp-empty__eyebrow {
-		margin: 0;
-		font-size: 0.75rem;
-		font-weight: 700;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: rgba(216, 184, 108, 0.88);
+	.tp-empty__mark {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.4rem;
+		height: 2.4rem;
+		font-size: 1.4rem;
+		color: var(--tp-accent, #c9a86c);
+		line-height: 1;
+		margin-bottom: 0.35rem;
 	}
 
 	.tp-empty__title {
 		margin: 0;
-		font-size: clamp(2.4rem, 5vw, 3.4rem);
-		font-weight: 650;
-		letter-spacing: -0.06em;
-		color: rgba(250, 250, 249, 0.98);
+		font-family: var(--tp-font-display, 'Newsreader', 'Cormorant Garamond', Georgia, serif);
+		font-size: clamp(1.85rem, 3.6vw, 2.55rem);
+		font-weight: 400;
+		line-height: 1.18;
+		letter-spacing: -0.02em;
+		color: rgba(245, 245, 242, 0.97);
+	}
+
+	.tp-empty__title em {
+		font-style: italic;
+		color: var(--tp-accent, #c9a86c);
+		font-weight: 400;
 	}
 
 	.tp-empty__copy {
 		margin: 0;
-		max-width: 38rem;
+		max-width: 32rem;
 		font-size: 0.92rem;
-		line-height: 1.75;
-		color: rgba(214, 211, 209, 0.9);
-	}
-
-	.tp-empty__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-		gap: 0.9rem;
-	}
-
-	.tp-empty__card {
-		display: grid;
-		gap: 0.7rem;
-		padding: 1rem 1.05rem;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 1.25rem;
-		background:
-			linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
-			radial-gradient(circle at top left, rgba(201, 168, 76, 0.12), transparent 52%);
-		text-align: left;
-		color: rgba(245, 245, 244, 0.95);
-		transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
-	}
-
-	.tp-empty__card:hover {
-		transform: translateY(-1px);
-		background:
-			linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
-			radial-gradient(circle at top left, rgba(201, 168, 76, 0.18), transparent 56%);
-		border-color: rgba(216, 184, 108, 0.22);
-	}
-
-	.tp-empty__card-index {
-		font-size: 0.72rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: rgba(216, 184, 108, 0.84);
-	}
-
-	.tp-empty__card-copy {
-		font-size: 0.94rem;
 		line-height: 1.65;
+		color: rgba(180, 180, 175, 0.78);
+		letter-spacing: -0.005em;
+	}
+
+	.tp-empty__prompts {
+		display: grid;
+		gap: 0.85rem;
+	}
+
+	.tp-empty__prompts-label {
+		font-size: 0.68rem;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: rgba(140, 140, 138, 0.65);
+	}
+
+	.tp-empty__prompts-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+	}
+
+	.tp-empty__prompts-list li {
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.tp-empty__prompts-list li:last-child {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.tp-empty__prompt {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		width: 100%;
+		padding: 0.85rem 0.25rem;
+		border: 0;
+		background: transparent;
+		text-align: left;
+		font-family: inherit;
+		font-size: 0.92rem;
+		line-height: 1.5;
+		color: rgba(220, 220, 216, 0.88);
+		cursor: pointer;
+		transition: color 140ms ease, padding 200ms cubic-bezier(0.32, 0.72, 0.24, 1);
+		letter-spacing: -0.005em;
+	}
+
+	.tp-empty__prompt:hover {
+		color: rgba(255, 255, 255, 0.98);
+		padding-left: 0.6rem;
+	}
+
+	.tp-empty__prompt-text {
+		flex: 1 1 auto;
+	}
+
+	.tp-empty__prompt-arrow {
+		flex-shrink: 0;
+		color: rgba(140, 140, 138, 0.45);
+		transform: translateX(-3px);
+		opacity: 0;
+		transition: transform 200ms cubic-bezier(0.32, 0.72, 0.24, 1), opacity 160ms ease, color 140ms ease;
+	}
+
+	.tp-empty__prompt:hover .tp-empty__prompt-arrow {
+		opacity: 1;
+		transform: translateX(0);
+		color: var(--tp-accent, #c9a86c);
+	}
+
+	@media (max-width: 720px) {
+		.tp-empty {
+			gap: 1.85rem;
+		}
+
+		.tp-empty__title {
+			font-size: 1.65rem;
+		}
 	}
 </style>

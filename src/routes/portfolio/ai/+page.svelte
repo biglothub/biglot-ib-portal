@@ -35,7 +35,7 @@
 	let filteredChats = $derived(filterTradePilotChats(chats, searchQuery));
 	let currentChat = $derived(chats.find((chat) => chat.id === currentChatId) ?? null);
 	let headerStatus = $derived(
-		loading ? streamSummary || 'Thinking through your account context' : ready ? 'Ready' : 'Loading'
+		loading ? streamSummary || 'Thinking' : ready ? 'Ready' : 'Loading'
 	);
 	let desktopSidebarCollapsed = $derived(isDesktop && !sidebarOpen);
 
@@ -229,7 +229,7 @@
 
 		error = '';
 		input = '';
-		streamSummary = 'Preparing account context';
+		streamSummary = 'Preparing context';
 
 		const tempUserId = `tmp-user-${Date.now()}`;
 		const tempAssistantId = `tmp-assistant-${Date.now()}`;
@@ -418,12 +418,12 @@
 	<title>TradePilot</title>
 </svelte:head>
 
-<div class="tradepilot-shell">
+<div class="tp-shell">
 	{#if sidebarOpen && !isDesktop}
-		<button class="tradepilot-backdrop" type="button" onclick={() => { sidebarOpen = false; }} aria-label="Close history"></button>
+		<button class="tp-backdrop" type="button" onclick={() => { sidebarOpen = false; }} aria-label="Close history"></button>
 	{/if}
 
-	<div class="tradepilot-frame" class:is-sidebar-collapsed={desktopSidebarCollapsed}>
+	<div class="tp-frame" class:is-sidebar-collapsed={desktopSidebarCollapsed}>
 		<TradePilotSidebar
 			{ready}
 			chats={chats}
@@ -440,36 +440,42 @@
 			onSearchChange={(query) => { searchQuery = query; }}
 		/>
 
-		<section class="tradepilot-main">
-			<header class="tradepilot-header">
+		<section class="tp-main">
+			<header class="tp-header">
 				<button
-					class="tradepilot-header__toggle"
+					class="tp-header__toggle"
 					type="button"
 					onclick={toggleSidebar}
 					aria-label={sidebarOpen ? 'Hide history' : 'Show history'}
 					aria-expanded={sidebarOpen}
 				>
-					{sidebarOpen ? '✕' : '☰'}
+					{#if sidebarOpen}
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg>
+					{:else}
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4h10M2 7h10M2 10h10"/></svg>
+					{/if}
 				</button>
 
-				<div class="tradepilot-header__mode">
-					<span class="tradepilot-header__mode-eyebrow">{activeModeMeta.eyebrow}</span>
-					<span>{currentChat?.title || activeModeMeta.label}</span>
+				<div class="tp-header__title">
+					<span class="tp-header__title-text">{currentChat?.title || activeModeMeta.label}</span>
 				</div>
 
-				<div class="tradepilot-header__right">
-					<span class="tradepilot-header__status">{headerStatus}</span>
+				<div class="tp-header__right">
+					<span class="tp-header__status" class:is-busy={loading}>
+						<span class="tp-header__status-dot" aria-hidden="true"></span>
+						{headerStatus}
+					</span>
 					{#if currentChatId}
-						<button class="tradepilot-header__action" type="button" onclick={archiveCurrentChat}>
+						<button class="tp-header__action" type="button" onclick={archiveCurrentChat}>
 							Archive
 						</button>
 					{/if}
 				</div>
 			</header>
 
-			<div class="tradepilot-canvas" bind:this={messagesContainer} onscroll={updateStickToBottom}>
+			<div class="tp-canvas" bind:this={messagesContainer} onscroll={updateStickToBottom}>
 				{#if !hasMessages}
-					<div class="tradepilot-empty-wrap">
+					<div class="tp-empty-wrap">
 						<TradePilotEmptyState
 							modeMeta={activeModeMeta}
 							prompts={TRADEPILOT_STARTER_PROMPTS[currentMode]}
@@ -477,7 +483,7 @@
 						/>
 					</div>
 				{:else}
-					<div class="tradepilot-thread">
+					<div class="tp-thread">
 						{#each messages as message (message.id)}
 							<TradePilotMessageRow
 								{message}
@@ -492,7 +498,7 @@
 			</div>
 
 			{#if error}
-				<div class="tradepilot-error">{error}</div>
+				<div class="tp-error">{error}</div>
 			{/if}
 
 			<TradePilotComposer
@@ -513,133 +519,181 @@
 </div>
 
 <style>
-	.tradepilot-shell {
-		--tp-bg: #080808;
-		--tp-panel: rgba(255, 255, 255, 0.03);
-		--tp-panel-strong: rgba(255, 255, 255, 0.05);
-		--tp-border: rgba(255, 255, 255, 0.08);
-		--tp-gold: rgba(216, 184, 108, 0.92);
-		--tp-gold-dim: rgba(216, 184, 108, 0.14);
-		--tp-muted: rgba(161, 161, 170, 0.78);
-		--tp-radius-pill: 2rem;
-		--tp-sidebar-w: 16rem;
-		--tp-avatar-size: 2rem;
+	.tp-shell {
+		--tp-bg: #0c0c0d;
+		--tp-surface: #0c0c0d;
+		--tp-surface-soft: rgba(255, 255, 255, 0.025);
+		--tp-border: rgba(255, 255, 255, 0.06);
+		--tp-border-strong: rgba(255, 255, 255, 0.1);
+		--tp-text: rgba(237, 237, 234, 0.96);
+		--tp-text-soft: rgba(180, 180, 175, 0.78);
+		--tp-text-muted: rgba(140, 140, 138, 0.6);
+		--tp-accent: #c9a86c;
+		--tp-accent-soft: rgba(201, 168, 108, 0.12);
+		--tp-font-display: 'Newsreader', 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+		--tp-font-body: 'Geist', 'Inter Tight', -apple-system, sans-serif;
+		--tp-font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
 		position: relative;
 		min-height: calc(100vh - 12rem);
-		border: 1px solid rgba(255, 255, 255, 0.05);
-		border-radius: 1.35rem;
 		background: var(--tp-bg);
-		color: rgba(255, 255, 255, 0.94);
-		overflow: clip;
+		color: var(--tp-text);
+		border-radius: 0;
+		overflow: hidden;
+		font-family: var(--tp-font-body);
 	}
 
-	.tradepilot-frame {
+	.tp-frame {
 		position: relative;
 		display: grid;
-		grid-template-columns: var(--tp-sidebar-w) minmax(0, 1fr);
+		grid-template-columns: 17rem minmax(0, 1fr);
 		min-height: calc(100vh - 12rem);
 	}
 
-	.tradepilot-frame.is-sidebar-collapsed {
+	.tp-frame.is-sidebar-collapsed {
 		grid-template-columns: minmax(0, 1fr);
 	}
 
-	.tradepilot-main {
+	.tp-main {
 		display: grid;
 		grid-template-rows: auto minmax(0, 1fr) auto auto;
 		min-width: 0;
-		padding: 1rem 1rem 0.9rem;
+		padding: 0;
+		position: relative;
 	}
 
-	.tradepilot-header {
+	.tp-header {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding-bottom: 0.65rem;
+		gap: 0.85rem;
+		padding: 0.95rem 1.5rem;
 		border-bottom: 1px solid var(--tp-border);
+		background: var(--tp-bg);
+		position: sticky;
+		top: 0;
+		z-index: 5;
 	}
 
-	.tradepilot-header__mode {
+	.tp-header__title {
 		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		font-size: 0.82rem;
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		color: rgba(245, 245, 244, 0.92);
+		align-items: baseline;
+		gap: 0.55rem;
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+
+	.tp-header__title-text {
+		font-size: 0.92rem;
+		font-weight: 500;
+		letter-spacing: -0.01em;
+		color: var(--tp-text);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
-	.tradepilot-header__mode-eyebrow {
-		font-size: 0.7rem;
-		font-weight: 700;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--tp-gold);
-		flex-shrink: 0;
-	}
-
-	.tradepilot-header__right {
+	.tp-header__right {
 		display: flex;
 		align-items: center;
-		gap: 0.65rem;
-		margin-left: auto;
+		gap: 0.6rem;
 		flex-shrink: 0;
 	}
 
-	.tradepilot-header__status {
-		font-size: 0.76rem;
-		color: var(--tp-muted);
+	.tp-header__status {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.72rem;
+		letter-spacing: 0.01em;
+		color: var(--tp-text-muted);
+		font-variant-numeric: tabular-nums;
 	}
 
-	.tradepilot-header__action,
-	.tradepilot-header__toggle {
-		transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
-	}
-
-	.tradepilot-header__action {
-		border: 1px solid var(--tp-border);
+	.tp-header__status-dot {
+		display: inline-block;
+		width: 6px;
+		height: 6px;
 		border-radius: 999px;
+		background: rgba(140, 140, 138, 0.5);
+	}
+
+	.tp-header__status.is-busy .tp-header__status-dot {
+		background: var(--tp-accent);
+		animation: tp-pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes tp-pulse {
+		0%, 100% { opacity: 1; transform: scale(1); }
+		50% { opacity: 0.4; transform: scale(0.8); }
+	}
+
+	.tp-header__action {
+		border: 0;
 		background: transparent;
-		padding: 0.4rem 0.72rem;
+		padding: 0.35rem 0.55rem;
+		font-family: inherit;
 		font-size: 0.74rem;
-		color: rgba(212, 212, 216, 0.7);
+		color: var(--tp-text-soft);
+		cursor: pointer;
+		border-radius: 0.4rem;
+		transition: background-color 140ms ease, color 140ms ease;
 	}
 
-	.tradepilot-header__action:hover {
-		background: var(--tp-panel-strong);
-		color: rgba(212, 212, 216, 0.92);
+	.tp-header__action:hover {
+		background: rgba(255, 255, 255, 0.05);
+		color: var(--tp-text);
 	}
 
-	.tradepilot-header__toggle {
+	.tp-header__toggle {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.1rem;
-		height: 2.1rem;
-		border: 1px solid var(--tp-border);
-		border-radius: 0.75rem;
-		background: var(--tp-panel);
-		color: rgba(245, 245, 244, 0.92);
+		width: 1.85rem;
+		height: 1.85rem;
+		border: 0;
+		border-radius: 0.45rem;
+		background: transparent;
+		color: var(--tp-text-soft);
 		flex-shrink: 0;
+		cursor: pointer;
+		transition: background-color 140ms ease, color 140ms ease;
 	}
 
-	.tradepilot-canvas {
+	.tp-header__toggle:hover {
+		background: rgba(255, 255, 255, 0.05);
+		color: var(--tp-text);
+	}
+
+	.tp-canvas {
 		min-height: 0;
 		overflow-y: auto;
-		padding: 0.55rem 0 0.85rem;
+		padding: 2rem 1.5rem 1.5rem;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 	}
 
-	.tradepilot-thread {
+	.tp-canvas::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	.tp-canvas::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.06);
+		border-radius: 999px;
+	}
+
+	.tp-canvas::-webkit-scrollbar-thumb:hover {
+		background: rgba(255, 255, 255, 0.12);
+	}
+
+	.tp-thread {
 		display: grid;
-		gap: 1.1rem;
-		width: min(100%, 48rem);
+		gap: 2rem;
+		width: min(100%, 44rem);
 		margin: 0 auto;
+		padding-bottom: 1rem;
 	}
 
-	.tradepilot-empty-wrap {
+	.tp-empty-wrap {
 		display: flex;
 		min-height: 100%;
 		align-items: center;
@@ -647,34 +701,42 @@
 		padding: 1.5rem 0;
 	}
 
-	.tradepilot-error {
-		margin-top: 0.25rem;
-		font-size: 0.82rem;
-		color: rgba(252, 165, 165, 0.96);
+	.tp-error {
+		margin: 0 1.5rem 0.5rem;
+		padding: 0.6rem 0.85rem;
+		font-size: 0.78rem;
+		color: rgba(248, 180, 180, 0.95);
+		background: rgba(120, 30, 30, 0.18);
+		border: 1px solid rgba(248, 113, 113, 0.18);
+		border-radius: 0.5rem;
 	}
 
-	.tradepilot-backdrop {
+	.tp-backdrop {
 		position: fixed;
 		inset: 0;
 		z-index: 30;
 		border: 0;
-		background: rgba(0, 0, 0, 0.56);
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(2px);
 	}
 
 	@media (max-width: 1024px) {
-		.tradepilot-frame {
+		.tp-frame {
 			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 
 	@media (max-width: 720px) {
-		.tradepilot-shell {
+		.tp-shell {
 			min-height: calc(100vh - 9rem);
-			border-radius: 1rem;
 		}
 
-		.tradepilot-main {
-			padding-inline: 0.8rem;
+		.tp-header {
+			padding: 0.75rem 1rem;
+		}
+
+		.tp-canvas {
+			padding: 1.25rem 1rem 1rem;
 		}
 	}
 </style>

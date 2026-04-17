@@ -86,26 +86,12 @@
 </script>
 
 <div class="ai-row {role === 'user' ? 'is-user' : 'is-assistant'}">
-	<div class="ai-avatar" aria-hidden="true">
-		{#if role === 'assistant'}
-			<span>TP</span>
-		{:else}
-			<span>U</span>
-		{/if}
-	</div>
-
-	<div class="ai-content-wrap">
-		<div class="ai-label">
-			{role === 'assistant' ? 'TradePilot' : 'You'}
-		</div>
-
-		<div class="ai-bubble {role === 'user' ? 'is-user' : 'is-assistant'}">
-			<div class="ai-content ai-msg">
-				{@html sanitizeHtml(renderMarkdown(content))}
-				{#if isStreaming}
-					<span class="ai-cursor" aria-hidden="true"></span>
-				{/if}
-			</div>
+	<div class="ai-bubble {role === 'user' ? 'is-user' : 'is-assistant'}">
+		<div class="ai-content ai-msg">
+			{@html sanitizeHtml(renderMarkdown(content))}
+			{#if isStreaming}
+				<span class="ai-cursor" aria-hidden="true"></span>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -113,78 +99,39 @@
 <style>
 	.ai-row {
 		display: flex;
-		align-items: flex-start;
-		gap: 0.75rem;
-		max-width: 85%;
-	}
-
-	.ai-row.is-user {
-		flex-direction: row-reverse;
-		margin-left: auto;
-	}
-
-	.ai-row.is-assistant {
-		margin-right: auto;
-	}
-
-	.ai-avatar {
-		flex-shrink: 0;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 999px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 0.62rem;
-		font-weight: 700;
-		letter-spacing: 0.02em;
-		overflow: hidden;
-	}
-
-	.ai-row.is-assistant .ai-avatar {
-		background: linear-gradient(135deg, rgba(216, 184, 108, 0.9), rgba(176, 140, 60, 0.75));
-		color: #1a1200;
-	}
-
-	.ai-row.is-user .ai-avatar {
-		background: rgba(255, 255, 255, 0.08);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		color: rgba(245, 245, 244, 0.7);
-	}
-
-	.ai-content-wrap {
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
 		min-width: 0;
 	}
 
-	.ai-label {
-		font-size: 0.72rem;
-		font-weight: 600;
-		color: rgba(161, 161, 170, 0.65);
-		padding: 0 0.1rem;
+	.ai-row.is-user {
+		justify-content: flex-end;
+	}
+
+	.ai-row.is-assistant {
+		justify-content: flex-start;
 	}
 
 	.ai-bubble {
 		font-size: 0.94rem;
-		line-height: 1.65;
+		line-height: 1.7;
+		min-width: 0;
+		letter-spacing: -0.005em;
 	}
 
 	.ai-bubble.is-user {
-		background: rgba(216, 184, 108, 0.08);
-		border: 1px solid rgba(216, 184, 108, 0.15);
-		border-radius: 1.15rem;
-		border-bottom-right-radius: 0.35rem;
-		padding: 0.78rem 1rem;
-		color: rgba(250, 250, 250, 0.96);
+		max-width: 80%;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 0.85rem;
+		padding: 0.65rem 0.9rem;
+		color: rgba(245, 245, 242, 0.97);
 	}
 
 	.ai-bubble.is-assistant {
+		width: 100%;
 		background: transparent;
 		border: 0;
 		padding: 0;
-		color: rgba(229, 231, 235, 0.95);
+		color: rgba(228, 228, 222, 0.94);
 	}
 
 	/* Streaming cursor */
