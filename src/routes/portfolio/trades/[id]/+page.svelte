@@ -617,11 +617,10 @@
 
 			<!-- Row 1: Status + Playbook + Followed Plan -->
 			<div class="flex flex-wrap items-center gap-3">
-				<select bind:value={reviewStatus} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
-					<option value="unreviewed">ยังไม่ Review</option>
-					<option value="in_progress">กำลังดำเนินการ</option>
-					<option value="reviewed">Review แล้ว</option>
-				</select>
+				<div class="flex items-center gap-2" title="สถานะจะอัปเดตเองตามเนื้อหาเมื่อกดบันทึก">
+					<ReviewStatusBadge status={reviewStatus} />
+					<span class="text-[10px] text-gray-500">อัปเดตอัตโนมัติ</span>
+				</div>
 				<div class="relative">
 					<select bind:value={selectedPlaybookId} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 						<option value="">ยังไม่เลือก Playbook</option>

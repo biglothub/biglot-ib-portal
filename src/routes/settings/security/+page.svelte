@@ -40,8 +40,11 @@
 	const hasLiveSetup = $derived(Boolean(pendingFactorId && pendingQrCode && pendingSecret));
 	const canVerifySetup = $derived(/^\d{6}$/.test(setupCode) && !mfaLoading && Boolean(pendingFactorId));
 	const canDisable2fa = $derived(/^\d{6}$/.test(disableCode) && !mfaLoading && mfaEnabled);
-	const qrCodeDataUrl = $derived(
-		pendingQrCode ? `data:image/svg+xml;utf8,${encodeURIComponent(pendingQrCode)}` : ''
+	const qrCodeDataUrl = $derived(!pendingQrCode
+		? ''
+		: pendingQrCode.startsWith('data:')
+			? pendingQrCode
+			: `data:image/svg+xml;utf8,${encodeURIComponent(pendingQrCode)}`
 	);
 
 	$effect(() => {
@@ -467,8 +470,8 @@
 				</form>
 			{:else if hasLiveSetup}
 				<div class="grid gap-4 lg:grid-cols-[220px,1fr]">
-					<div class="rounded-lg border border-dark-border bg-white p-3">
-						<img src={qrCodeDataUrl} alt="QR code สำหรับเปิดใช้งาน 2FA" class="h-auto w-full" />
+					<div class="aspect-square w-full max-w-[220px] overflow-hidden rounded-lg border border-dark-border bg-white p-3">
+						<img src={qrCodeDataUrl} alt="QR code สำหรับเปิดใช้งาน 2FA" class="h-full w-full object-contain" />
 					</div>
 
 					<div class="space-y-4">

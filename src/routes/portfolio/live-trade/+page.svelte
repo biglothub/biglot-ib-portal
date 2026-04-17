@@ -6,25 +6,11 @@
 
 	const coaches = $derived(data.coaches);
 
-	// --- Time ---
-	function getBangkokHour(): number {
-		const now = new Date();
-		return ((now.getUTCHours() + 7) % 24) + now.getUTCMinutes() / 60;
-	}
-
 	function getBangkokTimeString(): string {
 		const now = new Date();
 		const h = Math.floor(((now.getUTCHours() + 7) % 24));
 		const m = now.getUTCMinutes().toString().padStart(2, '0');
 		return `${h.toString().padStart(2, '0')}:${m}`;
-	}
-
-	function isLive(startHour: number, endHour: number): boolean {
-		const now = getBangkokHour();
-		if (endHour > 24) {
-			return now >= startHour || now < endHour - 24;
-		}
-		return now >= startHour && now < endHour;
 	}
 
 	let tick = $state(0);
@@ -78,12 +64,6 @@
 		return getBangkokTimeString();
 	});
 
-	// Schedule-based live (time slot match)
-	let liveCoachIndex = $derived.by(() => {
-		void tick;
-		return coaches.findIndex((c) => isLive(c.start_hour, c.end_hour));
-	});
-
 	// YouTube-confirmed live (from API scan)
 	let hasAnyYtLive = $derived(liveMap.size > 0);
 
@@ -103,7 +83,7 @@
 			<p class="text-xs text-gray-400 mt-1">ตาราง Live Trade Master ประจำวัน</p>
 		</div>
 		<div class="flex items-center gap-3">
-			{#if hasAnyYtLive || liveCoachIndex >= 0}
+			{#if hasAnyYtLive}
 				<div class="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-1.5">
 					<span class="relative flex h-2.5 w-2.5">
 						<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -188,10 +168,8 @@
 		</div>
 	{:else}
 		<div class="space-y-3">
-			{#each coaches as coach, i}
-				{@const schedLive = i === liveCoachIndex}
-				{@const ytLive = liveMap.has(coach.youtube_handle)}
-				{@const live = ytLive || schedLive}
+			{#each coaches as coach}
+				{@const live = liveMap.has(coach.youtube_handle)}
 				{@const videoId = liveMap.get(coach.youtube_handle)}
 				<div
 					class="live-card relative rounded-2xl border transition-all duration-500
@@ -208,7 +186,7 @@
 									<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
 									<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
 								</span>
-								{ytLive ? 'Live ยืนยันแล้ว' : 'Live'}
+								Live
 							</span>
 						</div>
 					{/if}
