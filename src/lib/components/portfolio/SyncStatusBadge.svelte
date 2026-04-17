@@ -4,12 +4,17 @@
 	interface Props {
 		lastSyncedAt: string | null;
 		bridgeStatus: string | null;
+		syncPending?: boolean;
 	}
 
-	let { lastSyncedAt, bridgeStatus }: Props = $props();
+	let { lastSyncedAt, bridgeStatus, syncPending = false }: Props = $props();
 
-	const isSyncing = $derived(bridgeStatus === 'running');
+	// "Syncing" = this account has a pending sync request the bridge hasn't processed yet.
+	// bridgeStatus === 'running' only tells us the bridge service is alive globally,
+	// not that our account is being synced right now.
+	const isSyncing = $derived(syncPending);
 	const hasSynced = $derived(!!lastSyncedAt);
+	const bridgeDown = $derived(bridgeStatus !== 'running');
 </script>
 
 {#if isSyncing}

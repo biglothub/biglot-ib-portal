@@ -38,20 +38,23 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 		// Admin viewing: load specific account by ID
 		const { data } = await supabase
 			.from('client_accounts')
-			.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
+			.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at, sync_requested_at')
 			.eq('id', locals.viewAsAccountId!)
 			.single();
 		account = data;
 	} else {
-		// Client viewing: check process cache first
+		// Client viewing: check process cache first.
+		// Bypass the cache while any account has a pending sync so the badge's
+		// last_synced_at / sync_requested_at reflects the bridge's latest write.
 		const cachedAccounts = accountsCache.get(effectiveUserId);
-		if (cachedAccounts && Date.now() < cachedAccounts.expiresAt) {
+		const cacheHasPendingSync = cachedAccounts?.data.some((a) => !!a.sync_requested_at) ?? false;
+		if (cachedAccounts && Date.now() < cachedAccounts.expiresAt && !cacheHasPendingSync) {
 			allAccounts = cachedAccounts.data;
 			if (dev) console.log(`[layout] HIT accounts cache`);
 		} else {
 			const { data: accounts } = await supabase
 				.from('client_accounts')
-				.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at')
+				.select('id, client_name, mt5_account_id, mt5_server, status, last_synced_at, sync_requested_at')
 				.eq('user_id', effectiveUserId)
 				.eq('status', 'approved')
 				.order('created_at', { ascending: true });
@@ -164,6 +167,7 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 		userId: effectiveUserId,
 		marketNews: marketNewsPromise,
 		bridgeStatus: (bridgeHealth?.status as string | null) ?? null,
+		syncPending: !!account.sync_requested_at,
 		isAdminView,
 		viewAsAccountId: isAdminView ? locals.viewAsAccountId : null
 	};

@@ -4,7 +4,9 @@ import type { ClientAccount, TradeTag } from '$lib/types';
 // These run on EVERY navigation but rarely change. Cache them in-process.
 export const LAYOUT_CACHE_TTL_MS = 60_000; // 1 minute
 
-export type AccountRow = Pick<ClientAccount, 'id' | 'client_name' | 'mt5_account_id' | 'mt5_server' | 'status' | 'last_synced_at'>;
+export type AccountRow = Pick<ClientAccount, 'id' | 'client_name' | 'mt5_account_id' | 'mt5_server' | 'status' | 'last_synced_at'> & {
+	sync_requested_at?: string | null;
+};
 
 export const accountsCache = new Map<string, { data: AccountRow[]; expiresAt: number }>();
 export const tagsCache = new Map<string, { data: TradeTag[]; expiresAt: number }>();

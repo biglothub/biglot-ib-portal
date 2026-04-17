@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
 import { invalidateBaseDataCache } from '$lib/server/portfolio';
+import { invalidateLayoutCache } from '$lib/server/layout-cache';
 import { sendTradeSync } from '$lib/server/webhooks';
 import type { Trade } from '$lib/types';
 import type { RequestHandler } from './$types';
@@ -38,8 +39,11 @@ export const POST: RequestHandler = async ({ locals }) => {
 		.update({ sync_requested_at: now })
 		.eq('id', account.id);
 
-	// Invalidate all caches so the next page load fetches fresh data after sync
+	// Invalidate all caches so the next page load fetches fresh data after sync.
+	// Layout cache holds last_synced_at + bridge status — without this the
+	// SyncStatusBadge shows stale "Synced · X ago" for up to 60s after resync.
 	invalidateBaseDataCache(account.id);
+	invalidateLayoutCache(profile.id);
 
 	// Fire trade_sync webhook (non-blocking — silent fail on error)
 	// Fetch the latest trades so the webhook payload has real data

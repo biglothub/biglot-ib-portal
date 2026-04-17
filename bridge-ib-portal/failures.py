@@ -47,7 +47,7 @@ def record_sync_failure(
             # Bump consecutive count on the open failure record.
             supabase.table('sync_failures').update({
                 'consecutive_failures': consecutive,
-                'error_message': error_message,
+                'error_message': error_message[:500],
                 'error_code': error_code,
                 'failed_at': now_iso,
             }).eq('id', existing_row['id']).execute()

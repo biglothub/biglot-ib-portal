@@ -22,7 +22,7 @@
 	import SaveToast from '$lib/components/shared/SaveToast.svelte';
 
 	let { data, children } = $props();
-	let { account, allAccounts, isAdminView, viewAsAccountId, bridgeStatus } = $derived(data);
+	let { account, allAccounts, isAdminView, viewAsAccountId, bridgeStatus, syncPending } = $derived(data);
 	let guideOpen = $state(false);
 	let shortcutsOpen = $state(false);
 	let commandPaletteRef = $state<CommandPalette | null>(null);
@@ -284,7 +284,7 @@
 		</div>
 		<div class="flex items-center gap-2 flex-wrap">
 			{#if account}
-				<SyncStatusBadge lastSyncedAt={account.last_synced_at ?? null} bridgeStatus={bridgeStatus ?? null} />
+				<SyncStatusBadge lastSyncedAt={account.last_synced_at ?? null} bridgeStatus={bridgeStatus ?? null} syncPending={syncPending ?? false} />
 				{#if !isAdminView}
 					<div class="flex flex-col items-end gap-0.5">
 						<button
