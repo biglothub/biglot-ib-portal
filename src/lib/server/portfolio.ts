@@ -160,7 +160,7 @@ async function doFetchPortfolioBaseData(
 				: supabase
 						.from('trades')
 						.select(
-							'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id), trade_reviews(id, review_status, playbook_id, broken_rules, entry_reason, mistake_summary, lesson_summary, followed_plan, setup_quality_score, discipline_score, execution_score, confidence_at_entry, playbooks(id, name)), trade_attachments(id)'
+							'*, trade_tag_assignments(id, tag_id, trade_tags(id, name, color, category)), trade_notes(id, user_id, content, rating, created_at, updated_at), trade_reviews(id, user_id, review_status, playbook_id, broken_rules, entry_reason, exit_reason, execution_notes, risk_notes, mistake_summary, lesson_summary, next_action, followed_plan, setup_quality_score, discipline_score, execution_score, confidence_at_entry, reviewed_at, created_at, updated_at, playbooks(id, name)), trade_attachments(id, user_id, kind, storage_path, caption, sort_order, created_at)'
 						)
 						.eq('client_account_id', accountId)
 						.order('close_time', { ascending: false }),

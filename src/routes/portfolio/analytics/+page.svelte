@@ -65,13 +65,11 @@
 				body: JSON.stringify({ filters: window.location.search })
 			});
 			if (!res.ok) return;
-			const blob = await res.blob();
+			const html = await res.text();
+			const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
 			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `trading-report-${new Date().toISOString().split('T')[0]}.pdf`;
-			a.click();
-			URL.revokeObjectURL(url);
+			const win = window.open(url, '_blank');
+			if (win) win.onunload = () => URL.revokeObjectURL(url);
 		} finally {
 			exporting = false;
 		}
@@ -82,15 +80,22 @@
 		exportingCsv = true;
 		try {
 			const params = new URLSearchParams(window.location.search);
+			params.delete('tab');
 			const query = params.toString();
-			const res = await fetch(`/api/portfolio/trades/export${query ? `?${query}` : ''}`);
-			if (!res.ok) return;
+			const res = await fetch(`/api/portfolio/reports/export-csv${query ? `?${query}` : ''}`);
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				alert(err.message || `Export failed (${res.status})`);
+				return;
+			}
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = `trades_export_${new Date().toISOString().split('T')[0]}.csv`;
+			a.download = `analytics-trades-${new Date().toISOString().split('T')[0]}.csv`;
+			document.body.appendChild(a);
 			a.click();
+			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} finally {
 			exportingCsv = false;
