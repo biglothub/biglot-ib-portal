@@ -33,6 +33,8 @@
 	let saving = $state(false);
 	let errorMessage = $state('');
 
+	let activePlaybooks = $derived(playbooks.filter((p) => p.is_active));
+
 	// Step 1: quick reviews per trade
 	// Map: tradeId → { playbookId, lesson }
 	let quickReviews = $state<Record<string, { playbookId: string; lesson: string }>>({});
@@ -282,14 +284,14 @@
 						{:else}
 							<div class="flex items-center justify-between gap-3 mb-2">
 								<p class="text-xs text-gray-400">{unreviewedTrades.length} เทรดรอ review</p>
-								{#if playbooks.length > 0}
+								{#if activePlaybooks.length > 0}
 									<div class="flex items-center gap-2">
 										<select
 											bind:value={bulkApplyPlaybookId}
 											class="bg-dark-bg border border-dark-border rounded px-2 py-1 text-[11px] text-white"
 										>
 											<option value="">-- ใส่ playbook ทุกเทรด --</option>
-											{#each playbooks as pb}
+											{#each activePlaybooks as pb}
 												<option value={pb.id}>{pb.name}</option>
 											{/each}
 										</select>
@@ -324,7 +326,7 @@
 											class="bg-dark-bg border border-dark-border rounded px-2 py-1.5 text-xs text-white"
 										>
 											<option value="">-- เลือก Playbook --</option>
-											{#each playbooks as pb}
+											{#each activePlaybooks as pb}
 												<option value={pb.id}>{pb.name}</option>
 											{/each}
 										</select>

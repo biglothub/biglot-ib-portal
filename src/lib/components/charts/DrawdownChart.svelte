@@ -15,93 +15,151 @@
 		} | null;
 	} = $props();
 
-	// Use intraday when available and meaningful
 	const useIntraday = $derived(
 		intradayData != null && intradayData.history.length > 1 && intradayData.maxDrawdownPct > 0.001
 	);
 
-	const chartPoints = $derived(
+	type Point = { i: number; val: number; label: string };
+
+	const points = $derived.by<Point[]>(() => {
+		if (useIntraday) {
+			return intradayData!.history.map((d, i) => ({
+				i,
+				val: d.drawdownPct,
+				label: new Date(d.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+			}));
+		}
+		return drawdownData.map((d, i) => ({ i, val: d.drawdownPct, label: d.date }));
+	});
+
+	const hasData = $derived(points.some(p => p.val < -0.01));
+
+	// Current DD = last point's DD magnitude
+	const currentDdPct = $derived(points.length > 0 ? Math.abs(points[points.length - 1].val) : 0);
+
+	// Max DD magnitude
+	const maxDdPct = $derived(
 		useIntraday
-			? intradayData!.history.map((d, i) => ({ i, val: d.drawdownPct }))
-			: drawdownData.map((d, i) => ({ i, val: d.drawdownPct }))
+			? intradayData!.maxDrawdownPct
+			: Math.abs(Math.min(0, ...drawdownData.map(d => d.drawdownPct)))
 	);
 
-	const hasData = $derived(chartPoints.some(p => p.val < -0.01));
+	type Episode = { startIdx: number; troughIdx: number; endIdx: number | null; depth: number; duration: number };
 
-	const maxDrawdownPct = $derived(
-		useIntraday
-			? -intradayData!.maxDrawdownPct
-			: Math.min(0, ...drawdownData.map(d => d.drawdownPct))
-	);
+	// Detect drawdown episodes: segments where equity is below prior peak.
+	const episodes = $derived.by<Episode[]>(() => {
+		if (points.length < 2) return [];
+		const eps: Episode[] = [];
+		let inDd = false;
+		let startIdx = 0;
+		let troughIdx = 0;
+		let trough = 0;
+		for (let i = 0; i < points.length; i++) {
+			const v = points[i].val;
+			if (!inDd && v < -0.01) {
+				inDd = true;
+				startIdx = i;
+				troughIdx = i;
+				trough = v;
+			} else if (inDd) {
+				if (v < trough) { trough = v; troughIdx = i; }
+				if (v >= -0.005) {
+					eps.push({ startIdx, troughIdx, endIdx: i, depth: Math.abs(trough), duration: i - startIdx });
+					inDd = false;
+				}
+			}
+		}
+		if (inDd) {
+			eps.push({ startIdx, troughIdx, endIdx: null, depth: Math.abs(trough), duration: points.length - 1 - startIdx });
+		}
+		return eps;
+	});
 
-	// Risk level derived from max drawdown
+	const isUnderwater = $derived(currentDdPct > 0.01);
+
 	const riskLevel = $derived(
-		maxDrawdownPct >= 15 ? { label: 'Severe', color: 'text-red-400', bg: 'bg-red-500/15' } :
-		maxDrawdownPct >= 8  ? { label: 'High',   color: 'text-orange-400', bg: 'bg-orange-500/15' } :
-		maxDrawdownPct >= 3  ? { label: 'Medium', color: 'text-amber-400', bg: 'bg-amber-500/15' } :
-		                       { label: 'Low',    color: 'text-green-400', bg: 'bg-green-500/15' }
+		maxDdPct >= 15 ? { label: 'Severe', color: 'text-red-400',    bg: 'bg-red-500/15' } :
+		maxDdPct >= 8  ? { label: 'High',   color: 'text-orange-400', bg: 'bg-orange-500/15' } :
+		maxDdPct >= 3  ? { label: 'Medium', color: 'text-amber-400',  bg: 'bg-amber-500/15' } :
+		                 { label: 'Low',    color: 'text-green-400',  bg: 'bg-green-500/15' }
+	);
+
+	// Tone the max DD number by risk level so "Low" doesn't scream red
+	const maxDdColor = $derived(
+		maxDdPct >= 8 ? 'text-red-400'
+		: maxDdPct >= 3 ? 'text-amber-400'
+		: 'text-gray-200'
 	);
 
 	const W = 400;
-	const H = 110;
-	const PAD = { top: 10, right: 8, bottom: 18, left: 36 };
+	const H = 260;
+	const PAD = { top: 18, right: 12, bottom: 22, left: 42 };
+	const plotW = W - PAD.left - PAD.right;
+	const plotH = H - PAD.top - PAD.bottom;
 
-	const minVal = $derived(Math.min(0, ...chartPoints.map(p => p.val)));
+	// Y-axis: cap at max(maxDd * 1.3, 3) so small DDs remain visible but severe ones aren't crushed.
+	const yMax = $derived(Math.max(maxDdPct * 1.3, 3));
 
 	function xPos(i: number): number {
-		if (chartPoints.length <= 1) return PAD.left;
-		return PAD.left + (i / (chartPoints.length - 1)) * (W - PAD.left - PAD.right);
+		if (points.length <= 1) return PAD.left;
+		return PAD.left + (i / (points.length - 1)) * plotW;
 	}
-	function yPos(val: number): number {
-		if (minVal >= 0) return PAD.top;
-		return PAD.top + ((0 - val) / (0 - minVal)) * (H - PAD.top - PAD.bottom);
+	function yPos(ddMagnitude: number): number {
+		return PAD.top + (ddMagnitude / yMax) * plotH;
 	}
 
-	const pathD = $derived.by(() => {
-		if (chartPoints.length === 0) return '';
-		return 'M ' + chartPoints.map(p => `${xPos(p.i).toFixed(1)},${yPos(p.val).toFixed(1)}`).join(' L ');
+	// Threshold bands (as DD magnitudes, positive)
+	const bands = $derived.by(() => {
+		const thresholds = [
+			{ v: 3,  label: 'Medium', color: '#f59e0b' },
+			{ v: 8,  label: 'High',   color: '#f97316' },
+			{ v: 15, label: 'Severe', color: '#ef4444' }
+		];
+		return thresholds.filter(t => t.v <= yMax);
 	});
 
-	const areaD = $derived.by(() => {
-		if (chartPoints.length === 0) return '';
-		const zeroY = yPos(0);
-		const pts = chartPoints.map(p => `${xPos(p.i).toFixed(1)},${yPos(p.val).toFixed(1)}`);
-		return `M ${PAD.left},${zeroY} L ${pts.join(' L ')} L ${xPos(chartPoints.length - 1).toFixed(1)},${zeroY} Z`;
-	});
-
-	// Worst point — for the nadir marker
-	const worstPoint = $derived.by(() => {
-		if (chartPoints.length === 0) return null;
-		let worst = chartPoints[0];
-		for (const p of chartPoints) { if (p.val < worst.val) worst = p; }
-		return worst.val < -0.01 ? worst : null;
-	});
-
-	const yGridLines = $derived.by(() => {
-		const lines = [0];
-		let v = -10;
-		while (v > minVal - 5) { lines.push(v); v -= 10; }
-		return lines;
-	});
-
+	// X-axis labels
 	const xLabels = $derived.by(() => {
-		if (useIntraday || drawdownData.length === 0) return [];
-		const labels: { x: number; text: string }[] = [];
+		if (points.length < 2) return [] as { x: number; text: string }[];
+		if (useIntraday) {
+			const count = 4;
+			const out: { x: number; text: string }[] = [];
+			for (let k = 0; k < count; k++) {
+				const idx = Math.round((k / (count - 1)) * (points.length - 1));
+				out.push({ x: xPos(idx), text: points[idx].label });
+			}
+			return out;
+		}
+		const out: { x: number; text: string }[] = [];
 		let lastMonth = '';
 		drawdownData.forEach((d, i) => {
 			const month = d.date.slice(0, 7);
 			if (month !== lastMonth) {
 				lastMonth = month;
-				labels.push({ x: xPos(i), text: d.date.slice(5, 7) + '/' + d.date.slice(2, 4) });
+				out.push({ x: xPos(i), text: d.date.slice(5, 7) + '/' + d.date.slice(2, 4) });
 			}
 		});
-		return labels;
+		return out;
 	});
 
-	const gradientId = $derived(useIntraday ? 'dd-grad-intra' : 'dd-grad-daily');
+	// Color an episode by its depth
+	function episodeColor(depth: number): string {
+		if (depth >= 15) return '#ef4444';
+		if (depth >= 8)  return '#f97316';
+		if (depth >= 3)  return '#f59e0b';
+		return '#ef4444';
+	}
+
+	// Worst episode (for the emphasized marker)
+	const worstEpIdx = $derived.by(() => {
+		if (episodes.length === 0) return -1;
+		let best = 0;
+		for (let i = 1; i < episodes.length; i++) if (episodes[i].depth > episodes[best].depth) best = i;
+		return best;
+	});
 </script>
 
-<div class="w-full">
+<div class="w-full h-full flex flex-col">
 	{#if !hasData}
 		<div class="flex flex-col items-center justify-center py-6 text-center">
 			<svg class="w-10 h-10 text-gray-700 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,95 +170,117 @@
 		</div>
 	{:else}
 		<!-- Stats row -->
-		<div class="flex items-start justify-between mb-3">
-			<div class="flex items-center gap-4">
-				<!-- Primary metric -->
-				<div>
+		<div class="flex items-start justify-between gap-3 mb-3">
+			<div class="flex items-center gap-4 min-w-0">
+				<!-- Max DD -->
+				<div class="min-w-0">
 					<div class="flex items-center gap-1.5 mb-0.5">
-						<span class="text-[9px] text-gray-500 uppercase tracking-wide">
-							{useIntraday ? 'Max Drawdown (Intraday)' : 'Max Drawdown (Daily)'}
-						</span>
+						<span class="text-[9px] text-gray-500 uppercase tracking-wide">Max Drawdown</span>
 						<span class="text-[9px] px-1.5 py-px rounded-full {riskLevel.bg} {riskLevel.color} font-medium">
 							{riskLevel.label}
 						</span>
 					</div>
-					<div class="text-base font-bold text-red-400 tabular-nums leading-none">
-						-{maxDrawdownPct.toFixed(2)}%
+					<div class="text-base font-bold {maxDdColor} tabular-nums leading-none">
+						-{maxDdPct.toFixed(2)}%
 					</div>
-				</div>
-				<!-- Absolute -->
-				{#if intradayData && intradayData.absoluteDrawdown > 0.01}
-					<div class="border-l border-dark-border pl-4">
-						<div class="text-[9px] text-gray-500 uppercase tracking-wide mb-0.5">Absolute</div>
-						<div class="text-sm font-semibold text-red-400/80 tabular-nums leading-none">
+					{#if intradayData && intradayData.absoluteDrawdown > 0.01}
+						<div class="text-[10px] text-gray-500 tabular-nums mt-0.5">
 							-{formatCurrency(intradayData.absoluteDrawdown)}
 						</div>
-					</div>
-				{/if}
-			</div>
-			<!-- Mode badge -->
-			{#if useIntraday}
-				<div class="flex items-center gap-1 text-[9px] text-gray-500">
-					<span class="w-1 h-1 rounded-full bg-gray-600 inline-block"></span>
-					5-min · intraday
+					{/if}
 				</div>
-			{/if}
+				<!-- Current DD -->
+				<div class="border-l border-dark-border pl-4 min-w-0">
+					<div class="text-[9px] text-gray-500 uppercase tracking-wide mb-0.5">Current</div>
+					<div class="text-sm font-semibold tabular-nums leading-none {isUnderwater ? 'text-red-400/80' : 'text-green-400'}">
+						{isUnderwater ? '-' : ''}{currentDdPct.toFixed(2)}%
+					</div>
+					<div class="text-[10px] mt-0.5 {isUnderwater ? 'text-amber-400/80' : 'text-green-400/80'}">
+						{isUnderwater ? 'Underwater' : 'At peak'}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col items-end gap-0.5 text-[9px] text-gray-500 shrink-0">
+				<span>{episodes.length} {episodes.length === 1 ? 'episode' : 'episodes'}</span>
+				<span>{useIntraday ? '5-min · intraday' : 'daily'}</span>
+			</div>
 		</div>
 
 		<!-- Chart -->
-		<svg viewBox="0 0 {W} {H}" class="w-full" preserveAspectRatio="xMidYMid meet" role="img" aria-label="กราฟ Drawdown">
-			<defs>
-				<linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-					<stop offset="0%"   stop-color="#ef4444" stop-opacity="0.28"/>
-					<stop offset="100%" stop-color="#ef4444" stop-opacity="0.02"/>
-				</linearGradient>
-			</defs>
-
-			<!-- Grid lines -->
-			{#each yGridLines as v}
+		<svg viewBox="0 0 {W} {H}" class="w-full flex-1 min-h-[200px]" preserveAspectRatio="xMidYMid meet" role="img" aria-label="กราฟ Drawdown">
+			<!-- Threshold bands (horizontal dashed lines at thresholds) -->
+			{#each bands as b}
 				<line
-					x1={PAD.left} y1={yPos(v)}
-					x2={W - PAD.right} y2={yPos(v)}
-					stroke="#1f1f1f" stroke-width="0.5"
+					x1={PAD.left} y1={yPos(b.v)}
+					x2={W - PAD.right} y2={yPos(b.v)}
+					stroke={b.color} stroke-width="0.8" stroke-dasharray="3,4" stroke-opacity="0.3"
 				/>
 				<text
-					x={PAD.left - 4} y={yPos(v)}
+					x={PAD.left - 6} y={yPos(b.v)}
 					text-anchor="end" dominant-baseline="middle"
-					class="fill-gray-600" style="font-size:7px"
-				>{v}%</text>
+					fill={b.color} fill-opacity="0.7" style="font-size:10px"
+				>-{b.v}%</text>
 			{/each}
-
-			<!-- Area fill with gradient -->
-			<path d={areaD} fill="url(#{gradientId})" />
-
-			<!-- Stroke line -->
-			<path d={pathD} fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round" />
 
 			<!-- Zero baseline -->
 			<line
-				x1={PAD.left} y1={yPos(0)}
-				x2={W - PAD.right} y2={yPos(0)}
-				stroke="#374151" stroke-width="0.5" stroke-dasharray="3,3"
+				x1={PAD.left} y1={PAD.top}
+				x2={W - PAD.right} y2={PAD.top}
+				stroke="#4b5563" stroke-width="1"
 			/>
+			<text
+				x={PAD.left - 6} y={PAD.top}
+				text-anchor="end" dominant-baseline="middle"
+				class="fill-gray-400" style="font-size:10px; font-weight:500"
+			>0%</text>
 
-			<!-- Worst point marker -->
-			{#if worstPoint}
-				{@const wx = xPos(worstPoint.i)}
-				{@const wy = yPos(worstPoint.val)}
-				<!-- Vertical drop line -->
+			<!-- Episode lollipops -->
+			{#each episodes as ep, idx}
+				{@const x1 = xPos(ep.startIdx)}
+				{@const x2 = xPos(ep.endIdx ?? points.length - 1)}
+				{@const cx = xPos(ep.troughIdx)}
+				{@const cy = yPos(ep.depth)}
+				{@const color = episodeColor(ep.depth)}
+				{@const isWorst = idx === worstEpIdx}
+				<!-- Duration bar at 0-line (how long this DD lasted) -->
 				<line
-					x1={wx} y1={yPos(0)}
-					x2={wx} y2={wy}
-					stroke="#ef4444" stroke-width="0.5" stroke-dasharray="2,2" stroke-opacity="0.4"
+					x1={x1} y1={PAD.top}
+					x2={x2} y2={PAD.top}
+					stroke={color} stroke-width="3" stroke-opacity="0.4" stroke-linecap="round"
 				/>
-				<!-- Dot -->
-				<circle cx={wx} cy={wy} r="3" fill="#ef4444" />
-				<circle cx={wx} cy={wy} r="5" fill="#ef4444" fill-opacity="0.2" />
+				<!-- Stem down to trough -->
+				<line
+					x1={cx} y1={PAD.top}
+					x2={cx} y2={cy}
+					stroke={color} stroke-width={isWorst ? 2.5 : 1.5}
+					stroke-opacity={isWorst ? 0.9 : 0.6}
+				/>
+				<!-- Halo + dot at trough -->
+				{#if isWorst}
+					<circle cx={cx} cy={cy} r="9" fill={color} fill-opacity="0.15" />
+					<circle cx={cx} cy={cy} r="6" fill={color} fill-opacity="0.25" />
+				{/if}
+				<circle cx={cx} cy={cy} r={isWorst ? 4.5 : 3} fill={color} />
+				{#if isWorst}
+					<text
+						x={cx} y={cy + 16}
+						text-anchor="middle" fill={color}
+						style="font-size:10px; font-weight:600"
+					>-{ep.depth.toFixed(1)}%</text>
+				{/if}
+			{/each}
+
+			<!-- Current-DD marker (if underwater) -->
+			{#if isUnderwater && points.length > 0}
+				{@const lx = xPos(points.length - 1)}
+				{@const ly = yPos(currentDdPct)}
+				<circle cx={lx} cy={ly} r="5" fill="#fbbf24" fill-opacity="0.2" />
+				<circle cx={lx} cy={ly} r="3.5" fill="#fbbf24" stroke="#0a0a0a" stroke-width="1" />
 			{/if}
 
-			<!-- X-axis month labels -->
+			<!-- X-axis labels -->
 			{#each xLabels as lb}
-				<text x={lb.x} y={H - 3} text-anchor="middle" class="fill-gray-600" style="font-size:7px">{lb.text}</text>
+				<text x={lb.x} y={H - 6} text-anchor="middle" class="fill-gray-500" style="font-size:10px">{lb.text}</text>
 			{/each}
 		</svg>
 	{/if}

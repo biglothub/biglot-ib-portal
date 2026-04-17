@@ -624,8 +624,8 @@
 				<div class="relative">
 					<select bind:value={selectedPlaybookId} class="bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm text-white">
 						<option value="">ยังไม่เลือก Playbook</option>
-						{#each playbooks as playbook}
-							<option value={playbook.id}>{playbook.name}</option>
+						{#each playbooks.filter((p: Playbook) => p.is_active || p.id === selectedPlaybookId) as playbook}
+							<option value={playbook.id}>{playbook.name}{!playbook.is_active ? ' (ปิด)' : ''}</option>
 						{/each}
 					</select>
 					{#if !review?.playbook_id && suggestedPlaybookId && selectedPlaybookId === suggestedPlaybookId}

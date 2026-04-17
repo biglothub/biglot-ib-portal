@@ -624,7 +624,7 @@
 						/>
 						<MultiSelectDropdown
 							label="กลยุทธ์"
-							options={playbooks.map((p: Playbook) => ({ value: p.id, label: p.name }))}
+							options={playbooks.map((p: Playbook) => ({ value: p.id, label: p.is_active ? p.name : `${p.name} (ปิด)` }))}
 							bind:selected={playbookIds}
 							searchable={true}
 							onchange={() => autoApplyNow()}
@@ -788,7 +788,7 @@
 				<!-- Playbooks -->
 				<MultiSelectDropdown
 					label="กลยุทธ์"
-					options={playbooks.map((p: Playbook) => ({ value: p.id, label: p.name }))}
+					options={playbooks.map((p: Playbook) => ({ value: p.id, label: p.is_active ? p.name : `${p.name} (ปิด)` }))}
 					bind:selected={playbookIds}
 					searchable={true}
 				/>

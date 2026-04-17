@@ -16,12 +16,16 @@
 	} = $props();
 
 	let chartContainer = $state<HTMLDivElement>(undefined!);
-	let chart: IChartApi | null;
-	let equitySeries: ISeriesApi<'Line'> | null;
-	let balanceSeries: ISeriesApi<'Line'> | null;
-	let floatingZoneSeries: ISeriesApi<'Area'> | null;
+	let drawdownContainer = $state<HTMLDivElement>(undefined!);
+	let chart: IChartApi | null = null;
+	let drawdownChart: IChartApi | null = null;
+	let equitySeries: ISeriesApi<'Line'> | null = null;
+	let balanceSeries: ISeriesApi<'Line'> | null = null;
+	let floatingZoneSeries: ISeriesApi<'Area'> | null = null;
+	let drawdownSeries: ISeriesApi<'Area'> | null = null;
 
 	let currentTimeframe = $state('1M');
+	let showDrawdown = $state(true);
 	let dropdownOpen = $state(false);
 	let tooltipVisible = $state(false);
 	let tooltipX = $state(0);
@@ -43,6 +47,21 @@
 	const hasAnyData = $derived((equitySnapshots?.length || 0) > 0 || (equityCurve?.length || 0) > 0);
 	const currentRangeData = $derived(getFilteredData(selectedDays));
 	const hasRangeData = $derived(currentRangeData.length > 0);
+
+	// Running peak-to-equity drawdown (MyFxbook-style underwater curve)
+	const drawdownSeriesData = $derived.by(() => {
+		if (currentRangeData.length === 0) return [];
+		let peak = currentRangeData[0].equity;
+		return currentRangeData.map(d => {
+			if (d.equity > peak) peak = d.equity;
+			const ddPct = peak > 0 ? ((d.equity - peak) / peak) * 100 : 0;
+			return { time: d.time, value: ddPct };
+		});
+	});
+
+	const maxDrawdownPct = $derived(
+		drawdownSeriesData.length ? Math.min(0, ...drawdownSeriesData.map(d => d.value)) : 0
+	);
 
 	function getFilteredData(days: number) {
 		const now = Math.floor(Date.now() / 1000);
@@ -98,6 +117,14 @@
 			color: d.floatingPL >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'
 		}));
 		if (floatingZoneSeries) floatingZoneSeries.setData(zoneData);
+
+		if (drawdownSeries) {
+			const ddData = drawdownSeriesData.map(d => ({
+				time: (d.time + THAILAND_OFFSET_SECONDS) as any,
+				value: d.value
+			}));
+			drawdownSeries.setData(ddData);
+		}
 
 		chart.timeScale().fitContent();
 	}
@@ -218,8 +245,69 @@
 					}
 				});
 
+				// Drawdown pane (MyFxbook-style underwater curve) — synced time scale
+				if (drawdownContainer) {
+					drawdownChart = createChart(drawdownContainer, {
+						layout: {
+							background: { type: ColorType.Solid, color: 'transparent' },
+							textColor: '#9CA3AF',
+							fontFamily: "'Inter', sans-serif"
+						},
+						grid: {
+							vertLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted },
+							horzLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted }
+						},
+						width: drawdownContainer.clientWidth,
+						height: 110,
+						rightPriceScale: {
+							borderColor: 'rgba(55, 65, 81, 0.5)',
+							scaleMargins: { top: 0.1, bottom: 0.05 }
+						},
+						timeScale: {
+							borderColor: 'rgba(55, 65, 81, 0.5)',
+							timeVisible: true,
+							secondsVisible: false,
+							rightOffset: 5
+						},
+						crosshair: {
+							mode: 1,
+							vertLine: { color: 'rgba(239, 68, 68, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' },
+							horzLine: { color: 'rgba(239, 68, 68, 0.5)', width: 1, style: LineStyle.Dashed, labelBackgroundColor: '#1F2937' }
+						},
+						handleScroll: { mouseWheel: true, pressedMouseMove: true },
+						handleScale: { mouseWheel: true, pinch: true }
+					});
+
+					drawdownSeries = drawdownChart.addAreaSeries({
+						lineColor: '#EF4444',
+						topColor: 'rgba(239, 68, 68, 0.05)',
+						bottomColor: 'rgba(239, 68, 68, 0.45)',
+						lineWidth: 2,
+						priceFormat: { type: 'custom', formatter: (v: number) => `${v.toFixed(2)}%` },
+						title: 'Drawdown'
+					});
+
+					// Sync time scale: when top chart pans/zooms, move drawdown to match
+					let syncing = false;
+					chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+						if (syncing || !range || !drawdownChart) return;
+						syncing = true;
+						drawdownChart.timeScale().setVisibleLogicalRange(range);
+						syncing = false;
+					});
+					drawdownChart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+						if (syncing || !range || !chart) return;
+						syncing = true;
+						chart.timeScale().setVisibleLogicalRange(range);
+						syncing = false;
+					});
+				}
+
 				resizeObserver = new ResizeObserver(() => {
 					chart?.applyOptions({ width: chartContainer.clientWidth });
+					if (drawdownContainer) {
+						drawdownChart?.applyOptions({ width: drawdownContainer.clientWidth });
+					}
 				});
 				resizeObserver.observe(chartContainer);
 
@@ -235,6 +323,8 @@
 			resizeObserver?.disconnect();
 			chart?.remove();
 			chart = null;
+			drawdownChart?.remove();
+			drawdownChart = null;
 		};
 	});
 
@@ -289,6 +379,19 @@
 			</div>
 		</div>
 
+		<div class="flex items-center gap-3 ml-4">
+		<!-- Drawdown toggle (MyFxbook-style underwater pane) -->
+		<button
+			class="px-1.5 py-1 text-[10px] font-medium rounded border transition-all duration-200
+				{showDrawdown
+					? 'bg-red-500/10 text-red-400 border-red-500/40'
+					: 'bg-dark-surface text-gray-400 border-dark-border hover:border-red-500/40'}"
+			onclick={() => showDrawdown = !showDrawdown}
+			title="Toggle drawdown pane"
+		>
+			DD
+		</button>
+
 		<!-- Timeframe Selector Dropdown -->
 		<div class="relative">
 			<button
@@ -316,6 +419,7 @@
 					{/each}
 				</div>
 			{/if}
+		</div>
 		</div>
 	</div>
 
@@ -358,6 +462,16 @@
 			</div>
 		{/if}
 
+		<!-- Drawdown pane (synced) -->
+		<div
+			bind:this={drawdownContainer}
+			class="w-full bg-dark-bg/20 rounded-lg overflow-hidden mt-2 transition-all duration-200"
+			style:height={showDrawdown ? '110px' : '0px'}
+			style:opacity={showDrawdown ? '1' : '0'}
+			style:margin-top={showDrawdown ? '0.5rem' : '0'}
+			aria-hidden={!showDrawdown}
+		></div>
+
 		<!-- No Data State -->
 		{#if !hasAnyData}
 			<div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
@@ -381,20 +495,26 @@
 		{@const growth = first?.equity ? ((latest.equity - first.equity) / first.equity) * 100 : 0}
 		{@const maxEquity = currentRangeData.reduce((max, d) => d.equity > max ? d.equity : max, -Infinity)}
 
-		<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-			<div class="bg-dark-bg/30 rounded-lg p-3 text-center">
-				<div class="text-xs text-gray-400 mb-1">Current</div>
-				<div class="font-mono font-semibold text-white">${formatMoney(latest.equity)}</div>
+		<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+			<div class="min-w-0 bg-dark-bg/30 rounded-lg px-2 py-2.5 text-center">
+				<div class="text-[10px] text-gray-400 mb-0.5">Current</div>
+				<div class="font-mono font-semibold text-white text-xs truncate" title="${formatMoney(latest.equity)}">${formatMoney(latest.equity)}</div>
 			</div>
-			<div class="bg-dark-bg/30 rounded-lg p-3 text-center">
-				<div class="text-xs text-gray-400 mb-1">Growth</div>
-				<div class="font-mono font-semibold {growth >= 0 ? 'text-green-400' : 'text-red-400'}">
+			<div class="min-w-0 bg-dark-bg/30 rounded-lg px-2 py-2.5 text-center">
+				<div class="text-[10px] text-gray-400 mb-0.5">Growth</div>
+				<div class="font-mono font-semibold text-xs truncate {growth >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{growth >= 0 ? '+' : ''}{growth.toFixed(2)}%
 				</div>
 			</div>
-			<div class="bg-dark-bg/30 rounded-lg p-3 text-center">
-				<div class="text-xs text-gray-400 mb-1">Peak</div>
-				<div class="font-mono font-semibold text-brand-primary">${formatMoney(maxEquity)}</div>
+			<div class="min-w-0 bg-dark-bg/30 rounded-lg px-2 py-2.5 text-center">
+				<div class="text-[10px] text-gray-400 mb-0.5">Peak</div>
+				<div class="font-mono font-semibold text-brand-primary text-xs truncate" title="${formatMoney(maxEquity)}">${formatMoney(maxEquity)}</div>
+			</div>
+			<div class="min-w-0 bg-dark-bg/30 rounded-lg px-2 py-2.5 text-center">
+				<div class="text-[10px] text-gray-400 mb-0.5">Max DD</div>
+				<div class="font-mono font-semibold text-red-400 text-xs truncate">
+					{maxDrawdownPct.toFixed(2)}%
+				</div>
 			</div>
 		</div>
 	{/if}
