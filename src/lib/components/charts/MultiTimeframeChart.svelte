@@ -85,8 +85,8 @@
 			theme: 'dark',
 			style: '1',
 			locale: 'th_TH',
-			backgroundColor: 'rgba(15, 17, 22, 1)',
-			gridColor: 'rgba(55, 65, 81, 0.4)',
+			backgroundColor: '#0a0a0a',
+			gridColor: 'rgba(245, 241, 227, 0.08)',
 			hide_top_toolbar: false,
 			hide_legend: false,
 			allow_symbol_change: false,
@@ -145,23 +145,23 @@
 			chart = createChart(container, {
 				layout: {
 					background: { type: ColorType.Solid, color: 'transparent' },
-					textColor: '#9CA3AF',
+					textColor: '#b8ad94',
 					fontFamily: "'Inter', sans-serif"
 				},
 				grid: {
-					vertLines: { color: 'rgba(55,65,81,0.4)' },
-					horzLines: { color: 'rgba(55,65,81,0.4)' }
+					vertLines: { color: 'rgba(245, 241, 227, 0.08)' },
+					horzLines: { color: 'rgba(245, 241, 227, 0.08)' }
 				},
 				width: container.clientWidth,
 				height: container.clientHeight || 240,
 				timeScale: {
 					timeVisible: true,
 					secondsVisible: false,
-					borderColor: 'rgba(55,65,81,0.5)',
+					borderColor: 'rgba(245, 241, 227, 0.10)',
 					rightOffset: 5
 				},
 				rightPriceScale: {
-					borderColor: 'rgba(55,65,81,0.5)',
+					borderColor: 'rgba(245, 241, 227, 0.10)',
 					scaleMargins: { top: 0.1, bottom: 0.1 }
 				},
 				crosshair: {

@@ -44,8 +44,8 @@
 			const { createChart, ColorType, LineStyle } = lc;
 
 			chart = createChart(chartContainer, {
-				layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#9CA3AF', fontFamily: "'Inter', sans-serif" },
-				grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(55, 65, 81, 0.2)', style: LineStyle.Dotted } },
+				layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#b8ad94', fontFamily: "'Inter', sans-serif" },
+				grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(245, 241, 227, 0.06)', style: LineStyle.Dotted } },
 				width: chartContainer.clientWidth,
 				height,
 				rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.1 } },

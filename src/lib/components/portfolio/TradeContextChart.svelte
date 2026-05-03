@@ -83,22 +83,22 @@
 			chart = createChart(container, {
 				layout: {
 					background: { type: ColorType.Solid, color: 'transparent' },
-					textColor: '#9ca3af',
+					textColor: '#b8ad94',
 					fontFamily: "'Inter', sans-serif"
 				},
 				grid: {
-					vertLines: { color: 'rgba(55,65,81,0.35)' },
-					horzLines: { color: 'rgba(55,65,81,0.35)' }
+					vertLines: { color: 'rgba(245, 241, 227, 0.08)' },
+					horzLines: { color: 'rgba(245, 241, 227, 0.08)' }
 				},
 				width: container.clientWidth,
 				height: 320,
 				timeScale: {
 					timeVisible: true,
 					secondsVisible: false,
-					borderColor: 'rgba(55,65,81,0.35)'
+					borderColor: 'rgba(245, 241, 227, 0.08)'
 				},
 				rightPriceScale: {
-					borderColor: 'rgba(55,65,81,0.35)'
+					borderColor: 'rgba(245, 241, 227, 0.08)'
 				}
 			});
 

@@ -163,21 +163,21 @@
 				chart = createChart(chartContainer, {
 					layout: {
 						background: { type: ColorType.Solid, color: 'transparent' },
-						textColor: '#9CA3AF',
+						textColor: '#b8ad94',
 						fontFamily: "'Inter', sans-serif"
 					},
 					grid: {
-						vertLines: { color: 'rgba(55, 65, 81, 0.5)', style: LineStyle.Dotted },
-						horzLines: { color: 'rgba(55, 65, 81, 0.5)', style: LineStyle.Dotted }
+						vertLines: { color: 'rgba(245, 241, 227, 0.10)', style: LineStyle.Dotted },
+						horzLines: { color: 'rgba(245, 241, 227, 0.10)', style: LineStyle.Dotted }
 					},
 					width: chartContainer.clientWidth,
 					height,
 					rightPriceScale: {
-						borderColor: 'rgba(55, 65, 81, 0.5)',
+						borderColor: 'rgba(245, 241, 227, 0.10)',
 						scaleMargins: { top: 0.1, bottom: 0.1 }
 					},
 					timeScale: {
-						borderColor: 'rgba(55, 65, 81, 0.5)',
+						borderColor: 'rgba(245, 241, 227, 0.10)',
 						timeVisible: true,
 						secondsVisible: false,
 						rightOffset: 5
@@ -250,21 +250,21 @@
 					drawdownChart = createChart(drawdownContainer, {
 						layout: {
 							background: { type: ColorType.Solid, color: 'transparent' },
-							textColor: '#9CA3AF',
+							textColor: '#b8ad94',
 							fontFamily: "'Inter', sans-serif"
 						},
 						grid: {
-							vertLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted },
-							horzLines: { color: 'rgba(55, 65, 81, 0.3)', style: LineStyle.Dotted }
+							vertLines: { color: 'rgba(245, 241, 227, 0.08)', style: LineStyle.Dotted },
+							horzLines: { color: 'rgba(245, 241, 227, 0.08)', style: LineStyle.Dotted }
 						},
 						width: drawdownContainer.clientWidth,
 						height: 110,
 						rightPriceScale: {
-							borderColor: 'rgba(55, 65, 81, 0.5)',
+							borderColor: 'rgba(245, 241, 227, 0.10)',
 							scaleMargins: { top: 0.1, bottom: 0.05 }
 						},
 						timeScale: {
-							borderColor: 'rgba(55, 65, 81, 0.5)',
+							borderColor: 'rgba(245, 241, 227, 0.10)',
 							timeVisible: true,
 							secondsVisible: false,
 							rightOffset: 5

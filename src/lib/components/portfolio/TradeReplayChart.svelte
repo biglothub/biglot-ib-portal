@@ -341,22 +341,22 @@
 			chart = createChart(container, {
 				layout: {
 					background: { type: ColorType.Solid, color: 'transparent' },
-					textColor: '#9ca3af',
+					textColor: '#b8ad94',
 					fontFamily: "'Inter', sans-serif"
 				},
 				grid: {
-					vertLines: { color: 'rgba(55,65,81,0.35)' },
-					horzLines: { color: 'rgba(55,65,81,0.35)' }
+					vertLines: { color: 'rgba(245, 241, 227, 0.08)' },
+					horzLines: { color: 'rgba(245, 241, 227, 0.08)' }
 				},
 				width: container.clientWidth,
 				height: chartHeight,
 				timeScale: {
 					timeVisible: true,
 					secondsVisible: false,
-					borderColor: 'rgba(55,65,81,0.35)'
+					borderColor: 'rgba(245, 241, 227, 0.08)'
 				},
 				rightPriceScale: {
-					borderColor: 'rgba(55,65,81,0.35)'
+					borderColor: 'rgba(245, 241, 227, 0.08)'
 				},
 				crosshair: {
 					mode: 0
@@ -559,7 +559,7 @@
 				oninput={onScrub}
 				disabled={totalBars <= 1}
 				class="replay-scrubber w-full"
-				style="background: linear-gradient(to right, #C9A84C {progressPercent}%, #262626 {progressPercent}%)"
+				style="background: linear-gradient(to right, #C9A84C {progressPercent}%, rgba(245, 241, 227, 0.10) {progressPercent}%)"
 			/>
 		</div>
 
@@ -732,7 +732,7 @@
 		border-radius: 50%;
 		background: #C9A84C;
 		cursor: pointer;
-		border: 2px solid #141414;
+		border: 2px solid #1a1815;
 		transition: transform 0.15s ease;
 	}
 	.replay-scrubber::-webkit-slider-thumb:hover {
@@ -744,6 +744,6 @@
 		border-radius: 50%;
 		background: #C9A84C;
 		cursor: pointer;
-		border: 2px solid #141414;
+		border: 2px solid #1a1815;
 	}
 </style>

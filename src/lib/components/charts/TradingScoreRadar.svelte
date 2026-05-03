@@ -98,7 +98,7 @@
 			<polygon
 				points={gridPoints(pct)}
 				fill="none"
-				stroke="#262626"
+				stroke="rgba(245, 241, 227, 0.10)"
 				stroke-width={pct === 100 ? '1' : '0.5'}
 				opacity={pct === 100 ? 0.8 : 0.4}
 			/>
@@ -109,7 +109,7 @@
 			<line
 				x1={CX} y1={CY}
 				x2={px(axis.angle, 100)} y2={py(axis.angle, 100)}
-				stroke="#262626" stroke-width="0.5" opacity="0.6"
+				stroke="rgba(245, 241, 227, 0.10)" stroke-width="0.5" opacity="0.6"
 			/>
 		{/each}
 
