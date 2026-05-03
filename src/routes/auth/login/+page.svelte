@@ -1,13 +1,27 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { supabase } from '$lib/supabase';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { isMobile } from '$lib/pwa/platform';
+
+	const WELCOME_SEEN_KEY = 'pwa.welcome.seen';
 
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);
 	let googleLoading = $state(false);
 	let error = $state('');
+
+	onMount(() => {
+		// First-time mobile visitors see onboarding before the login form.
+		// Skipped on desktop, on repeat visits, and when arriving with an error
+		// (e.g. failed OAuth callback) so users always see the message.
+		const hasError = $page.url.searchParams.has('error');
+		if (!hasError && isMobile() && localStorage.getItem(WELCOME_SEEN_KEY) !== '1') {
+			goto('/welcome', { replaceState: true });
+		}
+	});
 
 	// Show error from URL params (e.g. after failed Google OAuth)
 	const urlError = $derived($page.url.searchParams.get('error'));

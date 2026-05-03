@@ -17,7 +17,7 @@ if (env.SENTRY_DSN) {
 	});
 }
 
-const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/auth/logout', '/offline', '/api/health'];
+const PUBLIC_ROUTES = ['/auth/login', '/auth/forgot-password', '/auth/callback', '/auth/logout', '/offline', '/welcome', '/api/health'];
 const MFA_ALLOWED_ROUTES = ['/auth/mfa', '/api/auth/mfa'];
 
 type CachedProfile = NonNullable<App.Locals['profile']>;
@@ -35,7 +35,15 @@ const authHandle: Handle = async ({ event, resolve }) => {
 		]);
 		const session = sessionData.session;
 		const user = userData.user;
-		if (error || !user) return { session: null, user: null };
+		if (error || !user) {
+			// Stale refresh token in cookies — clear them so the noisy
+			// AuthApiError doesn't fire on every subsequent request.
+			const code = (error as { code?: string } | null)?.code;
+			if (code === 'refresh_token_not_found' || code === 'refresh_token_already_used') {
+				await event.locals.supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+			}
+			return { session: null, user: null };
+		}
 
 		return { session, user };
 	};

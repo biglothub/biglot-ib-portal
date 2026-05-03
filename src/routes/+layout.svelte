@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { navigating } from '$app/stores';
-	import { onNavigate } from '$app/navigation';
+	import { afterNavigate, onNavigate } from '$app/navigation';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import NotificationBell from '$lib/components/layout/NotificationBell.svelte';
 	import ThemeToggle from '$lib/components/layout/ThemeToggle.svelte';
@@ -32,6 +32,13 @@
 				await navigation.complete;
 			});
 		});
+	});
+
+	// Track last visited route for /offline fallback
+	afterNavigate(({ to }) => {
+		if (!to?.url) return;
+		if (to.url.pathname === '/offline' || to.url.pathname.startsWith('/auth/')) return;
+		localStorage.setItem('pwa.lastRoute', `${to.url.pathname}${to.url.search}${to.url.hash}`);
 	});
 </script>
 
