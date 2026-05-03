@@ -143,13 +143,18 @@ async function fontCacheStrategy(request: Request): Promise<Response> {
 sw.addEventListener('push', (event) => {
 	if (!event.data) return;
 
-	const data = event.data.json();
+	const data = parsePushPayload(event.data.json());
 	event.waitUntil(
-		sw.registration.showNotification(data.title || 'IB Portal', {
-			body: data.body || '',
-			icon: '/icon-192.png',
-			badge: '/favicon.png',
-			data: { url: validateSameOriginUrl(data.url || '/') }
+		sw.registration.showNotification(data.title, {
+			body: data.body,
+			icon: data.icon,
+			badge: data.badge,
+			tag: data.tag,
+			data: {
+				...data.data,
+				category: data.category,
+				url: validateSameOriginUrl(data.url)
+			}
 		})
 	);
 });
@@ -183,4 +188,32 @@ function validateSameOriginUrl(url: string): string {
 	} catch {
 		return '/';
 	}
+}
+
+type PushCategory = 'sync_status' | 'risk_threshold' | 'account_status' | 'journal_reminder' | 'ai_insight' | 'general';
+
+interface PushPayload {
+	category: PushCategory;
+	title: string;
+	body: string;
+	url: string;
+	badge: string;
+	icon: string;
+	tag?: string;
+	data?: Record<string, unknown>;
+}
+
+function parsePushPayload(value: unknown): PushPayload {
+	const input = typeof value === 'object' && value !== null ? value as Record<string, unknown> : {};
+	const category = typeof input.category === 'string' ? input.category as PushCategory : 'general';
+	return {
+		category,
+		title: typeof input.title === 'string' && input.title.trim() ? input.title : 'IB Portal',
+		body: typeof input.body === 'string' ? input.body : '',
+		url: typeof input.url === 'string' ? input.url : '/portfolio',
+		badge: typeof input.badge === 'string' ? input.badge : '/favicon.png',
+		icon: typeof input.icon === 'string' ? input.icon : '/icon-192.png',
+		tag: typeof input.tag === 'string' ? input.tag : undefined,
+		data: typeof input.data === 'object' && input.data !== null ? input.data as Record<string, unknown> : undefined
+	};
 }

@@ -106,11 +106,18 @@
 			const saved = localStorage.getItem('dashboard-rows');
 			if (saved) rowVisibility = { ...rowVisibility, ...JSON.parse(saved) };
 		} catch { /* ignore */ }
+		online = navigator.onLine;
+		const setOnline = () => (online = true);
+		const setOffline = () => (online = false);
+		window.addEventListener('online', setOnline);
+		window.addEventListener('offline', setOffline);
 		autoRefreshTimer = setInterval(() => {
 			if (document.visibilityState !== 'visible') return;
 			void invalidate('portfolio:baseData');
 		}, 30_000);
 		return () => {
+			window.removeEventListener('online', setOnline);
+			window.removeEventListener('offline', setOffline);
 			if (autoRefreshTimer) clearInterval(autoRefreshTimer);
 		};
 	});
@@ -163,6 +170,16 @@
 	let cooldownTimer: ReturnType<typeof setTimeout> | undefined;
 	let successTimer: ReturnType<typeof setTimeout> | undefined;
 	let autoRefreshTimer: ReturnType<typeof setInterval> | undefined;
+	let online = $state(true);
+	const mobileLastUpdatedText = $derived.by(() => {
+		if (!account?.last_synced_at) return 'ยังไม่เคยซิงก์';
+		const time = new Intl.DateTimeFormat('th-TH', {
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		}).format(new Date(account.last_synced_at));
+		return online ? `อัปเดตล่าสุด ${time}` : `บันทึกไว้ ${time}`;
+	});
 
 	// Persist row visibility
 	function saveRowVisibility() {
@@ -412,6 +429,7 @@
 
 		<!-- ── Row A: 5 KPI Cards ─────────────────────────────────────────── -->
 		{#if rowVisibility.kpis}
+		<p class="md:hidden px-1 text-xs {online ? 'text-gray-500' : 'text-amber-300'}">{mobileLastUpdatedText}</p>
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
 			<MetricCard
 				label="กำไร/ขาดทุนสุทธิ"

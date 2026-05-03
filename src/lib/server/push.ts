@@ -2,11 +2,32 @@ import webpush from 'web-push';
 import { env } from '$env/dynamic/private';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+export type PushCategory = 'sync_status' | 'risk_threshold' | 'account_status' | 'journal_reminder' | 'ai_insight' | 'general';
+
+interface PushOptions {
+	category?: PushCategory;
+	title: string;
+	body?: string;
+	url?: string;
+	badge?: number;
+	icon?: string;
+	tag?: string;
+	data?: Record<string, unknown>;
+}
+
+const PREF_COLUMN_BY_CATEGORY: Partial<Record<PushCategory, string>> = {
+	sync_status: 'sync_status_enabled',
+	risk_threshold: 'risk_threshold_enabled',
+	account_status: 'account_status_enabled',
+	journal_reminder: 'journal_reminder_enabled',
+	ai_insight: 'ai_insight_enabled'
+};
+
 export async function sendPushToUser(
 	supabase: SupabaseClient,
 	userId: string,
-	title: string,
-	body: string,
+	titleOrOptions: string | PushOptions,
+	body = '',
 	url = '/'
 ): Promise<void> {
 	const vapidPublicKey = env.VAPID_PUBLIC_KEY;
@@ -17,6 +38,22 @@ export async function sendPushToUser(
 
 	webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
+	const options: PushOptions = typeof titleOrOptions === 'string'
+		? { category: 'general', title: titleOrOptions, body, url }
+		: titleOrOptions;
+
+	const category = options.category ?? 'general';
+	const prefColumn = PREF_COLUMN_BY_CATEGORY[category];
+	if (prefColumn) {
+		const { data: prefs } = await supabase
+			.from('user_notification_prefs')
+			.select('push_enabled, sync_status_enabled, risk_threshold_enabled, account_status_enabled, journal_reminder_enabled, ai_insight_enabled')
+			.eq('user_id', userId)
+			.maybeSingle();
+		const typedPrefs = prefs as Record<string, unknown> | null;
+		if (!typedPrefs?.push_enabled || typedPrefs[prefColumn] === false) return;
+	}
+
 	const { data: subscriptions } = await supabase
 		.from('push_subscriptions')
 		.select('endpoint, keys')
@@ -24,7 +61,16 @@ export async function sendPushToUser(
 
 	if (!subscriptions?.length) return;
 
-	const payload = JSON.stringify({ title, body, url });
+	const payload = JSON.stringify({
+		category,
+		title: options.title,
+		body: options.body || '',
+		url: options.url || '/portfolio',
+		badge: options.badge,
+		icon: options.icon || '/icon-192.png',
+		tag: options.tag,
+		data: options.data
+	});
 	const stale: string[] = [];
 
 	for (const sub of subscriptions) {

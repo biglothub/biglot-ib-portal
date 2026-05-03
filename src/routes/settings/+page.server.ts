@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.maybeSingle(),
 		locals.supabase
 			.from('user_notification_prefs')
-			.select('push_enabled, daily_email_enabled, trade_alerts_enabled, weekly_recap_enabled')
+			.select('push_enabled, daily_email_enabled, trade_alerts_enabled, weekly_recap_enabled, sync_status_enabled, risk_threshold_enabled, account_status_enabled, journal_reminder_enabled, ai_insight_enabled')
 			.eq('user_id', userId)
 			.maybeSingle(),
 		locals.supabase
@@ -35,7 +35,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 			push_enabled: false,
 			daily_email_enabled: false,
 			trade_alerts_enabled: false,
-			weekly_recap_enabled: false
+			weekly_recap_enabled: false,
+			sync_status_enabled: true,
+			risk_threshold_enabled: true,
+			account_status_enabled: true,
+			journal_reminder_enabled: false,
+			ai_insight_enabled: true
 		},
 		apiKeys: apiKeysResult.data ?? []
 	};

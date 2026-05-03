@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { focusTrap } from '$lib/actions/focusTrap';
 	import { openInstallPrompt } from '$lib/pwa/install-event.svelte';
+	import { PWA_PENDING_COUNT_KEY, PWA_SYNC_EVENT } from '$lib/pwa/sync-queue';
 	import { usePlatform } from '$lib/pwa/use-platform.svelte';
 	import { fade } from 'svelte/transition';
 
@@ -22,6 +23,7 @@
 	let moreOpen = $state(false);
 	let touchStartY = $state(0);
 	let touchDeltaY = $state(0);
+	let pendingCount = $state(0);
 	const platform = usePlatform();
 
 	// Primary 4 tabs + "More" button
@@ -64,6 +66,8 @@
 			!platform.isStandalone
 				? { label: 'ติดตั้งแอป', action: () => openInstallPrompt() }
 				: null
+			,
+			{ label: pendingCount > 0 ? `Sync Center (${pendingCount})` : 'Sync Center', action: () => window.dispatchEvent(new CustomEvent('pwa:open-sync-center')) }
 		].filter(Boolean) as DrawerAction[]
 	);
 
@@ -101,6 +105,26 @@
 		document.body.style.overflow = 'hidden';
 		return () => {
 			document.body.style.overflow = originalOverflow;
+		};
+	});
+
+	$effect(() => {
+		const readCount = () => {
+			const raw = localStorage.getItem(PWA_PENDING_COUNT_KEY);
+			const next = raw ? Number.parseInt(raw, 10) : 0;
+			pendingCount = Number.isFinite(next) ? Math.max(0, next) : 0;
+		};
+		const onStorage = (event: StorageEvent) => {
+			if (event.key === PWA_PENDING_COUNT_KEY) readCount();
+		};
+		const onSync = () => readCount();
+
+		readCount();
+		window.addEventListener('storage', onStorage);
+		window.addEventListener(PWA_SYNC_EVENT, onSync);
+		return () => {
+			window.removeEventListener('storage', onStorage);
+			window.removeEventListener(PWA_SYNC_EVENT, onSync);
 		};
 	});
 </script>
@@ -239,9 +263,16 @@
 		aria-expanded={moreOpen}
 		aria-haspopup="dialog"
 	>
-		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-		</svg>
+		<span class="relative">
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+			</svg>
+			{#if pendingCount > 0}
+				<span class="absolute -right-2 -top-2 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+					{pendingCount > 9 ? '9+' : pendingCount}
+				</span>
+			{/if}
+		</span>
 		<span class="text-[10px] font-medium leading-tight">เพิ่มเติม</span>
 	</button>
 </nav>

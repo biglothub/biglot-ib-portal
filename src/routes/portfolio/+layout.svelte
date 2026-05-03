@@ -14,6 +14,7 @@
 	import AccountSwitcher from '$lib/components/portfolio/AccountSwitcher.svelte';
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
 	import MobileHeader from '$lib/components/pwa/MobileHeader.svelte';
+	import SyncCenter from '$lib/components/pwa/SyncCenter.svelte';
 	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
 	import ShortcutsHelp from '$lib/components/shared/ShortcutsHelp.svelte';
 	import { registerShortcuts, unregisterShortcuts, initShortcuts, pushOverlay, popOverlay } from '$lib/stores/shortcuts.svelte';
@@ -413,6 +414,7 @@
 
 {#if account}
 	<MobileNav {tabs} {isActive} />
+	<SyncCenter />
 {/if}
 
 {#if account && !isAdminView}

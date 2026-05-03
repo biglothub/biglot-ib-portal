@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import {
+		PUSH_PERMISSION_DISMISSED_AT_KEY,
+		PWA_PUSH_PERMISSION_EVENT,
+		pushSupported
+	} from '$lib/pwa/push';
 
 	let show = $state(false);
 	let loading = $state(false);
@@ -14,24 +19,23 @@
 
 	onMount(() => {
 		if (!browser) return;
-		if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-		if (!('PushManager' in window)) return;
+		if (!pushSupported()) return;
 
-		// Only show if permission not yet decided
-		if (Notification.permission !== 'default') return;
+		const openPrompt = () => {
+			if (Notification.permission !== 'default') return;
 
-		// Check if dismissed recently
-		const dismissed = localStorage.getItem('push-permission-dismissed');
-		if (dismissed) {
-			const dismissedAt = parseInt(dismissed, 10);
-			const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-			if (Date.now() - dismissedAt < thirtyDays) return;
-		}
+			const dismissed = localStorage.getItem(PUSH_PERMISSION_DISMISSED_AT_KEY);
+			if (dismissed) {
+				const dismissedAt = parseInt(dismissed, 10);
+				const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+				if (Date.now() - dismissedAt < thirtyDays) return;
+			}
 
-		// Show after a delay to not overwhelm the user
-		setTimeout(() => {
 			show = true;
-		}, 5000);
+		};
+
+		window.addEventListener(PWA_PUSH_PERMISSION_EVENT, openPrompt);
+		return () => window.removeEventListener(PWA_PUSH_PERMISSION_EVENT, openPrompt);
 	});
 
 	function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -48,6 +52,12 @@
 	async function subscribe() {
 		loading = true;
 		try {
+			const permission = await Notification.requestPermission();
+			if (permission !== 'granted') {
+				dismiss();
+				return;
+			}
+
 			const registration = await navigator.serviceWorker.ready;
 			const subscription = await registration.pushManager.subscribe({
 				userVisibleOnly: true,
@@ -74,7 +84,7 @@
 
 	function dismiss() {
 		show = false;
-		localStorage.setItem('push-permission-dismissed', Date.now().toString());
+		localStorage.setItem(PUSH_PERMISSION_DISMISSED_AT_KEY, Date.now().toString());
 	}
 </script>
 

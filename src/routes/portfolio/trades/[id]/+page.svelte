@@ -8,6 +8,9 @@
 	import InsightsSection from '$lib/components/portfolio/InsightsSection.svelte';
 	import QualityScoreBar from '$lib/components/portfolio/QualityScoreBar.svelte';
 	import ExecutionMetricsCard from '$lib/components/portfolio/ExecutionMetricsCard.svelte';
+	import { enqueueSyncAction } from '$lib/pwa/sync-queue';
+	import { useDraft } from '$lib/pwa/use-draft.svelte';
+	import { usePlatform } from '$lib/pwa/use-platform.svelte';
 	import { formatCurrency, formatNumber, formatDateTime, toThaiDateString } from '$lib/utils';
 	import { getTradeReview, getTradeNote } from '$lib/portfolio';
 	import type { TradeTagAssignment, TradeTag, Playbook } from '$lib/types';
@@ -50,6 +53,9 @@
 	let reviewError = $state('');
 	let activeReviewTab = $state<'entry' | 'notes' | 'review'>('entry');
 	let newBrokenRule = $state('');
+	const platform = usePlatform();
+	const reviewDraft = useDraft('review', () => trade?.id, { enabled: () => platform.isMobile });
+	let draftAppliedFor = $state('');
 
 	let attachments = $state<any[]>([]);
 	let showAnnotator = $state(false);
@@ -127,6 +133,7 @@
 			attachments = trade?.trade_attachments || [];
 			optimisticAddedTags = [];
 			optimisticRemovedTagIds = new Set();
+			draftAppliedFor = '';
 		} else {
 			// Same trade, data refreshed (after invalidation): sync only attachments and
 			// clean up optimistic tags. Do NOT reset form fields or reviewStatus — the save
@@ -144,6 +151,91 @@
 					[...optimisticRemovedTagIds].filter((id) => realTagIds.has(id))
 				);
 			}
+		}
+	});
+
+	function buildReviewBody() {
+		return {
+			playbook_id: selectedPlaybookId || null,
+			review_status: reviewStatus,
+			entry_reason: entryReason,
+			exit_reason: exitReason,
+			execution_notes: executionNotes,
+			risk_notes: riskNotes,
+			mistake_summary: mistakeSummary,
+			lesson_summary: lessonSummary,
+			next_action: nextAction,
+			setup_quality_score: toIntOrNull(setupQuality),
+			discipline_score: toIntOrNull(disciplineScore),
+			execution_score: toIntOrNull(executionScore),
+			confidence_at_entry: toIntOrNull(confidenceAtEntry),
+			followed_plan: followedPlan === '' ? null : followedPlan === 'yes',
+			broken_rules: brokenRules
+		};
+	}
+
+	function buildServerReviewBody() {
+		return {
+			playbook_id: review?.playbook_id || null,
+			review_status: review?.review_status || 'unreviewed',
+			entry_reason: review?.entry_reason || '',
+			exit_reason: review?.exit_reason || '',
+			execution_notes: review?.execution_notes || '',
+			risk_notes: review?.risk_notes || '',
+			mistake_summary: review?.mistake_summary || '',
+			lesson_summary: review?.lesson_summary || '',
+			next_action: review?.next_action || '',
+			setup_quality_score: review?.setup_quality_score ?? null,
+			discipline_score: review?.discipline_score ?? null,
+			execution_score: review?.execution_score ?? null,
+			confidence_at_entry: review?.confidence_at_entry ?? null,
+			followed_plan: review?.followed_plan == null ? null : review.followed_plan,
+			broken_rules: review?.broken_rules || []
+		};
+	}
+
+	function applyReviewBody(payload: ReturnType<typeof buildReviewBody>) {
+		selectedPlaybookId = payload.playbook_id || '';
+		reviewStatus = payload.review_status || 'unreviewed';
+		entryReason = payload.entry_reason || '';
+		exitReason = payload.exit_reason || '';
+		executionNotes = payload.execution_notes || '';
+		riskNotes = payload.risk_notes || '';
+		mistakeSummary = payload.mistake_summary || '';
+		lessonSummary = payload.lesson_summary || '';
+		nextAction = payload.next_action || '';
+		setupQuality = payload.setup_quality_score ?? null;
+		disciplineScore = payload.discipline_score ?? null;
+		executionScore = payload.execution_score ?? null;
+		confidenceAtEntry = payload.confidence_at_entry ?? null;
+		followedPlan = payload.followed_plan == null ? '' : payload.followed_plan ? 'yes' : 'no';
+		brokenRules = Array.isArray(payload.broken_rules) ? payload.broken_rules : [];
+	}
+
+	async function clearReviewDraft() {
+		await reviewDraft.clear();
+		applyReviewBody(buildServerReviewBody());
+		toast.success('ล้างแบบร่าง Review แล้ว');
+	}
+
+	$effect(() => {
+		if (!trade?.id || draftAppliedFor === trade.id) return;
+		draftAppliedFor = trade.id;
+		reviewDraft.load().then((draft) => {
+			if (!draft?.payload || typeof draft.payload !== 'object' || Array.isArray(draft.payload)) return;
+			const serverUpdatedAt = review?.updated_at ? new Date(review.updated_at).getTime() : 0;
+			if (draft.updatedAt >= serverUpdatedAt) {
+				applyReviewBody(draft.payload as ReturnType<typeof buildReviewBody>);
+			}
+		});
+	});
+
+	$effect(() => {
+		if (!trade?.id) return;
+		const payload = buildReviewBody();
+		const serverPayload = buildServerReviewBody();
+		if (JSON.stringify(payload) !== JSON.stringify(serverPayload)) {
+			reviewDraft.save(payload);
 		}
 	});
 
@@ -219,23 +311,24 @@
 		}
 
 		try {
-			const body = {
-				playbook_id: selectedPlaybookId || null,
-				review_status: reviewStatus,
-				entry_reason: entryReason,
-				exit_reason: exitReason,
-				execution_notes: executionNotes,
-				risk_notes: riskNotes,
-				mistake_summary: mistakeSummary,
-				lesson_summary: lessonSummary,
-				next_action: nextAction,
-				setup_quality_score: toIntOrNull(setupQuality),
-				discipline_score: toIntOrNull(disciplineScore),
-				execution_score: toIntOrNull(executionScore),
-				confidence_at_entry: toIntOrNull(confidenceAtEntry),
-				followed_plan: followedPlan === '' ? null : followedPlan === 'yes',
-				broken_rules: brokenRules
-			};
+			const body = buildReviewBody();
+
+			if (platform.isMobile && !navigator.onLine) {
+				await reviewDraft.saveNow(body);
+				await enqueueSyncAction({
+					endpoint: `/api/portfolio/trades/${trade.id}/review`,
+					method: 'POST',
+					body,
+					headers: { 'Content-Type': 'application/json' }
+				});
+				reviewSaved = true;
+				reviewSavedAt = new Date();
+				reviewError = '';
+				toast.success('บันทึกแบบร่าง Review แล้ว', { detail: 'จะซิงก์เมื่อกลับมาออนไลน์' });
+				setTimeout(() => (reviewSaved = false), 2500);
+				return;
+			}
+
 			const res = await fetch(`/api/portfolio/trades/${trade.id}/review`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -253,6 +346,7 @@
 				reviewSaved = true;
 				reviewSavedAt = new Date();
 				reviewError = '';
+				await reviewDraft.clear();
 				const statusLabels: Record<string, string> = {
 					reviewed: 'รีวิวครบแล้ว',
 					in_progress: 'บันทึกระหว่างรีวิว',
@@ -613,7 +707,23 @@
 		</div>
 
 		<div class="card space-y-5">
-			<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<h3 class="text-sm font-medium text-gray-400">Structured Review</h3>
+				{#if platform.isMobile && reviewDraft.draft}
+					<div class="md:hidden flex items-center gap-2">
+						<span class="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
+							แบบร่าง · ยังไม่บันทึก
+						</span>
+						<button
+							type="button"
+							onclick={clearReviewDraft}
+							class="text-xs text-gray-400 hover:text-white"
+						>
+							ล้างแบบร่าง
+						</button>
+					</div>
+				{/if}
+			</div>
 
 			<!-- Row 1: Status + Playbook + Followed Plan -->
 			<div class="flex flex-wrap items-center gap-3">

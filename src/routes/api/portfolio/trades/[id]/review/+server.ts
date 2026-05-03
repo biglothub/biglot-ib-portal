@@ -1,5 +1,6 @@
 import { rateLimit } from '$lib/server/rate-limit';
 import { invalidateTradesCache } from '$lib/server/portfolio';
+import { handleIdempotentRequest } from '$lib/server/idempotency';
 import { json } from '@sveltejs/kit';
 import { verifyTradeOwnership } from '$lib/server/trade-guard';
 import type { RequestHandler } from './$types';
@@ -93,30 +94,38 @@ export const POST: RequestHandler = async ({ request, params, locals }) => {
 		payload.reviewed_at = existing?.reviewed_at ?? new Date().toISOString();
 	}
 
-	// Upsert with .select().single() so a silent RLS reject (0 rows affected) surfaces as an error
-	const { error: upsertError } = await locals.supabase
-		.from('trade_reviews')
-		.upsert(payload, { onConflict: 'trade_id' })
-		.select()
-		.single();
+	return handleIdempotentRequest({
+		supabase: locals.supabase,
+		request,
+		userId: profile.id,
+		body,
+		execute: async () => {
+			// Upsert with .select().single() so a silent RLS reject (0 rows affected) surfaces as an error
+			const { error: upsertError } = await locals.supabase
+				.from('trade_reviews')
+				.upsert(payload, { onConflict: 'trade_id' })
+				.select()
+				.single();
 
-	if (upsertError) {
-		console.error('[review] upsert failed:', upsertError.message, upsertError.code);
-		return json({ message: upsertError.message }, { status: 500 });
-	}
+			if (upsertError) {
+				console.error('[review] upsert failed:', upsertError.message, upsertError.code);
+				return json({ message: upsertError.message }, { status: 500 });
+			}
 
-	// Fetch the saved review with playbook join (separate from upsert to avoid PostgREST join issues)
-	const { data, error: fetchError } = await locals.supabase
-		.from('trade_reviews')
-		.select('*, playbooks(id, name, description)')
-		.eq('trade_id', params.id)
-		.single();
+			// Fetch the saved review with playbook join (separate from upsert to avoid PostgREST join issues)
+			const { data, error: fetchError } = await locals.supabase
+				.from('trade_reviews')
+				.select('*, playbooks(id, name, description)')
+				.eq('trade_id', params.id)
+				.single();
 
-	if (fetchError) {
-		console.error('[review] fetch after upsert failed:', fetchError.message);
-	}
+			if (fetchError) {
+				console.error('[review] fetch after upsert failed:', fetchError.message);
+			}
 
-	invalidateTradesCache(accountId);
+			invalidateTradesCache(accountId);
 
-	return json({ success: true, review: data ?? null });
+			return json({ success: true, review: data ?? null });
+		}
+	});
 };

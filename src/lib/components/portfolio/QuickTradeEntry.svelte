@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
-	import { focusTrap } from '$lib/actions/focusTrap';
-	import { fade, fly } from 'svelte/transition';
+	import BottomSheet from '$lib/components/pwa/BottomSheet.svelte';
 
 	// Helper: today's datetime-local string in local timezone
 	function toDatetimeLocal(d: Date): string {
@@ -14,6 +13,15 @@
 
 	function nowLocal() {
 		return toDatetimeLocal(new Date());
+	}
+
+	function setDatePreset(offsetDays: number) {
+		const close = new Date();
+		close.setDate(close.getDate() + offsetDays);
+		const openDate = new Date(close);
+		openDate.setHours(openDate.getHours() - 1);
+		openTime = toDatetimeLocal(openDate);
+		closeTime = toDatetimeLocal(close);
 	}
 
 	// --- State ---
@@ -59,13 +67,6 @@
 	function closeModal() {
 		if (saving) return;
 		open = false;
-	}
-
-	function handleSheetKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			e.preventDefault();
-			closeModal();
-		}
 	}
 
 	async function submit() {
@@ -134,32 +135,6 @@
 		}
 	}
 
-	// Touch-based bottom-sheet dismiss (swipe down)
-	let dragStartY = $state(0);
-	let dragDelta = $state(0);
-	let isDragging = $state(false);
-
-	function onSheetTouchStart(e: TouchEvent) {
-		dragStartY = e.touches[0].clientY;
-		isDragging = true;
-		dragDelta = 0;
-	}
-
-	function onSheetTouchMove(e: TouchEvent) {
-		if (!isDragging) return;
-		const delta = e.touches[0].clientY - dragStartY;
-		if (delta > 0) {
-			dragDelta = delta;
-		}
-	}
-
-	function onSheetTouchEnd() {
-		isDragging = false;
-		if (dragDelta > 80) {
-			closeModal();
-		}
-		dragDelta = 0;
-	}
 </script>
 
 <!-- Floating "+" button (mobile only, bottom-right above bottom nav) -->
@@ -173,53 +148,7 @@
 	</svg>
 </button>
 
-<!-- Backdrop -->
-{#if open}
-	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-	<div
-		transition:fade={{ duration: 200 }}
-		class="md:hidden fixed inset-0 z-50 bg-black/60"
-		onclick={closeModal}
-		aria-hidden="true"
-	></div>
-
-	<!-- Bottom sheet -->
-	<div
-		use:focusTrap={{ enabled: open, initialFocus: '#qt-symbol' }}
-		class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark-surface rounded-t-2xl shadow-2xl animate-slide-up"
-		style="transform: translateY({dragDelta}px); transition: {isDragging ? 'none' : 'transform 0.2s ease'}"
-		role="dialog"
-		aria-labelledby="quick-trade-entry-title"
-		aria-modal="true"
-		tabindex="-1"
-		onkeydown={handleSheetKeydown}
-	>
-		<!-- Drag handle (touch to dismiss) -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="pt-3 pb-1 flex justify-center cursor-grab active:cursor-grabbing"
-			ontouchstart={onSheetTouchStart}
-			ontouchmove={onSheetTouchMove}
-			ontouchend={onSheetTouchEnd}
-		>
-			<div class="w-10 h-1 rounded-full bg-dark-border"></div>
-		</div>
-
-		<div class="px-4 pb-6 overflow-y-auto max-h-[85vh]">
-			<!-- Header -->
-			<div class="flex items-center justify-between mb-4">
-				<h2 id="quick-trade-entry-title" class="text-base font-semibold text-white">บันทึกเทรด</h2>
-				<button
-					onclick={closeModal}
-					class="w-8 h-8 rounded-full bg-dark-hover flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-					aria-label="ปิด"
-				>
-					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-					</svg>
-				</button>
-			</div>
-
+<BottomSheet {open} title="บันทึกเทรด" onclose={closeModal} initialFocus="#qt-symbol">
 			{#if successId}
 				<!-- Success state -->
 				<div class="flex flex-col items-center justify-center py-8 gap-3">
@@ -237,6 +166,7 @@
 					class="space-y-4"
 					novalidate
 				>
+					<p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Required</p>
 					<!-- Symbol + Side -->
 					<div class="flex gap-3">
 						<div class="flex-1">
@@ -312,7 +242,13 @@
 
 					<!-- Open time -->
 					<div>
-						<label for="qt-open-time" class="block text-xs text-gray-400 mb-1.5">เวลาเปิด <span class="text-red-400">*</span></label>
+						<div class="mb-1.5 flex items-center justify-between gap-2">
+							<label for="qt-open-time" class="block text-xs text-gray-400">เวลาเปิด <span class="text-red-400">*</span></label>
+							<div class="flex gap-1">
+								<button type="button" onclick={() => setDatePreset(0)} class="rounded border border-dark-border px-2 py-1 text-[11px] text-gray-400 hover:text-white">วันนี้</button>
+								<button type="button" onclick={() => setDatePreset(-1)} class="rounded border border-dark-border px-2 py-1 text-[11px] text-gray-400 hover:text-white">เมื่อวาน</button>
+							</div>
+						</div>
 						<input
 							id="qt-open-time"
 							type="datetime-local"
@@ -351,6 +287,7 @@
 
 					{#if showAdvanced}
 						<div class="space-y-3 border border-dark-border rounded-xl p-3 bg-dark-bg/50">
+							<p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Advanced</p>
 							<div class="flex gap-3">
 								<div class="flex-1">
 									<label for="qt-open-price" class="block text-xs text-gray-400 mb-1.5">ราคาเปิด</label>
@@ -439,6 +376,4 @@
 					</button>
 				</form>
 			{/if}
-		</div>
-	</div>
-{/if}
+</BottomSheet>

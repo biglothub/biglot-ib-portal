@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { openPushPermissionPrompt } from '$lib/pwa/push';
 	import { theme, type ThemeMode } from '$lib/stores/theme.svelte';
 
 	const themeOptions: { value: ThemeMode; label: string; desc: string }[] = [
@@ -142,6 +143,11 @@
 	let dailyEmailEnabled = $state(false);
 	let tradeAlertsEnabled = $state(false);
 	let weeklyRecapEnabled = $state(false);
+	let syncStatusEnabled = $state(true);
+	let riskThresholdEnabled = $state(true);
+	let accountStatusEnabled = $state(true);
+	let journalReminderEnabled = $state(false);
+	let aiInsightEnabled = $state(true);
 
 	// Sync notification prefs when data changes
 	$effect(() => {
@@ -149,6 +155,11 @@
 		dailyEmailEnabled = notificationPrefs?.daily_email_enabled ?? false;
 		tradeAlertsEnabled = notificationPrefs?.trade_alerts_enabled ?? false;
 		weeklyRecapEnabled = notificationPrefs?.weekly_recap_enabled ?? false;
+		syncStatusEnabled = notificationPrefs?.sync_status_enabled ?? true;
+		riskThresholdEnabled = notificationPrefs?.risk_threshold_enabled ?? true;
+		accountStatusEnabled = notificationPrefs?.account_status_enabled ?? true;
+		journalReminderEnabled = notificationPrefs?.journal_reminder_enabled ?? false;
+		aiInsightEnabled = notificationPrefs?.ai_insight_enabled ?? true;
 	});
 	let savingNotifs = $state(false);
 	let notifsMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -157,7 +168,12 @@
 		pushEnabled !== (notificationPrefs?.push_enabled ?? false) ||
 		dailyEmailEnabled !== (notificationPrefs?.daily_email_enabled ?? false) ||
 		tradeAlertsEnabled !== (notificationPrefs?.trade_alerts_enabled ?? false) ||
-		weeklyRecapEnabled !== (notificationPrefs?.weekly_recap_enabled ?? false)
+		weeklyRecapEnabled !== (notificationPrefs?.weekly_recap_enabled ?? false) ||
+		syncStatusEnabled !== (notificationPrefs?.sync_status_enabled ?? true) ||
+		riskThresholdEnabled !== (notificationPrefs?.risk_threshold_enabled ?? true) ||
+		accountStatusEnabled !== (notificationPrefs?.account_status_enabled ?? true) ||
+		journalReminderEnabled !== (notificationPrefs?.journal_reminder_enabled ?? false) ||
+		aiInsightEnabled !== (notificationPrefs?.ai_insight_enabled ?? true)
 	);
 
 	async function saveName() {
@@ -206,7 +222,12 @@
 					push_enabled: pushEnabled,
 					daily_email_enabled: dailyEmailEnabled,
 					trade_alerts_enabled: tradeAlertsEnabled,
-					weekly_recap_enabled: weeklyRecapEnabled
+					weekly_recap_enabled: weeklyRecapEnabled,
+					sync_status_enabled: syncStatusEnabled,
+					risk_threshold_enabled: riskThresholdEnabled,
+					account_status_enabled: accountStatusEnabled,
+					journal_reminder_enabled: journalReminderEnabled,
+					ai_insight_enabled: aiInsightEnabled
 				})
 			});
 			const result = await res.json();
@@ -653,7 +674,10 @@
 					<p class="text-xs text-gray-400">รับแจ้งเตือนผ่านเบราว์เซอร์</p>
 				</div>
 				<button
-					onclick={() => pushEnabled = !pushEnabled}
+					onclick={() => {
+						pushEnabled = !pushEnabled;
+						if (pushEnabled) openPushPermissionPrompt();
+					}}
 					class="w-11 h-6 rounded-full transition-colors relative {pushEnabled ? 'bg-brand-primary' : 'bg-dark-bg border border-dark-border'}"
 					role="switch"
 					aria-checked={pushEnabled}
@@ -661,6 +685,36 @@
 				>
 					<div class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform {pushEnabled ? 'left-[22px]' : 'left-0.5'}"></div>
 				</button>
+			</div>
+
+			<div class="rounded-xl border border-dark-border bg-dark-bg/30 p-4">
+				<p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">หมวด Push Notification</p>
+				<div class="grid gap-3 md:grid-cols-2">
+					{#each [
+						{ label: 'สถานะ Sync', desc: 'สำเร็จ ล้มเหลว หรือมีรายการรอซิงก์', get: () => syncStatusEnabled, set: (v: boolean) => syncStatusEnabled = v },
+						{ label: 'Risk threshold', desc: 'แจ้งเตือนเมื่อแตะเกณฑ์ความเสี่ยง', get: () => riskThresholdEnabled, set: (v: boolean) => riskThresholdEnabled = v },
+						{ label: 'สถานะบัญชี', desc: 'อนุมัติบัญชีหรือข้อมูลสำคัญจากระบบ', get: () => accountStatusEnabled, set: (v: boolean) => accountStatusEnabled = v },
+						{ label: 'เตือนเขียน Journal', desc: 'เตือนบันทึกหลังจบวันเทรด', get: () => journalReminderEnabled, set: (v: boolean) => journalReminderEnabled = v },
+						{ label: 'AI insight', desc: 'แจ้งเมื่อ TradePilot สรุป insight พร้อม', get: () => aiInsightEnabled, set: (v: boolean) => aiInsightEnabled = v }
+					] as pref}
+						<div class="flex items-center justify-between gap-3">
+							<div class="min-w-0">
+								<p class="text-sm text-white">{pref.label}</p>
+								<p class="text-xs text-gray-400">{pref.desc}</p>
+							</div>
+							<button
+								type="button"
+								onclick={() => pref.set(!pref.get())}
+								class="relative h-6 w-11 shrink-0 rounded-full transition-colors {pref.get() ? 'bg-brand-primary' : 'bg-dark-bg border border-dark-border'}"
+								role="switch"
+								aria-checked={pref.get()}
+								aria-label={pref.label}
+							>
+								<div class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform {pref.get() ? 'left-[22px]' : 'left-0.5'}"></div>
+							</button>
+						</div>
+					{/each}
+				</div>
 			</div>
 
 			<!-- Daily Email -->
@@ -737,6 +791,11 @@
 						dailyEmailEnabled = notificationPrefs?.daily_email_enabled ?? false;
 						tradeAlertsEnabled = notificationPrefs?.trade_alerts_enabled ?? false;
 						weeklyRecapEnabled = notificationPrefs?.weekly_recap_enabled ?? false;
+						syncStatusEnabled = notificationPrefs?.sync_status_enabled ?? true;
+						riskThresholdEnabled = notificationPrefs?.risk_threshold_enabled ?? true;
+						accountStatusEnabled = notificationPrefs?.account_status_enabled ?? true;
+						journalReminderEnabled = notificationPrefs?.journal_reminder_enabled ?? false;
+						aiInsightEnabled = notificationPrefs?.ai_insight_enabled ?? true;
 						notifsMessage = null;
 					}}
 					disabled={savingNotifs}

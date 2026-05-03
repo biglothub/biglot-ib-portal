@@ -7,6 +7,9 @@
 	import JournalTemplates from '$lib/components/portfolio/JournalTemplates.svelte';
 	import TiptapEditor from '$lib/components/portfolio/TiptapEditor.svelte';
 	import EndOfDayWizard from '$lib/components/portfolio/EndOfDayWizard.svelte';
+	import { enqueueSyncAction } from '$lib/pwa/sync-queue';
+	import { useDraft } from '$lib/pwa/use-draft.svelte';
+	import { usePlatform } from '$lib/pwa/use-platform.svelte';
 	import { formatCurrency, formatDateTime } from '$lib/utils';
 	import { getTradeReviewStatus } from '$lib/portfolio';
 	import type { DailyJournal } from '$lib/types';
@@ -49,6 +52,9 @@
 	let generatingRecap = $state(false);
 	let showTemplates = $state(false);
 	let showEndOfDayWizard = $state(false);
+	const platform = usePlatform();
+	const journalDraft = useDraft('journal', () => selectedDate, { enabled: () => platform.isMobile });
+	let draftAppliedFor = $state('');
 
 	/** Wrap plain text in <p> tags for Tiptap compatibility */
 	function toHtml(text: string): string {
@@ -75,6 +81,65 @@
 		if (fields.tomorrowFocus !== undefined) tomorrowFocus = toHtml(fields.tomorrowFocus);
 	}
 
+	function buildJournalPayload() {
+		return {
+			client_account_id: data.account?.id || '',
+			date: selectedDate,
+			pre_market_notes: preMarketNotes,
+			post_market_notes: postMarketNotes,
+			session_plan: sessionPlan,
+			market_bias: marketBias,
+			key_levels: keyLevels,
+			mood,
+			energy_score: energyScore,
+			discipline_score: disciplineScore,
+			confidence_score: confidenceScore,
+			lessons,
+			tomorrow_focus: tomorrowFocus,
+			completion_status: completionStatus
+		};
+	}
+
+	function buildServerJournalPayload() {
+		return {
+			client_account_id: data.account?.id || '',
+			date: selectedDate,
+			pre_market_notes: toHtml(selectedJournal?.pre_market_notes || ''),
+			post_market_notes: toHtml(selectedJournal?.post_market_notes || ''),
+			session_plan: toHtml(selectedJournal?.session_plan || ''),
+			market_bias: selectedJournal?.market_bias || '',
+			key_levels: selectedJournal?.key_levels || '',
+			mood: selectedJournal?.mood || null,
+			energy_score: selectedJournal?.energy_score || null,
+			discipline_score: selectedJournal?.discipline_score || null,
+			confidence_score: selectedJournal?.confidence_score || null,
+			lessons: toHtml(selectedJournal?.lessons || ''),
+			tomorrow_focus: toHtml(selectedJournal?.tomorrow_focus || ''),
+			completion_status: selectedJournal?.completion_status || 'not_started'
+		};
+	}
+
+	function applyJournalPayload(payload: ReturnType<typeof buildJournalPayload>) {
+		preMarketNotes = payload.pre_market_notes || '';
+		postMarketNotes = payload.post_market_notes || '';
+		sessionPlan = payload.session_plan || '';
+		marketBias = payload.market_bias || '';
+		keyLevels = payload.key_levels || '';
+		mood = payload.mood ?? null;
+		energyScore = payload.energy_score ?? null;
+		disciplineScore = payload.discipline_score ?? null;
+		confidenceScore = payload.confidence_score ?? null;
+		lessons = payload.lessons || '';
+		tomorrowFocus = payload.tomorrow_focus || '';
+		completionStatus = payload.completion_status || 'not_started';
+	}
+
+	async function clearJournalDraft() {
+		await journalDraft.clear();
+		applyJournalPayload(buildServerJournalPayload());
+		toast.success('ล้างแบบร่างแล้ว');
+	}
+
 	$effect(() => {
 		preMarketNotes = toHtml(selectedJournal?.pre_market_notes || '');
 		postMarketNotes = toHtml(selectedJournal?.post_market_notes || '');
@@ -88,6 +153,30 @@
 		lessons = toHtml(selectedJournal?.lessons || '');
 		tomorrowFocus = toHtml(selectedJournal?.tomorrow_focus || '');
 		completionStatus = selectedJournal?.completion_status || 'not_started';
+		draftAppliedFor = '';
+	});
+
+	$effect(() => {
+		if (!selectedDate || draftAppliedFor === selectedDate) return;
+		draftAppliedFor = selectedDate;
+		journalDraft.load().then((draft) => {
+			if (!draft?.payload || typeof draft.payload !== 'object' || Array.isArray(draft.payload)) return;
+			const serverUpdatedAt = selectedJournal?.updated_at
+				? new Date(selectedJournal.updated_at).getTime()
+				: 0;
+			if (draft.updatedAt >= serverUpdatedAt) {
+				applyJournalPayload(draft.payload as ReturnType<typeof buildJournalPayload>);
+			}
+		});
+	});
+
+	$effect(() => {
+		if (!selectedDate || !data.account?.id) return;
+		const payload = buildJournalPayload();
+		const serverPayload = buildServerJournalPayload();
+		if (JSON.stringify(payload) !== JSON.stringify(serverPayload)) {
+			journalDraft.save(payload);
+		}
 	});
 
 	const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -153,30 +242,33 @@
 		actionError = '';
 
 		try {
+			const payload = buildJournalPayload();
+
+			if (platform.isMobile && !navigator.onLine) {
+				await journalDraft.saveNow(payload);
+				await enqueueSyncAction({
+					endpoint: '/api/portfolio/journal',
+					method: 'POST',
+					body: payload,
+					headers: { 'Content-Type': 'application/json' }
+				});
+				saved = true;
+				savedAt = new Date();
+				toast.success('บันทึกแบบร่างแล้ว', { detail: 'จะซิงก์เมื่อกลับมาออนไลน์' });
+				setTimeout(() => (saved = false), 2500);
+				return;
+			}
+
 			const res = await fetch('/api/portfolio/journal', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					client_account_id: data.account.id,
-					date: selectedDate,
-					pre_market_notes: preMarketNotes,
-					post_market_notes: postMarketNotes,
-					session_plan: sessionPlan,
-					market_bias: marketBias,
-					key_levels: keyLevels,
-					mood,
-					energy_score: energyScore,
-					discipline_score: disciplineScore,
-					confidence_score: confidenceScore,
-					lessons,
-					tomorrow_focus: tomorrowFocus,
-					completion_status: completionStatus
-				})
+				body: JSON.stringify(payload)
 			});
 
 			if (res.ok) {
 				saved = true;
 				savedAt = new Date();
+				await journalDraft.clear();
 				toast.success('บันทึก Journal แล้ว', { detail: selectedDate });
 				setTimeout(() => (saved = false), 2500);
 			} else {
@@ -286,6 +378,18 @@
 						Journal: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
 					</h3>
 					<div class="flex items-center gap-2 flex-wrap">
+						{#if platform.isMobile && journalDraft.draft}
+							<span class="md:hidden rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
+								แบบร่าง · ยังไม่บันทึก
+							</span>
+							<button
+								type="button"
+								onclick={clearJournalDraft}
+								class="md:hidden text-xs text-gray-400 hover:text-white"
+							>
+								ล้างแบบร่าง
+							</button>
+						{/if}
 						<button
 							type="button"
 							onclick={() => (showTemplates = true)}

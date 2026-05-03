@@ -2,6 +2,7 @@ import { getApprovedPortfolioAccount } from '$lib/server/portfolioAccount';
 import { rateLimit } from '$lib/server/rate-limit';
 import { invalidateJournalsCache } from '$lib/server/portfolio';
 import { generateSessionRecapHtml } from '$lib/server/session-recap';
+import { handleIdempotentRequest } from '$lib/server/idempotency';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -117,35 +118,43 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'สถานะความสมบูรณ์ไม่ถูกต้อง' }, { status: 400 });
 	}
 
-	const { data, error } = await locals.supabase
-		.from('daily_journal')
-		.upsert({
-			user_id: profile.id,
-			client_account_id: account.id,
-			date,
-			pre_market_notes: pre_market_notes || '',
-			post_market_notes: post_market_notes || '',
-			session_plan: session_plan || '',
-			market_bias: market_bias || '',
-			key_levels: key_levels || '',
-			checklist: Array.isArray(checklist) ? checklist : [],
-			mood: mood || null,
-			energy_score: energy_score || null,
-			discipline_score: discipline_score || null,
-			confidence_score: confidence_score || null,
-			lessons: lessons || '',
-			tomorrow_focus: tomorrow_focus || '',
-			completion_status: completion_status || 'in_progress',
-			updated_at: new Date().toISOString()
-		}, { onConflict: 'user_id,client_account_id,date' })
-		.select()
-		.single();
+	return handleIdempotentRequest({
+		supabase: locals.supabase,
+		request,
+		userId: profile.id,
+		body,
+		execute: async () => {
+			const { data, error } = await locals.supabase
+				.from('daily_journal')
+				.upsert({
+					user_id: profile.id,
+					client_account_id: account.id,
+					date,
+					pre_market_notes: pre_market_notes || '',
+					post_market_notes: post_market_notes || '',
+					session_plan: session_plan || '',
+					market_bias: market_bias || '',
+					key_levels: key_levels || '',
+					checklist: Array.isArray(checklist) ? checklist : [],
+					mood: mood || null,
+					energy_score: energy_score || null,
+					discipline_score: discipline_score || null,
+					confidence_score: confidence_score || null,
+					lessons: lessons || '',
+					tomorrow_focus: tomorrow_focus || '',
+					completion_status: completion_status || 'in_progress',
+					updated_at: new Date().toISOString()
+				}, { onConflict: 'user_id,client_account_id,date' })
+				.select()
+				.single();
 
-	if (error) {
-		return json({ message: error.message }, { status: 500 });
-	}
+			if (error) {
+				return json({ message: error.message }, { status: 500 });
+			}
 
-	invalidateJournalsCache(account.id);
+			invalidateJournalsCache(account.id);
 
-	return json({ success: true, journal: data });
+			return json({ success: true, journal: data });
+		}
+	});
 };

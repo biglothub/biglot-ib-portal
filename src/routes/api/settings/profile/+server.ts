@@ -39,14 +39,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	if (action === 'update_notifications') {
-		const { push_enabled, daily_email_enabled, trade_alerts_enabled, weekly_recap_enabled } = body;
+		const {
+			push_enabled,
+			daily_email_enabled,
+			trade_alerts_enabled,
+			weekly_recap_enabled,
+			sync_status_enabled,
+			risk_threshold_enabled,
+			account_status_enabled,
+			journal_reminder_enabled,
+			ai_insight_enabled
+		} = body;
 
 		const payload = {
 			user_id: locals.user.id,
 			push_enabled: !!push_enabled,
 			daily_email_enabled: !!daily_email_enabled,
 			trade_alerts_enabled: !!trade_alerts_enabled,
-			weekly_recap_enabled: !!weekly_recap_enabled
+			weekly_recap_enabled: !!weekly_recap_enabled,
+			sync_status_enabled: sync_status_enabled !== false,
+			risk_threshold_enabled: risk_threshold_enabled !== false,
+			account_status_enabled: account_status_enabled !== false,
+			journal_reminder_enabled: !!journal_reminder_enabled,
+			ai_insight_enabled: ai_insight_enabled !== false
 		};
 
 		const { error } = await locals.supabase
