@@ -1,15 +1,16 @@
 <script lang="ts">
-	import { theme } from '$lib/stores/theme.svelte';
+	import { theme, type ThemeMode } from '$lib/stores/theme.svelte';
 
 	let showMenu = $state(false);
 
-	const options: { value: 'dark' | 'light' | 'system'; label: string }[] = [
+	const options: { value: ThemeMode; label: string }[] = [
+		{ value: 'gold', label: 'Gold' },
 		{ value: 'dark', label: 'มืด' },
 		{ value: 'light', label: 'สว่าง' },
 		{ value: 'system', label: 'ระบบ' }
 	];
 
-	function select(value: 'dark' | 'light' | 'system') {
+	function select(value: ThemeMode) {
 		theme.set(value);
 		showMenu = false;
 	}
@@ -28,21 +29,22 @@
 		aria-label="เปลี่ยนธีม"
 		title="เปลี่ยนธีม"
 	>
-		{#if theme.resolved === 'dark'}
-			<!-- Moon icon -->
-			<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-			</svg>
-		{:else}
-			<!-- Sun icon -->
+		{#if theme.resolved === 'light'}
 			<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+			</svg>
+		{:else if theme.resolved === 'gold'}
+			<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3z" />
+			</svg>
+		{:else}
+			<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
 			</svg>
 		{/if}
 	</button>
 
 	{#if showMenu}
-		<!-- Backdrop -->
 		<button
 			class="fixed inset-0 z-40"
 			onclick={() => showMenu = false}
@@ -50,8 +52,7 @@
 			tabindex="-1"
 		></button>
 
-		<!-- Dropdown -->
-		<div class="absolute right-0 top-full mt-1 z-50 w-36 rounded-lg border border-dark-border bg-dark-surface shadow-lg overflow-hidden animate-dropdown-in">
+		<div class="absolute right-0 top-full mt-1 z-50 w-40 overflow-hidden rounded-lg border border-dark-border bg-dark-surface shadow-lg animate-dropdown-in">
 			{#each options as opt}
 				<button
 					onclick={() => select(opt.value)}
@@ -60,7 +61,11 @@
 							? 'bg-brand-primary/10 text-brand-primary'
 							: 'text-gray-400 hover:text-white hover:bg-dark-hover'}"
 				>
-					{#if opt.value === 'dark'}
+					{#if opt.value === 'gold'}
+						<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2L12 3z" />
+						</svg>
+					{:else if opt.value === 'dark'}
 						<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
 						</svg>

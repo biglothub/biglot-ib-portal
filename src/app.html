@@ -54,17 +54,17 @@
 	<script>
 		(function() {
 			var stored = localStorage.getItem('ib-portal-theme');
-			var mode = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'dark';
-			var dark = mode === 'system'
-				? window.matchMedia('(prefers-color-scheme: dark)').matches
-				: mode === 'dark';
-			if (dark) {
+			var mode = stored === 'gold' || stored === 'dark' || stored === 'light' || stored === 'system' ? stored : 'gold';
+			var resolved = mode === 'system'
+				? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+				: mode;
+			document.documentElement.classList.remove('gold', 'dark', 'light');
+			document.documentElement.classList.add(resolved);
+			if (resolved === 'gold' || resolved === 'dark') {
 				document.documentElement.classList.add('dark');
-			} else {
-				document.documentElement.classList.remove('dark');
 			}
 			var meta = document.querySelector('meta[name="theme-color"]');
-			if (meta) meta.setAttribute('content', dark ? '#0a0a0a' : '#f8fafc');
+			if (meta) meta.setAttribute('content', resolved === 'light' ? '#f8fafc' : '#0a0a0a');
 		})();
 	</script>
 </head>

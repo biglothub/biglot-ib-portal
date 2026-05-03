@@ -4,9 +4,10 @@
 	import { theme, type ThemeMode } from '$lib/stores/theme.svelte';
 
 	const themeOptions: { value: ThemeMode; label: string; desc: string }[] = [
-		{ value: 'dark', label: 'มืด', desc: 'พื้นหลังสีเข้ม' },
-		{ value: 'light', label: 'สว่าง', desc: 'พื้นหลังสีอ่อน' },
-		{ value: 'system', label: 'ระบบ', desc: 'ตามการตั้งค่าอุปกรณ์' }
+		{ value: 'gold', label: 'Gold', desc: 'ธีมหลักของ IB Portal' },
+		{ value: 'dark', label: 'มืด', desc: 'black/white dark' },
+		{ value: 'light', label: 'สว่าง', desc: 'black/white light' },
+		{ value: 'system', label: 'ระบบ', desc: 'ตามอุปกรณ์' }
 	];
 
 	let { data } = $props();
@@ -544,10 +545,13 @@
 			<svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
 			</svg>
-			<h2 class="text-lg font-semibold">ธีม</h2>
+			<div>
+				<h2 class="text-lg font-semibold">ธีม</h2>
+				<p class="text-xs text-gray-400 mt-0.5">Gold เป็นค่าเริ่มต้น ส่วนมืด/สว่าง/ระบบยังใช้ได้เหมือนเดิม</p>
+			</div>
 		</div>
 
-		<div class="grid grid-cols-3 gap-3">
+		<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
 			{#each themeOptions as opt}
 				<button
 					onclick={() => theme.set(opt.value)}
@@ -556,29 +560,34 @@
 							? 'border-brand-primary bg-brand-primary/5'
 							: 'border-dark-border hover:border-gray-500'}"
 				>
-					<!-- Theme preview -->
 					<div class="w-full aspect-[4/3] rounded-lg overflow-hidden border border-dark-border">
-						{#if opt.value === 'dark'}
+						{#if opt.value === 'gold'}
 							<div class="w-full h-full bg-[#0a0a0a] p-2 flex flex-col gap-1">
-								<div class="h-1.5 w-8 rounded bg-gray-700"></div>
-								<div class="h-1.5 w-12 rounded bg-gray-800"></div>
-								<div class="flex-1 rounded bg-[#141414] mt-1"></div>
+								<div class="h-1.5 w-8 rounded bg-[#c9a84c]"></div>
+								<div class="h-1.5 w-12 rounded bg-[#8a8578]"></div>
+								<div class="flex-1 rounded bg-[#1a1815] mt-1 border border-[#f5f1e314]"></div>
+							</div>
+						{:else if opt.value === 'dark'}
+							<div class="w-full h-full bg-[#0a0a0a] p-2 flex flex-col gap-1">
+								<div class="h-1.5 w-8 rounded bg-gray-500"></div>
+								<div class="h-1.5 w-12 rounded bg-gray-700"></div>
+								<div class="flex-1 rounded bg-[#141414] mt-1 border border-white/10"></div>
 							</div>
 						{:else if opt.value === 'light'}
 							<div class="w-full h-full bg-[#f8fafc] p-2 flex flex-col gap-1">
-								<div class="h-1.5 w-8 rounded bg-gray-300"></div>
-								<div class="h-1.5 w-12 rounded bg-gray-200"></div>
-								<div class="flex-1 rounded bg-white mt-1 border border-gray-200"></div>
+								<div class="h-1.5 w-8 rounded bg-slate-400"></div>
+								<div class="h-1.5 w-12 rounded bg-slate-200"></div>
+								<div class="flex-1 rounded bg-white mt-1 border border-slate-200"></div>
 							</div>
 						{:else}
 							<div class="w-full h-full flex">
 								<div class="w-1/2 bg-[#0a0a0a] p-1.5 flex flex-col gap-0.5">
-									<div class="h-1 w-5 rounded bg-gray-700"></div>
+									<div class="h-1 w-5 rounded bg-gray-500"></div>
 									<div class="flex-1 rounded bg-[#141414] mt-0.5"></div>
 								</div>
 								<div class="w-1/2 bg-[#f8fafc] p-1.5 flex flex-col gap-0.5">
-									<div class="h-1 w-5 rounded bg-gray-300"></div>
-									<div class="flex-1 rounded bg-white mt-0.5 border border-gray-200"></div>
+									<div class="h-1 w-5 rounded bg-slate-300"></div>
+									<div class="flex-1 rounded bg-white mt-0.5 border border-slate-200"></div>
 								</div>
 							</div>
 						{/if}
