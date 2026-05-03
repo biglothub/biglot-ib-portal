@@ -40,7 +40,7 @@
 	<div class="text-center max-w-sm w-full">
 		<!-- Icon -->
 		<div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-dark-surface border border-dark-border flex items-center justify-center">
-			<svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+			<svg class="w-10 h-10 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
 					d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M8.464 8.464a5 5 0 010 7.072M15.536 8.464a5 5 0 000 7.072M12 12h.01" />
 				<line x1="4" y1="4" x2="20" y2="20" stroke-linecap="round" stroke-width="1.5" />
@@ -59,7 +59,7 @@
 		<div class="flex flex-col gap-3 mb-8">
 			<button
 				onclick={() => goto(lastRoute || '/portfolio')}
-				class="inline-flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-medium py-2.5 px-6 rounded-lg transition-colors"
+				class="btn-primary inline-flex items-center justify-center gap-2 py-2.5 px-6"
 			>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -69,7 +69,7 @@
 			<button
 				onclick={retryConnection}
 				disabled={checking}
-				class="inline-flex items-center justify-center gap-2 border border-dark-border hover:border-gray-500 text-gray-300 hover:text-white font-medium py-2.5 px-6 rounded-lg transition-colors disabled:cursor-wait disabled:opacity-70"
+				class="btn-secondary inline-flex items-center justify-center gap-2 py-2.5 px-6"
 			>
 				<svg class="w-4 h-4 {checking ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -79,7 +79,7 @@
 			</button>
 			<a
 				href="/portfolio"
-				class="inline-flex items-center justify-center gap-2 border border-dark-border hover:border-gray-500 text-gray-300 hover:text-white font-medium py-2.5 px-6 rounded-lg transition-colors"
+				class="btn-secondary inline-flex items-center justify-center gap-2 py-2.5 px-6"
 			>
 				เปิดหน้าพอร์ต
 			</a>

@@ -25,7 +25,7 @@
 	}
 </script>
 
-<header class="md:hidden sticky top-0 z-[15] -mx-4 -mt-4 mb-4 border-b border-dark-border bg-dark-bg/95 px-4 pwa-safe-top backdrop-blur">
+<header class="md:hidden sticky top-0 z-[15] -mx-4 -mt-4 mb-4 border-b border-dark-border bg-dark-elevated/95 px-4 pwa-safe-top backdrop-blur">
 	<div class="flex min-h-14 items-center gap-2">
 		{#if back}
 			<button

@@ -25,7 +25,7 @@
 
 	// Arc gauge color based on profit factor thresholds
 	const gaugeColor = $derived(
-		gaugeValue == null ? '#262626' :
+		gaugeValue == null ? 'rgba(245, 241, 227, 0.10)' :
 		gaugeValue >= 1.5 ? '#22c55e' :
 		gaugeValue >= 1.0 ? '#f59e0b' :
 		'#ef4444'
@@ -48,7 +48,7 @@
 	<div class="flex items-start justify-between gap-3">
 		<!-- Left: label + value -->
 		<div class="flex-1 min-w-0">
-			<p class="text-xs text-gray-500 uppercase tracking-wider font-medium">{label}</p>
+			<p class="metric-label">{label}</p>
 			<div class="flex items-center gap-2 mt-1">
 				<p class="text-xl font-bold {color} tabular-nums">{value}</p>
 				{#if trend}
@@ -63,7 +63,7 @@
 			{#if tradeCount && donutPercent == null && gaugeValue == null}
 				<p class="text-[11px] mt-0.5">
 					<span class="text-green-400 font-medium">{tradeCount.wins}W</span>
-					<span class="text-gray-600 mx-0.5">/</span>
+					<span class="text-gray-500 mx-0.5">/</span>
 					<span class="text-red-400 font-medium">{tradeCount.losses}L</span>
 				</p>
 			{/if}
@@ -73,7 +73,7 @@
 		{#if donutPercent != null}
 			<div class="flex flex-col items-center gap-1 flex-shrink-0">
 				<svg class="w-14 h-14 -rotate-90" viewBox="0 0 36 36">
-					<circle cx="18" cy="18" r="14" fill="none" stroke="#262626" stroke-width="3"></circle>
+					<circle cx="18" cy="18" r="14" fill="none" stroke="rgba(245, 241, 227, 0.10)" stroke-width="3"></circle>
 					<circle cx="18" cy="18" r="14" fill="none"
 						stroke={donutColor}
 						stroke-width="3"
@@ -81,7 +81,7 @@
 						stroke-linecap="round"></circle>
 					<!-- Percent label inside (rotated back) -->
 					<text x="18" y="20" text-anchor="middle" class="rotate-90"
-						fill="white" font-size="7" font-weight="600"
+						fill="var(--c-text-strong)" font-size="7" font-weight="600"
 						transform="rotate(90, 18, 18)">{Math.round(donutPercent)}%</text>
 				</svg>
 				{#if tradeCount}
@@ -100,7 +100,7 @@
 				<svg viewBox="0 0 100 60" class="w-16 h-10">
 					<!-- Background arc -->
 					<path d="M 10 50 A 40 40 0 0 1 90 50"
-						fill="none" stroke="#262626" stroke-width="8" stroke-linecap="round"/>
+						fill="none" stroke="rgba(245, 241, 227, 0.10)" stroke-width="8" stroke-linecap="round"/>
 					<!-- Value arc -->
 					<path d="M 10 50 A 40 40 0 0 1 90 50"
 						fill="none" stroke={gaugeColor} stroke-width="8" stroke-linecap="round"

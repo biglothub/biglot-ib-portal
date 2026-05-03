@@ -31,8 +31,8 @@
 		<span class="text-xs font-medium text-green-400">Synced · {timeAgo(lastSyncedAt!)}</span>
 	</div>
 {:else}
-	<div class="flex items-center gap-1.5 rounded-full bg-gray-500/10 border border-gray-500/30 px-2.5 py-1">
-		<span class="h-2 w-2 rounded-full bg-gray-500"></span>
+	<div class="flex items-center gap-1.5 rounded-full border border-dark-border bg-dark-bg/50 px-2.5 py-1">
+		<span class="h-2 w-2 rounded-full bg-dark-border"></span>
 		<span class="text-xs font-medium text-gray-400">ไม่ได้ Sync</span>
 	</div>
 {/if}

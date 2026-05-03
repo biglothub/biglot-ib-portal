@@ -11,7 +11,7 @@
 </script>
 
 <span
-	class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+	class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
 	style="background-color: {color}20; color: {color}; border: 1px solid {color}40;"
 >
 	{name}

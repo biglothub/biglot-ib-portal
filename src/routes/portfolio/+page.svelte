@@ -471,21 +471,21 @@
 
 		<!-- Secondary KPIs -->
 		<div class="grid grid-cols-2 gap-2 px-1 sm:grid-cols-4">
-			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+			<div class="rounded-xl border border-dark-border bg-dark-surface px-3 py-2.5">
 				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Balance</div>
 				<div class="mt-1 text-base font-semibold text-white sm:text-lg">{formatCurrency(latestStats?.balance || 0)}</div>
 			</div>
-			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+			<div class="rounded-xl border border-dark-border bg-dark-surface px-3 py-2.5">
 				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Equity</div>
 				<div class="mt-1 text-base font-semibold text-white sm:text-lg">{formatCurrency(latestStats?.equity || 0)}</div>
 			</div>
-			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+			<div class="rounded-xl border border-dark-border bg-dark-surface px-3 py-2.5">
 				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Expected Value</div>
 				<div class="mt-1 text-base font-semibold sm:text-lg {kpi.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}">
 					{formatCurrency(totalTrades > 0 ? kpi.netPnl / totalTrades : 0)}
 				</div>
 			</div>
-			<div class="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+			<div class="rounded-xl border border-dark-border bg-dark-surface px-3 py-2.5">
 				<div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 sm:text-xs">Recovery Factor</div>
 				<div class="mt-1 text-base font-semibold text-white sm:text-lg">{formatNumber(kpi.recoveryFactor || 0, 2)}</div>
 			</div>

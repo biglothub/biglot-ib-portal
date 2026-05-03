@@ -257,7 +257,7 @@
 		--c-canvas: #0a0a0a;
 		--c-canvas-2: #131110;
 		--c-ink: #f5f1e3;
-		--c-ink-2: #ffffff;
+		--c-ink-2: #fffaf0;
 		--c-muted: #8a8578;
 		--c-muted-2: #5a5648;
 		--c-border: rgba(245, 241, 227, 0.08);

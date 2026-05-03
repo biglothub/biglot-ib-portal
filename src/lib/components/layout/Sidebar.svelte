@@ -123,7 +123,7 @@
 		{#if !collapsed}
 			<div>
 				<h1 class="text-lg font-bold text-white">IB Portal</h1>
-				<p class="text-xs text-gray-400 mt-0.5">{roleLabel}</p>
+				<p class="text-xs text-brand-primary mt-0.5">{roleLabel}</p>
 			</div>
 		{/if}
 		<button
@@ -169,7 +169,7 @@
 								{collapsed ? 'justify-center' : ''}
 								{activeSubLink === sub.href
 									? 'text-brand-400 font-medium bg-brand-600/10'
-									: 'text-gray-500 hover:text-gray-300 hover:bg-dark-hover'}"
+									: 'text-gray-400 hover:text-gray-300 hover:bg-dark-hover'}"
 							onclick={() => mobileOpen = false}
 						>
 							<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{@html sub.icon}</svg>

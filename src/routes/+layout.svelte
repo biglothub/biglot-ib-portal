@@ -55,7 +55,7 @@
 		<Sidebar {profile} bind:collapsed={sidebarCollapsed} />
 
 		<div class="flex-1 flex flex-col overflow-hidden">
-			<header class="h-12 shrink-0 flex items-center justify-end gap-1 px-4 border-b border-dark-border">
+			<header class="h-12 shrink-0 flex items-center justify-end gap-1 border-b border-dark-border bg-dark-elevated/70 px-4 backdrop-blur">
 				<ThemeToggle />
 				<NotificationBell userId={profile!.id} />
 			</header>

@@ -180,7 +180,7 @@
 <!-- "More" slide-up drawer -->
 {#if moreOpen}
 	<div
-		use:focusTrap={{ enabled: moreOpen }}
+	use:focusTrap={{ enabled: moreOpen }}
 		class="md:hidden fixed left-0 right-0 z-[40] bg-dark-surface border-t border-dark-border rounded-t-2xl shadow-2xl animate-slide-up"
 		style="bottom: calc(56px + var(--pwa-safe-bottom)); transform: translateY({touchDeltaY}px); transition: {touchDeltaY > 0 ? 'none' : 'transform 160ms ease'}"
 		role="dialog"
@@ -216,7 +216,7 @@
 
 <!-- Fixed bottom navigation bar (mobile only) -->
 <nav
-	class="md:hidden fixed bottom-0 left-0 right-0 z-[20] bg-dark-surface border-t border-dark-border flex items-stretch pwa-safe-bottom"
+	class="md:hidden fixed bottom-0 left-0 right-0 z-[20] bg-dark-surface/95 border-t border-dark-border flex items-stretch pwa-safe-bottom backdrop-blur"
 	aria-label="เมนูหลัก"
 >
 	{#each primaryTabs as tab}
