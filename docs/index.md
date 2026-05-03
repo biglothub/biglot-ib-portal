@@ -89,6 +89,7 @@ IB Portal เป็น portal สำหรับ 3 persona หลัก:
 - อ่าน [Data Model](./data-model.md) ถ้าต้องการเข้าใจ schema, ownership, RLS และ RPC
 - อ่าน [Features and APIs](./features-and-apis.md) ถ้าต้องการดู route map, endpoint matrix และ auth flow
 - อ่าน [Operations](./operations.md) ถ้าต้องการ setup, env vars, bridge loop, maintenance และ testing baseline
+- อ่าน [Gold Theme System Plan](./dark-theme-redesign-plan.md) ถ้าต้องการแผนปรับ UI ทั้งเว็บเป็น black/white foundation + gold brand theme
 - อ่าน [iPhone PWA UI/UX Plan](./pwa-iphone-ui-ux-plan.md) ถ้าต้องการแผนปรับ PWA ให้เหมาะกับ iPhone, Home Screen, offline และ push UX
 - ถ้าต้องการคู่มือสำหรับผู้ใช้งานระบบ ให้ดู [static/guide.html](../static/guide.html)
 
