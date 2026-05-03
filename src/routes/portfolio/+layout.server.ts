@@ -20,16 +20,18 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 	depends('portfolio:marketNews');
 
 	// Guard: ensure required context exists before proceeding
-	if (isAdminView && !locals.viewAsUserId) {
-		throw redirect(303, locals.profile?.role === 'master_ib' ? '/ib/clients' : '/admin/clients');
-	}
 	if (!isAdminView && !locals.profile) {
 		throw redirect(303, '/auth/login');
 	}
 
 	// For admin view, use service client (bypasses RLS) and target the client's account
 	const supabase = isAdminView ? createSupabaseServiceClient() : locals.supabase;
-	const effectiveUserId = isAdminView ? locals.viewAsUserId! : locals.profile!.id;
+	// MT5-only accounts (no linked user) use the nil UUID so user-scoped queries
+	// return empty without throwing on Postgres uuid type validation.
+	const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+	const effectiveUserId = isAdminView
+		? (locals.viewAsUserId || NIL_UUID)
+		: locals.profile!.id;
 
 	let account: AccountRow | null = null;
 	let allAccounts: AccountRow[] = [];

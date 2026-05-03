@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { encrypt } from '$lib/server/crypto';
-import { getDatabaseErrorStatus } from '$lib/server/clientAccounts';
+import { getDatabaseErrorStatus, isValidEmail, normalizeEmail } from '$lib/server/clientAccounts';
 import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
@@ -22,6 +22,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'กรุณากรอกข้อมูลที่จำเป็น' }, { status: 400 });
 	}
 
+	const normalizedClientEmail = normalizeEmail(client_email);
+	if (normalizedClientEmail && !isValidEmail(normalizedClientEmail)) {
+		return json({ message: 'รูปแบบอีเมลไม่ถูกต้อง' }, { status: 400 });
+	}
+
 	// Validate investor password if provided
 	let encryptedPassword: string | null = null;
 	if (mt5_investor_password) {
@@ -34,7 +39,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const { data, error: rpcError } = await locals.supabase.rpc('admin_edit_client_account', {
 		p_account_id: client_account_id,
 		p_client_name: client_name,
-		p_client_email: client_email || null,
+		p_client_email: normalizedClientEmail,
 		p_client_phone: client_phone || null,
 		p_nickname: nickname || null,
 		p_mt5_account_id: mt5_account_id,

@@ -1,5 +1,25 @@
 export { sanitizeHtml } from '$lib/sanitize';
 
+/**
+ * Email validation pattern shared between server and HTML `pattern=` attributes.
+ * Stored without leading `^` / trailing `$` so the same string works in both.
+ *
+ * Rejects malformed forms the loose `[^\s@]+@[^\s@]+\.[^\s@]+` lets through:
+ *   - trailing dot before `@`   (`foo.@gmail.com` — caused a real auto-link bug)
+ *   - leading dot in local part (`.foo@gmail.com`)
+ *   - consecutive dots          (`foo..bar@gmail.com`)
+ *   - missing TLD               (`foo@gmail`)
+ */
+export const EMAIL_PATTERN =
+	"[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+";
+
+const EMAIL_RE = new RegExp(`^${EMAIL_PATTERN}$`);
+
+export function isValidEmail(value: string): boolean {
+	if (!value || value.length > 254) return false;
+	return EMAIL_RE.test(value);
+}
+
 /** UTC+7 offset in milliseconds (Thailand timezone) */
 export const THAILAND_OFFSET_MS = 7 * 60 * 60 * 1000;
 

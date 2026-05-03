@@ -20,9 +20,10 @@ declare global {
 				role: 'admin' | 'master_ib' | 'client';
 				avatar_url: string | null;
 			} | null;
-			/** Admin "View As" mode — set when admin views a client's portfolio */
+			/** Admin "View As" mode — set when admin views a client's portfolio.
+			 * `viewAsUserId` may be null for MT5-only accounts (no linked user). */
 			viewAsAccountId?: string;
-			viewAsUserId?: string;
+			viewAsUserId?: string | null;
 			/** Server-only portfolio data — never serialized to client */
 			portfolioBaseData?: import('$lib/types').PortfolioBaseData | null;
 			/** Client's selected account_id from URL (resolved in hooks) */

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { isValidEmail, EMAIL_PATTERN } from '$lib/utils';
 
 	let form = $state({
 		client_name: '',
@@ -13,6 +14,11 @@
 	let step = $state(1);
 	let loading = $state(false);
 	let error = $state('');
+	let emailFormatError = $derived(
+		form.client_email.trim() && !isValidEmail(form.client_email.trim().toLowerCase())
+			? 'Invalid email format (e.g. extra dots or missing domain)'
+			: ''
+	);
 	let success = $state(false);
 
 	async function handleSubmit(e: Event) {
@@ -29,7 +35,7 @@
 		const result = await res.json();
 
 		if (!res.ok) {
-			error = result.message || 'เกิดข้อผิดพลาด';
+			error = result.message || 'Something went wrong';
 			loading = false;
 			return;
 		}
@@ -40,29 +46,29 @@
 </script>
 
 <svelte:head>
-	<title>เพิ่มลูกค้า - IB Portal</title>
+	<title>Add Client - IB Portal</title>
 </svelte:head>
 
 <div class="max-w-lg mx-auto space-y-6">
-	<a href="/ib" class="text-sm text-gray-400 hover:text-brand-400">&larr; กลับ</a>
-	<h1 class="text-xl font-bold">เพิ่มลูกค้าใหม่</h1>
+	<a href="/ib" class="text-sm text-gray-400 hover:text-brand-400">&larr; Back</a>
+	<h1 class="text-xl font-bold">Add New Client</h1>
 
 	{#if success}
 		<div class="card text-center py-8">
 			<span class="text-4xl mb-4 block">✅</span>
-			<h2 class="text-lg font-medium text-white mb-2">ส่งข้อมูลสำเร็จ!</h2>
+			<h2 class="text-lg font-medium text-white mb-2">Submitted successfully!</h2>
 			<p class="text-sm text-gray-400 mb-4">
-				ลูกค้าของคุณอยู่ในคิวรออนุมัติ<br/>
-				Admin จะตรวจสอบและอนุมัติให้เร็วที่สุด
+				Your client is now in the approval queue.<br/>
+				An admin will review and approve as soon as possible.
 			</p>
 			<div class="flex gap-2 justify-center">
-				<a href="/ib" class="btn-secondary text-sm">กลับ Dashboard</a>
+				<a href="/ib" class="btn-secondary text-sm">Back to Dashboard</a>
 				<button class="btn-primary text-sm" onclick={() => {
 					success = false;
 					form = { client_name: '', client_email: '', client_phone: '', mt5_account_id: '', mt5_investor_password: '', mt5_server: '' };
 					step = 1;
 				}}>
-					เพิ่มลูกค้าอีกคน
+					Add Another Client
 				</button>
 			</div>
 		</div>
@@ -75,7 +81,7 @@
 						{step >= s ? 'bg-brand-600 text-white' : 'bg-dark-border text-gray-400'}">
 						{s}
 					</div>
-					<span class="text-xs text-gray-400">{s === 1 ? 'ข้อมูลลูกค้า' : 'ข้อมูล MT5'}</span>
+					<span class="text-xs text-gray-400">{s === 1 ? 'Client Info' : 'MT5 Info'}</span>
 				</div>
 				{#if s < 2}
 					<div class="flex-1 h-px {step > s ? 'bg-brand-600' : 'bg-dark-border'}"></div>
@@ -90,29 +96,32 @@
 		<form onsubmit={handleSubmit} class="card space-y-4">
 			{#if step === 1}
 				<div>
-					<label for="name" class="label">ชื่อลูกค้า *</label>
+					<label for="name" class="label">Client Name *</label>
 					<input id="name" type="text" bind:value={form.client_name} class="input" required />
 				</div>
 				<div>
-					<label for="email" class="label">อีเมล (ใช้สำหรับสร้าง login)</label>
-					<input id="email" type="email" bind:value={form.client_email} class="input" placeholder="จะได้รับ login หลัง approve" />
+					<label for="email" class="label">Email (used to create login)</label>
+					<input id="email" type="email" bind:value={form.client_email} class="input" placeholder="Login will be sent after approval" pattern={EMAIL_PATTERN} />
+					{#if emailFormatError}
+						<p class="text-xs text-red-400 mt-1">{emailFormatError}</p>
+					{/if}
 				</div>
 				<div>
-					<label for="phone" class="label">เบอร์โทร</label>
+					<label for="phone" class="label">Phone</label>
 					<input id="phone" type="tel" bind:value={form.client_phone} class="input" />
 				</div>
 				<button
 					type="button"
 					class="btn-primary w-full"
-					disabled={!form.client_name}
+					disabled={!form.client_name || !!emailFormatError}
 					onclick={() => step = 2}
 				>
-					ถัดไป
+					Next
 				</button>
 			{:else}
 				<div>
 					<label for="mt5id" class="label">MT5 Account ID *</label>
-					<input id="mt5id" type="text" bind:value={form.mt5_account_id} class="input" placeholder="เช่น 12345678" required />
+					<input id="mt5id" type="text" bind:value={form.mt5_account_id} class="input" placeholder="e.g. 12345678" required />
 				</div>
 				<div>
 					<label for="mt5pass" class="label">Investor Password *</label>
@@ -121,16 +130,16 @@
 				<div>
 					<label for="mt5server" class="label">MT5 Server *</label>
 					<select id="mt5server" bind:value={form.mt5_server} class="input" required>
-						<option value="" disabled selected>เลือก MT5 Server</option>
+						<option value="" disabled selected>Select MT5 Server</option>
 						<option value="Connext-Real">Connext-Real</option>
 						<option value="Connext-Demo">Connext-Demo</option>
 					</select>
 				</div>
 
 				<div class="flex gap-2">
-					<button type="button" class="btn-secondary flex-1" onclick={() => step = 1}>ย้อนกลับ</button>
+					<button type="button" class="btn-secondary flex-1" onclick={() => step = 1}>Back</button>
 					<button type="submit" class="btn-primary flex-1" disabled={loading || !form.mt5_account_id || !form.mt5_investor_password || !form.mt5_server}>
-						{loading ? 'กำลังส่ง...' : 'ส่งรออนุมัติ'}
+						{loading ? 'Submitting...' : 'Submit for Approval'}
 					</button>
 				</div>
 			{/if}

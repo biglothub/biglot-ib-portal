@@ -31,6 +31,7 @@
 	const adminLinks = [
 		{ href: '/admin', label: 'Dashboard', icon: icons.home, exact: true },
 		{ href: '/admin/approvals', label: 'อนุมัติลูกค้า', icon: icons.userCheck, exact: false },
+		{ href: '/admin/clients', label: 'รายการลูกค้า', icon: icons.userCircle, exact: false },
 		{ href: '/admin/ibs', label: 'Master IBs', icon: icons.users, exact: false },
 		{ href: '/admin/coaches', label: 'จัดการโค้ช', icon: icons.academicCap, exact: false },
 	];

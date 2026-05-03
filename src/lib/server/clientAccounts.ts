@@ -28,6 +28,8 @@ export function normalizeEmail(value: string | null | undefined): string | null 
 	return normalized || null;
 }
 
+export { isValidEmail } from '$lib/utils';
+
 export function normalizeIbCode(value: string): string {
 	return value.trim().toUpperCase();
 }

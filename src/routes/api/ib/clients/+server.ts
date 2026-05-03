@@ -2,7 +2,8 @@ import { json } from '@sveltejs/kit';
 import { encrypt } from '$lib/server/crypto';
 import {
 	CLIENT_ACCOUNT_PUBLIC_COLUMNS,
-	normalizeEmail
+	normalizeEmail,
+	isValidEmail
 } from '$lib/server/clientAccounts';
 import { rateLimit } from '$lib/server/rate-limit';
 import type { ClientAccount } from '$lib/types';
@@ -36,7 +37,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ message: 'ชื่อลูกค้าต้องมี 2-100 ตัวอักษร' }, { status: 400 });
 	}
 
-	if (normalizedClientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedClientEmail)) {
+	if (normalizedClientEmail && !isValidEmail(normalizedClientEmail)) {
 		return json({ message: 'รูปแบบอีเมลไม่ถูกต้อง' }, { status: 400 });
 	}
 

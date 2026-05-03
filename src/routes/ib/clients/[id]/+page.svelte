@@ -5,7 +5,7 @@
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	import EquityChart from '$lib/components/charts/EquityChart.svelte';
-	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo } from '$lib/utils';
+	import { formatCurrency, formatNumber, formatPercent, formatDateTime, timeAgo, isValidEmail, EMAIL_PATTERN } from '$lib/utils';
 
 	type ClientAccount = {
 		id: string;
@@ -59,6 +59,11 @@
 	let editEmail = $state('');
 	let editPhone = $state('');
 	let editNickname = $state('');
+	let emailFormatError = $derived(
+		editEmail.trim() && !isValidEmail(editEmail.trim().toLowerCase())
+			? 'รูปแบบอีเมลไม่ถูกต้อง (เช่น มี dot เกิน หรือไม่มี domain)'
+			: ''
+	);
 
 	// Cancel state
 	let showCancelConfirm = $state(false);
@@ -432,7 +437,10 @@
 				</div>
 				<div>
 					<label class="label" for="edit_email">อีเมล</label>
-					<input id="edit_email" type="email" class="input" bind:value={editEmail} />
+					<input id="edit_email" type="email" class="input" bind:value={editEmail} pattern={EMAIL_PATTERN} />
+					{#if emailFormatError}
+						<p class="text-xs text-red-400 mt-1">{emailFormatError}</p>
+					{/if}
 				</div>
 				<div>
 					<label class="label" for="edit_phone">เบอร์โทร</label>
@@ -449,7 +457,7 @@
 
 				<div class="flex gap-2 justify-end">
 					<button type="button" class="btn-secondary text-sm" onclick={() => editing = false}>ยกเลิก</button>
-					<button type="submit" class="btn-primary text-sm" disabled={saving}>
+					<button type="submit" class="btn-primary text-sm" disabled={saving || !!emailFormatError}>
 						{saving ? 'กำลังบันทึก...' : 'บันทึก'}
 					</button>
 				</div>

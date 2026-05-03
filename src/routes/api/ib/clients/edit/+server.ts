@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getDatabaseErrorStatus } from '$lib/server/clientAccounts';
+import { getDatabaseErrorStatus, isValidEmail } from '$lib/server/clientAccounts';
 import { rateLimit } from '$lib/server/rate-limit';
 import type { RequestHandler } from './$types';
 
@@ -27,7 +27,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const normalizedEmail = client_email?.trim().toLowerCase() || null;
-	if (normalizedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+	if (normalizedEmail && !isValidEmail(normalizedEmail)) {
 		return json({ message: 'รูปแบบอีเมลไม่ถูกต้อง' }, { status: 400 });
 	}
 
