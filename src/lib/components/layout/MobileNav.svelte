@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { focusTrap } from '$lib/actions/focusTrap';
+	import { openInstallPrompt } from '$lib/pwa/install-event.svelte';
+	import { usePlatform } from '$lib/pwa/use-platform.svelte';
 	import { fade } from 'svelte/transition';
-	import { page } from '$app/stores';
 
 	interface Tab {
 		base: string;
@@ -9,9 +10,19 @@
 		href: string;
 	}
 
+	interface DrawerAction {
+		label: string;
+		href?: string;
+		action?: () => void;
+		tone?: 'default' | 'danger';
+	}
+
 	let { tabs, isActive }: { tabs: Tab[]; isActive: (base: string) => boolean } = $props();
 
 	let moreOpen = $state(false);
+	let touchStartY = $state(0);
+	let touchDeltaY = $state(0);
+	const platform = usePlatform();
 
 	// Primary 4 tabs + "More" button
 	const primaryBases = ['/portfolio', '/portfolio/trades', '/portfolio/journal', '/portfolio/analytics'];
@@ -25,21 +36,116 @@
 	// If current page is in "more" section, highlight the More button
 	const moreActive = $derived(moreTabs.some((t) => isActive(t.base)));
 
+	const findTab = (base: string): DrawerAction | null => {
+		const tab = tabs.find((t) => t.base === base);
+		return tab ? { label: tab.label, href: tab.href } : null;
+	};
+
+	const toolActions = $derived(
+		[
+			findTab('/portfolio/calendar'),
+			findTab('/portfolio/live-trade'),
+			findTab('/portfolio/ai'),
+			findTab('/portfolio/day-view')
+		].filter(Boolean) as DrawerAction[]
+	);
+
+	const accountActions = $derived([
+		{ label: 'ตั้งค่า', href: '/settings' },
+		{ label: 'แจ้งเตือน', href: '/settings/alerts' },
+		{ label: 'คู่มือ', href: '/guide.html' },
+		...moreTabs
+			.filter((tab) => !toolActions.some((action) => action.href === tab.href))
+			.map((tab) => ({ label: tab.label, href: tab.href }))
+	]);
+
+	const systemActions = $derived(
+		[
+			!platform.isStandalone
+				? { label: 'ติดตั้งแอป', action: () => openInstallPrompt() }
+				: null
+		].filter(Boolean) as DrawerAction[]
+	);
+
 	function closeMore() {
 		moreOpen = false;
+		touchDeltaY = 0;
 	}
 
 	function handleDrawerKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') closeMore();
 	}
+
+	function handleAction(action: DrawerAction) {
+		action.action?.();
+		closeMore();
+	}
+
+	function handleTouchStart(e: TouchEvent) {
+		touchStartY = e.touches[0].clientY;
+		touchDeltaY = 0;
+	}
+
+	function handleTouchMove(e: TouchEvent) {
+		touchDeltaY = Math.max(0, e.touches[0].clientY - touchStartY);
+	}
+
+	function handleTouchEnd() {
+		if (touchDeltaY > 56) closeMore();
+		else touchDeltaY = 0;
+	}
+
+	$effect(() => {
+		if (!moreOpen) return;
+		const originalOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		return () => {
+			document.body.style.overflow = originalOverflow;
+		};
+	});
 </script>
+
+{#snippet DrawerSection(title: string, actions: DrawerAction[])}
+	{#if actions.length > 0}
+		<section class="space-y-1">
+			<p class="px-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{title}</p>
+			<div class="grid grid-cols-2 gap-1.5">
+				{#each actions as action}
+					{#if action.href}
+						<a
+							href={action.href}
+							onclick={closeMore}
+							class="pwa-min-touch flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors
+								{action.tone === 'danger'
+									? 'text-red-400 hover:bg-red-400/10'
+									: 'text-gray-300 hover:bg-dark-hover hover:text-white'}"
+						>
+							<span class="min-w-0 truncate">{action.label}</span>
+						</a>
+					{:else}
+						<button
+							type="button"
+							onclick={() => handleAction(action)}
+							class="pwa-min-touch flex items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors
+								{action.tone === 'danger'
+									? 'text-red-400 hover:bg-red-400/10'
+									: 'text-gray-300 hover:bg-dark-hover hover:text-white'}"
+						>
+							<span class="min-w-0 truncate">{action.label}</span>
+						</button>
+					{/if}
+				{/each}
+			</div>
+		</section>
+	{/if}
+{/snippet}
 
 <!-- Bottom drawer backdrop -->
 {#if moreOpen}
 	<button
 		type="button"
 		transition:fade={{ duration: 200 }}
-		class="md:hidden fixed inset-0 z-40 bg-black/50"
+		class="md:hidden fixed inset-0 z-[39] bg-black/50"
 		aria-label="ปิดเมนู"
 		onclick={closeMore}
 		tabindex="-1"
@@ -51,33 +157,28 @@
 {#if moreOpen}
 	<div
 		use:focusTrap={{ enabled: moreOpen }}
-		class="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border rounded-t-2xl shadow-2xl animate-slide-up"
+		class="md:hidden fixed left-0 right-0 z-[40] bg-dark-surface border-t border-dark-border rounded-t-2xl shadow-2xl animate-slide-up"
+		style="bottom: calc(56px + var(--pwa-safe-bottom)); transform: translateY({touchDeltaY}px); transition: {touchDeltaY > 0 ? 'none' : 'transform 160ms ease'}"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="more-menu-title"
 		tabindex="-1"
 		onkeydown={handleDrawerKeydown}
+		ontouchstart={handleTouchStart}
+		ontouchmove={handleTouchMove}
+		ontouchend={handleTouchEnd}
 	>
-		<div class="p-4 pb-2">
-			<div class="w-10 h-1 rounded-full bg-dark-border mx-auto mb-4"></div>
-			<p id="more-menu-title" class="text-xs font-medium text-gray-400 uppercase tracking-widest mb-3 px-1">เพิ่มเติม</p>
-			<div class="grid grid-cols-4 gap-1">
-				{#each moreTabs as tab}
-					<a
-						href={tab.href}
-						onclick={closeMore}
-						class="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl transition-colors
-							{isActive(tab.base)
-								? 'bg-brand-primary/15 text-brand-primary'
-								: 'text-gray-400 hover:text-white hover:bg-dark-hover'}"
-					>
-						<span class="text-[10px] font-medium text-center leading-tight">{tab.label}</span>
-					</a>
-				{/each}
-			</div>
-			<div class="mt-3 pt-3 border-t border-dark-border">
+		<div class="space-y-4 p-4 pb-3">
+			<div class="mx-auto h-1 w-10 rounded-full bg-dark-border"></div>
+			<p id="more-menu-title" class="px-1 text-xs font-medium uppercase tracking-widest text-gray-400">เพิ่มเติม</p>
+
+			{@render DrawerSection('Tools', toolActions)}
+			{@render DrawerSection('Account', accountActions)}
+			{@render DrawerSection('System', systemActions)}
+
+			<div class="border-t border-dark-border pt-3">
 				<form method="POST" action="/auth/logout">
-					<button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-400/10 transition-colors">
+					<button type="submit" class="pwa-min-touch flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-400/10">
 						<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
 						</svg>
@@ -91,13 +192,13 @@
 
 <!-- Fixed bottom navigation bar (mobile only) -->
 <nav
-	class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark-surface border-t border-dark-border flex items-stretch"
+	class="md:hidden fixed bottom-0 left-0 right-0 z-[20] bg-dark-surface border-t border-dark-border flex items-stretch pwa-safe-bottom"
 	aria-label="เมนูหลัก"
 >
 	{#each primaryTabs as tab}
 		<a
 			href={tab.href}
-			class="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors
+			class="pwa-min-touch flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors
 				{isActive(tab.base)
 					? 'text-brand-primary'
 					: 'text-gray-400 hover:text-gray-300'}"
@@ -130,7 +231,7 @@
 
 	<!-- More button -->
 	<button
-		class="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors
+		class="pwa-min-touch flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] transition-colors
 			{moreActive || moreOpen
 				? 'text-brand-primary'
 				: 'text-gray-400 hover:text-gray-300'}"

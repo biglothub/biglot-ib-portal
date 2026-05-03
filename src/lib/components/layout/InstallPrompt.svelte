@@ -1,160 +1,152 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import IOSInstallSteps from '$lib/components/pwa/IOSInstallSteps.svelte';
+	import { usePlatform } from '$lib/pwa/use-platform.svelte';
+	import {
+		PWA_INSTALL_DISMISSED_AT_KEY,
+		PWA_INSTALL_OPEN_EVENT,
+		useInstallPromptEvent
+	} from '$lib/pwa/install-event.svelte';
 
-	interface BeforeInstallPromptEvent extends Event {
-		prompt(): Promise<void>;
-		userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+	type InstallState = 'eligible' | 'snoozed' | 'installed' | 'unsupported' | 'dismissed';
+
+	const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
+	const platform = usePlatform();
+	const installPrompt = useInstallPromptEvent(true);
+
+	let installState = $state<InstallState>('unsupported');
+	let sheetOpen = $state(false);
+	let autoTimer: ReturnType<typeof setTimeout> | null = null;
+
+	const canShowSheet = $derived(
+		platform.isMobile && !platform.isStandalone && installState === 'eligible'
+	);
+
+	function readDismissedAt(): number | null {
+		if (!browser) return null;
+		const raw = localStorage.getItem(PWA_INSTALL_DISMISSED_AT_KEY);
+		if (!raw) return null;
+		const value = Number.parseInt(raw, 10);
+		return Number.isFinite(value) ? value : null;
 	}
 
-	let showIos = $state(false);
-	let deferredPrompt: BeforeInstallPromptEvent | null = $state(null);
-	let showAndroid = $state(false);
+	function resolveInstallState(): InstallState {
+		if (!browser) return 'unsupported';
+		if (platform.isStandalone || installPrompt.installed) return 'installed';
+		if (!platform.isMobile) return 'unsupported';
+		const dismissedAt = readDismissedAt();
+		if (dismissedAt && Date.now() - dismissedAt < SNOOZE_MS) return 'snoozed';
+		if (platform.isIOS || platform.isAndroid || installPrompt.canPrompt) return 'eligible';
+		return 'unsupported';
+	}
+
+	function openSheet({ bypassSnooze = false } = {}) {
+		if (!browser || platform.isStandalone || !platform.isMobile) return;
+		if (!bypassSnooze && installState === 'snoozed') return;
+		installState = 'eligible';
+		sheetOpen = true;
+	}
+
+	function dismiss() {
+		sheetOpen = false;
+		installState = 'dismissed';
+		localStorage.setItem(PWA_INSTALL_DISMISSED_AT_KEY, Date.now().toString());
+	}
+
+	async function installNow() {
+		if (platform.isAndroid && installPrompt.canPrompt) {
+			const outcome = await installPrompt.prompt();
+			if (outcome === 'accepted') {
+				sheetOpen = false;
+				installState = 'installed';
+				return;
+			}
+		}
+		sheetOpen = true;
+	}
 
 	onMount(() => {
-		if (!browser) return;
-
-		const isStandalone =
-			window.matchMedia('(display-mode: standalone)').matches ||
-			(navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-		if (isStandalone) return;
-
-		const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-		if (isIos) {
-			// iOS Safari path
-			const dismissed = localStorage.getItem('pwa-install-dismissed');
-			if (dismissed) {
-				const dismissedAt = parseInt(dismissed, 10);
-				const sevenDays = 7 * 24 * 60 * 60 * 1000;
-				if (Date.now() - dismissedAt < sevenDays) return;
-			}
-			setTimeout(() => {
-				showIos = true;
-			}, 3000);
-		} else {
-			// Android Chrome path — listen for beforeinstallprompt
-			const handler = (e: Event) => {
-				e.preventDefault();
-				const dismissed = localStorage.getItem('pwa-android-dismissed');
-				if (dismissed) {
-					const dismissedAt = parseInt(dismissed, 10);
-					const sevenDays = 7 * 24 * 60 * 60 * 1000;
-					if (Date.now() - dismissedAt < sevenDays) return;
-				}
-				deferredPrompt = e as BeforeInstallPromptEvent;
-				showAndroid = true;
-			};
-			window.addEventListener('beforeinstallprompt', handler);
-			return () => {
-				window.removeEventListener('beforeinstallprompt', handler);
-			};
-		}
+		const handleManualOpen = () => openSheet({ bypassSnooze: true });
+		window.addEventListener(PWA_INSTALL_OPEN_EVENT, handleManualOpen);
+		return () => {
+			window.removeEventListener(PWA_INSTALL_OPEN_EVENT, handleManualOpen);
+			if (autoTimer) clearTimeout(autoTimer);
+		};
 	});
 
-	function dismissIos() {
-		showIos = false;
-		localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-	}
+	$effect(() => {
+		installState = resolveInstallState();
 
-	function dismissAndroid() {
-		showAndroid = false;
-		deferredPrompt = null;
-		localStorage.setItem('pwa-android-dismissed', Date.now().toString());
-	}
-
-	async function installAndroid() {
-		if (!deferredPrompt) return;
-		await deferredPrompt.prompt();
-		const { outcome } = await deferredPrompt.userChoice;
-		if (outcome === 'accepted') {
-			showAndroid = false;
+		if (autoTimer) {
+			clearTimeout(autoTimer);
+			autoTimer = null;
 		}
-		deferredPrompt = null;
-	}
+
+		if (canShowSheet && !sheetOpen) {
+			autoTimer = setTimeout(() => openSheet(), 3000);
+		}
+	});
 </script>
 
-{#if showIos}
-	<!-- iOS Safari install instructions -->
-	<div class="fixed bottom-0 inset-x-0 z-[90] p-4 pwa-safe-bottom animate-slide-up">
-		<div class="bg-dark-surface border border-dark-border rounded-2xl p-4 max-w-md mx-auto shadow-xl">
+{#if sheetOpen && platform.isMobile && !platform.isStandalone}
+	<div class="md:hidden fixed inset-x-0 bottom-0 z-[40] p-4 pwa-safe-bottom animate-slide-up">
+		<div
+			class="mx-auto max-w-md rounded-2xl border border-dark-border bg-dark-surface p-4 shadow-2xl"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="install-prompt-title"
+		>
 			<div class="flex items-start gap-3">
-				<div class="w-12 h-12 rounded-xl bg-[#1e3a5f] flex items-center justify-center shrink-0">
-					<span class="text-[#3b82f6] font-bold text-lg">IB</span>
+				<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1e3a5f]">
+					<span class="text-lg font-bold text-[#3b82f6]">IB</span>
 				</div>
-				<div class="flex-1 min-w-0">
-					<h3 class="text-sm font-semibold text-white">เพิ่ม IB Portal ลงหน้าจอ</h3>
-					<p class="text-xs text-gray-400 mt-1">
-						กดปุ่ม
-						<svg class="inline w-4 h-4 text-brand-400 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-								d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-						</svg>
-						แชร์ แล้วเลือก <strong class="text-white">"เพิ่มในหน้าจอโฮม"</strong>
+				<div class="min-w-0 flex-1">
+					<h3 id="install-prompt-title" class="text-sm font-semibold text-white">
+						{platform.isIOS ? 'เพิ่ม IB Portal ลงหน้าจอโฮม' : 'ติดตั้งแอป IB Portal'}
+					</h3>
+					<p class="mt-1 text-xs leading-relaxed text-gray-400">
+						เปิดดูพอร์ตได้เร็วขึ้น และรับการแจ้งเตือนสำคัญ
 					</p>
 				</div>
 				<button
-					onclick={dismissIos}
-					class="shrink-0 p-1 text-gray-400 hover:text-white transition-colors"
+					type="button"
+					onclick={dismiss}
+					class="pwa-min-touch -mr-2 -mt-2 flex shrink-0 items-center justify-center text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
 					aria-label="ปิด"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
 					</svg>
 				</button>
 			</div>
-		</div>
-	</div>
-{/if}
 
-{#if showAndroid}
-	<!-- Android Chrome install prompt -->
-	<div class="fixed bottom-0 inset-x-0 z-[90] p-4 pwa-safe-bottom animate-slide-up">
-		<div class="bg-dark-surface border border-dark-border rounded-2xl p-4 max-w-md mx-auto shadow-xl">
-			<div class="flex items-start gap-3">
-				<div class="w-12 h-12 rounded-xl bg-[#1e3a5f] flex items-center justify-center shrink-0">
-					<svg class="w-6 h-6 text-[#3b82f6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-					</svg>
+			{#if platform.isIOS}
+				<IOSInstallSteps />
+			{:else}
+				<div class="mt-3 rounded-lg border border-dark-border bg-dark-bg/70 px-3 py-2 text-xs leading-relaxed text-gray-400">
+					{installPrompt.canPrompt
+						? 'กดติดตั้งเลยเพื่อเพิ่ม IB Portal ไปที่ Home Screen'
+						: 'เปิดเมนูของ Chrome แล้วเลือกติดตั้งแอปเมื่อเบราว์เซอร์รองรับ'}
 				</div>
-				<div class="flex-1 min-w-0">
-					<h3 class="text-sm font-semibold text-white">ติดตั้งแอป IB Portal</h3>
-					<p class="text-xs text-gray-400 mt-1">เปิดใช้งานได้เร็วขึ้นจาก Home Screen</p>
-					<button
-						onclick={installAndroid}
-						class="mt-2.5 px-4 py-1.5 bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-semibold rounded-lg transition-colors"
-					>
-						ติดตั้ง
-					</button>
-				</div>
+			{/if}
+
+			<div class="mt-4 flex items-center justify-end gap-2">
 				<button
-					onclick={dismissAndroid}
-					class="shrink-0 p-1 text-gray-400 hover:text-white transition-colors"
-					aria-label="ปิด"
+					type="button"
+					onclick={dismiss}
+					class="pwa-min-touch rounded-lg px-4 py-2 text-xs font-medium text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-					</svg>
+					ไว้ทีหลัง
+				</button>
+				<button
+					type="button"
+					onclick={installNow}
+					class="pwa-min-touch rounded-lg bg-brand-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+				>
+					ติดตั้งเลย
 				</button>
 			</div>
 		</div>
 	</div>
 {/if}
-
-<style>
-	@keyframes slide-up {
-		from {
-			opacity: 0;
-			transform: translateY(1rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-	.animate-slide-up {
-		animation: slide-up 0.3s ease-out;
-	}
-</style>

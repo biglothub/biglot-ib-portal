@@ -2,7 +2,7 @@
   "name": "IB Portal - Trading Management",
   "short_name": "IB Portal",
   "description": "ระบบจัดการพอร์ตการเทรด",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

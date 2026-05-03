@@ -54,32 +54,35 @@ sw.addEventListener('fetch', (event) => {
 	const { request } = event;
 	const url = new URL(request.url);
 
-	// Skip non-GET requests (all API endpoints are POST)
+	// Cache strategy: never cache mutations.
 	if (request.method !== 'GET') return;
 
-	// Skip auth routes, API routes, Supabase
+	// Cache strategy: bypass auth, API, and Supabase requests.
+	// These routes depend on server truth and must never be served stale.
 	if (
 		url.pathname.startsWith('/api/') ||
 		url.pathname.startsWith('/auth/') ||
+		url.pathname === '/logout' ||
+		url.pathname.startsWith('/settings/security') ||
 		url.hostname.includes('supabase')
 	) {
 		return;
 	}
 
-	// Google Fonts: stale-while-revalidate
+	// Cache strategy: Google Fonts use stale-while-revalidate.
 	if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
 		event.respondWith(fontCacheStrategy(request));
 		return;
 	}
 
-	// Static/build assets: cache-first
+	// Cache strategy: SvelteKit build/static assets are cache-first.
 	if (PRECACHE_ASSETS.includes(url.pathname)) {
 		event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
 		return;
 	}
 
-	// Portfolio navigation pages: stale-while-revalidate
-	// Serve cached version immediately, update cache in background
+	// Cache strategy: portfolio navigation pages are stale-while-revalidate.
+	// Serve cached version immediately, then update that route cache in the background.
 	if (
 		request.mode === 'navigate' &&
 		PORTFOLIO_ORIGINS.some((prefix) => url.pathname === prefix || url.pathname.startsWith(prefix + '/') || url.pathname.startsWith(prefix + '?'))
@@ -88,7 +91,7 @@ sw.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// Other navigation requests: network-first with offline fallback
+	// Cache strategy: all other navigation requests are network-first with offline fallback.
 	if (request.mode === 'navigate') {
 		event.respondWith(
 			fetch(request).catch(() => caches.match('/offline') as Promise<Response>)

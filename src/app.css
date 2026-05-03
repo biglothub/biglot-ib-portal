@@ -12,6 +12,17 @@
   --c-border-rgb: 226 232 240;
   --c-hover: #f1f5f9;
   --c-hover-rgb: 241 245 249;
+  --pwa-z-offline-banner: 60;
+  --pwa-z-modal: 50;
+  --pwa-z-bottom-sheet: 40;
+  --pwa-z-toast: 35;
+  --pwa-z-fab: 30;
+  --pwa-z-bottom-nav: 20;
+  --pwa-z-header: 15;
+  --pwa-safe-top: 0px;
+  --pwa-safe-bottom: 0px;
+  --pwa-safe-left: 0px;
+  --pwa-safe-right: 0px;
   color-scheme: light;
   background-color: var(--c-bg);
 }
@@ -173,27 +184,56 @@ body {
   to { opacity: 0.6; transform: translateY(-2px); }
 }
 
-/* PWA standalone mode - iOS safe areas */
+/* PWA standalone mode - mobile safe areas only */
 @supports (padding-top: env(safe-area-inset-top)) {
-  @media (display-mode: standalone) {
+  @media (max-width: 767px) and (display-mode: standalone) {
+    :root {
+      --pwa-safe-top: env(safe-area-inset-top);
+      --pwa-safe-bottom: env(safe-area-inset-bottom);
+      --pwa-safe-left: env(safe-area-inset-left);
+      --pwa-safe-right: env(safe-area-inset-right);
+    }
+
     body {
-      padding-top: env(safe-area-inset-top);
       overscroll-behavior: none;
     }
 
-    /* Fixed sidebar needs to account for status bar */
-    aside.fixed {
-      padding-top: env(safe-area-inset-top);
-    }
-
-    /* Mobile hamburger button below status bar */
     .pwa-safe-top {
-      top: calc(1rem + env(safe-area-inset-top));
+      padding-top: var(--pwa-safe-top);
     }
 
-    /* Bottom safe area for home indicator */
-    .pwa-safe-bottom {
-      padding-bottom: env(safe-area-inset-bottom);
+    .pwa-safe-bottom,
+    .pb-safe {
+      padding-bottom: var(--pwa-safe-bottom);
     }
+
+    .pwa-safe-x {
+      padding-left: var(--pwa-safe-left);
+      padding-right: var(--pwa-safe-right);
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  .pwa-min-touch {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

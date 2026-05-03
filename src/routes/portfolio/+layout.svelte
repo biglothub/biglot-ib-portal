@@ -13,6 +13,7 @@
 	import SyncStatusBadge from '$lib/components/portfolio/SyncStatusBadge.svelte';
 	import AccountSwitcher from '$lib/components/portfolio/AccountSwitcher.svelte';
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
+	import MobileHeader from '$lib/components/pwa/MobileHeader.svelte';
 	import QuickTradeEntry from '$lib/components/portfolio/QuickTradeEntry.svelte';
 	import ShortcutsHelp from '$lib/components/shared/ShortcutsHelp.svelte';
 	import { registerShortcuts, unregisterShortcuts, initShortcuts, pushOverlay, popOverlay } from '$lib/stores/shortcuts.svelte';
@@ -216,6 +217,10 @@
 	];
 
 	const tabs = $derived(tabDefs.map(t => ({ href: tabHref(t.base), base: t.base, label: t.label })));
+	const mobileHeaderBack = $derived(
+		$page.url.pathname.startsWith('/portfolio/') &&
+		!tabDefs.some((tab) => $page.url.pathname === tab.base)
+	);
 
 	const isActive = (base: string) => {
 		const path = $page.url.pathname;
@@ -231,6 +236,8 @@
 </svelte:head>
 
 <NetworkStatus />
+
+<MobileHeader title={isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'} back={mobileHeaderBack} />
 
 <!-- Pull-to-refresh indicator (mobile only) -->
 {#if pullDelta > 0 || isRefreshing}
@@ -276,7 +283,7 @@
 	class="space-y-4 pb-16 md:pb-0 transition-transform duration-150 md:!transform-none"
 	style={pullDelta > 0 ? `transform: translateY(${Math.min(pullDelta * 0.3, 24)}px)` : ''}
 >
-	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+	<div class="hidden md:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 		<div class="flex items-center gap-3">
 			<h1 class="text-xl font-bold">{isAdminView ? account?.client_name || 'Client Portfolio' : 'พอร์ตของฉัน'}</h1>
 			{#if account && !isAdminView}

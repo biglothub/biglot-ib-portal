@@ -1,4 +1,5 @@
 import { init, handleErrorWithSentry } from '@sentry/sveltekit';
+import { afterNavigate } from '$app/navigation';
 import { env } from '$env/dynamic/public';
 import { initWebVitals } from '$lib/web-vitals';
 
@@ -13,5 +14,11 @@ if (env.PUBLIC_SENTRY_DSN) {
 }
 
 initWebVitals();
+
+afterNavigate(({ to }) => {
+	if (!to?.url) return;
+	if (to.url.pathname === '/offline' || to.url.pathname.startsWith('/auth/')) return;
+	localStorage.setItem('pwa.lastRoute', `${to.url.pathname}${to.url.search}${to.url.hash}`);
+});
 
 export const handleError = handleErrorWithSentry();
